@@ -1,0 +1,274 @@
+'use server'
+
+import { db } from '@/lib/db'
+import { projectService } from '@/lib/services/project-service'
+import { getCurrentUser } from './auth'
+import { redirect } from 'next/navigation'
+
+export type ProjectStatus = 'planning' | 'active' | 'completed' | 'onhold'
+
+export interface ProjectListItem {
+  id: string
+  name: string
+  code: string
+  status: ProjectStatus
+  client: {
+    name: string
+  }
+  startDate: Date
+  endDate: Date | null
+  budget: number
+  progress: number
+  teamSize: number
+  pmName: string
+}
+
+export async function getProjects() {
+  const user = await getCurrentUser()
+  if (!user) {
+    return []
+  }
+
+  // プロジェクトサービスから詳細情報付きでプロジェクトを取得
+  const projects = await projectService.getProjectsWithDetails({
+    includeMembers: true,
+    includeTasks: false,
+    includeMilestones: false,
+  })
+
+  // ユーザーの権限に基づいてフィルタリング
+  const filteredProjects = user.role.name === 'executive' 
+    ? projects 
+    : projects.filter(project => 
+        project.projectMembers.some(m => m.userId === user.id && m.role === 'pm')
+      )
+
+  // プロジェクトメトリクスを取得（コアサービスから）
+  const projectIds = filteredProjects.map(p => p.id)
+  const metrics = await db.projectMetric.findMany({
+    where: {
+      projectId: { in: projectIds }
+    },
+    orderBy: {
+      date: 'desc'
+    },
+    distinct: ['projectId'],
+  })
+  const metricsMap = new Map(metrics.map(m => [m.projectId, m]))
+
+  return filteredProjects.map(project => {
+    const pm = project.projectMembers.find(m => m.role === 'pm')
+    const metric = metricsMap.get(project.id)
+    
+    return {
+      id: project.id,
+      name: project.name,
+      code: project.code,
+      status: project.status as ProjectStatus,
+      client: {
+        name: project.client?.name || 'Unknown Client'
+      },
+      startDate: project.startDate,
+      endDate: project.endDate,
+      budget: project.budget,
+      progress: metric?.progressRate || 0,
+      teamSize: project.projectMembers.length,
+      pmName: pm?.user?.name || '未割当'
+    }
+  })
+}
+
+export async function createProject(data: {
+  name: string
+  description: string
+  clientId: string
+  budget: number
+  startDate: string
+  endDate: string
+  status: string
+  priority: string
+  tags?: string[]
+}) {
+  const user = await getCurrentUser()
+  if (!user || (user.role.name !== 'pm' && user.role.name !== 'executive')) {
+    throw new Error('権限がありません')
+  }
+
+  // プロジェクトコード生成（名前の略称 + 年月）
+  const now = new Date()
+  const yearMonth = now.getFullYear().toString().slice(-2) + (now.getMonth() + 1).toString().padStart(2, '0')
+  const namePrefix = data.name.slice(0, 3).toUpperCase()
+  let code = `${namePrefix}${yearMonth}${Math.floor(Math.random() * 100).toString().padStart(2, '0')}`
+
+  // プロジェクトサービスを使用してプロジェクトを作成
+  try {
+    const project = await projectService.createProject({
+      name: data.name,
+      code,
+      clientId: data.clientId,
+      status: data.status,
+      priority: data.priority,
+      startDate: new Date(data.startDate),
+      endDate: new Date(data.endDate),
+      budget: data.budget,
+      description: data.description,
+      members: [{
+        userId: user.id,
+        role: 'pm',
+        allocation: 1.0,
+        startDate: new Date(data.startDate),
+        endDate: new Date(data.endDate)
+      }]
+    })
+
+    // 監査ログ
+    await db.auditLog.create({
+      data: {
+        userId: user.id,
+        action: 'CREATE',
+        resource: 'project',
+        resourceId: project.id,
+        details: `プロジェクト「${project.name}」を作成しました`
+      }
+    })
+
+    return project
+  } catch (error: any) {
+    // コードが重複している場合は再生成
+    if (error.message?.includes('Unique constraint failed')) {
+      return createProject(data)
+    }
+    throw error
+  }
+}
+
+export async function updateProjectStatus(projectId: string, status: ProjectStatus) {
+  const user = await getCurrentUser()
+  if (!user) {
+    throw new Error('認証が必要です')
+  }
+
+  // プロジェクトサービスでプロジェクト情報を取得
+  const projects = await projectService.getProjectsWithDetails({
+    includeMembers: true,
+  })
+  
+  const project = projects.find(p => p.id === projectId)
+  
+  if (!project) {
+    throw new Error('プロジェクトが見つかりません')
+  }
+
+  // 権限チェック
+  const hasPermission = user.role.name === 'executive' || 
+    project.projectMembers.some(m => m.userId === user.id && m.role === 'pm')
+  
+  if (!hasPermission) {
+    throw new Error('このプロジェクトを更新する権限がありません')
+  }
+
+  // ステータス更新
+  await projectService.updateProject(projectId, { status })
+
+  // 監査ログ
+  await db.auditLog.create({
+    data: {
+      userId: user.id,
+      action: 'UPDATE',
+      resource: 'project',
+      resourceId: projectId,
+      details: `プロジェクトのステータスを「${status}」に変更しました`
+    }
+  })
+}
+
+export async function getProjectDetails(projectId: string) {
+  const user = await getCurrentUser()
+  if (!user) {
+    redirect('/login')
+  }
+
+  // プロジェクトサービスから詳細情報を取得
+  const projects = await projectService.getProjectsWithDetails({
+    includeMembers: true,
+    includeTasks: true,
+    includeMilestones: true,
+  })
+
+  const project = projects.find(p => p.id === projectId)
+
+  if (!project) {
+    throw new Error('プロジェクトが見つかりません')
+  }
+
+  // アクセス権限チェック
+  const hasAccess = user.role.name === 'executive' || 
+    project.projectMembers.some(member => member.userId === user.id)
+
+  if (!hasAccess) {
+    throw new Error('このプロジェクトへのアクセス権限がありません')
+  }
+
+  // プロジェクトメトリクスを取得（コアサービスから）
+  const projectMetrics = await db.projectMetric.findMany({
+    where: { projectId },
+    orderBy: { date: 'desc' },
+    take: 12,
+  })
+
+  // メンバーのロール情報を追加
+  const memberUserIds = project.projectMembers.map(m => m.userId)
+  const memberUsers = await db.user.findMany({
+    where: { id: { in: memberUserIds } },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: {
+        select: {
+          name: true
+        }
+      }
+    }
+  })
+  const userMap = new Map(memberUsers.map(u => [u.id, u]))
+
+  // レスポンスを整形
+  return {
+    ...project,
+    projectMembers: project.projectMembers.map(member => ({
+      ...member,
+      user: userMap.get(member.userId) || { id: member.userId, name: 'Unknown', email: '', role: { name: 'unknown' } }
+    })),
+    projectMetrics,
+  }
+}
+
+export async function getActiveProjects() {
+  try {
+    const user = await getCurrentUser()
+    if (!user) {
+      return { success: false, error: '認証が必要です' }
+    }
+
+    // プロジェクトサービスからアクティブなプロジェクトを取得
+    const projects = await projectService.getProjectsWithDetails({
+      status: 'active',
+      includeMembers: false,
+    })
+
+    const formattedProjects = projects.map(project => ({
+      id: project.id,
+      name: project.name,
+      code: project.code,
+      client: {
+        name: project.client?.name || 'Unknown Client'
+      }
+    }))
+
+    return { success: true, data: formattedProjects }
+  } catch (error) {
+    console.error('getActiveProjects error:', error)
+    return { success: false, error: 'プロジェクト一覧の取得に失敗しました' }
+  }
+}

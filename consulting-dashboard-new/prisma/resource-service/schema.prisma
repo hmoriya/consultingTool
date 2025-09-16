@@ -1,0 +1,217 @@
+// リソース管理サービスのスキーマ
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../node_modules/@prisma/resource-client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("RESOURCE_DATABASE_URL")
+}
+
+// チーム
+model Team {
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  leaderId    String?      // 外部参照：Userサービス
+  parentTeamId String?
+  parentTeam  Team?        @relation("TeamHierarchy", fields: [parentTeamId], references: [id])
+  childTeams  Team[]       @relation("TeamHierarchy")
+  members     TeamMember[]
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([leaderId])
+  @@index([parentTeamId])
+}
+
+// チームメンバー
+model TeamMember {
+  id        String   @id @default(cuid())
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id])
+  userId    String   // 外部参照：Userサービス
+  role      String   // member, lead, manager
+  startDate DateTime
+  endDate   DateTime?
+  createdAt DateTime @default(now())
+
+  @@unique([teamId, userId])
+  @@index([userId])
+}
+
+// スキルカテゴリ
+model SkillCategory {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  order     Int      @default(0)
+  skills    Skill[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// スキル
+model Skill {
+  id                 String               @id @default(cuid())
+  name               String
+  categoryId         String
+  category           SkillCategory        @relation(fields: [categoryId], references: [id])
+  description        String?
+  certifications     SkillCertification[]
+  users              UserSkill[]
+  demandLevel        String?              // low, medium, high (市場需要)
+  requiredProjects   Int                  @default(0) // このスキルを必要とするプロジェクト数
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  @@unique([name, categoryId])
+  @@index([categoryId])
+}
+
+// スキル認定資格
+model SkillCertification {
+  id             String   @id @default(cuid())
+  skillId        String
+  skill          Skill    @relation(fields: [skillId], references: [id])
+  name           String
+  provider       String   // 認定機関
+  validityPeriod Int?     // 有効期間（月）
+  createdAt      DateTime @default(now())
+
+  @@index([skillId])
+}
+
+// ユーザースキル
+model UserSkill {
+  id                 String    @id @default(cuid())
+  userId             String    // 外部参照：Userサービス
+  skillId            String
+  skill              Skill     @relation(fields: [skillId], references: [id])
+  level              Int       // 1-5 (初級-エキスパート)
+  experienceYears    Float?
+  lastUsedDate       DateTime?
+  certificationDate  DateTime? // 認定取得日
+  certificationExpiry DateTime? // 認定有効期限
+  selfAssessment     Int?      // 自己評価 1-5
+  managerAssessment  Int?      // マネージャー評価 1-5
+  peerAssessment     Float?    // 同僚評価平均 1-5
+  projectCount       Int       @default(0) // このスキルを使用したプロジェクト数
+  trainingCompleted  String?   // 完了した研修（JSON配列）
+  notes              String?   // 備考
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@unique([userId, skillId])
+  @@index([skillId])
+  @@index([level])
+}
+
+// リソース配分
+model ResourceAllocation {
+  id              String   @id @default(cuid())
+  userId          String   // 外部参照：Userサービス
+  projectId       String   // 外部参照：Projectサービス
+  allocationRate  Float    // 0.1-1.0 (稼働率)
+  startDate       DateTime
+  endDate         DateTime?
+  actualRate      Float?   // 実際の稼働率
+  role            String   // プロジェクトでの役割
+  billableRate    Float?   // 請求単価
+  cost            Float?   // コスト
+  status          String   @default("planned") // planned, confirmed, active, completed
+  approvedBy      String?  // 外部参照：Userサービス
+  approvedAt      DateTime?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId, startDate])
+  @@index([projectId, startDate])
+  @@index([status])
+}
+
+// 稼働率履歴
+model UtilizationHistory {
+  id              String   @id @default(cuid())
+  userId          String   // 外部参照：Userサービス
+  date            DateTime
+  plannedHours    Float    // 計画工数
+  actualHours     Float    // 実績工数
+  billableHours   Float    // 請求可能工数
+  utilization     Float    // 稼働率
+  billability     Float    // 請求可能率
+  overtimeHours   Float    @default(0) // 残業時間
+  createdAt       DateTime @default(now())
+
+  @@unique([userId, date])
+  @@index([date])
+}
+
+// スキルギャップ分析
+model SkillGap {
+  id             String   @id @default(cuid())
+  userId         String?  // 外部参照：Userサービス（null の場合は組織全体）
+  skillId        String   // 外部参照：Skillサービス
+  currentLevel   Float    // 現在のレベル平均
+  requiredLevel  Float    // 必要レベル
+  gap            Float    // ギャップ（required - current）
+  priority       String   // low, medium, high, critical
+  analysisDate   DateTime
+  recommendation String?  // 推奨アクション
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+  @@index([skillId])
+  @@index([priority])
+}
+
+// キャパシティプランニング
+model CapacityPlan {
+  id                   String   @id @default(cuid())
+  periodStart          DateTime
+  periodEnd            DateTime
+  teamId               String?  // 外部参照：Teamサービス（null の場合は全社）
+  totalCapacity        Float    // 総キャパシティ（人時）
+  allocatedCapacity    Float    // 配分済みキャパシティ
+  availableCapacity    Float    // 利用可能キャパシティ
+  plannedProjects      Int      // 計画プロジェクト数
+  requiredSkills       String   // 必要スキル（JSON）
+  capacityBySkill      String   // スキル別キャパシティ（JSON）
+  bottleneckSkills     String?  // ボトルネックスキル（JSON配列）
+  recommendations      String?  // 推奨事項
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([periodStart, periodEnd])
+  @@index([teamId])
+}
+
+// リソースリクエスト
+model ResourceRequest {
+  id              String   @id @default(cuid())
+  projectId       String   // 外部参照：Projectサービス
+  requestedBy     String   // 外部参照：Userサービス
+  role            String   // 要求ロール
+  skillIds        String   // 必要スキルID（JSON配列）
+  level           String   // junior, middle, senior, expert
+  allocationRate  Float    // 必要稼働率
+  startDate       DateTime
+  endDate         DateTime
+  description     String?
+  justification   String?  // 理由・背景
+  priority        String   // low, medium, high, urgent
+  status          String   @default("pending") // pending, approved, assigned, rejected, cancelled
+  assignedUserId  String?  // 外部参照：Userサービス
+  reviewedBy      String?  // 外部参照：Userサービス
+  reviewedAt      DateTime?
+  reviewNotes     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([status])
+  @@index([priority])
+}

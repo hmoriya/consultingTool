@@ -1,0 +1,164 @@
+# Consulting Dashboard
+
+A comprehensive project management dashboard for consulting firms with role-based access control.
+
+## Features
+
+### Role-Based Dashboards
+
+#### Executive Dashboard (`/dashboard/executive`)
+- Portfolio overview with project status distribution
+- Revenue and profitability analysis
+- Resource utilization and optimization views
+- Key performance metrics
+
+#### PM Dashboard (`/dashboard/pm`)
+- Project management interface
+- Task and milestone tracking
+- Team utilization monitoring
+- Risk identification and mitigation
+
+#### Consultant Dashboard (`/dashboard/consultant`)
+- Personal task management
+- Weekly calendar view
+- Project assignments
+- Skills and expertise tracking
+
+#### Client Portal (`/dashboard/client`)
+- Project progress monitoring
+- Document access
+- Activity timeline
+- Budget and timeline tracking
+
+### Core Features
+- **Authentication**: Secure login with role-based redirects
+- **Project Management**: Create, update, and track projects
+- **Team Management**: Manage consultants and their skills
+- **Client Management**: Track client organizations and contacts
+- **Task Tracking**: Comprehensive task management with status updates
+- **Document Management**: Project document storage and access control
+
+## Tech Stack
+
+- **Framework**: Next.js 15.5.2 (App Router)
+- **UI Components**: shadcn/ui
+- **Styling**: Tailwind CSS
+- **Database**: SQLite with Prisma ORM
+- **Authentication**: Custom implementation with bcrypt
+- **Validation**: Zod schemas
+- **Forms**: React Hook Form
+
+## Getting Started
+
+### Prerequisites
+- Node.js 18+
+- npm or yarn
+
+### Installation
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd consulting-dashboard-new
+
+# Install dependencies
+npm install
+
+# Set up the database
+npm run db:push
+npm run db:seed
+
+# Start the development server
+npm run dev
+```
+
+### Test Credentials
+
+```
+Executive: exec@example.com / password123
+PM: pm@example.com / password123
+Consultant: consultant@example.com / password123
+Client: client@example.com / password123
+```
+
+## Project Structure
+
+```
+consulting-dashboard-new/
+├── app/                    # Next.js App Router
+│   ├── (auth)/            # Authentication pages
+│   ├── (dashboard)/       # Dashboard layout
+│   ├── dashboard/         # Role-specific dashboards
+│   ├── projects/          # Project management
+│   ├── clients/           # Client management
+│   ├── team/              # Team management
+│   ├── actions/           # Server actions
+│   ├── components/        # React components
+│   ├── contexts/          # React contexts
+│   ├── lib/              # Utilities and configs
+│   └── types/            # TypeScript types
+├── design/               # Design documents
+├── prisma/              # Database schema
+└── public/             # Static assets
+```
+
+## Development
+
+### Database Commands
+
+```bash
+# Push schema changes
+npm run db:push
+
+# Seed the database
+npm run db:seed
+
+# Open Prisma Studio
+npm run db:studio
+
+# Generate Prisma client
+npm run db:generate
+```
+
+### Testing
+
+```bash
+# Run unit tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
+```
+
+### Building
+
+```bash
+# Create production build
+npm run build
+
+# Start production server
+npm start
+```
+
+## Design Documents
+
+Comprehensive design documentation is available in the `/design` directory:
+- Database schema
+- API specifications
+- Use case diagrams
+- UI/UX wireframes
+- Test specifications
+
+## Contributing
+
+1. Create a feature branch
+2. Make your changes
+3. Write/update tests
+4. Submit a pull request
+
+## License
+
+[Your License Here]

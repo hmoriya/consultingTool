@@ -1,0 +1,155 @@
+// This is your Prisma schema file for notification service
+// Includes messaging, notifications, and communication features
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../node_modules/@prisma/notification-client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("NOTIFICATION_DATABASE_URL")
+}
+
+// チャンネル（プロジェクトチャット、ダイレクトメッセージ用）
+model Channel {
+  id          String    @id @default(cuid())
+  name        String?   // null for direct messages
+  description String?
+  type        String    // PROJECT, DIRECT, GROUP
+  projectId   String?   // For project channels
+  isPrivate   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdBy   String    // User ID
+
+  messages    Message[]
+  members     ChannelMember[]
+  lastMessage Message?  @relation("LastMessage", fields: [lastMessageId], references: [id])
+  lastMessageId String? @unique
+
+  @@index([type])
+  @@index([projectId])
+}
+
+// チャンネルメンバー
+model ChannelMember {
+  id              String    @id @default(cuid())
+  channelId       String
+  userId          String
+  role            String    @default("member") // admin, member
+  joinedAt        DateTime  @default(now())
+  lastReadAt      DateTime  @default(now())
+  notificationEnabled Boolean @default(true)
+  
+  channel         Channel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@unique([channelId, userId])
+  @@index([userId])
+}
+
+// メッセージ
+model Message {
+  id          String    @id @default(cuid())
+  channelId   String
+  senderId    String    // User ID
+  content     String
+  type        String    @default("text") // text, file, image, system
+  metadata    String?   // JSON for file info, image URL, etc
+  editedAt    DateTime?
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  channel     Channel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  reactions   MessageReaction[]
+  mentions    MessageMention[]
+  readReceipts MessageReadReceipt[]
+  parentMessage Message? @relation("ThreadMessages", fields: [parentId], references: [id])
+  parentId    String?
+  threadMessages Message[] @relation("ThreadMessages")
+  lastMessageChannels Channel[] @relation("LastMessage")
+
+  @@index([channelId, createdAt])
+  @@index([senderId])
+  @@index([parentId])
+}
+
+// メッセージリアクション
+model MessageReaction {
+  id          String    @id @default(cuid())
+  messageId   String
+  userId      String
+  emoji       String
+  createdAt   DateTime  @default(now())
+
+  message     Message   @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
+  @@index([userId])
+}
+
+// メッセージメンション
+model MessageMention {
+  id          String    @id @default(cuid())
+  messageId   String
+  userId      String    // Mentioned user
+  type        String    // user, channel, all
+  createdAt   DateTime  @default(now())
+
+  message     Message   @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([userId])
+}
+
+// 既読管理
+model MessageReadReceipt {
+  id          String    @id @default(cuid())
+  messageId   String
+  userId      String
+  readAt      DateTime  @default(now())
+
+  message     Message   @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([userId])
+  @@index([messageId, readAt])
+}
+
+// 通知
+model Notification {
+  id          String    @id @default(cuid())
+  userId      String
+  type        String    // message, mention, task, approval, etc
+  title       String
+  content     String
+  metadata    String?   // JSON for additional data
+  link        String?   // Navigation link
+  isRead      Boolean   @default(false)
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@index([type])
+}
+
+// 通知設定
+model NotificationPreference {
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  emailEnabled      Boolean   @default(true)
+  pushEnabled       Boolean   @default(true)
+  inAppEnabled      Boolean   @default(true)
+  
+  // 通知タイプ別設定
+  messageNotification     Boolean   @default(true)
+  mentionNotification     Boolean   @default(true)
+  taskNotification        Boolean   @default(true)
+  approvalNotification    Boolean   @default(true)
+  projectNotification     Boolean   @default(true)
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}

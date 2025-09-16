@@ -1,0 +1,186 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../node_modules/@prisma/timesheet-service"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("TIMESHEET_DATABASE_URL")
+}
+
+model TimeEntry {
+  id            String   @id @default(uuid())
+  consultantId  String
+  projectId     String
+  taskId        String?
+  date          DateTime
+  hours         Float
+  description   String
+  billable      Boolean  @default(true)
+  activityType  String   // DEVELOPMENT, MEETING, DOCUMENTATION, REVIEW, TRAVEL, TRAINING, SALES, ADMIN, OTHER
+  status        String   @default("DRAFT") // DRAFT, SUBMITTED, APPROVED, REJECTED, REVISION_REQUESTED
+  weekNumber    Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  submittedAt   DateTime?
+  approvedAt    DateTime?
+  approvedById  String?
+
+  // Relations
+  timesheet     Timesheet? @relation(fields: [timesheetId], references: [id])
+  timesheetId   String?
+
+  @@index([consultantId, date])
+  @@index([projectId])
+  @@index([status])
+  @@index([weekNumber])
+}
+
+model Timesheet {
+  id               String   @id @default(uuid())
+  consultantId     String
+  weekStartDate    DateTime
+  weekEndDate      DateTime
+  totalHours       Float    @default(0)
+  billableHours    Float    @default(0)
+  nonBillableHours Float    @default(0)
+  status           String   @default("OPEN") // OPEN, SUBMITTED, PARTIALLY_APPROVED, APPROVED, REJECTED, LOCKED
+  submittedAt      DateTime?
+  comments         String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  entries          TimeEntry[]
+  approvalHistory  ApprovalHistory[]
+
+  @@unique([consultantId, weekStartDate])
+  @@index([consultantId])
+  @@index([status])
+}
+
+model ApprovalHistory {
+  id              String   @id @default(uuid())
+  timesheetId     String
+  action          String   // SUBMIT, APPROVE, REJECT, REQUEST_REVISION, RECALL
+  actorId         String
+  timestamp       DateTime @default(now())
+  comments        String?
+  entriesAffected String   // JSON array of TimeEntry IDs
+
+  // Relations
+  timesheet       Timesheet @relation(fields: [timesheetId], references: [id])
+
+  @@index([timesheetId])
+}
+
+model WorkingHours {
+  id                   String   @id @default(uuid())
+  consultantId         String
+  effectiveFrom        DateTime
+  effectiveTo          DateTime?
+  standardHoursPerDay  Float    @default(8)
+  standardHoursPerWeek Float    @default(40)
+  workingDays          String   // JSON array of days: ["MONDAY", "TUESDAY", ...]
+  flexTimeEnabled      Boolean  @default(false)
+  coreHours           String?  // JSON object: {"startTime": "09:00", "endTime": "17:00"}
+  overtimeThreshold    Float    @default(40)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([consultantId])
+}
+
+model Holiday {
+  id           String   @id @default(uuid())
+  name         String
+  date         DateTime
+  type         String   // PUBLIC, COMPANY, SPECIAL
+  country      String   @default("JP")
+  isNationwide Boolean  @default(true)
+  offices      String?  // JSON array of office IDs
+  createdAt    DateTime @default(now())
+
+  @@unique([date, country])
+  @@index([date])
+}
+
+model Leave {
+  id           String   @id @default(uuid())
+  consultantId String
+  type         String   // ANNUAL, SICK, PERSONAL, MATERNITY, PATERNITY, BEREAVEMENT, STUDY, UNPAID, COMPENSATORY
+  startDate    DateTime
+  endDate      DateTime
+  hours        Float
+  status       String   @default("REQUESTED") // REQUESTED, APPROVED, REJECTED, CANCELLED, TAKEN
+  reason       String?
+  approvedById String?
+  approvedAt   DateTime?
+  attachments  String?  // JSON array of attachment objects
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([consultantId])
+  @@index([status])
+  @@index([startDate, endDate])
+}
+
+model UtilizationTarget {
+  id                String   @id @default(uuid())
+  targetType        String   // INDIVIDUAL, TEAM, DEPARTMENT, COMPANY
+  targetId          String
+  periodStart       DateTime
+  periodEnd         DateTime
+  targetUtilization Float
+  targetBillable    Float
+  minimumHours      Float?
+  maximumHours      Float?
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([targetType, targetId])
+  @@index([periodStart, periodEnd])
+}
+
+model UtilizationMetrics {
+  id                  String   @id @default(uuid())
+  consultantId        String
+  periodStart         DateTime
+  periodEnd           DateTime
+  totalAvailableHours Float
+  totalWorkedHours    Float
+  billableHours       Float
+  nonBillableHours    Float
+  utilizationRate     Float
+  billableRate        Float
+  overtime            Float    @default(0)
+  undertime           Float    @default(0)
+  leaveHours          Float    @default(0)
+  holidayHours        Float    @default(0)
+  calculatedAt        DateTime @default(now())
+
+  @@unique([consultantId, periodStart, periodEnd])
+  @@index([consultantId])
+  @@index([periodStart, periodEnd])
+}
+
+model ProjectHours {
+  id            String   @id @default(uuid())
+  projectId     String
+  periodStart   DateTime
+  periodEnd     DateTime
+  plannedHours  Float
+  actualHours   Float
+  billableHours Float
+  byConsultant  String   // JSON object: { consultantId: { hours, billableHours } }
+  byTask        String   // JSON object: { taskId: { plannedHours, actualHours } }
+  byActivity    String   // JSON object: { activityType: hours }
+  variance      Float
+  burnRate      Float
+  calculatedAt  DateTime @default(now())
+
+  @@unique([projectId, periodStart, periodEnd])
+  @@index([projectId])
+  @@index([periodStart, periodEnd])
+}

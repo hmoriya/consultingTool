@@ -1,0 +1,238 @@
+// プロジェクト管理サービスのスキーマ
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../node_modules/@prisma/project-client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("PROJECT_DATABASE_URL")
+}
+
+// プロジェクト
+model Project {
+  id                  String               @id @default(cuid())
+  name                String
+  code                String               @unique
+  clientId            String               // 外部参照：Organizationサービス
+  status              String               // planning, active, completed, onhold
+  priority            String?              // low, medium, high, critical
+  startDate           DateTime
+  endDate             DateTime?
+  budget              Float
+  description         String?
+  projectMembers      ProjectMember[]
+  milestones          Milestone[]
+  tasks               Task[]
+  risks               Risk[]
+  issues              Issue[]
+  deliverables        Deliverable[]
+  changeRequests      ChangeRequest[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  @@index([clientId])
+  @@index([status])
+}
+
+// プロジェクトメンバー
+model ProjectMember {
+  id                String               @id @default(cuid())
+  projectId         String
+  project           Project              @relation(fields: [projectId], references: [id])
+  userId            String               // 外部参照：Userサービス
+  role              String               // pm, lead, senior, consultant, analyst
+  allocation        Float                // 0.1-1.0 (稼働率)
+  startDate         DateTime
+  endDate           DateTime?
+  achievements      String?              // 成果・貢献内容
+  responsibilities  String?              // 担当業務
+  skills            ProjectMemberSkill[]
+  createdAt         DateTime             @default(now())
+
+  @@unique([projectId, userId])
+  @@index([userId])
+}
+
+// プロジェクトメンバーが使用したスキル
+model ProjectMemberSkill {
+  id              String        @id @default(cuid())
+  projectMemberId String
+  projectMember   ProjectMember @relation(fields: [projectMemberId], references: [id], onDelete: Cascade)
+  skillId         String        // 外部参照：Skillサービス
+  usageLevel      Int           // 1-5 (このプロジェクトでの活用度)
+  createdAt       DateTime      @default(now())
+
+  @@unique([projectMemberId, skillId])
+  @@index([skillId])
+}
+
+// マイルストーン
+model Milestone {
+  id                  String   @id @default(cuid())
+  projectId           String
+  project             Project  @relation(fields: [projectId], references: [id])
+  name                String
+  description         String?
+  dueDate             DateTime
+  status              String   // pending, completed, delayed
+  deliverables        Deliverable[]
+  completionRate      Float    @default(0) // 0-100
+  actualCompletedDate DateTime?
+  tasks               Task[]
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([dueDate])
+}
+
+// タスク
+model Task {
+  id             String     @id @default(cuid())
+  projectId      String
+  project        Project    @relation(fields: [projectId], references: [id])
+  milestoneId    String?
+  milestone      Milestone? @relation(fields: [milestoneId], references: [id])
+  assigneeId     String?    // 外部参照：Userサービス
+  title          String
+  description    String?
+  status         String     // todo, in_progress, review, completed, cancelled
+  priority       String     // low, medium, high, urgent
+  estimatedHours Float?
+  actualHours    Float?
+  startDate      DateTime?
+  dueDate        DateTime?
+  completedAt    DateTime?
+  blockedBy      String?    // 他のタスクID
+  tags           String?    // カンマ区切りのタグ
+  attachments    String?    // JSON配列
+  comments       Comment[]
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([projectId])
+  @@index([assigneeId])
+  @@index([status])
+  @@index([priority])
+  @@index([dueDate])
+}
+
+// コメント
+model Comment {
+  id          String   @id @default(cuid())
+  taskId      String
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  authorId    String   // 外部参照：Userサービス
+  content     String
+  attachments String?  // JSON配列
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([taskId])
+  @@index([authorId])
+}
+
+// 成果物
+model Deliverable {
+  id          String     @id @default(cuid())
+  projectId   String
+  project     Project    @relation(fields: [projectId], references: [id])
+  milestoneId String?
+  milestone   Milestone? @relation(fields: [milestoneId], references: [id])
+  name        String
+  description String?
+  type        String     // document, software, report, presentation, etc
+  status      String     // draft, review, approved, delivered
+  version     String?
+  fileUrl     String?
+  approvedBy  String?    // 外部参照：Userサービス
+  approvedAt  DateTime?
+  deliveredAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([projectId])
+  @@index([status])
+}
+
+// リスク
+model Risk {
+  id                 String   @id @default(cuid())
+  projectId          String
+  project            Project  @relation(fields: [projectId], references: [id])
+  title              String
+  description        String?
+  category           String   // technical, resource, schedule, budget, quality, external
+  probability        String   // low, medium, high
+  impact             String   // low, medium, high
+  severity           String   // low, medium, high, critical
+  status             String   // identified, analyzing, mitigating, monitoring, closed
+  mitigation         String?  // 対策
+  contingency        String?  // 緊急時対応
+  owner              String?  // 外部参照：Userサービス
+  identifiedDate     DateTime
+  expectedResolution DateTime?
+  actualResolution   DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([status])
+  @@index([severity])
+}
+
+// イシュー
+model Issue {
+  id             String   @id @default(cuid())
+  projectId      String
+  project        Project  @relation(fields: [projectId], references: [id])
+  title          String
+  description    String?
+  category       String   // bug, requirement, process, communication, other
+  priority       String   // low, medium, high, critical
+  status         String   // open, investigating, resolved, closed
+  assignedTo     String?  // 外部参照：Userサービス
+  reportedBy     String   // 外部参照：Userサービス
+  resolution     String?
+  rootCause      String?
+  reportedDate   DateTime
+  targetDate     DateTime?
+  resolvedDate   DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([status])
+  @@index([priority])
+}
+
+// 変更要求
+model ChangeRequest {
+  id             String   @id @default(cuid())
+  projectId      String
+  project        Project  @relation(fields: [projectId], references: [id])
+  title          String
+  description    String
+  type           String   // scope, schedule, budget, resource, other
+  impact         String   // 影響度: low, medium, high
+  status         String   // draft, submitted, reviewing, approved, rejected, implemented
+  requestedBy    String   // 外部参照：Userサービス
+  reviewedBy     String?  // 外部参照：Userサービス
+  approvedBy     String?  // 外部参照：Userサービス
+  estimatedHours Float?
+  estimatedCost  Float?
+  actualHours    Float?
+  actualCost     Float?
+  submittedDate  DateTime
+  reviewedDate   DateTime?
+  approvedDate   DateTime?
+  implementedDate DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([status])
+  @@index([type])
+}

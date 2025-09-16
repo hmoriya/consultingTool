@@ -1,0 +1,213 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// 組織
+model Organization {
+  id        String    @id @default(cuid())
+  name      String
+  type      String    // consultingFirm, client
+  users     User[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// ユーザー
+model User {
+  id                  String               @id @default(cuid())
+  email               String               @unique
+  password            String
+  name                String
+  roleId              String
+  role                Role                 @relation(fields: [roleId], references: [id])
+  organizationId      String
+  organization        Organization         @relation(fields: [organizationId], references: [id])
+  isActive            Boolean              @default(true)
+  lastLogin           DateTime?
+  sessions            Session[]
+  auditLogs           AuditLog[]
+  timeEntries         TimeEntry[]          @relation("TimeEntryUser")
+  approvedTimeEntries TimeEntry[]          @relation("TimeEntryApprover")
+  costs               Cost[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  @@index([email])
+  @@index([organizationId])
+  @@index([roleId])
+}
+
+// ロール
+model Role {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  description String?
+  permissions RolePermission[]
+  users       User[]
+  isSystem    Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+// 権限
+model Permission {
+  id          String           @id @default(cuid())
+  resource    String
+  action      String
+  description String?
+  roles       RolePermission[]
+}
+
+// ロールと権限の中間テーブル
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id])
+  permission   Permission @relation(fields: [permissionId], references: [id])
+
+  @@id([roleId, permissionId])
+}
+
+// セッション
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// 監査ログ
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  action     String
+  resource   String
+  resourceId String?
+  details    String? // JSON as string
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([resource])
+}
+
+// 財務関連のモデル（現在コアに残っているが、将来的には財務サービスへ移行予定）
+
+// プロジェクトメトリクス（財務サービスへ移行予定）
+model ProjectMetric {
+  id           String   @id @default(cuid())
+  projectId    String
+  date         DateTime
+  revenue      Float
+  cost         Float
+  margin       Float
+  utilization  Float // リソース使用率
+  progressRate Float // 進捗率
+  createdAt    DateTime @default(now())
+
+  @@index([projectId, date])
+}
+
+// 工数記録（タイムシートサービスへ移行予定）
+model TimeEntry {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation("TimeEntryUser", fields: [userId], references: [id], onDelete: Cascade)
+  projectId   String
+  taskId      String?
+  date        DateTime
+  hours       Float    // 実働時間
+  description String?  // 作業内容
+  billable    Boolean  @default(true) // 請求可能かどうか
+  approved    Boolean  @default(false) // 承認済みかどうか
+  approvedBy  String?
+  approver    User?    @relation("TimeEntryApprover", fields: [approvedBy], references: [id])
+  approvedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, date])
+  @@index([projectId, date])
+  @@index([taskId])
+  @@map("time_entries")
+}
+
+// 収益記録（財務サービスへ移行予定）
+model Revenue {
+  id          String   @id @default(cuid())
+  projectId   String
+  date        DateTime
+  amount      Float    // 金額
+  type        String   // 収益タイプ（monthly_fee, milestone, etc）
+  description String?
+  invoiceNo   String?  // 請求書番号
+  status      String   @default("pending") // pending, invoiced, paid
+  paidAt      DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([projectId, date])
+  @@index([status])
+  @@map("revenues")
+}
+
+// コスト記録（財務サービスへ移行予定）
+model Cost {
+  id          String   @id @default(cuid())
+  projectId   String
+  date        DateTime
+  amount      Float    // 金額
+  category    String   // labor, outsourcing, expense, etc
+  description String?
+  userId      String?  // 人件費の場合のユーザー
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  approved    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([projectId, date])
+  @@index([category])
+  @@index([userId])
+  @@map("costs")
+}
+
+// KPI履歴
+model KPIHistory {
+  id             String   @id @default(cuid())
+  date           DateTime
+  type           String   // daily, weekly, monthly
+  // 全社KPI
+  totalRevenue   Float
+  totalCost      Float
+  totalMargin    Float
+  marginRate     Float
+  avgUtilization Float
+  activeProjects Int
+  totalMembers   Int
+  // プロジェクト別KPI（JSON形式で保存）
+  projectKPIs    Json?
+  // ロール別KPI（JSON形式で保存）
+  roleKPIs       Json?
+  createdAt      DateTime @default(now())
+
+  @@unique([date, type])
+  @@index([type])
+  @@map("kpi_history")
+}

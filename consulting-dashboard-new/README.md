@@ -58,11 +58,14 @@ A comprehensive project management dashboard for consulting firms with role-base
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd consulting-dashboard-new
+git clone https://github.com/hmoriya/consultingTool.git
+cd consultingTool/consulting-dashboard-new
 
 # Install dependencies
 npm install
+
+# Set up environment variables
+cp .env.example .env
 
 # Set up the database
 npm run db:push
@@ -71,6 +74,8 @@ npm run db:seed
 # Start the development server
 npm run dev
 ```
+
+The application will be available at [http://localhost:3000](http://localhost:3000)
 
 ### Test Credentials
 

@@ -52,7 +52,7 @@ next-env.d.ts
 /test-results/
 *.log
 
-# Database files
-*.db
-*.db-journal
-prisma/*/data/
+# Database files (commented out for prototype - DO NOT ignore DB files)
+# *.db
+# *.db-journal
+# prisma/*/data/

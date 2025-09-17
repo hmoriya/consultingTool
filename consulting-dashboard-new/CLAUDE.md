@@ -164,8 +164,53 @@ export const projectDb = new ProjectPrismaClient({
 
 #### データベース設定
 
-- 開発環境: 各サービス毎に個別のSQLiteファイル
-- 本番環境: 将来的に個別のデータベースインスタンスへ移行可能
+##### 開発環境
+各マイクロサービス毎に個別のSQLiteファイルを使用:
+
+1. **コアサービス** (認証・ユーザー管理)
+   - パス: `prisma/core-service/data/core.db`
+   - 環境変数: `DATABASE_URL="file:./prisma/core-service/data/core.db"`
+
+2. **プロジェクトサービス**
+   - パス: `prisma/project-service/data/project.db`
+   - 環境変数: `PROJECT_DATABASE_URL="file:./prisma/project-service/data/project.db"`
+
+3. **リソースサービス** (チーム・スキル管理)
+   - パス: `prisma/resource-service/data/resource.db`
+   - 環境変数: `RESOURCE_DATABASE_URL="file:./prisma/resource-service/data/resource.db"`
+
+4. **タイムシートサービス** (工数管理)
+   - パス: `prisma/timesheet-service/data/timesheet.db`
+   - 環境変数: `TIMESHEET_DATABASE_URL="file:./prisma/timesheet-service/data/timesheet.db"`
+
+5. **通知サービス**
+   - パス: `prisma/notification-service/data/notification.db`
+   - 環境変数: `NOTIFICATION_DATABASE_URL="file:./prisma/notification-service/data/notification.db"`
+
+##### 本番環境
+将来的に各サービスを個別のデータベースインスタンスへ移行可能
+
+### 現在のデータベースファイル構成
+
+以下の4つのSQLiteデータベースファイルが正常に配置されています：
+
+```
+prisma/
+├── project-service/
+│   └── data/
+│       └── project.db              # プロジェクト管理データ
+├── resource-service/
+│   └── data/
+│       └── resource.db             # リソース・チーム管理データ
+├── timesheet-service/
+│   └── data/
+│       └── timesheet.db            # 工数管理データ
+└── notification-service/
+    └── data/
+        └── notification.db         # 通知・メッセージデータ
+```
+
+**重要**: 上記4つのファイルのみが正規のデータベースファイルです。他の場所にある.dbファイルは重複ファイルのため削除してください。
 
 ### 移行戦略
 

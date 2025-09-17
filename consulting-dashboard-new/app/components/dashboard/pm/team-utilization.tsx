@@ -57,10 +57,10 @@ export function TeamUtilization({ members }: TeamUtilizationProps) {
             {members.map((member) => {
               const status = getUtilizationStatus(member.allocation)
               return (
-                <div key={member.user.id} className="space-y-2">
+                <div key={member.user?.id || member.id} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm">{member.user.name}</span>
+                      <span className="font-medium text-sm">{member.user?.name || 'Unknown User'}</span>
                       <Badge variant={status.variant} className="text-xs">
                         {status.label}
                       </Badge>
@@ -71,11 +71,11 @@ export function TeamUtilization({ members }: TeamUtilizationProps) {
                   </div>
                   <Progress value={Math.min(member.allocation, 100)} className="h-2" />
                   <div className="flex flex-wrap gap-1">
-                    {member.projects.map((project: any) => (
+                    {member.projects?.map((project: any) => (
                       <Badge key={project.id} variant="outline" className="text-xs">
                         {project.name} ({project.allocation}%)
                       </Badge>
-                    ))}
+                    )) || null}
                   </div>
                 </div>
               )

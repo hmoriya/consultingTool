@@ -7,7 +7,7 @@ import { Briefcase, TrendingUp, Users, FileText } from 'lucide-react'
 
 const roleCards = [
   {
-    role: 'executive',
+    role: 'Executive',
     title: 'エグゼクティブ',
     description: '全社のプロジェクトポートフォリオと経営指標を俯瞰',
     icon: TrendingUp,
@@ -15,7 +15,7 @@ const roleCards = [
     color: 'text-blue-600'
   },
   {
-    role: 'pm',
+    role: 'PM',
     title: 'プロジェクトマネージャー',
     description: 'プロジェクトの進捗、チーム、リスク、成果物を管理',
     icon: Briefcase,
@@ -23,7 +23,7 @@ const roleCards = [
     color: 'text-green-600'
   },
   {
-    role: 'consultant',
+    role: 'Consultant',
     title: 'コンサルタント',
     description: '個人タスク、工数入力、ナレッジ共有',
     icon: Users,
@@ -31,7 +31,7 @@ const roleCards = [
     color: 'text-purple-600'
   },
   {
-    role: 'client',
+    role: 'Client',
     title: 'クライアント',
     description: 'プロジェクト進捗確認、成果物レビュー',
     icon: FileText,
@@ -48,6 +48,10 @@ export default async function HomePage() {
   }
   
   // ユーザーのロールに基づいて該当するカードを見つける
+  console.log('User role debug:', {
+    userRoleName: user.role.name,
+    roleCards: roleCards.map(c => c.role)
+  })
   const userRoleCard = roleCards.find(card => card.role === user.role.name)
   
   return (

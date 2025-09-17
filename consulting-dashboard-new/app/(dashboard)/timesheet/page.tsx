@@ -2,6 +2,7 @@ import { TimesheetClientPage } from './client-page'
 import { getWeeklyTimesheet, getMonthlyTimeSummary } from '@/actions/timesheet-new'
 import { getMyTimesheetStatuses } from '@/actions/timesheet-approval'
 import { db } from '@/lib/db'
+import { projectDb } from '@/lib/db/project-db'
 import { getCurrentUser } from '@/actions/auth'
 import { redirect } from 'next/navigation'
 import { startOfWeek, endOfWeek } from 'date-fns'
@@ -14,8 +15,8 @@ export default async function TimesheetPage() {
 
   // プロジェクト一覧を取得
   // エグゼクティブの場合は全プロジェクト、それ以外はアサインされているプロジェクトのみ
-  const projects = await db.project.findMany({
-    where: user.role?.name === 'executive' 
+  const projects = await projectDb.project.findMany({
+    where: user.role?.name === 'Executive'
       ? {
           status: {
             not: 'completed'
@@ -32,7 +33,6 @@ export default async function TimesheetPage() {
           }
         },
     include: {
-      client: true,
       tasks: {
         where: {
           status: {
@@ -45,6 +45,19 @@ export default async function TimesheetPage() {
       name: 'asc'
     }
   })
+
+  // クライアント情報を取得
+  const clientIds = [...new Set(projects.map(p => p.clientId))]
+  const clients = await db.organization.findMany({
+    where: { id: { in: clientIds } }
+  })
+  const clientMap = new Map(clients.map(c => [c.id, c]))
+
+  // プロジェクトにクライアント情報を追加
+  const projectsWithClients = projects.map(p => ({
+    ...p,
+    client: clientMap.get(p.clientId)
+  }))
 
   // 今週の工数データを取得
   const today = new Date()
@@ -61,8 +74,8 @@ export default async function TimesheetPage() {
   const timesheets = timesheetsResult.success ? timesheetsResult.data : []
 
   return (
-    <TimesheetClientPage 
-      projects={projects}
+    <TimesheetClientPage
+      projects={projectsWithClients}
       initialWeeklyData={weeklyData}
       monthlySummary={monthlySummary}
       timesheets={timesheets}

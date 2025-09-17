@@ -19,8 +19,8 @@ export default async function PMDashboard() {
     redirect('/login')
   }
 
-  if (user.role.name !== 'pm' && user.role.name !== 'executive') {
-    redirect('/dashboard/' + user.role.name)
+  if (user.role.name !== 'PM' && user.role.name !== 'Executive') {
+    redirect('/dashboard/' + user.role.name.toLowerCase())
   }
 
   const dashboardData = await getPMDashboardData()

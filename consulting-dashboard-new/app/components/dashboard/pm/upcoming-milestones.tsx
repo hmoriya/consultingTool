@@ -82,7 +82,7 @@ export function UpcomingMilestones({ milestones }: UpcomingMilestonesProps) {
                         {milestone.name}
                       </Link>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {milestone.project.client.name} - {milestone.project.name}
+                        {milestone.project.client?.name || 'クライアント未設定'} - {milestone.project.name}
                       </p>
                     </div>
                     <Badge variant={getStatusColor(milestone.status) as any} className="text-xs">

@@ -37,10 +37,10 @@ export async function getProjects() {
   })
 
   // ユーザーの権限に基づいてフィルタリング
-  const filteredProjects = user.role.name === 'executive' 
-    ? projects 
-    : projects.filter(project => 
-        project.projectMembers.some(m => m.userId === user.id && m.role === 'pm')
+  const filteredProjects = user.role.name === 'Executive'
+    ? projects
+    : projects.filter(project =>
+        project.projectMembers.some(m => m.userId === user.id && m.role === 'PM')
       )
 
   // プロジェクトメトリクスを取得（コアサービスから）
@@ -57,7 +57,7 @@ export async function getProjects() {
   const metricsMap = new Map(metrics.map(m => [m.projectId, m]))
 
   return filteredProjects.map(project => {
-    const pm = project.projectMembers.find(m => m.role === 'pm')
+    const pm = project.projectMembers.find(m => m.role === 'PM')
     const metric = metricsMap.get(project.id)
     
     return {

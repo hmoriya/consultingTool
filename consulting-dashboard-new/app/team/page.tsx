@@ -17,8 +17,8 @@ export default async function TeamPage() {
   }
 
   // PMとエグゼクティブのみアクセス可能
-  if (user.role.name !== 'executive' && user.role.name !== 'pm') {
-    redirect('/dashboard/' + user.role.name)
+  if (user.role.name !== 'Executive' && user.role.name !== 'PM') {
+    redirect('/dashboard/' + user.role.name.toLowerCase())
   }
 
   const members = await getTeamMembers()

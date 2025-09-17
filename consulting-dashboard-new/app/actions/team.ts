@@ -30,7 +30,7 @@ export async function getTeamMembers() {
   }
 
   // エグゼクティブとPMのみアクセス可能
-  if (user.role.name !== 'executive' && user.role.name !== 'pm') {
+  if (user.role.name !== 'Executive' && user.role.name !== 'PM') {
     throw new Error('アクセス権限がありません')
   }
 
@@ -49,7 +49,7 @@ export async function getTeamMembers() {
       organizationId: fullUser.organizationId,
       role: {
         name: {
-          in: ['executive', 'pm', 'consultant']
+          in: ['Executive', 'PM', 'Consultant']
         }
       }
     },
@@ -118,7 +118,7 @@ export async function searchTeamMembers(query: string) {
     throw new Error('認証が必要です')
   }
 
-  if (user.role.name !== 'executive' && user.role.name !== 'pm') {
+  if (user.role.name !== 'Executive' && user.role.name !== 'PM') {
     throw new Error('アクセス権限がありません')
   }
 
@@ -186,7 +186,7 @@ export async function createTeamMember(data: z.infer<typeof createMemberSchema>)
     throw new Error('認証が必要です')
   }
 
-  if (user.role.name !== 'executive' && user.role.name !== 'pm') {
+  if (user.role.name !== 'Executive' && user.role.name !== 'PM') {
     throw new Error('アクセス権限がありません')
   }
 
@@ -243,7 +243,7 @@ export async function updateTeamMember(memberId: string, data: z.infer<typeof up
     throw new Error('認証が必要です')
   }
 
-  if (user.role.name !== 'executive' && user.role.name !== 'pm') {
+  if (user.role.name !== 'Executive' && user.role.name !== 'PM') {
     throw new Error('アクセス権限がありません')
   }
 
@@ -292,7 +292,7 @@ export async function deleteTeamMember(memberId: string) {
     throw new Error('認証が必要です')
   }
 
-  if (user.role.name !== 'executive') {
+  if (user.role.name !== 'Executive') {
     throw new Error('エグゼクティブのみメンバーを削除できます')
   }
 
@@ -349,7 +349,7 @@ export async function getMemberUtilization(memberId?: string) {
     throw new Error('認証が必要です')
   }
 
-  if (user.role.name !== 'executive' && user.role.name !== 'pm') {
+  if (user.role.name !== 'Executive' && user.role.name !== 'PM') {
     throw new Error('アクセス権限がありません')
   }
 

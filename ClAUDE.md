@@ -16,19 +16,70 @@
 
 ## データベース構成
 
-### メインデータベース
-- **パス**: `prisma/dev.db`
-- **環境変数**: `DATABASE_URL="file:./dev.db"`
-- **用途**: ユーザー認証、ロール管理、組織情報、基本的なメトリクス
+### 重要: DBファイルの配置ルール
 
-### プロジェクトサービスデータベース
-- **パス**: `prisma/project-service/data/project.db`
-- **環境変数**: `PROJECT_DATABASE_URL="file:./prisma/project-service/data/project.db"`
-- **用途**: プロジェクト、タスク、マイルストーン、プロジェクトメンバー、リスク管理
-- **シードデータ**:
-  - デジタルトランスフォーメーション推進 (DX001)
-  - ビジネスプロセス最適化 (BPO001)
-  - データ分析基盤構築 (DAP001)
+**正式なDBファイルの配置場所（これ以外の場所にDBファイルを作成しないでください）:**
+
+1. **メインデータベース**
+   - **正式パス**: `consulting-dashboard-new/prisma/dev.db`
+   - **環境変数**: `DATABASE_URL="file:./dev.db"`
+   - **用途**: ユーザー認証、ロール管理、組織情報、基本的なメトリクス
+
+2. **コアサービスデータベース**
+   - **正式パス**: `consulting-dashboard-new/prisma/core-service/data/core.db`
+   - **環境変数**: `CORE_DATABASE_URL="file:./prisma/core-service/data/core.db"`
+   - **用途**: ユーザー認証、組織管理
+
+3. **プロジェクトサービスデータベース**
+   - **正式パス**: `consulting-dashboard-new/prisma/project-service/data/project.db`
+   - **環境変数**: `PROJECT_DATABASE_URL="file:./prisma/project-service/data/project.db"`
+   - **用途**: プロジェクト、タスク、マイルストーン、プロジェクトメンバー、リスク管理
+   - **シードデータ**:
+     - デジタルトランスフォーメーション推進 (DX001)
+     - ビジネスプロセス最適化 (BPO001)
+     - データ分析基盤構築 (DAP001)
+
+4. **リソースサービスデータベース**
+   - **正式パス**: `consulting-dashboard-new/prisma/resource-service/data/resource.db`
+   - **環境変数**: `RESOURCE_DATABASE_URL="file:./prisma/resource-service/data/resource.db"`
+   - **用途**: チーム管理、スキル管理、リソース配分
+
+5. **タイムシートサービスデータベース**
+   - **正式パス**: `consulting-dashboard-new/prisma/timesheet-service/data/timesheet.db`
+   - **環境変数**: `TIMESHEET_DATABASE_URL="file:./prisma/timesheet-service/data/timesheet.db"`
+   - **用途**: 工数管理、承認フロー
+
+6. **通知サービスデータベース**
+   - **正式パス**: `consulting-dashboard-new/prisma/notification-service/data/notification.db`
+   - **環境変数**: `NOTIFICATION_DATABASE_URL="file:./prisma/notification-service/data/notification.db"`
+   - **用途**: 通知、メッセージ、アラート
+
+### 重複DBファイルの削除手順
+
+現在、以下の重複ファイルが存在しており、削除が必要です:
+
+```bash
+# 削除すべき重複ファイル:
+rm -f ./prisma/core-service/prisma/core-service/data/core.db
+rm -f ./prisma/prisma/core-service/data/core.db
+rm -f ./prisma/project-service/data/prisma/project-service/data/project.db
+rm -f ./prisma/project-service/prisma/project-service/data/project.db
+rm -f ./prisma/resource-service/prisma/resource-service/data/resource.db
+rm -f ./prisma/timesheet-service/prisma/timesheet-service/data/timesheet.db
+
+# 重複ディレクトリの削除:
+rm -rf ./prisma/core-service/prisma/
+rm -rf ./prisma/prisma/
+rm -rf ./prisma/project-service/prisma/
+rm -rf ./prisma/resource-service/prisma/
+rm -rf ./prisma/timesheet-service/prisma/
+```
+
+### DBファイル作成時の注意事項
+
+- Prismaのmigrationやdb pushを実行する際は、必ず正しいディレクトリから実行してください
+- 新しいサービスを追加する場合は、`prisma/[service-name]/data/[service].db`の形式でDBファイルを配置してください
+- 環境変数は相対パスで設定し、プロジェクトルートからの相対位置を維持してください
 
 ## 主要ユースケース
 

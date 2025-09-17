@@ -26,65 +26,71 @@ export async function submitTimesheetForApproval(timesheetId: string) {
       throw new Error('認証が必要です')
     }
 
-    // タイムシートの所有者確認
-    const timesheet = await db.timesheet.findUnique({
-      where: { id: timesheetId },
-      include: {
-        entries: true
-      }
-    })
-
-    if (!timesheet) {
-      throw new Error('タイムシートが見つかりません')
+    // TODO: Timesheetモデルが未実装のため、一時的にエラーを返す
+    return {
+      success: false,
+      error: 'タイムシート機能は準備中です'
     }
 
-    if (timesheet.consultantId !== user.id) {
-      throw new Error('このタイムシートを編集する権限がありません')
-    }
+    // // タイムシートの所有者確認
+    // const timesheet = await db.timesheet.findUnique({
+    //   where: { id: timesheetId },
+    //   include: {
+    //     entries: true
+    //   }
+    // })
 
-    if (timesheet.status !== 'OPEN' && timesheet.status !== 'REJECTED') {
-      throw new Error('入力中または差戻し状態のタイムシートのみ承認申請できます')
-    }
+    // if (!timesheet) {
+    //   throw new Error('タイムシートが見つかりません')
+    // }
 
-    if (timesheet.entries.length === 0) {
-      throw new Error('工数記録がないタイムシートは承認申請できません')
-    }
+    // if (timesheet.consultantId !== user.id) {
+    //   throw new Error('このタイムシートを編集する権限がありません')
+    // }
 
-    // タイムシートのステータスを更新
-    const updated = await db.timesheet.update({
-      where: { id: timesheetId },
-      data: {
-        status: 'SUBMITTED',
-        submittedAt: new Date()
-      }
-    })
+    // if (timesheet.status !== 'OPEN' && timesheet.status !== 'REJECTED') {
+    //   throw new Error('入力中または差戻し状態のタイムシートのみ承認申請できます')
+    // }
 
-    // 承認履歴を作成
-    await db.approvalHistory.create({
-      data: {
-        timesheetId: timesheetId,
-        action: 'SUBMIT',
-        actorId: user.id,
-        timestamp: new Date(),
-        comments: `${timesheet.totalHours}時間の工数を承認申請しました`,
-        entriesAffected: JSON.stringify(timesheet.entries.map(e => e.id))
-      }
-    })
+    // if (timesheet.entries.length === 0) {
+    //   throw new Error('工数記録がないタイムシートは承認申請できません')
+    // }
 
-    revalidatePath('/timesheet')
-    return { success: true, data: updated }
+    // // タイムシートのステータスを更新
+    // const updated = await db.timesheet.update({
+    //   where: { id: timesheetId },
+    //   data: {
+    //     status: 'SUBMITTED',
+    //     submittedAt: new Date()
+    //   }
+    // })
+
+    // // 承認履歴を作成
+    // await db.approvalHistory.create({
+    //   data: {
+    //     timesheetId: timesheetId,
+    //     action: 'SUBMIT',
+    //     actorId: user.id,
+    //     timestamp: new Date(),
+    //     comments: `${timesheet.totalHours}時間の工数を承認申請しました`,
+    //     entriesAffected: JSON.stringify(timesheet.entries.map(e => e.id))
+    //   }
+    // })
+
+    // revalidatePath('/timesheet')
+    // return { success: true, data: updated }
   } catch (error) {
     console.error('Submit timesheet for approval error:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : '承認申請に失敗しました' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '承認申請に失敗しました'
     }
   }
 }
 
 // タイムシートを承認/差戻し
 export async function approveOrRejectTimesheet(
-  timesheetId: string, 
+  timesheetId: string,
   action: 'APPROVE' | 'REJECT',
   comments?: string
 ) {
@@ -100,67 +106,73 @@ export async function approveOrRejectTimesheet(
       throw new Error('承認権限がありません')
     }
 
-    const timesheet = await db.timesheet.findUnique({
-      where: { id: timesheetId },
-      include: {
-        entries: true
-      }
-    })
-
-    if (!timesheet) {
-      throw new Error('タイムシートが見つかりません')
+    // TODO: Timesheetモデルが未実装のため、一時的にエラーを返す
+    return {
+      success: false,
+      error: 'タイムシート機能は準備中です'
     }
 
-    if (timesheet.status !== 'SUBMITTED') {
-      throw new Error('承認待ち状態のタイムシートのみ処理できます')
-    }
+    // const timesheet = await db.timesheet.findUnique({
+    //   where: { id: timesheetId },
+    //   include: {
+    //     entries: true
+    //   }
+    // })
 
-    // プロジェクトメンバーかどうか確認（実際の実装では詳細な権限チェックが必要）
-    // ここでは簡略化のため、PMとExecutiveは全て承認可能とする
+    // if (!timesheet) {
+    //   throw new Error('タイムシートが見つかりません')
+    // }
 
-    const newStatus = action === 'APPROVE' ? 'APPROVED' : 'REJECTED'
-    
-    // タイムシートのステータスを更新
-    const updated = await db.timesheet.update({
-      where: { id: timesheetId },
-      data: {
-        status: newStatus,
-        updatedAt: new Date()
-      }
-    })
+    // if (timesheet.status !== 'SUBMITTED') {
+    //   throw new Error('承認待ち状態のタイムシートのみ処理できます')
+    // }
 
-    // 工数エントリのステータスも更新
-    await db.timeEntry.updateMany({
-      where: { timesheetId: timesheetId },
-      data: {
-        status: newStatus,
-        ...(action === 'APPROVE' && {
-          approvedAt: new Date(),
-          approvedById: user.id
-        })
-      }
-    })
+    // // プロジェクトメンバーかどうか確認（実際の実装では詳細な権限チェックが必要）
+    // // ここでは簡略化のため、PMとExecutiveは全て承認可能とする
 
-    // 承認履歴を作成
-    await db.approvalHistory.create({
-      data: {
-        timesheetId: timesheetId,
-        action: action,
-        actorId: user.id,
-        timestamp: new Date(),
-        comments: comments || (action === 'APPROVE' ? '承認されました' : '差戻されました'),
-        entriesAffected: JSON.stringify(timesheet.entries.map(e => e.id))
-      }
-    })
+    // const newStatus = action === 'APPROVE' ? 'APPROVED' : 'REJECTED'
 
-    revalidatePath('/timesheet')
-    revalidatePath('/timesheet/approval')
-    return { success: true, data: updated }
+    // // タイムシートのステータスを更新
+    // const updated = await db.timesheet.update({
+    //   where: { id: timesheetId },
+    //   data: {
+    //     status: newStatus,
+    //     updatedAt: new Date()
+    //   }
+    // })
+
+    // // 工数エントリのステータスも更新
+    // await db.timeEntry.updateMany({
+    //   where: { timesheetId: timesheetId },
+    //   data: {
+    //     status: newStatus,
+    //     ...(action === 'APPROVE' && {
+    //       approvedAt: new Date(),
+    //       approvedById: user.id
+    //     })
+    //   }
+    // })
+
+    // // 承認履歴を作成
+    // await db.approvalHistory.create({
+    //   data: {
+    //     timesheetId: timesheetId,
+    //     action: action,
+    //     actorId: user.id,
+    //     timestamp: new Date(),
+    //     comments: comments || (action === 'APPROVE' ? '承認されました' : '差戻されました'),
+    //     entriesAffected: JSON.stringify(timesheet.entries.map(e => e.id))
+    //   }
+    // })
+
+    // revalidatePath('/timesheet')
+    // revalidatePath('/timesheet/approval')
+    // return { success: true, data: updated }
   } catch (error) {
     console.error('Approve/reject timesheet error:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : '処理に失敗しました' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '処理に失敗しました'
     }
   }
 }
@@ -174,44 +186,47 @@ export async function getPendingApprovals() {
     }
 
     // 承認権限の確認
-    const userRole = user.role.name.toLowerCase()
-    if (!['pm', 'executive'].includes(userRole)) {
+    const userRole = user.role.name
+    if (!['PM', 'Executive'].includes(userRole)) {
       return { success: true, data: [] }
     }
 
-    const timesheets = await db.timesheet.findMany({
-      where: {
-        status: 'SUBMITTED'
-      },
-      include: {
-        entries: true,
-        approvalHistory: {
-          orderBy: {
-            timestamp: 'desc'
-          },
-          take: 1
-        }
-      },
-      orderBy: {
-        submittedAt: 'asc'
-      }
-    })
+    // TODO: Timesheetモデルが未実装のため、一時的に空配列を返す
+    return { success: true, data: [] }
 
-    // ユーザー情報を取得して付加
-    const timesheetsWithUser = await Promise.all(
-      timesheets.map(async (timesheet) => {
-        const user = await userDb.user.findUnique({
-          where: { id: timesheet.consultantId },
-          select: { name: true, email: true }
-        })
-        return {
-          ...timesheet,
-          consultant: user
-        }
-      })
-    )
+    // const timesheets = await db.timesheet.findMany({
+    //   where: {
+    //     status: 'SUBMITTED'
+    //   },
+    //   include: {
+    //     entries: true,
+    //     approvalHistory: {
+    //       orderBy: {
+    //         timestamp: 'desc'
+    //       },
+    //       take: 1
+    //     }
+    //   },
+    //   orderBy: {
+    //     submittedAt: 'asc'
+    //   }
+    // })
 
-    return { success: true, data: timesheetsWithUser }
+    // // ユーザー情報を取得して付加
+    // const timesheetsWithUser = await Promise.all(
+    //   timesheets.map(async (timesheet) => {
+    //     const user = await userDb.user.findUnique({
+    //       where: { id: timesheet.consultantId },
+    //       select: { name: true, email: true }
+    //     })
+    //     return {
+    //       ...timesheet,
+    //       consultant: user
+    //     }
+    //   })
+    // )
+
+    // return { success: true, data: timesheetsWithUser }
   } catch (error) {
     console.error('Get pending approvals error:', error)
     return { 
@@ -229,33 +244,36 @@ export async function getApprovalHistory(timesheetId: string) {
       throw new Error('認証が必要です')
     }
 
-    const timesheet = await db.timesheet.findUnique({
-      where: { id: timesheetId }
-    })
+    // TODO: Timesheetモデルが未実装のため、一時的に空配列を返す
+    return { success: true, data: [] }
 
-    if (!timesheet) {
-      throw new Error('タイムシートが見つかりません')
-    }
+    // const timesheet = await db.timesheet.findUnique({
+    //   where: { id: timesheetId }
+    // })
 
-    // 本人または承認者のみ閲覧可能
-    const userRole = user.role.name.toLowerCase()
-    if (timesheet.consultantId !== user.id && !['pm', 'executive'].includes(userRole)) {
-      throw new Error('承認履歴を閲覧する権限がありません')
-    }
+    // if (!timesheet) {
+    //   throw new Error('タイムシートが見つかりません')
+    // }
 
-    const history = await db.approvalHistory.findMany({
-      where: { timesheetId },
-      orderBy: {
-        timestamp: 'desc'
-      }
-    })
+    // // 本人または承認者のみ閲覧可能
+    // const userRole = user.role.name.toLowerCase()
+    // if (timesheet.consultantId !== user.id && !['pm', 'executive'].includes(userRole)) {
+    //   throw new Error('承認履歴を閲覧する権限がありません')
+    // }
 
-    return { success: true, data: history }
+    // const history = await db.approvalHistory.findMany({
+    //   where: { timesheetId },
+    //   orderBy: {
+    //     timestamp: 'desc'
+    //   }
+    // })
+
+    // return { success: true, data: history }
   } catch (error) {
     console.error('Get approval history error:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : '承認履歴の取得に失敗しました' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : '承認履歴の取得に失敗しました'
     }
   }
 }
@@ -268,35 +286,38 @@ export async function getMyTimesheetStatuses() {
       throw new Error('認証が必要です')
     }
 
-    const timesheets = await db.timesheet.findMany({
-      where: {
-        consultantId: user.id
-      },
-      include: {
-        entries: {
-          select: {
-            id: true
-          }
-        },
-        approvalHistory: {
-          orderBy: {
-            timestamp: 'desc'
-          },
-          take: 1
-        }
-      },
-      orderBy: {
-        weekStartDate: 'desc'
-      },
-      take: 10
-    })
+    // TODO: Timesheetモデルが未実装のため、一時的に空配列を返す
+    return { success: true, data: [] }
 
-    return { success: true, data: timesheets }
+    // const timesheets = await db.timesheet.findMany({
+    //   where: {
+    //     consultantId: user.id
+    //   },
+    //   include: {
+    //     entries: {
+    //       select: {
+    //         id: true
+    //       }
+    //     },
+    //     approvalHistory: {
+    //       orderBy: {
+    //         timestamp: 'desc'
+    //       },
+    //       take: 1
+    //     }
+    //   },
+    //   orderBy: {
+    //     weekStartDate: 'desc'
+    //   },
+    //   take: 10
+    // })
+
+    // return { success: true, data: timesheets }
   } catch (error) {
     console.error('Get my timesheet statuses error:', error)
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'タイムシート一覧の取得に失敗しました' 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'タイムシート一覧の取得に失敗しました'
     }
   }
 }

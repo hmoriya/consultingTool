@@ -1,6 +1,7 @@
 'use server'
 
 import { db } from '@/lib/db'
+import { projectDb } from '@/lib/db/project-db'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
 import { startOfMonth, endOfMonth, eachDayOfInterval, format, startOfWeek, endOfWeek } from 'date-fns'
@@ -38,7 +39,7 @@ export async function getTeamUtilization(targetMonth?: string) {
     return []
   }
 
-  if (user.role.name !== 'executive' && user.role.name !== 'pm') {
+  if (user.role.name !== 'Executive' && user.role.name !== 'PM') {
     throw new Error('アクセス権限がありません')
   }
 
@@ -52,33 +53,12 @@ export async function getTeamUtilization(targetMonth?: string) {
       organizationId: user.organizationId,
       role: {
         name: {
-          in: ['pm', 'consultant']
+          in: ['PM', 'Consultant']
         }
       }
     },
     include: {
-      role: true,
-      projectMembers: {
-        where: {
-          OR: [
-            {
-              startDate: { lte: monthEnd },
-              endDate: null
-            },
-            {
-              startDate: { lte: monthEnd },
-              endDate: { gte: monthStart }
-            }
-          ]
-        },
-        include: {
-          project: {
-            include: {
-              client: true
-            }
-          }
-        }
-      }
+      role: true
     }
   })
 
@@ -86,18 +66,48 @@ export async function getTeamUtilization(targetMonth?: string) {
   const utilizationData: MemberUtilization[] = []
 
   for (const member of members) {
-    // 現在のプロジェクト割り当て
-    const currentProjects = member.projectMembers
-      .filter(pm => pm.project.status === 'active')
-      .map(pm => ({
-        id: pm.project.id,
-        name: pm.project.name,
-        clientName: pm.project.client.name,
-        allocation: pm.allocation,
-        role: pm.role
-      }))
+    // プロジェクトメンバー情報を取得
+    const projectMembers = await projectDb.projectMember.findMany({
+      where: {
+        userId: member.id,
+        OR: [
+          {
+            startDate: { lte: monthEnd },
+            endDate: null
+          },
+          {
+            startDate: { lte: monthEnd },
+            endDate: { gte: monthStart }
+          }
+        ]
+      },
+      include: {
+        project: true
+      }
+    })
 
-    const currentAllocation = currentProjects.reduce((sum, p) => sum + p.allocation, 0)
+    // クライアント情報を取得
+    const clientIds = [...new Set(projectMembers.map(pm => pm.project.clientId))]
+    const clients = await db.organization.findMany({
+      where: { id: { in: clientIds } }
+    })
+    const clientMap = new Map(clients.map(c => [c.id, c]))
+
+    // 現在のプロジェクト割り当て
+    const currentProjects = projectMembers
+      .filter(pm => pm.project.status === 'active')
+      .map(pm => {
+        const client = clientMap.get(pm.project.clientId)
+        return {
+          id: pm.project.id,
+          name: pm.project.name,
+          clientName: client?.name || 'Unknown',
+          allocation: pm.allocation,
+          role: pm.role
+        }
+      })
+
+    const currentAllocation = currentProjects.reduce((sum, p) => sum + p.allocation, 0) * 100
 
     // 週次稼働率（過去4週間）
     const weeklyUtilization = []
@@ -107,15 +117,15 @@ export async function getTeamUtilization(targetMonth?: string) {
       const weekStart = startOfWeek(weekDate, { weekStartsOn: 1 })
       const weekEnd = endOfWeek(weekDate, { weekStartsOn: 1 })
 
-      const weekProjects = member.projectMembers.filter(pm => {
+      const weekProjects = projectMembers.filter(pm => {
         const startDate = new Date(pm.startDate)
         const endDate = pm.endDate ? new Date(pm.endDate) : new Date()
         
         return startDate <= weekEnd && endDate >= weekStart
       })
 
-      const weekAllocation = weekProjects.reduce((sum, pm) => sum + pm.allocation, 0)
-      
+      const weekAllocation = weekProjects.reduce((sum, pm) => sum + pm.allocation, 0) * 100
+
       weeklyUtilization.push({
         weekStart: format(weekStart, 'yyyy-MM-dd'),
         utilization: Math.min(weekAllocation, 100)
@@ -138,7 +148,7 @@ export async function getTeamUtilization(targetMonth?: string) {
         // 週末を除外
         if (day.getDay() === 0 || day.getDay() === 6) continue
 
-        const dayProjects = member.projectMembers.filter(pm => {
+        const dayProjects = projectMembers.filter(pm => {
           const startDate = new Date(pm.startDate)
           const endDate = pm.endDate ? new Date(pm.endDate) : new Date()
           
@@ -185,25 +195,16 @@ export async function getProjectResourceAllocation(projectId: string) {
   }
 
   // プロジェクトアクセス権限チェック
-  const project = await db.project.findFirst({
+  const project = await projectDb.project.findFirst({
     where: {
       id: projectId,
       OR: [
         { projectMembers: { some: { userId: user.id } } },
-        ...(user.role.name === 'executive' ? [{ id: projectId }] : [])
+        ...(user.role.name === 'Executive' ? [{ id: projectId }] : [])
       ]
     },
     include: {
-      client: true,
-      projectMembers: {
-        include: {
-          user: {
-            include: {
-              role: true
-            }
-          }
-        }
-      }
+      projectMembers: true
     }
   })
 
@@ -211,9 +212,24 @@ export async function getProjectResourceAllocation(projectId: string) {
     throw new Error('プロジェクトが見つからないか、権限がありません')
   }
 
+  // ユーザー情報を取得
+  const memberUsers = await db.user.findMany({
+    where: {
+      id: { in: project.projectMembers.map(pm => pm.userId) }
+    },
+    include: {
+      role: true
+    }
+  })
+
+  const userMap = new Map(memberUsers.map(u => [u.id, u]))
+
   // ロール別にグループ化
   const roleAllocation = project.projectMembers.reduce((acc, member) => {
-    const roleName = member.user.role.name
+    const user = userMap.get(member.userId)
+    if (!user) return acc
+
+    const roleName = user.role.name
     if (!acc[roleName]) {
       acc[roleName] = {
         count: 0,
@@ -221,12 +237,12 @@ export async function getProjectResourceAllocation(projectId: string) {
         members: []
       }
     }
-    
+
     acc[roleName].count++
     acc[roleName].totalAllocation += member.allocation
     acc[roleName].members.push({
-      id: member.user.id,
-      name: member.user.name,
+      id: user.id,
+      name: user.name,
       allocation: member.allocation,
       projectRole: member.role
     })
@@ -237,11 +253,16 @@ export async function getProjectResourceAllocation(projectId: string) {
   // 合計稼働率
   const totalAllocation = project.projectMembers.reduce((sum, pm) => sum + pm.allocation, 0)
 
+  // クライアント情報を取得
+  const client = await db.organization.findUnique({
+    where: { id: project.clientId }
+  })
+
   return {
     project: {
       id: project.id,
       name: project.name,
-      clientName: project.client.name,
+      clientName: client?.name || 'Unknown',
       status: project.status,
       startDate: project.startDate,
       endDate: project.endDate
@@ -265,7 +286,7 @@ export async function getProjectResourceAllocation(projectId: string) {
 // 稼働率の最適化提案を取得
 export async function getUtilizationRecommendations() {
   const user = await getCurrentUser()
-  if (!user || user.role.name !== 'executive') {
+  if (!user || user.role.name !== 'Executive') {
     throw new Error('エグゼクティブのみアクセス可能です')
   }
 
@@ -275,7 +296,7 @@ export async function getUtilizationRecommendations() {
       organizationId: user.organizationId,
       role: {
         name: {
-          in: ['pm', 'consultant']
+          in: ['PM', 'Consultant']
         }
       }
     },

@@ -5,7 +5,7 @@ import { projectDb } from '@/lib/db/project-db'
 import { projectService } from '@/lib/services/project-service'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
-import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, format } from 'date-fns'
+import { startOfWeek, endOfWeek } from 'date-fns'
 
 export async function getPMDashboardData() {
   const user = await getCurrentUser()
@@ -13,7 +13,7 @@ export async function getPMDashboardData() {
     redirect('/login')
   }
 
-  if (user.role.name !== 'pm' && user.role.name !== 'executive') {
+  if (user.role.name !== 'PM' && user.role.name !== 'Executive') {
     throw new Error('権限がありません')
   }
 
@@ -25,10 +25,10 @@ export async function getPMDashboardData() {
   })
 
   // PMとして担当しているアクティブなプロジェクトをフィルタリング
-  const myProjects = allProjects.filter(project => 
+  const myProjects = allProjects.filter(project =>
     project.status !== 'completed' &&
-    project.projectMembers.some(member => 
-      member.userId === user.id && member.role === 'pm'
+    project.projectMembers.some(member =>
+      member.userId === user.id && member.role === 'PM'
     )
   )
 
@@ -44,41 +44,87 @@ export async function getPMDashboardData() {
 
   const projectIds = myProjects.map(p => p.id)
 
-  // タスクの統計（プロジェクトサービスから）
-  const taskStats = await projectDb.task.groupBy({
-    by: ['status'],
-    where: {
-      projectId: {
-        in: projectIds
-      }
-    },
-    _count: true
-  })
+  // タスクの統計
+  let taskStats = []
+  let upcomingMilestones = []
+  let riskyTasks = []
+  let teamMembers = []
 
-  // 今週のマイルストーン
-  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
-  const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 })
-  
-  const upcomingMilestones = await projectDb.milestone.findMany({
-    where: {
-      projectId: {
-        in: projectIds
+  if (projectIds.length > 0) {
+    // タスクの統計（プロジェクトサービスから）
+    taskStats = await projectDb.task.groupBy({
+      by: ['status'],
+      where: {
+        projectId: {
+          in: projectIds
+        }
       },
-      dueDate: {
-        gte: weekStart,
-        lte: weekEnd
+      _count: true
+    })
+
+    // 今週のマイルストーン
+    const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
+    const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 })
+
+    upcomingMilestones = await projectDb.milestone.findMany({
+      where: {
+        projectId: {
+          in: projectIds
+        },
+        dueDate: {
+          gte: weekStart,
+          lte: weekEnd
+        },
+        status: {
+          not: 'completed'
+        }
       },
-      status: {
-        not: 'completed'
+      include: {
+        project: true
+      },
+      orderBy: {
+        dueDate: 'asc'
       }
-    },
-    include: {
-      project: true
-    },
-    orderBy: {
-      dueDate: 'asc'
-    }
-  })
+    })
+
+    // リスクの高いタスク（期限切れまたは期限間近）
+    const today = new Date()
+    const threeDaysLater = new Date()
+    threeDaysLater.setDate(today.getDate() + 3)
+
+    riskyTasks = await projectDb.task.findMany({
+      where: {
+        projectId: {
+          in: projectIds
+        },
+        status: {
+          not: 'completed'
+        },
+        dueDate: {
+          lte: threeDaysLater
+        }
+      },
+      include: {
+        project: true
+      },
+      orderBy: {
+        dueDate: 'asc'
+      },
+      take: 10
+    })
+
+    // チームメンバーの稼働率
+    teamMembers = await projectDb.projectMember.findMany({
+      where: {
+        projectId: {
+          in: projectIds
+        }
+      },
+      include: {
+        project: true
+      }
+    })
+  }
 
   // プロジェクトにクライアント情報を追加
   const milestonesWithClient = upcomingMilestones.map(milestone => {
@@ -92,37 +138,11 @@ export async function getPMDashboardData() {
     }
   })
 
-  // リスクの高いタスク（期限切れまたは期限間近）
-  const today = new Date()
-  const threeDaysLater = new Date()
-  threeDaysLater.setDate(today.getDate() + 3)
-
-  const riskyTasks = await projectDb.task.findMany({
-    where: {
-      projectId: {
-        in: projectIds
-      },
-      status: {
-        not: 'completed'
-      },
-      dueDate: {
-        lte: threeDaysLater
-      }
-    },
-    include: {
-      project: true
-    },
-    orderBy: {
-      dueDate: 'asc'
-    },
-    take: 10
-  })
-
   // タスクにクライアント情報とアサイン情報を追加
   const assigneeIds = [...new Set(riskyTasks.map(t => t.assigneeId).filter(id => id))]
-  const assignees = await db.user.findMany({
+  const assignees = assigneeIds.length > 0 ? await db.user.findMany({
     where: { id: { in: assigneeIds as string[] } }
-  })
+  }) : []
   const assigneeMap = new Map(assignees.map(u => [u.id, u]))
 
   const riskyTasksWithDetails = riskyTasks.map(task => {
@@ -137,23 +157,11 @@ export async function getPMDashboardData() {
     }
   })
 
-  // チームメンバーの稼働率
-  const teamMembers = await projectDb.projectMember.findMany({
-    where: {
-      projectId: {
-        in: projectIds
-      }
-    },
-    include: {
-      project: true
-    }
-  })
-
   // メンバーのユーザー情報を取得
   const memberUserIds = [...new Set(teamMembers.map(m => m.userId))]
-  const memberUsers = await db.user.findMany({
+  const memberUsers = memberUserIds.length > 0 ? await db.user.findMany({
     where: { id: { in: memberUserIds } }
-  })
+  }) : []
   const userMap = new Map(memberUsers.map(u => [u.id, u]))
 
   const teamMembersWithUser = teamMembers.map(member => ({
@@ -208,13 +216,13 @@ export async function getProjectProgress(projectId: string) {
       projectMembers: {
         where: {
           userId: user.id,
-          role: 'pm'
+          role: 'PM'
         }
       }
     }
   })
 
-  if (!project || (project.projectMembers.length === 0 && user.role.name !== 'executive')) {
+  if (!project || (project.projectMembers.length === 0 && user.role.name !== 'Executive')) {
     throw new Error('プロジェクトが見つかりません')
   }
 

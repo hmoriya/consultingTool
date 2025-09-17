@@ -23,7 +23,7 @@ export async function getClients() {
   }
 
   // エグゼクティブまたはPMのみクライアント一覧を表示可能
-  if (user.role.name !== 'executive' && user.role.name !== 'pm') {
+  if (user.role.name !== 'Executive' && user.role.name !== 'PM') {
     throw new Error('権限がありません')
   }
 
@@ -74,7 +74,7 @@ export async function createClient(data: {
   name: string
 }) {
   const user = await getCurrentUser()
-  if (!user || (user.role.name !== 'executive' && user.role.name !== 'pm')) {
+  if (!user || (user.role.name !== 'Executive' && user.role.name !== 'PM')) {
     throw new Error('権限がありません')
   }
 
@@ -115,7 +115,7 @@ export async function updateClient(clientId: string, data: {
   name: string
 }) {
   const user = await getCurrentUser()
-  if (!user || (user.role.name !== 'executive' && user.role.name !== 'pm')) {
+  if (!user || (user.role.name !== 'Executive' && user.role.name !== 'PM')) {
     throw new Error('権限がありません')
   }
 
@@ -166,7 +166,7 @@ export async function updateClient(clientId: string, data: {
 
 export async function deleteClient(clientId: string) {
   const user = await getCurrentUser()
-  if (!user || user.role.name !== 'executive') {
+  if (!user || user.role.name !== 'Executive') {
     throw new Error('権限がありません（エグゼクティブのみ削除可能）')
   }
 
@@ -217,7 +217,7 @@ export async function searchClients(query: string) {
   }
 
   // エグゼクティブまたはPMのみクライアント検索可能
-  if (user.role.name !== 'executive' && user.role.name !== 'pm') {
+  if (user.role.name !== 'Executive' && user.role.name !== 'PM') {
     throw new Error('権限がありません')
   }
 

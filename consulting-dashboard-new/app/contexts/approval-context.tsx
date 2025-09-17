@@ -23,16 +23,20 @@ export function ApprovalProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
-    try {
-      const response = await fetch('/api/timesheet/pending-count')
-      if (response.ok) {
-        const data = await response.json()
-        setPendingCount(data.count || 0)
-      }
-    } catch (error) {
-      console.error('Failed to fetch pending count:', error)
-      setPendingCount(0)
-    }
+    // TODO: Implement API endpoint for pending count
+    // For now, just set to 0 to prevent errors
+    setPendingCount(0)
+
+    // try {
+    //   const response = await fetch('/api/timesheet/pending-count')
+    //   if (response.ok) {
+    //     const data = await response.json()
+    //     setPendingCount(data.count || 0)
+    //   }
+    // } catch (error) {
+    //   console.error('Failed to fetch pending count:', error)
+    //   setPendingCount(0)
+    // }
   }
 
   useEffect(() => {

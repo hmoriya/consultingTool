@@ -31,12 +31,19 @@ export default function AppLayout({ children }: AppLayoutProps) {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
   
-  // LocalStorageからサイドバーの状態を読み込み
+  // LocalStorageからサイドバーの状態を読み込み（一時的に無効化）
   useEffect(() => {
-    const savedState = localStorage.getItem('sidebar_state')
-    if (savedState === 'collapsed' || savedState === 'expanded') {
-      setIsSidebarCollapsed(savedState === 'collapsed')
-    }
+    // LocalStorageをクリアして強制的に展開状態にする
+    localStorage.removeItem('sidebar_state')
+    setIsSidebarCollapsed(false)
+
+    // const savedState = localStorage.getItem('sidebar_state')
+    // if (savedState === 'collapsed') {
+    //   setIsSidebarCollapsed(true)
+    // } else {
+    //   // デフォルトは展開状態
+    //   setIsSidebarCollapsed(false)
+    // }
   }, [])
   
   const handleMenuToggle = () => {
@@ -64,14 +71,21 @@ export default function AppLayout({ children }: AppLayoutProps) {
       <div className="min-h-screen bg-background">
         <Header onMenuToggle={handleMenuToggle} />
         
-        {user && (
+        {/* 一時的に常に表示 */}
+        <Sidebar
+          isOpen={isSidebarOpen}
+          isCollapsed={isSidebarCollapsed}
+          onCollapse={handleSidebarCollapse}
+          onClose={handleSidebarClose}
+        />
+        {/* {user && (
           <Sidebar
             isOpen={isSidebarOpen}
             isCollapsed={isSidebarCollapsed}
             onCollapse={handleSidebarCollapse}
             onClose={handleSidebarClose}
           />
-        )}
+        )} */}
         
         <main
           className={cn(

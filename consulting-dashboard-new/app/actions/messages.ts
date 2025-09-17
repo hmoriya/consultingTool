@@ -36,7 +36,7 @@ export async function createChannel(data: z.infer<typeof createChannelSchema>) {
 
     // ダイレクトメッセージの場合、既存のチャンネルを確認
     if (validated.type === 'DIRECT' && validated.memberIds) {
-      const existingChannel = await notificationDb.channel.findFirst({
+      const existingChannel = await notificationDb.Channel.findFirst({
         where: {
           type: 'DIRECT',
           members: {
@@ -58,7 +58,7 @@ export async function createChannel(data: z.infer<typeof createChannelSchema>) {
     }
 
     // 新しいチャンネルを作成
-    const channel = await notificationDb.channel.create({
+    const channel = await notificationDb.Channel.create({
       data: {
         name: validated.name,
         description: validated.description,
@@ -100,7 +100,7 @@ export async function sendMessage(data: z.infer<typeof sendMessageSchema>) {
     const validated = sendMessageSchema.parse(data)
 
     // チャンネルメンバーか確認
-    const member = await notificationDb.channelMember.findUnique({
+    const member = await notificationDb.ChannelMember.findUnique({
       where: {
         channelId_userId: {
           channelId: validated.channelId,
@@ -114,7 +114,7 @@ export async function sendMessage(data: z.infer<typeof sendMessageSchema>) {
     }
 
     // メッセージを作成
-    const message = await notificationDb.message.create({
+    const message = await notificationDb.Message.create({
       data: {
         channelId: validated.channelId,
         senderId: user.id,
@@ -126,7 +126,7 @@ export async function sendMessage(data: z.infer<typeof sendMessageSchema>) {
     })
 
     // チャンネルの最終メッセージを更新
-    await notificationDb.channel.update({
+    await notificationDb.Channel.update({
       where: { id: validated.channelId },
       data: { 
         lastMessageId: message.id,
@@ -137,7 +137,7 @@ export async function sendMessage(data: z.infer<typeof sendMessageSchema>) {
     // メンション処理
     const mentions = extractMentions(validated.content)
     if (mentions.length > 0) {
-      await notificationDb.messageMention.createMany({
+      await notificationDb.MessageMention.createMany({
         data: mentions.map(userId => ({
           messageId: message.id,
           userId,
@@ -166,7 +166,7 @@ export async function getUserChannels() {
       return { success: false, error: '認証が必要です' }
     }
 
-    const channels = await notificationDb.channel.findMany({
+    const channels = await notificationDb.Channel.findMany({
       where: {
         members: {
           some: {
@@ -216,7 +216,7 @@ export async function getUserChannels() {
         const member = channel.members.find(m => m.userId === user.id)
         if (!member) return { ...channel, unreadCount: 0, memberUsers: [] }
 
-        const unreadCount = await notificationDb.message.count({
+        const unreadCount = await notificationDb.Message.count({
           where: {
             channelId: channel.id,
             createdAt: {
@@ -254,7 +254,7 @@ export async function getChannelMessages(channelId: string, limit = 50, cursor?:
     }
 
     // メンバーか確認
-    const member = await notificationDb.channelMember.findUnique({
+    const member = await notificationDb.ChannelMember.findUnique({
       where: {
         channelId_userId: {
           channelId,
@@ -267,7 +267,7 @@ export async function getChannelMessages(channelId: string, limit = 50, cursor?:
       return { success: false, error: 'このチャンネルにアクセスできません' }
     }
 
-    const messages = await notificationDb.message.findMany({
+    const messages = await notificationDb.Message.findMany({
       where: {
         channelId,
         deletedAt: null
@@ -297,7 +297,7 @@ export async function getChannelMessages(channelId: string, limit = 50, cursor?:
     })
 
     // 最終既読時刻を更新
-    await notificationDb.channelMember.update({
+    await notificationDb.ChannelMember.update({
       where: {
         channelId_userId: {
           channelId,
@@ -338,7 +338,7 @@ export async function markMessageAsRead(messageId: string) {
       return { success: false, error: '認証が必要です' }
     }
 
-    await notificationDb.messageReadReceipt.upsert({
+    await notificationDb.MessageReadReceipt.upsert({
       where: {
         messageId_userId: {
           messageId,
@@ -369,7 +369,7 @@ export async function toggleReaction(messageId: string, emoji: string) {
       return { success: false, error: '認証が必要です' }
     }
 
-    const existing = await notificationDb.messageReaction.findUnique({
+    const existing = await notificationDb.MessageReaction.findUnique({
       where: {
         messageId_userId_emoji: {
           messageId,
@@ -380,11 +380,11 @@ export async function toggleReaction(messageId: string, emoji: string) {
     })
 
     if (existing) {
-      await notificationDb.messageReaction.delete({
+      await notificationDb.MessageReaction.delete({
         where: { id: existing.id }
       })
     } else {
-      await notificationDb.messageReaction.create({
+      await notificationDb.MessageReaction.create({
         data: {
           messageId,
           userId: user.id,
@@ -408,7 +408,7 @@ export async function getChannelDetails(channelId: string) {
       return { success: false, error: '認証が必要です' }
     }
 
-    const channel = await notificationDb.channel.findUnique({
+    const channel = await notificationDb.Channel.findUnique({
       where: { id: channelId },
       include: {
         members: true,

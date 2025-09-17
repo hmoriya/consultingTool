@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { CheckCircle2, Circle, Clock, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { db } from '@/lib/db'
+import { projectDb } from '@/lib/db/project-db'
 
 export default async function TasksPage() {
   const user = await getCurrentUser()
@@ -14,24 +15,33 @@ export default async function TasksPage() {
   }
 
   // ユーザーに割り当てられたタスクを取得
-  const tasks = await db.task.findMany({
+  const tasks = await projectDb.task.findMany({
     where: {
       assigneeId: user.id
     },
     include: {
-      project: {
-        include: {
-          client: true
-        }
-      },
-      milestone: true,
-      assignee: true
+      project: true,
+      milestone: true
     },
     orderBy: [
       { status: 'asc' },
       { dueDate: 'asc' }
     ]
   })
+
+  // クライアント情報を取得
+  const clientIds = [...new Set(tasks.map(t => t.project.clientId))]
+  const clients = await db.organization.findMany({
+    where: { id: { in: clientIds } }
+  })
+  const clientMap = new Map(clients.map(c => [c.id, c]))
+
+  // ユーザー情報を取得
+  const assigneeIds = [...new Set(tasks.map(t => t.assigneeId))]
+  const assignees = await db.user.findMany({
+    where: { id: { in: assigneeIds } }
+  })
+  const assigneeMap = new Map(assignees.map(a => [a.id, a]))
 
   const statusConfig = {
     todo: { label: '未着手', color: 'bg-gray-500', icon: Circle },
@@ -84,7 +94,7 @@ export default async function TasksPage() {
                         {task.title}
                       </CardTitle>
                       <CardDescription>
-                        {task.project.client.name} - {task.project.name}
+                        {clientMap.get(task.project.clientId)?.name || 'Unknown'} - {task.project.name}
                         {task.milestone && ` / ${task.milestone.name}`}
                       </CardDescription>
                     </div>

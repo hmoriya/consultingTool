@@ -49,7 +49,7 @@ export function ProjectSummaryCard({ project }: ProjectSummaryCardProps) {
               <CardTitle className="text-lg">{project.name}</CardTitle>
             </Link>
             <CardDescription className="mt-1">
-              {project.client.name}
+              {project.client?.name || 'クライアント未設定'}
             </CardDescription>
           </div>
           <Badge variant="outline" className={cn('ml-2', getStatusColor(project.status), 'text-white')}>

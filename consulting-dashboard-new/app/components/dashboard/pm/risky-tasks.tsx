@@ -86,7 +86,7 @@ export function RiskyTasks({ tasks }: RiskyTasksProps) {
                           {task.title}
                         </Link>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          {task.project.client.name} - {task.project.name}
+                          {task.project.client?.name || 'クライアント未設定'} - {task.project.name}
                         </p>
                       </div>
                       <Badge variant={getPriorityColor(task.priority) as any} className="text-xs">

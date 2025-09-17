@@ -81,6 +81,39 @@ rm -rf ./prisma/timesheet-service/prisma/
 - 新しいサービスを追加する場合は、`prisma/[service-name]/data/[service].db`の形式でDBファイルを配置してください
 - 環境変数は相対パスで設定し、プロジェクトルートからの相対位置を維持してください
 
+## 環境変数の設定
+
+### 初期セットアップ
+
+プロジェクトを新規にクローンした場合や、`.env`ファイルが存在しない場合は、以下の手順で環境変数を設定してください：
+
+```bash
+# consulting-dashboard-newディレクトリに移動
+cd consulting-dashboard-new
+
+# .env.exampleから.envファイルを複製
+cp .env.example .env
+
+# 必要に応じて.envファイルを編集
+# デフォルト設定のままでもプロトタイプ開発は可能です
+```
+
+### .envファイルの内容
+
+`.env`ファイルには以下の環境変数が設定されています（プロトタイプ用のデフォルト値で動作します）：
+
+- `DATABASE_URL`: メインデータベース
+- `CORE_DATABASE_URL`: コアサービスDB
+- `PROJECT_DATABASE_URL`: プロジェクトサービスDB
+- `RESOURCE_DATABASE_URL`: リソースサービスDB
+- `TIMESHEET_DATABASE_URL`: タイムシートサービスDB
+- `NOTIFICATION_DATABASE_URL`: 通知サービスDB
+- `JWT_SECRET`: JWT認証用シークレット
+- `NEXTAUTH_SECRET`: NextAuth認証用シークレット
+- `NEXTAUTH_URL`: NextAuthのベースURL
+
+**注意**: 本番環境では必ずシークレットキーを安全な値に変更してください。
+
 ## 主要ユースケース
 
 ### 0. ０リリース

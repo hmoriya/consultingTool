@@ -6,6 +6,7 @@ import { projectService } from '@/lib/services/project-service'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
 import { startOfWeek, endOfWeek } from 'date-fns'
+import { PROJECT_MEMBER_ROLES, USER_ROLES } from '@/constants/roles'
 
 export async function getPMDashboardData() {
   const user = await getCurrentUser()
@@ -13,7 +14,7 @@ export async function getPMDashboardData() {
     redirect('/login')
   }
 
-  if (user.role.name !== 'PM' && user.role.name !== 'Executive') {
+  if (user.role.name !== USER_ROLES.PM && user.role.name !== USER_ROLES.EXECUTIVE) {
     throw new Error('権限がありません')
   }
 
@@ -28,7 +29,7 @@ export async function getPMDashboardData() {
   const myProjects = allProjects.filter(project =>
     project.status !== 'completed' &&
     project.projectMembers.some(member =>
-      member.userId === user.id && member.role === 'pm'
+      member.userId === user.id && member.role === PROJECT_MEMBER_ROLES.PM
     )
   )
 
@@ -216,13 +217,13 @@ export async function getProjectProgress(projectId: string) {
       projectMembers: {
         where: {
           userId: user.id,
-          role: 'pm'
+          role: PROJECT_MEMBER_ROLES.PM
         }
       }
     }
   })
 
-  if (!project || (project.projectMembers.length === 0 && user.role.name !== 'Executive')) {
+  if (!project || (project.projectMembers.length === 0 && user.role.name !== USER_ROLES.EXECUTIVE)) {
     throw new Error('プロジェクトが見つかりません')
   }
 

@@ -1,13 +1,7 @@
 import { PrismaClient as AuthPrismaClient } from '@prisma/auth-client'
 import bcrypt from 'bcryptjs'
 
-const authDb = new AuthPrismaClient({
-  datasources: {
-    db: {
-      url: process.env.AUTH_DATABASE_URL || 'file:./prisma/auth-service/data/auth.db'
-    }
-  }
-})
+const authDb = new AuthPrismaClient()
 
 export async function seedCore() {
   console.log('🌱 Seeding Auth Service...')

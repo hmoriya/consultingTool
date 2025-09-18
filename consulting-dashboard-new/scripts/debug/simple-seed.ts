@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'  // 通常のPrismaクライアント（dev.db用）
 import { PrismaClient as ProjectPrismaClient } from '@prisma/project-client'
+import { PROJECT_MEMBER_ROLES } from '../../constants/roles'
 
 const authDb = new PrismaClient()  // dev.dbに接続
 const projectDb = new ProjectPrismaClient()
@@ -9,7 +10,7 @@ async function simpleSeed() {
 
   try {
     // ログで確認したPMユーザーのIDとクライアント組織IDを直接使用
-    const pmUserId = 'cmfp4im4w000mz5d6cgmnik5w'  // 鈴木花子のID（ログから確認）
+    const pmUserId = 'cmfpcvoht000iz588wts0xa4e'  // 鈴木花子のID（実際のauth DBから確認）
     const pmUserName = '鈴木 花子'
     const clientOrgId = 'cmfp4im4w000tz5d63t8wvhpg'  // クライアント組織のID（仮）
 
@@ -72,21 +73,21 @@ async function simpleSeed() {
         {
           projectId: project1.id,
           userId: pmUserId,
-          role: 'PM',
+          role: PROJECT_MEMBER_ROLES.PM,
           allocation: 0.5,
           startDate: new Date('2024-01-15')
         },
         {
           projectId: project2.id,
           userId: pmUserId,
-          role: 'PM',
+          role: PROJECT_MEMBER_ROLES.PM,
           allocation: 0.3,
           startDate: new Date('2024-04-01')
         },
         {
           projectId: project3.id,
           userId: pmUserId,
-          role: 'PM',
+          role: PROJECT_MEMBER_ROLES.PM,
           allocation: 0.5,
           startDate: new Date('2024-03-01')
         }

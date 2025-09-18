@@ -499,12 +499,66 @@ npm run db:studio   # Prisma Studio起動
 ## トラブルシューティング
 
 ### ログインできない場合
-1. データベースが正しい場所にあるか確認: `prisma/core-service/data/core.db`
+1. データベースが正しい場所にあるか確認: `prisma/auth-service/data/auth.db`
 2. データベースにテストデータがあるか確認:
    ```bash
-   sqlite3 prisma/core-service/data/core.db "SELECT email FROM User;"
+   sqlite3 prisma/auth-service/data/auth.db "SELECT email FROM User;"
    ```
 3. データがない場合は、シードスクリプトを実行:
    ```bash
    npm run db:seed
    ```
+
+### ロール名に関する重要な注意事項
+
+⚠️ **ロール名の大文字小文字が原因でエラーが頻繁に発生します**
+
+#### 問題の背景
+- **Userテーブルのロール**: `Executive`, `PM`, `Consultant`, `Client`, `Admin` (大文字)
+- **ProjectMemberのロール**: `pm`, `member`, `reviewer`, `observer` (小文字)
+- この不一致により、ロールチェック時にデータが表示されない問題が発生
+
+#### 解決策
+`constants/roles.ts` ファイルで一元管理：
+
+```typescript
+// ユーザーロール（認証サービス）
+export const USER_ROLES = {
+  EXECUTIVE: 'Executive',
+  PM: 'PM',
+  CONSULTANT: 'Consultant',
+  CLIENT: 'Client',
+  ADMIN: 'Admin'
+} as const
+
+// プロジェクトメンバーロール（プロジェクトサービス）
+export const PROJECT_MEMBER_ROLES = {
+  PM: 'pm',
+  MEMBER: 'member',
+  REVIEWER: 'reviewer',
+  OBSERVER: 'observer'
+} as const
+```
+
+#### 使用例
+```typescript
+// ❌ 避けるべき直接文字列の使用
+if (member.role === 'PM') { ... }  // 大文字小文字の違いでマッチしない
+
+// ✅ 推奨: 定数を使用
+import { PROJECT_MEMBER_ROLES } from '@/constants/roles'
+if (member.role === PROJECT_MEMBER_ROLES.PM) { ... }  // 常に正しい値
+```
+
+#### tsconfig.json の設定
+constants フォルダへのパスマッピングが必要：
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./app/*"],
+      "@/components/*": ["./components/*", "./app/components/*"],
+      "@/constants/*": ["./constants/*"]
+    }
+  }
+}

@@ -220,9 +220,10 @@ export const projectDb = new ProjectPrismaClient({
 ##### 開発環境
 各マイクロサービス毎に個別のSQLiteファイルを使用:
 
-1. **コアサービス** (認証・ユーザー管理)
-   - パス: `prisma/core-service/data/core.db`
-   - 環境変数: `DATABASE_URL="file:./prisma/core-service/data/core.db"`
+1. **認証サービス** (認証・ユーザー管理)
+   - パス: `prisma/auth-service/data/auth.db`
+   - 環境変数: `AUTH_DATABASE_URL="file:./prisma/auth-service/data/auth.db"`
+   - ⚠️ **重要**: ルートディレクトリに`dev.db`を配置することは禁止
 
 2. **プロジェクトサービス**
    - パス: `prisma/project-service/data/project.db`
@@ -245,10 +246,18 @@ export const projectDb = new ProjectPrismaClient({
 
 ### 現在のデータベースファイル構成
 
-以下の4つのSQLiteデータベースファイルが正常に配置されています：
+⚠️ **重要なルール**:
+- **禁止**: ルートディレクトリに`dev.db`や他のデータベースファイルを配置すること
+- **必須**: すべてのデータベースは各サービスの`prisma/[service-name]/data/`ディレクトリに配置
+- **理由**: マイクロサービスの独立性を保ち、将来の分散化に備えるため
+
+以下の5つのSQLiteデータベースファイルが正常に配置されています：
 
 ```
 prisma/
+├── auth-service/
+│   └── data/
+│       └── auth.db                 # 認証・ユーザー管理データ
 ├── project-service/
 │   └── data/
 │       └── project.db              # プロジェクト管理データ
@@ -263,7 +272,10 @@ prisma/
         └── notification.db         # 通知・メッセージデータ
 ```
 
-**重要**: 上記4つのファイルのみが正規のデータベースファイルです。他の場所にある.dbファイルは重複ファイルのため削除してください。
+**重要**:
+- 上記5つのファイルのみが正規のデータベースファイルです
+- ルートディレクトリの`dev.db`は作成禁止
+- 他の場所にある.dbファイルは重複ファイルのため削除してください
 
 ### 移行戦略
 

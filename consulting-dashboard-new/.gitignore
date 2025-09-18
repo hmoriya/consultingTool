@@ -37,6 +37,12 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 
+# ⚠️ IMPORTANT: Never place database files in the root directory
+# Root directory database files are prohibited (but development DBs in service directories are committed)
+dev.db
+/dev.db
+./dev.db
+
 # vercel
 .vercel
 

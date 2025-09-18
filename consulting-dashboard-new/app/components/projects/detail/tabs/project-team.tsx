@@ -18,11 +18,16 @@ import {
 } from 'lucide-react'
 import {
   TeamMemberItem,
-  TeamMemberRole,
   getProjectTeamMembers,
   getTeamMemberStats,
   removeTeamMember
 } from '@/actions/project-team'
+import { 
+  TeamMemberRole, 
+  TEAM_MEMBER_ROLE_LABELS, 
+  TEAM_MEMBER_ROLE_COLORS,
+  teamMemberRoleUtils 
+} from '@/types/team-member'
 import { TeamMemberAddForm } from './team-member-add-form'
 import { TeamMemberEditForm } from './team-member-edit-form'
 import {
@@ -37,22 +42,6 @@ import { ja } from 'date-fns/locale'
 
 interface ProjectTeamProps {
   project: any
-}
-
-const roleLabels: Record<TeamMemberRole, string> = {
-  pm: 'プロジェクトマネージャー',
-  lead: 'リードコンサルタント',
-  senior: 'シニアコンサルタント',
-  consultant: 'コンサルタント',
-  analyst: 'アナリスト'
-}
-
-const roleColors: Record<TeamMemberRole, string> = {
-  pm: 'bg-purple-100 text-purple-700',
-  lead: 'bg-blue-100 text-blue-700',
-  senior: 'bg-green-100 text-green-700',
-  consultant: 'bg-yellow-100 text-yellow-700',
-  analyst: 'bg-gray-100 text-gray-700'
 }
 
 export function ProjectTeam({ project }: ProjectTeamProps) {
@@ -125,8 +114,9 @@ export function ProjectTeam({ project }: ProjectTeamProps) {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">総稼働率</p>
-                  <p className="text-2xl font-bold">{stats.totalAllocation}%</p>
+                  <p className="text-sm font-medium text-muted-foreground">総FTE</p>
+                  <p className="text-2xl font-bold">{stats.totalFTE?.toFixed(1) || 0}</p>
+                  <p className="text-xs text-muted-foreground">フルタイム換算人数</p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-blue-600" />
               </div>
@@ -150,7 +140,10 @@ export function ProjectTeam({ project }: ProjectTeamProps) {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">PM数</p>
-                  <p className="text-2xl font-bold">{stats.roleDistribution?.pm || 0}</p>
+                  <p className="text-2xl font-bold">{stats.pmCount || 0}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {stats.pmCount === 0 ? 'PM未割当' : ''}
+                  </p>
                 </div>
                 <UserCheck className="h-8 w-8 text-purple-600" />
               </div>
@@ -198,12 +191,12 @@ export function ProjectTeam({ project }: ProjectTeamProps) {
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <Badge className={roleColors[member.role]}>
-                      {roleLabels[member.role]}
+                    <Badge className={teamMemberRoleUtils.getColor(member.role)}>
+                      {teamMemberRoleUtils.getLabel(member.role)}
                     </Badge>
-                    <div className="text-right">
-                      <p className="text-sm font-medium">{member.allocation}%</p>
-                      <Progress value={member.allocation} className="w-20 h-2" />
+                    <div className="flex items-center gap-2">
+                      <Progress value={member.allocation} className="w-24" />
+                      <span className="text-sm font-medium w-12 text-right">{member.allocation}%</span>
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -245,19 +238,14 @@ export function ProjectTeam({ project }: ProjectTeamProps) {
               {Object.entries(stats.roleDistribution).map(([role, count]) => (
                 <div key={role} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Badge className={roleColors[role as TeamMemberRole]}>
-                      {roleLabels[role as TeamMemberRole]}
+                    <Badge className={teamMemberRoleUtils.getColor(teamMemberRoleUtils.parseRole(role) || TeamMemberRole.CONSULTANT)}>
+                      {teamMemberRoleUtils.getLabel(teamMemberRoleUtils.parseRole(role) || TeamMemberRole.CONSULTANT)}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <span className="text-sm font-medium">{count as number}名</span>
-                    <div className="w-24 h-2 bg-gray-200 rounded-full">
-                      <div 
-                        className="h-2 bg-blue-500 rounded-full"
-                        style={{ width: `${((count as number) / stats.totalMembers) * 100}%` }}
-                      />
-                    </div>
-                    <span className="text-xs text-muted-foreground">
+                    <Progress value={((count as number) / stats.totalMembers) * 100} className="w-24" />
+                    <span className="text-xs text-muted-foreground w-8">
                       {(((count as number) / stats.totalMembers) * 100).toFixed(0)}%
                     </span>
                   </div>

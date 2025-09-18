@@ -24,12 +24,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { addTeamMember, getAvailableUsers, TeamMemberRole, AvailableUser } from '@/actions/project-team'
+import { addTeamMember, getAvailableUsers, AvailableUser } from '@/actions/project-team'
+import { 
+  TeamMemberRole, 
+  teamMemberRoleSchema,
+  teamMemberRoleUtils 
+} from '@/types/team-member'
 import { X, Save, Search } from 'lucide-react'
 
 const memberSchema = z.object({
   userId: z.string().min(1, 'ユーザーを選択してください'),
-  role: z.enum(['pm', 'lead', 'senior', 'consultant', 'analyst']),
+  role: teamMemberRoleSchema,
   allocation: z.string().min(1, '稼働率は必須です'),
   startDate: z.string().min(1, '開始日は必須です'),
   endDate: z.string().optional()
@@ -41,22 +46,6 @@ interface TeamMemberAddFormProps {
   projectId: string
   onClose: () => void
   onMemberAdded: () => void
-}
-
-const roleLabels: Record<TeamMemberRole, string> = {
-  pm: 'プロジェクトマネージャー',
-  lead: 'リードコンサルタント',
-  senior: 'シニアコンサルタント',
-  consultant: 'コンサルタント',
-  analyst: 'アナリスト'
-}
-
-const roleColors: Record<TeamMemberRole, string> = {
-  pm: 'bg-purple-100 text-purple-700',
-  lead: 'bg-blue-100 text-blue-700',
-  senior: 'bg-green-100 text-green-700',
-  consultant: 'bg-yellow-100 text-yellow-700',
-  analyst: 'bg-gray-100 text-gray-700'
 }
 
 export function TeamMemberAddForm({ projectId, onClose, onMemberAdded }: TeamMemberAddFormProps) {
@@ -221,15 +210,15 @@ export function TeamMemberAddForm({ projectId, onClose, onMemberAdded }: TeamMem
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="role">ロール *</Label>
-                <Select value={watchedRole} onValueChange={(value) => setValue('role', value as any)}>
+                <Select value={watchedRole} onValueChange={(value) => setValue('role', value as TeamMemberRole)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(roleLabels).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>
+                    {teamMemberRoleUtils.getSelectOptions().map(({ value, label }) => (
+                      <SelectItem key={value} value={value}>
                         <div className="flex items-center gap-2">
-                          <Badge className={roleColors[key as TeamMemberRole]}>
+                          <Badge className={teamMemberRoleUtils.getColor(value)}>
                             {label}
                           </Badge>
                         </div>

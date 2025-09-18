@@ -302,6 +302,71 @@ prisma/
 - ソースコード修正後は、Playwrite mcpでログインと動作確認をする
 - ソースコード修正後は、設計書と相違がないか確認
 
+## Prismaマルチデータベース構成のトラブルシューティング
+
+### 問題: "The table `main.Project` does not exist"エラー
+
+#### 原因
+1. **Prismaの相対パス解決問題**
+   - 環境変数の相対パス（`file:./prisma/...`）が実行時のカレントディレクトリから解決される
+   - 結果として複数の場所にデータベースファイルが作成される
+
+2. **SQLiteのスキーマ名問題**
+   - SQLiteはデフォルトで`main`スキーマを使用
+   - Prismaが生成するクエリに`main.Project`のようなスキーマ名が含まれる
+
+3. **Prismaクライアントのキャッシュ問題**
+   - Next.jsのホットリロードで古いDB接続が残る
+   - 環境変数の変更が反映されない
+
+#### 解決方法
+
+1. **環境変数で絶対パスを使用**
+   ```env
+   # ❌ 避けるべき相対パス
+   PROJECT_DATABASE_URL="file:./prisma/project-service/data/project.db"
+   
+   # ✅ 推奨: 絶対パス
+   PROJECT_DATABASE_URL="file:/Users/.../prisma/project-service/data/project.db"
+   ```
+
+2. **Prismaクライアントの初期化を簡素化**
+   ```typescript
+   // ❌ カスタムdatasource設定は避ける
+   export const projectDb = new ProjectPrismaClient({
+     datasources: {
+       db: { url: customPath }
+     }
+   })
+   
+   // ✅ 環境変数に依存
+   export const projectDb = new ProjectPrismaClient({
+     log: ['error', 'warn']
+   })
+   ```
+
+3. **サーバーの完全再起動**
+   ```bash
+   # 環境変数やスキーマ変更後は必須
+   pkill -f "next dev"
+   npm run dev
+   ```
+
+4. **データベースファイルの確認**
+   ```bash
+   # 重複ファイルの検索
+   find . -name "*.db" -type f | grep -v node_modules
+   
+   # 正しいDBファイルの確認
+   sqlite3 prisma/project-service/data/project.db ".tables"
+   ```
+
+#### 予防策
+- マイクロサービス化は段階的に実施
+- 各サービスのDB初期化時に絶対パスを使用
+- 定期的にデータベースファイルの場所を確認
+- 開発環境では`db:generate`後にサーバー再起動を習慣化
+
 ## デザイン・UI実装の重要な注意事項
 
 ### Tailwind CSSのクラス使用について

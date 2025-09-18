@@ -137,7 +137,7 @@ export async function searchTeamMembers(query: string) {
       organizationId: fullUser.organizationId,
       role: {
         name: {
-          in: ['executive', 'pm', 'consultant']
+          in: ['Executive', 'PM', 'Consultant']
         }
       },
       OR: [
@@ -367,7 +367,7 @@ export async function getMemberUtilization(memberId?: string) {
     organizationId: fullUser.organizationId,
     role: {
       name: {
-        in: ['pm', 'consultant']
+        in: ['PM', 'Consultant']
       }
     },
     ...(memberId && { id: memberId })
@@ -391,6 +391,7 @@ export async function getMemberUtilization(memberId?: string) {
           allocation: true,
           project: {
             select: {
+              id: true,
               name: true,
               clientId: true
             }
@@ -404,6 +405,7 @@ export async function getMemberUtilization(memberId?: string) {
         email: member.email,
         totalAllocation: projectMembers.reduce((sum, pm) => sum + (pm.allocation || 0), 0),
         projects: projectMembers.map(pm => ({
+          id: pm.project.id,
           name: pm.project.name,
           allocation: pm.allocation || 0
         }))

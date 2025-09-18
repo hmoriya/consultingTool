@@ -1,6 +1,7 @@
 'use server'
 
 import { db } from '@/lib/db'
+import { projectDb } from '@/lib/db/project-db'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
 
@@ -28,7 +29,7 @@ export async function getProjectMilestones(projectId: string) {
   }
 
   // プロジェクトアクセス権限チェック
-  const project = await db.project.findFirst({
+  const project = await projectDb.project.findFirst({
     where: {
       id: projectId,
       OR: [
@@ -42,7 +43,7 @@ export async function getProjectMilestones(projectId: string) {
     throw new Error('プロジェクトが見つからないか、権限がありません')
   }
 
-  const milestones = await db.milestone.findMany({
+  const milestones = await projectDb.milestone.findMany({
     where: { projectId },
     include: {
       tasks: {
@@ -85,7 +86,7 @@ export async function createMilestone(data: {
   }
 
   // プロジェクトアクセス権限チェック
-  const project = await db.project.findFirst({
+  const project = await projectDb.project.findFirst({
     where: {
       id: data.projectId,
       OR: [
@@ -105,7 +106,7 @@ export async function createMilestone(data: {
     throw new Error('マイルストーンの期日がプロジェクトの終了日を超えています')
   }
 
-  const milestone = await db.milestone.create({
+  const milestone = await projectDb.milestone.create({
     data: {
       projectId: data.projectId,
       name: data.name,
@@ -141,7 +142,7 @@ export async function updateMilestone(milestoneId: string, data: {
   }
 
   // マイルストーンのアクセス権限チェック
-  const milestone = await db.milestone.findFirst({
+  const milestone = await projectDb.milestone.findFirst({
     where: {
       id: milestoneId,
       ...(user.role.name !== 'executive' ? {
@@ -177,7 +178,7 @@ export async function updateMilestone(milestoneId: string, data: {
   }
   if (data.status !== undefined) updateData.status = data.status
 
-  const updatedMilestone = await db.milestone.update({
+  const updatedMilestone = await projectDb.milestone.update({
     where: { id: milestoneId },
     data: updateData
   })
@@ -203,7 +204,7 @@ export async function deleteMilestone(milestoneId: string) {
   }
 
   // マイルストーンのアクセス権限チェック
-  const milestone = await db.milestone.findFirst({
+  const milestone = await projectDb.milestone.findFirst({
     where: {
       id: milestoneId,
       ...(user.role.name !== 'executive' ? {
@@ -231,7 +232,7 @@ export async function deleteMilestone(milestoneId: string) {
     throw new Error(`このマイルストーンには${milestone.tasks.length}件のタスクが紐づいています。先にタスクを移動してください。`)
   }
 
-  await db.milestone.delete({
+  await projectDb.milestone.delete({
     where: { id: milestoneId }
   })
 
@@ -265,7 +266,7 @@ export async function getMilestoneStats(projectId: string) {
   }
 
   // プロジェクトアクセス権限チェック
-  const project = await db.project.findFirst({
+  const project = await projectDb.project.findFirst({
     where: {
       id: projectId,
       OR: [
@@ -279,7 +280,7 @@ export async function getMilestoneStats(projectId: string) {
     throw new Error('プロジェクトが見つからないか、権限がありません')
   }
 
-  const milestones = await db.milestone.findMany({
+  const milestones = await projectDb.milestone.findMany({
     where: { projectId },
     include: {
       tasks: {
@@ -329,7 +330,7 @@ export async function getMilestoneTasks(milestoneId: string) {
   }
 
   // マイルストーンのアクセス権限チェック
-  const milestone = await db.milestone.findFirst({
+  const milestone = await projectDb.milestone.findFirst({
     where: {
       id: milestoneId,
       ...(user.role.name !== 'executive' ? {
@@ -348,17 +349,8 @@ export async function getMilestoneTasks(milestoneId: string) {
     throw new Error('マイルストーンが見つからないか、権限がありません')
   }
 
-  const tasks = await db.task.findMany({
+  const tasks = await projectDb.task.findMany({
     where: { milestoneId },
-    include: {
-      assignee: {
-        select: {
-          id: true,
-          name: true,
-          email: true
-        }
-      }
-    },
     orderBy: [
       { priority: 'desc' },
       { dueDate: 'asc' },
@@ -366,5 +358,21 @@ export async function getMilestoneTasks(milestoneId: string) {
     ]
   })
 
-  return tasks
+  // ユーザー情報を取得
+  const assigneeIds = [...new Set(tasks.map(t => t.assigneeId).filter(Boolean))] as string[]
+  const assignees = assigneeIds.length > 0 ? await db.user.findMany({
+    where: { id: { in: assigneeIds } },
+    select: {
+      id: true,
+      name: true,
+      email: true
+    }
+  }) : []
+  
+  const assigneeMap = new Map(assignees.map(a => [a.id, a]))
+
+  return tasks.map(task => ({
+    ...task,
+    assignee: task.assigneeId ? assigneeMap.get(task.assigneeId) || null : null
+  }))
 }

@@ -40,22 +40,25 @@ interface ProjectMilestonesProps {
   project: any
 }
 
-const statusLabels: Record<MilestoneStatus, string> = {
+const statusLabels: Record<MilestoneStatus | 'inProgress', string> = {
   pending: '進行中',
   completed: '完了',
-  delayed: '遅延'
+  delayed: '遅延',
+  inProgress: '進行中'
 }
 
-const statusColors: Record<MilestoneStatus, string> = {
+const statusColors: Record<MilestoneStatus | 'inProgress', string> = {
   pending: 'bg-blue-100 text-blue-700',
   completed: 'bg-green-100 text-green-700',
-  delayed: 'bg-red-100 text-red-700'
+  delayed: 'bg-red-100 text-red-700',
+  inProgress: 'bg-blue-100 text-blue-700'
 }
 
-const statusIcons: Record<MilestoneStatus, any> = {
+const statusIcons: Record<MilestoneStatus | 'inProgress', React.ComponentType<{ className?: string }>> = {
   pending: Clock,
   completed: CheckCircle2,
-  delayed: AlertCircle
+  delayed: AlertCircle,
+  inProgress: Clock  // inProgressステータス用のアイコンを追加
 }
 
 export function ProjectMilestones({ project }: ProjectMilestonesProps) {
@@ -97,8 +100,12 @@ export function ProjectMilestones({ project }: ProjectMilestonesProps) {
     }
   }
 
-  const getStatusIcon = (status: MilestoneStatus) => {
-    const Icon = statusIcons[status]
+  const getStatusIcon = (status: MilestoneStatus | string) => {
+    const Icon = statusIcons[status as MilestoneStatus | 'inProgress']
+    if (!Icon) {
+      console.warn(`No icon found for status: ${status}`)
+      return null
+    }
     return <Icon className="h-4 w-4" />
   }
 

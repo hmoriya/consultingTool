@@ -120,7 +120,7 @@ export function QuickEntry({ projects, onSuccess }: QuickEntryProps) {
                   <SelectItem key={project.id} value={project.id}>
                     <div className="flex flex-col">
                       <span className="text-xs text-muted-foreground">
-                        {project.client.name}
+                        {project.client?.name || 'クライアント未設定'}
                       </span>
                       <span className="text-sm">{project.name}</span>
                     </div>

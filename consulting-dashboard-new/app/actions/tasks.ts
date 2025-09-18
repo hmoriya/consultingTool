@@ -1,6 +1,7 @@
 'use server'
 
 import { db } from '@/lib/db'
+import { projectDb } from '@/lib/db/project-db'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
 
@@ -39,12 +40,12 @@ export async function getProjectTasks(projectId: string) {
   }
 
   // プロジェクトアクセス権限チェック
-  const project = await db.project.findFirst({
+  const project = await projectDb.project.findFirst({
     where: {
       id: projectId,
       OR: [
         { projectMembers: { some: { userId: user.id } } },
-        ...(user.role.name === 'executive' ? [{ id: projectId }] : [])
+        ...(user.role.name === 'Executive' ? [{ id: projectId }] : [])
       ]
     }
   })
@@ -53,16 +54,9 @@ export async function getProjectTasks(projectId: string) {
     throw new Error('プロジェクトが見つからないか、権限がありません')
   }
 
-  const tasks = await db.task.findMany({
+  const tasks = await projectDb.task.findMany({
     where: { projectId },
     include: {
-      assignee: {
-        select: {
-          id: true,
-          name: true,
-          email: true
-        }
-      },
       milestone: {
         select: {
           id: true,
@@ -77,10 +71,24 @@ export async function getProjectTasks(projectId: string) {
     ]
   })
 
+  // ユーザー情報を取得
+  const assigneeIds = [...new Set(tasks.map(t => t.assigneeId).filter(Boolean))] as string[]
+  const assignees = assigneeIds.length > 0 ? await db.user.findMany({
+    where: { id: { in: assigneeIds } },
+    select: {
+      id: true,
+      name: true,
+      email: true
+    }
+  }) : []
+  
+  const assigneeMap = new Map(assignees.map(a => [a.id, a]))
+
   return tasks.map(task => ({
     ...task,
     status: task.status as TaskStatus,
-    priority: task.priority as TaskPriority
+    priority: task.priority as TaskPriority,
+    assignee: task.assigneeId ? assigneeMap.get(task.assigneeId) || null : null
   }))
 }
 
@@ -101,7 +109,7 @@ export async function createTask(data: {
   }
 
   // プロジェクトアクセス権限チェック
-  const project = await db.project.findFirst({
+  const project = await projectDb.project.findFirst({
     where: {
       id: data.projectId,
       OR: [
@@ -115,7 +123,7 @@ export async function createTask(data: {
     throw new Error('タスクを作成する権限がありません')
   }
 
-  const task = await db.task.create({
+  const task = await projectDb.task.create({
     data: {
       projectId: data.projectId,
       title: data.title,
@@ -129,13 +137,6 @@ export async function createTask(data: {
       milestoneId: data.milestoneId
     },
     include: {
-      assignee: {
-        select: {
-          id: true,
-          name: true,
-          email: true
-        }
-      },
       milestone: {
         select: {
           id: true,
@@ -144,6 +145,19 @@ export async function createTask(data: {
       }
     }
   })
+
+  // ユーザー情報を取得
+  let assignee = null
+  if (task.assigneeId) {
+    assignee = await db.user.findUnique({
+      where: { id: task.assigneeId },
+      select: {
+        id: true,
+        name: true,
+        email: true
+      }
+    })
+  }
 
   // 監査ログ
   await db.auditLog.create({
@@ -159,18 +173,19 @@ export async function createTask(data: {
   return {
     ...task,
     status: task.status as TaskStatus,
-    priority: task.priority as TaskPriority
+    priority: task.priority as TaskPriority,
+    assignee
   }
 }
 
-export async function updateTaskStatus(taskId: string, status: TaskStatus) {
+export async function updateTaskStatus(taskId: string, status: TaskStatus, comment?: string) {
   const user = await getCurrentUser()
   if (!user) {
     throw new Error('認証が必要です')
   }
 
   // タスクのアクセス権限チェック
-  const task = await db.task.findFirst({
+  const task = await projectDb.task.findFirst({
     where: {
       id: taskId,
       OR: [
@@ -199,17 +214,10 @@ export async function updateTaskStatus(taskId: string, status: TaskStatus) {
     updateData.completedAt = null
   }
 
-  const updatedTask = await db.task.update({
+  const updatedTask = await projectDb.task.update({
     where: { id: taskId },
     data: updateData,
     include: {
-      assignee: {
-        select: {
-          id: true,
-          name: true,
-          email: true
-        }
-      },
       milestone: {
         select: {
           id: true,
@@ -219,21 +227,39 @@ export async function updateTaskStatus(taskId: string, status: TaskStatus) {
     }
   })
 
-  // 監査ログ
+  // ユーザー情報を取得
+  let assignee = null
+  if (updatedTask.assigneeId) {
+    assignee = await db.user.findUnique({
+      where: { id: updatedTask.assigneeId },
+      select: {
+        id: true,
+        name: true,
+        email: true
+      }
+    })
+  }
+
+  // 監査ログ（コメントも含める）
+  const logDetails = comment 
+    ? `タスク「${task.title}」のステータスを「${status}」に変更しました - コメント: ${comment}`
+    : `タスク「${task.title}」のステータスを「${status}」に変更しました`
+    
   await db.auditLog.create({
     data: {
       userId: user.id,
       action: 'UPDATE',
       resource: 'task',
       resourceId: taskId,
-      details: `タスク「${task.title}」のステータスを「${status}」に変更しました`
+      details: logDetails
     }
   })
 
   return {
     ...updatedTask,
     status: updatedTask.status as TaskStatus,
-    priority: updatedTask.priority as TaskPriority
+    priority: updatedTask.priority as TaskPriority,
+    assignee
   }
 }
 
@@ -254,7 +280,7 @@ export async function updateTask(taskId: string, data: {
   }
 
   // タスクのアクセス権限チェック
-  const task = await db.task.findFirst({
+  const task = await projectDb.task.findFirst({
     where: {
       id: taskId,
       OR: [
@@ -281,17 +307,10 @@ export async function updateTask(taskId: string, data: {
     updateData.dueDate = data.dueDate ? new Date(data.dueDate) : null
   }
 
-  const updatedTask = await db.task.update({
+  const updatedTask = await projectDb.task.update({
     where: { id: taskId },
     data: updateData,
     include: {
-      assignee: {
-        select: {
-          id: true,
-          name: true,
-          email: true
-        }
-      },
       milestone: {
         select: {
           id: true,
@@ -300,6 +319,19 @@ export async function updateTask(taskId: string, data: {
       }
     }
   })
+
+  // ユーザー情報を取得
+  let assignee = null
+  if (updatedTask.assigneeId) {
+    assignee = await db.user.findUnique({
+      where: { id: updatedTask.assigneeId },
+      select: {
+        id: true,
+        name: true,
+        email: true
+      }
+    })
+  }
 
   // 監査ログ
   await db.auditLog.create({
@@ -315,7 +347,8 @@ export async function updateTask(taskId: string, data: {
   return {
     ...updatedTask,
     status: updatedTask.status as TaskStatus,
-    priority: updatedTask.priority as TaskPriority
+    priority: updatedTask.priority as TaskPriority,
+    assignee
   }
 }
 
@@ -326,7 +359,7 @@ export async function deleteTask(taskId: string) {
   }
 
   // タスクのアクセス権限チェック
-  const task = await db.task.findFirst({
+  const task = await projectDb.task.findFirst({
     where: {
       id: taskId,
       OR: [
@@ -340,7 +373,7 @@ export async function deleteTask(taskId: string) {
     throw new Error('タスクが見つからないか、権限がありません')
   }
 
-  await db.task.delete({
+  await projectDb.task.delete({
     where: { id: taskId }
   })
 

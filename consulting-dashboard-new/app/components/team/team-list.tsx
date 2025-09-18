@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -38,7 +39,8 @@ import {
   Briefcase,
   Percent,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  ExternalLink
 } from 'lucide-react'
 import { TeamMemberItem, deleteTeamMember, getMemberUtilization } from '@/actions/team'
 import { TeamCreateDialog } from './team-create-dialog'
@@ -51,15 +53,15 @@ interface TeamListProps {
 }
 
 const roleColors = {
-  executive: 'bg-purple-100 text-purple-700',
-  pm: 'bg-blue-100 text-blue-700',
-  consultant: 'bg-green-100 text-green-700'
+  Executive: 'bg-purple-100 text-purple-700',
+  PM: 'bg-blue-100 text-blue-700',
+  Consultant: 'bg-green-100 text-green-700'
 }
 
 const roleLabels = {
-  executive: 'エグゼクティブ',
-  pm: 'PM',
-  consultant: 'コンサルタント'
+  Executive: 'エグゼクティブ',
+  PM: 'PM',
+  Consultant: 'コンサルタント'
 }
 
 export function TeamList({ initialMembers, currentUserRole }: TeamListProps) {
@@ -130,11 +132,11 @@ export function TeamList({ initialMembers, currentUserRole }: TeamListProps) {
       acc[role] = { count: 0, activeProjects: 0 }
     }
     acc[role].count++
-    acc[role].activeProjects += member.projectMembers?.length || 0
+    acc[role].activeProjects += member.projectCount || 0
     return acc
   }, {} as Record<string, { count: number; activeProjects: number }>)
 
-  const canManageMembers = currentUserRole === 'executive' || currentUserRole === 'pm'
+  const canManageMembers = currentUserRole === 'Executive' || currentUserRole === 'PM'
 
   return (
     <div className="space-y-6">
@@ -173,13 +175,13 @@ export function TeamList({ initialMembers, currentUserRole }: TeamListProps) {
                   <p className="text-sm font-medium text-muted-foreground">{roleLabels[role as keyof typeof roleLabels]}</p>
                   <p className="text-2xl font-bold">{stats.count}名</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {stats.activeProjects}プロジェクト参加中
+                    計{stats.activeProjects}プロジェクト参加中
                   </p>
                 </div>
                 <Users className={cn("h-8 w-8", {
-                  "text-purple-600": role === 'executive',
-                  "text-blue-600": role === 'pm',
-                  "text-green-600": role === 'consultant'
+                  "text-purple-600": role === 'Executive',
+                  "text-blue-600": role === 'PM',
+                  "text-green-600": role === 'Consultant'
                 })} />
               </div>
             </CardContent>
@@ -217,13 +219,13 @@ export function TeamList({ initialMembers, currentUserRole }: TeamListProps) {
                 {filteredMembers.map((member) => {
                   const isExpanded = expandedMembers.has(member.id)
                   const utilization = memberUtilization[member.id]
-                  const totalAllocation = member.projectMembers?.reduce((sum, pm) => sum + (pm.allocation || 0), 0) || 0
+                  const totalAllocation = member.projects?.reduce((sum, p) => sum + (p.allocation || 0), 0) || 0
 
                   return (
-                    <>
-                      <TableRow key={member.id}>
+                    <React.Fragment key={member.id}>
+                      <TableRow>
                         <TableCell>
-                          {member.role.name !== 'executive' && (
+                          {member.role.name !== 'Executive' && (
                             <Button
                               variant="ghost"
                               size="sm"
@@ -251,7 +253,7 @@ export function TeamList({ initialMembers, currentUserRole }: TeamListProps) {
                         </TableCell>
                         <TableCell className="text-center">
                           <Badge variant="secondary">
-                            {member._count?.projectMembers || 0} 件
+                            {member.projectCount || 0} 件
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -275,13 +277,13 @@ export function TeamList({ initialMembers, currentUserRole }: TeamListProps) {
                                   <Edit className="h-4 w-4 mr-2" />
                                   編集
                                 </DropdownMenuItem>
-                                {currentUserRole === 'executive' && (
+                                {currentUserRole === 'Executive' && (
                                   <>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem
                                       className="text-red-600"
                                       onClick={() => handleDeleteMember(member.id)}
-                                      disabled={loading || (member.projectMembers?.length || 0) > 0}
+                                      disabled={loading || (member.projectCount || 0) > 0}
                                     >
                                       <Trash2 className="h-4 w-4 mr-2" />
                                       削除
@@ -295,22 +297,28 @@ export function TeamList({ initialMembers, currentUserRole }: TeamListProps) {
                       </TableRow>
                       {isExpanded && utilization && (
                         <TableRow>
-                          <TableCell colSpan={7} className="bg-muted/30 p-4">
-                            <div className="space-y-2">
-                              <h4 className="font-medium mb-3">アクティブプロジェクト</h4>
+                          <TableCell colSpan={7} className="bg-muted/30">
+                            <div className="p-6">
+                              <h4 className="font-medium mb-4 text-sm">アクティブプロジェクト</h4>
                               {utilization.projects.length === 0 ? (
-                                <p className="text-sm text-muted-foreground">現在プロジェクトに参加していません</p>
+                                <p className="text-sm text-muted-foreground pl-6">現在プロジェクトに参加していません</p>
                               ) : (
-                                <div className="space-y-2">
+                                <div className="space-y-3">
                                   {utilization.projects.map((project: any) => (
-                                    <div key={project.name} className="flex items-center justify-between">
-                                      <div className="flex items-center gap-2">
+                                    <div key={project.id} className="flex items-center justify-between pl-6 pr-4">
+                                      <Link 
+                                        href={`/projects/${project.id}`}
+                                        className="flex items-center gap-3 group hover:text-primary transition-colors flex-1"
+                                      >
                                         <Briefcase className="h-4 w-4 text-muted-foreground" />
-                                        <span className="text-sm">{project.name}</span>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <Progress value={project.allocation} className="w-24" />
-                                        <span className="text-sm font-medium w-12 text-right">
+                                        <span className="text-sm font-medium group-hover:underline">
+                                          {project.name}
+                                        </span>
+                                        <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                      </Link>
+                                      <div className="flex items-center gap-3 ml-4">
+                                        <Progress value={project.allocation} className="w-32" />
+                                        <span className="text-sm font-medium w-12 text-right text-muted-foreground">
                                           {project.allocation}%
                                         </span>
                                       </div>
@@ -322,7 +330,7 @@ export function TeamList({ initialMembers, currentUserRole }: TeamListProps) {
                           </TableCell>
                         </TableRow>
                       )}
-                    </>
+                    </React.Fragment>
                   )
                 })}
               </TableBody>

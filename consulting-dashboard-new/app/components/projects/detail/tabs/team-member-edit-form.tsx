@@ -24,12 +24,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { updateTeamMember, TeamMemberRole, TeamMemberItem } from '@/actions/team'
+import { updateTeamMember, TeamMemberItem } from '@/actions/project-team'
+import { 
+  TeamMemberRole, 
+  teamMemberRoleSchema,
+  teamMemberRoleUtils 
+} from '@/types/team-member'
 import { X, Save } from 'lucide-react'
 import { format } from 'date-fns'
 
 const memberSchema = z.object({
-  role: z.enum(['pm', 'lead', 'senior', 'consultant', 'analyst']),
+  role: teamMemberRoleSchema,
   allocation: z.string().min(1, '稼働率は必須です'),
   startDate: z.string().min(1, '開始日は必須です'),
   endDate: z.string().optional()
@@ -41,22 +46,6 @@ interface TeamMemberEditFormProps {
   member: TeamMemberItem
   onClose: () => void
   onMemberUpdated: () => void
-}
-
-const roleLabels: Record<TeamMemberRole, string> = {
-  pm: 'プロジェクトマネージャー',
-  lead: 'リードコンサルタント',
-  senior: 'シニアコンサルタント',
-  consultant: 'コンサルタント',
-  analyst: 'アナリスト'
-}
-
-const roleColors: Record<TeamMemberRole, string> = {
-  pm: 'bg-purple-100 text-purple-700',
-  lead: 'bg-blue-100 text-blue-700',
-  senior: 'bg-green-100 text-green-700',
-  consultant: 'bg-yellow-100 text-yellow-700',
-  analyst: 'bg-gray-100 text-gray-700'
 }
 
 export function TeamMemberEditForm({ member, onClose, onMemberUpdated }: TeamMemberEditFormProps) {
@@ -125,7 +114,6 @@ export function TeamMemberEditForm({ member, onClose, onMemberUpdated }: TeamMem
                 <div>
                   <p className="font-medium">{member.user.name}</p>
                   <p className="text-sm text-muted-foreground">{member.user.email}</p>
-                  <p className="text-xs text-muted-foreground">{member.user.organization.name}</p>
                 </div>
               </div>
             </CardContent>
@@ -141,10 +129,10 @@ export function TeamMemberEditForm({ member, onClose, onMemberUpdated }: TeamMem
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(roleLabels).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>
+                    {teamMemberRoleUtils.getSelectOptions().map(({ value, label }) => (
+                      <SelectItem key={value} value={value}>
                         <div className="flex items-center gap-2">
-                          <Badge className={roleColors[key as TeamMemberRole]}>
+                          <Badge className={teamMemberRoleUtils.getColor(value)}>
                             {label}
                           </Badge>
                         </div>
@@ -210,8 +198,8 @@ export function TeamMemberEditForm({ member, onClose, onMemberUpdated }: TeamMem
                 <div>
                   <span className="text-sm font-medium">変更前:</span>
                   <div className="mt-1 space-y-1">
-                    <Badge className={roleColors[member.role]}>
-                      {roleLabels[member.role]}
+                    <Badge className={teamMemberRoleUtils.getColor(member.role)}>
+                      {teamMemberRoleUtils.getLabel(member.role)}
                     </Badge>
                     <p className="text-sm text-muted-foreground">稼働率: {member.allocation}%</p>
                   </div>
@@ -219,8 +207,8 @@ export function TeamMemberEditForm({ member, onClose, onMemberUpdated }: TeamMem
                 <div>
                   <span className="text-sm font-medium">変更後:</span>
                   <div className="mt-1 space-y-1">
-                    <Badge className={roleColors[watchedRole as TeamMemberRole]}>
-                      {roleLabels[watchedRole as TeamMemberRole]}
+                    <Badge className={teamMemberRoleUtils.getColor(watchedRole as TeamMemberRole)}>
+                      {teamMemberRoleUtils.getLabel(watchedRole as TeamMemberRole)}
                     </Badge>
                     <p className="text-sm text-muted-foreground">稼働率: {watchedAllocation}%</p>
                   </div>

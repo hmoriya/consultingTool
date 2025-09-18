@@ -72,29 +72,21 @@ export async function getSkills(categoryId?: string) {
   })
   const userMap = new Map(organizationUsers.map(u => [u.id, u]))
 
+
   const skills = await resourceDb.skill.findMany({
     where: categoryId ? { categoryId } : {},
     include: {
-      category: true,
-      users: true
+      category: true
     },
     orderBy: { name: 'asc' }
   })
 
-  return skills.map(skill => {
-    const filteredUsers = skill.users.filter(userSkill => userMap.has(userSkill.userId))
-    return {
-      ...skill,
-      users: filteredUsers.map(userSkill => ({
-        ...userSkill,
-        user: userMap.get(userSkill.userId)
-      })),
-      userCount: filteredUsers.length,
-      averageLevel: filteredUsers.length > 0
-        ? filteredUsers.reduce((acc, userSkill) => acc + userSkill.level, 0) / filteredUsers.length
-        : 0
-    }
-  })
+  return skills.map(skill => ({
+    ...skill,
+    users: [], // 一時的に空配列を返す
+    userCount: 0,
+    averageLevel: 0
+  }))
 }
 
 // ユーザーのスキルを取得

@@ -1,11 +1,11 @@
 'use server'
 
 import { db } from '@/lib/db'
+import { projectDb } from '@/lib/db/project-db'
 import { getCurrentUser } from './auth'
 import { z } from 'zod'
-import { ProjectMember } from '@prisma/client'
-
-export type TeamMemberRole = 'pm' | 'lead' | 'senior' | 'consultant' | 'analyst'
+import { ProjectMember } from '@prisma/project-client'
+import { TeamMemberRole, teamMemberRoleUtils, teamMemberRoleSchema } from '@/types/team-member'
 
 export type TeamMemberItem = {
   id: string
@@ -43,18 +43,9 @@ export async function getProjectTeamMembers(projectId: string) {
     throw new Error('認証が必要です')
   }
 
-  const members = await db.projectMember.findMany({
+  const members = await projectDb.projectMember.findMany({
     where: {
       projectId
-    },
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true
-        }
-      }
     },
     orderBy: [
       { role: 'asc' },
@@ -62,7 +53,32 @@ export async function getProjectTeamMembers(projectId: string) {
     ]
   })
 
-  return members as unknown as TeamMemberItem[]
+  // ユーザー情報を取得
+  const userIds = [...new Set(members.map(m => m.userId))]
+  const users = userIds.length > 0 ? await db.user.findMany({
+    where: { id: { in: userIds } },
+    select: {
+      id: true,
+      name: true,
+      email: true
+    }
+  }) : []
+
+  const userMap = new Map(users.map(u => [u.id, u]))
+
+  return members.map(member => {
+    // ロールの検証と変換
+    const validatedRole = teamMemberRoleUtils.parseRole(member.role)
+    if (!validatedRole) {
+      console.warn(`Invalid role detected: ${member.role}, defaulting to CONSULTANT`)
+    }
+    
+    return {
+      ...member,
+      role: validatedRole || TeamMemberRole.CONSULTANT,
+      user: userMap.get(member.userId) || { id: member.userId, name: 'Unknown', email: '' }
+    }
+  }) as TeamMemberItem[]
 }
 
 // プロジェクト全体のチーム統計情報取得
@@ -73,7 +89,7 @@ export async function getTeamMemberStats(projectId: string) {
   }
 
   // プロジェクトメンバーを取得
-  const members = await db.projectMember.findMany({
+  const members = await projectDb.projectMember.findMany({
     where: { projectId },
     select: {
       role: true,
@@ -83,8 +99,19 @@ export async function getTeamMemberStats(projectId: string) {
 
   // 統計情報を計算
   const totalMembers = members.length
-  const totalAllocation = members.reduce((sum, m) => sum + m.allocation, 0)
-  const averageAllocation = totalMembers > 0 ? totalAllocation / totalMembers : 0
+  
+  // 平均稼働率（各メンバーの稼働率の平均）
+  const averageAllocation = totalMembers > 0 
+    ? members.reduce((sum, m) => sum + m.allocation, 0) / totalMembers 
+    : 0
+
+  // FTE（Full-Time Equivalent）: フルタイム換算の人数
+  // 例：30% + 40% + 50% = 1.2FTE（フルタイム1.2人分の工数）
+  const totalFTE = members.reduce((sum, m) => sum + m.allocation / 100, 0)
+
+  // プロジェクトに必要な推定FTE（仮に3人と設定、実際は別途管理すべき）
+  const requiredFTE = 3 // TODO: プロジェクトごとに設定可能にする
+  const fteUtilization = requiredFTE > 0 ? (totalFTE / requiredFTE) * 100 : 0
 
   // ロール分布を計算
   const roleDistribution = members.reduce((acc, member) => {
@@ -92,11 +119,22 @@ export async function getTeamMemberStats(projectId: string) {
     return acc
   }, {} as Record<string, number>)
 
+  // PM数を計算（プロジェクトに最低1人は必要）
+  const pmCount = members.filter(m => {
+    const role = teamMemberRoleUtils.parseRole(m.role)
+    return role === TeamMemberRole.PM
+  }).length
+
   return {
     totalMembers,
-    totalAllocation,
     averageAllocation,
-    roleDistribution
+    totalFTE,
+    requiredFTE,
+    fteUtilization,
+    roleDistribution,
+    pmCount,
+    // 後方互換性のため残す（UIで段階的に移行）
+    totalAllocation: totalFTE * 100 // FTEをパーセント表記に
   }
 }
 
@@ -122,7 +160,7 @@ export async function addTeamMember(projectId: string, data: z.infer<typeof addM
   const validatedData = addMemberSchema.parse(data)
 
   // 既存メンバーチェック
-  const existing = await db.projectMember.findFirst({
+  const existing = await projectDb.projectMember.findFirst({
     where: {
       projectId,
       userId: validatedData.userId
@@ -133,26 +171,78 @@ export async function addTeamMember(projectId: string, data: z.infer<typeof addM
     throw new Error('このメンバーは既にプロジェクトに参加しています')
   }
 
-  const member = await db.projectMember.create({
+  const member = await projectDb.projectMember.create({
     data: {
       projectId,
       userId: validatedData.userId,
       role: validatedData.role,
       allocation: validatedData.allocation,
       startDate: validatedData.startDate
-    },
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true
-        }
-      }
     }
   })
 
-  return member as unknown as TeamMemberItem
+  // ユーザー情報を取得
+  const userData = await db.user.findUnique({
+    where: { id: member.userId },
+    select: {
+      id: true,
+      name: true,
+      email: true
+    }
+  })
+
+  return {
+    ...member,
+    user: userData || { id: member.userId, name: 'Unknown', email: '' }
+  } as TeamMemberItem
+}
+
+// チームメンバー更新
+const updateMemberSchema = z.object({
+  role: teamMemberRoleSchema,
+  allocation: z.number().min(0).max(100),
+  startDate: z.date(),
+  endDate: z.date().nullable().optional()
+})
+
+export async function updateTeamMember(memberId: string, data: z.infer<typeof updateMemberSchema>) {
+  const user = await getCurrentUser()
+  if (!user) {
+    throw new Error('認証が必要です')
+  }
+
+  if (user.role.name !== 'executive' && user.role.name !== 'pm') {
+    throw new Error('権限がありません')
+  }
+
+  const validatedData = updateMemberSchema.parse(data)
+
+  const member = await projectDb.projectMember.update({
+    where: {
+      id: memberId
+    },
+    data: {
+      role: validatedData.role,
+      allocation: validatedData.allocation,
+      startDate: validatedData.startDate,
+      endDate: validatedData.endDate
+    }
+  })
+
+  // ユーザー情報を取得
+  const userData = await db.user.findUnique({
+    where: { id: member.userId },
+    select: {
+      id: true,
+      name: true,
+      email: true
+    }
+  })
+
+  return {
+    ...member,
+    user: userData || { id: member.userId, name: 'Unknown', email: '' }
+  } as TeamMemberItem
 }
 
 // チームメンバー削除
@@ -166,7 +256,7 @@ export async function removeTeamMember(memberId: string) {
     throw new Error('権限がありません')
   }
 
-  await db.projectMember.delete({
+  await projectDb.projectMember.delete({
     where: {
       id: memberId
     }
@@ -181,7 +271,7 @@ export async function getAvailableUsers(projectId: string) {
   }
 
   // プロジェクトに既に参加しているユーザーIDを取得
-  const existingMembers = await db.projectMember.findMany({
+  const existingMembers = await projectDb.projectMember.findMany({
     where: { projectId },
     select: { userId: true }
   })

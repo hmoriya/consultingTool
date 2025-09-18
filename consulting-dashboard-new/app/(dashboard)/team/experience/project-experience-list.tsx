@@ -68,7 +68,7 @@ export function ProjectExperienceList({ experiences, allSkills, isOwner }: Proje
                     </Badge>
                   </div>
                   <CardDescription>
-                    {exp.project.client.name} • {getRoleLabel(exp.role)}
+                    {exp.project.client?.name || 'クライアント未設定'} • {getRoleLabel(exp.role)}
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-2">

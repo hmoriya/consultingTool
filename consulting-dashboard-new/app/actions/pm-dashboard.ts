@@ -28,7 +28,7 @@ export async function getPMDashboardData() {
   const myProjects = allProjects.filter(project =>
     project.status !== 'completed' &&
     project.projectMembers.some(member =>
-      member.userId === user.id && member.role === 'PM'
+      member.userId === user.id && member.role === 'pm'
     )
   )
 
@@ -216,7 +216,7 @@ export async function getProjectProgress(projectId: string) {
       projectMembers: {
         where: {
           userId: user.id,
-          role: 'PM'
+          role: 'pm'
         }
       }
     }

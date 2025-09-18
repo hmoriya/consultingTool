@@ -90,7 +90,7 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
               <div className="flex items-center gap-4 mt-2 text-muted-foreground">
                 <span>{project.id}</span>
                 <span>•</span>
-                <span>{project.client.name}</span>
+                <span>{project.client?.name || 'クライアント未設定'}</span>
               </div>
             </div>
             

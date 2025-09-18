@@ -1,294 +1,252 @@
-import { PrismaClient } from '@prisma/resource-client'
+import { PrismaClient as ResourcePrismaClient } from '@prisma/resource-client'
+import path from 'path'
 
-const prisma = new PrismaClient({
+// データベースのパスを設定
+const resourceDbPath = `file:${path.resolve(process.cwd(), 'prisma/resource-service/data/resource.db')}`
+
+const resourceDb = new ResourcePrismaClient({
   datasources: {
-    db: {
-      url: process.env.RESOURCE_DATABASE_URL || 'file:./prisma/resource-service/data/resource.db'
-    }
+    db: { url: resourceDbPath }
   }
 })
 
 async function main() {
-  console.log('Seeding resource database...')
-  console.log('Database URL:', process.env.RESOURCE_DATABASE_URL || 'file:./prisma/resource-service/data/resource.db')
+  try {
+    console.log('🌱 Seeding resource database...')
 
-  // Clean existing data
-  console.log('Cleaning existing data...')
-  await prisma.userSkill.deleteMany()
-  await prisma.teamMember.deleteMany()
-  await prisma.team.deleteMany()
-  await prisma.skill.deleteMany()
-  await prisma.skillCategory.deleteMany()
-  console.log('Existing data cleaned.')
+    // 既存のスキルカテゴリとスキルを確認
+    const categories = await resourceDb.skillCategory.findMany()
+    console.log(`Found ${categories.length} skill categories`)
 
-  // Create skill categories
-  const technicalCategory = await prisma.skillCategory.create({
-    data: {
-      name: '技術スキル',
-      order: 1
+    const skills = await resourceDb.skill.findMany()
+    console.log(`Found ${skills.length} skills`)
+
+    // ユーザーIDの定義（authサービスのシードデータと同期）
+    // これらのIDはauth-service/seed.tsで作成されたユーザーのIDと一致する必要があります
+    const userIds = {
+      pm1: 'user1',      // 鈴木花子
+      pm2: 'user2',      // 木村大輔  
+      consultant1: 'user3', // 佐藤次郎
+      consultant2: 'user4', // 高橋愛
+      consultant3: 'user5', // 渡辺健
+      consultant4: 'user6'  // 伊藤真由美
     }
-  })
 
-  const businessCategory = await prisma.skillCategory.create({
-    data: {
-      name: 'ビジネススキル',
-      order: 2
+    // ユーザースキルデータを作成
+    const userSkillData = [
+      // 鈴木花子（PM）のスキル
+      {
+        userId: userIds.pm1,
+        skillId: skills.find(s => s.name === 'プロジェクト管理')?.id!,
+        level: 5,
+        experienceYears: 10,
+        selfAssessment: 5,
+        managerAssessment: 5,
+        projectCount: 15,
+        notes: '大規模プロジェクトの経験豊富'
+      },
+      {
+        userId: userIds.pm1,
+        skillId: skills.find(s => s.name === '英語')?.id!,
+        level: 4,
+        experienceYears: 8,
+        selfAssessment: 4,
+        managerAssessment: 4,
+        projectCount: 5,
+        notes: 'ビジネスレベル'
+      },
+
+      // 木村大輔（PM）のスキル
+      {
+        userId: userIds.pm2,
+        skillId: skills.find(s => s.name === 'プロジェクト管理')?.id!,
+        level: 4,
+        experienceYears: 7,
+        selfAssessment: 4,
+        managerAssessment: 4,
+        projectCount: 10,
+        notes: 'アジャイル開発に精通'
+      },
+      {
+        userId: userIds.pm2,
+        skillId: skills.find(s => s.name === 'JavaScript')?.id!,
+        level: 3,
+        experienceYears: 5,
+        selfAssessment: 3,
+        managerAssessment: 3,
+        projectCount: 3
+      },
+
+      // 佐藤次郎（コンサルタント）のスキル
+      {
+        userId: userIds.consultant1,
+        skillId: skills.find(s => s.name === 'JavaScript')?.id!,
+        level: 5,
+        experienceYears: 8,
+        selfAssessment: 5,
+        managerAssessment: 5,
+        projectCount: 12,
+        notes: 'フルスタック開発可能'
+      },
+      {
+        userId: userIds.consultant1,
+        skillId: skills.find(s => s.name === 'React')?.id!,
+        level: 5,
+        experienceYears: 6,
+        selfAssessment: 5,
+        managerAssessment: 5,
+        projectCount: 10
+      },
+      {
+        userId: userIds.consultant1,
+        skillId: skills.find(s => s.name === 'Node.js')?.id!,
+        level: 4,
+        experienceYears: 5,
+        selfAssessment: 4,
+        managerAssessment: 4,
+        projectCount: 8
+      },
+
+      // 高橋愛（コンサルタント）のスキル
+      {
+        userId: userIds.consultant2,
+        skillId: skills.find(s => s.name === 'React')?.id!,
+        level: 4,
+        experienceYears: 4,
+        selfAssessment: 4,
+        managerAssessment: 4,
+        projectCount: 6
+      },
+      {
+        userId: userIds.consultant2,
+        skillId: skills.find(s => s.name === 'JavaScript')?.id!,
+        level: 4,
+        experienceYears: 5,
+        selfAssessment: 4,
+        managerAssessment: 4,
+        projectCount: 8
+      },
+      {
+        userId: userIds.consultant2,
+        skillId: skills.find(s => s.name === '英語')?.id!,
+        level: 3,
+        experienceYears: 3,
+        selfAssessment: 3,
+        managerAssessment: 3,
+        projectCount: 2,
+        notes: '日常会話レベル'
+      },
+
+      // 渡辺健（コンサルタント）のスキル
+      {
+        userId: userIds.consultant3,
+        skillId: skills.find(s => s.name === 'Node.js')?.id!,
+        level: 5,
+        experienceYears: 7,
+        selfAssessment: 5,
+        managerAssessment: 5,
+        projectCount: 15,
+        notes: 'パフォーマンス最適化のエキスパート'
+      },
+      {
+        userId: userIds.consultant3,
+        skillId: skills.find(s => s.name === 'JavaScript')?.id!,
+        level: 4,
+        experienceYears: 6,
+        selfAssessment: 4,
+        managerAssessment: 4,
+        projectCount: 10
+      },
+
+      // 伊藤真由美（コンサルタント）のスキル
+      {
+        userId: userIds.consultant4,
+        skillId: skills.find(s => s.name === 'React')?.id!,
+        level: 3,
+        experienceYears: 2,
+        selfAssessment: 3,
+        managerAssessment: 3,
+        projectCount: 3
+      },
+      {
+        userId: userIds.consultant4,
+        skillId: skills.find(s => s.name === 'JavaScript')?.id!,
+        level: 3,
+        experienceYears: 3,
+        selfAssessment: 3,
+        managerAssessment: 3,
+        projectCount: 4
+      }
+    ]
+
+    // UserSkillデータを投入
+    for (const data of userSkillData) {
+      if (data.userId && data.skillId) {
+        const existing = await resourceDb.userSkill.findFirst({
+          where: {
+            userId: data.userId,
+            skillId: data.skillId
+          }
+        })
+
+        if (!existing) {
+          await resourceDb.userSkill.create({
+            data: {
+              ...data,
+              lastUsedDate: new Date(),
+              createdAt: new Date(),
+              updatedAt: new Date()
+            }
+          })
+          console.log(`Created skill assignment for user ${data.userId}`)
+        }
+      }
     }
-  })
 
-  const industryCategory = await prisma.skillCategory.create({
-    data: {
-      name: '業界知識',
-      order: 3
+    // 追加のスキルカテゴリとスキル
+    const additionalCategories = [
+      { id: 'cat4', name: 'データベース', order: 4 },
+      { id: 'cat5', name: 'クラウド', order: 5 }
+    ]
+
+    for (const cat of additionalCategories) {
+      const exists = await resourceDb.skillCategory.findUnique({
+        where: { id: cat.id }
+      })
+      if (!exists) {
+        await resourceDb.skillCategory.create({ data: cat })
+        console.log(`Created category: ${cat.name}`)
+      }
     }
-  })
 
-  // Create skills
-  const skills = await Promise.all([
-    // 技術スキル
-    prisma.skill.create({
-      data: {
-        name: 'JavaScript/TypeScript',
-        categoryId: technicalCategory.id,
-        description: 'JavaScriptおよびTypeScriptプログラミング'
-      }
-    }),
-    prisma.skill.create({
-      data: {
-        name: 'React/Next.js',
-        categoryId: technicalCategory.id,
-        description: 'Reactフレームワークを使用したフロントエンド開発'
-      }
-    }),
-    prisma.skill.create({
-      data: {
-        name: 'Python',
-        categoryId: technicalCategory.id,
-        description: 'Pythonプログラミングとデータ分析'
-      }
-    }),
-    prisma.skill.create({
-      data: {
-        name: 'データベース設計',
-        categoryId: technicalCategory.id,
-        description: 'RDBMSおよびNoSQLデータベースの設計と最適化'
-      }
-    }),
-    prisma.skill.create({
-      data: {
-        name: 'クラウドアーキテクチャ',
-        categoryId: technicalCategory.id,
-        description: 'AWS/Azure/GCPを使用したクラウドシステム設計'
-      }
-    }),
+    const additionalSkills = [
+      { id: 'skill6', name: 'PostgreSQL', categoryId: 'cat4', description: 'リレーショナルデータベース', demandLevel: 'high' },
+      { id: 'skill7', name: 'MongoDB', categoryId: 'cat4', description: 'NoSQLデータベース', demandLevel: 'medium' },
+      { id: 'skill8', name: 'AWS', categoryId: 'cat5', description: 'Amazon Web Services', demandLevel: 'high' },
+      { id: 'skill9', name: 'Docker', categoryId: 'cat5', description: 'コンテナ技術', demandLevel: 'high' },
+      { id: 'skill10', name: 'Python', categoryId: 'cat1', description: 'プログラミング言語', demandLevel: 'high' }
+    ]
 
-    // ビジネススキル
-    prisma.skill.create({
-      data: {
-        name: 'プロジェクト管理',
-        categoryId: businessCategory.id,
-        description: 'アジャイル/ウォーターフォールプロジェクト管理'
+    for (const skill of additionalSkills) {
+      const exists = await resourceDb.skill.findUnique({
+        where: { id: skill.id }
+      })
+      if (!exists) {
+        await resourceDb.skill.create({ data: skill })
+        console.log(`Created skill: ${skill.name}`)
       }
-    }),
-    prisma.skill.create({
-      data: {
-        name: 'ビジネス分析',
-        categoryId: businessCategory.id,
-        description: 'ビジネスプロセス分析と改善提案'
-      }
-    }),
-    prisma.skill.create({
-      data: {
-        name: 'プレゼンテーション',
-        categoryId: businessCategory.id,
-        description: 'エグゼクティブ向けプレゼンテーション'
-      }
-    }),
-    prisma.skill.create({
-      data: {
-        name: '要件定義',
-        categoryId: businessCategory.id,
-        description: 'システム要件の収集と文書化'
-      }
-    }),
-
-    // 業界知識
-    prisma.skill.create({
-      data: {
-        name: '金融業界',
-        categoryId: industryCategory.id,
-        description: '銀行・証券・保険業界の知識'
-      }
-    }),
-    prisma.skill.create({
-      data: {
-        name: '製造業',
-        categoryId: industryCategory.id,
-        description: '製造業のプロセスとシステム'
-      }
-    }),
-    prisma.skill.create({
-      data: {
-        name: '小売・流通',
-        categoryId: industryCategory.id,
-        description: '小売・流通業界のビジネスモデル'
-      }
-    })
-  ])
-
-  // Create teams
-  const consultingTeam = await prisma.team.create({
-    data: {
-      name: 'コンサルティング第1チーム',
-      description: 'DXプロジェクトを専門とするコンサルティングチーム',
-      leaderId: 'cmflvzkcb000hz5jxuduxtr7d' // PM user from core database
     }
-  })
 
-  const developmentTeam = await prisma.team.create({
-    data: {
-      name: '開発チーム',
-      description: 'システム開発とインプリメンテーションチーム',
-      leaderId: '3' // Senior consultant
-    }
-  })
+    console.log('✅ Resource database seeding completed!')
 
-  // Create team members
-  await Promise.all([
-    prisma.teamMember.create({
-      data: {
-        teamId: consultingTeam.id,
-        userId: 'cmflvzkcb000hz5jxuduxtr7d', // PM
-        role: 'lead',
-        startDate: new Date('2024-01-01')
-      }
-    }),
-    prisma.teamMember.create({
-      data: {
-        teamId: consultingTeam.id,
-        userId: '3', // Senior consultant
-        role: 'member',
-        startDate: new Date('2024-01-01')
-      }
-    }),
-    prisma.teamMember.create({
-      data: {
-        teamId: consultingTeam.id,
-        userId: '4', // Consultant
-        role: 'member',
-        startDate: new Date('2024-02-01')
-      }
-    }),
-    prisma.teamMember.create({
-      data: {
-        teamId: developmentTeam.id,
-        userId: '3', // Senior consultant (also in dev team)
-        role: 'lead',
-        startDate: new Date('2024-01-01')
-      }
-    })
-  ])
-
-  // Create user skills
-  await Promise.all([
-    // PM skills
-    prisma.userSkill.create({
-      data: {
-        userId: 'cmflvzkcb000hz5jxuduxtr7d',
-        skillId: skills.find(s => s.name === 'プロジェクト管理')!.id,
-        level: 5, // expert
-        experienceYears: 10
-      }
-    }),
-    prisma.userSkill.create({
-      data: {
-        userId: 'cmflvzkcb000hz5jxuduxtr7d',
-        skillId: skills.find(s => s.name === 'ビジネス分析')!.id,
-        level: 4, // advanced
-        experienceYears: 8
-      }
-    }),
-    prisma.userSkill.create({
-      data: {
-        userId: 'cmflvzkcb000hz5jxuduxtr7d',
-        skillId: skills.find(s => s.name === '金融業界')!.id,
-        level: 3, // intermediate
-        experienceYears: 5
-      }
-    }),
-
-    // Senior consultant skills
-    prisma.userSkill.create({
-      data: {
-        userId: '3',
-        skillId: skills.find(s => s.name === 'JavaScript/TypeScript')!.id,
-        level: 5, // expert
-        experienceYears: 7
-      }
-    }),
-    prisma.userSkill.create({
-      data: {
-        userId: '3',
-        skillId: skills.find(s => s.name === 'React/Next.js')!.id,
-        level: 5, // expert
-        experienceYears: 5
-      }
-    }),
-    prisma.userSkill.create({
-      data: {
-        userId: '3',
-        skillId: skills.find(s => s.name === 'クラウドアーキテクチャ')!.id,
-        level: 4, // advanced
-        experienceYears: 4
-      }
-    }),
-
-    // Consultant skills
-    prisma.userSkill.create({
-      data: {
-        userId: '4',
-        skillId: skills.find(s => s.name === 'Python')!.id,
-        level: 3, // intermediate
-        experienceYears: 3
-      }
-    }),
-    prisma.userSkill.create({
-      data: {
-        userId: '4',
-        skillId: skills.find(s => s.name === 'データベース設計')!.id,
-        level: 3, // intermediate
-        experienceYears: 3
-      }
-    }),
-    prisma.userSkill.create({
-      data: {
-        userId: '4',
-        skillId: skills.find(s => s.name === '要件定義')!.id,
-        level: 2, // beginner
-        experienceYears: 2
-      }
-    })
-  ])
-
-  console.log('Created skills, teams, and assignments')
-
-  // Verify data was inserted
-  const teamCount = await prisma.team.count()
-  const skillCount = await prisma.skill.count()
-  const memberCount = await prisma.teamMember.count()
-  const userSkillCount = await prisma.userSkill.count()
-
-  console.log(`Total teams in database: ${teamCount}`)
-  console.log(`Total skills in database: ${skillCount}`)
-  console.log(`Total team members in database: ${memberCount}`)
-  console.log(`Total user skills in database: ${userSkillCount}`)
+  } catch (error) {
+    console.error('Error seeding database:', error)
+    throw error
+  } finally {
+    await resourceDb.$disconnect()
+  }
 }
 
 main()
-  .catch((e) => {
-    console.error(e)
-    process.exit(1)
-  })
-  .finally(async () => {
-    await prisma.$disconnect()
-  })
+  .catch(console.error)
+  .finally(() => process.exit(0))

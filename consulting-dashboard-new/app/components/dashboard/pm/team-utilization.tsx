@@ -54,10 +54,10 @@ export function TeamUtilization({ members }: TeamUtilizationProps) {
           </p>
         ) : (
           <div className="space-y-4">
-            {members.map((member) => {
+            {members.map((member, index) => {
               const status = getUtilizationStatus(member.allocation)
               return (
-                <div key={member.user?.id || member.id} className="space-y-2">
+                <div key={member.user?.id || member.id || `member-${index}`} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-sm">{member.user?.name || 'Unknown User'}</span>

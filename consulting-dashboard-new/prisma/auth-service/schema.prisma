@@ -1,0 +1,66 @@
+// 認証サービスのスキーマ
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../node_modules/@prisma/auth-client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("AUTH_DATABASE_URL")
+}
+
+// 組織
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  type      String   // consultingFirm, client
+  users     User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ロール
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  users       User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ユーザー
+model User {
+  id             String        @id @default(cuid())
+  email          String        @unique
+  name           String
+  password       String
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id])
+  roleId         String
+  role           Role          @relation(fields: [roleId], references: [id])
+  sessions       Session[]
+  isActive       Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  
+  @@index([email])
+  @@index([organizationId])
+  @@index([roleId])
+}
+
+// セッション
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  @@index([token])
+  @@index([userId])
+}

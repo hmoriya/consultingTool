@@ -56,7 +56,7 @@ export default async function TimesheetPage() {
   // プロジェクトにクライアント情報を追加
   const projectsWithClients = projects.map(p => ({
     ...p,
-    client: clientMap.get(p.clientId)
+    client: clientMap.get(p.clientId) || { name: 'クライアント未設定' }
   }))
 
   // 今週の工数データを取得

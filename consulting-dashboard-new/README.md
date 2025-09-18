@@ -59,6 +59,15 @@ A comprehensive project management dashboard for consulting firms with role-base
 ```bash
 # Clone the repository
 git clone https://github.com/hmoriya/consultingTool.git
+
+# Navigate to the project
+cd consultingTool/consulting-dashboard-new
+
+# Install dependencies
+npm install
+
+# Setup environment variables
+npm run setup:env
 cd consultingTool/consulting-dashboard-new
 
 # Install dependencies

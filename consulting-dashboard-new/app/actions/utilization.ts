@@ -107,7 +107,7 @@ export async function getTeamUtilization(targetMonth?: string) {
         }
       })
 
-    const currentAllocation = currentProjects.reduce((sum, p) => sum + p.allocation, 0) * 100
+    const currentAllocation = currentProjects.reduce((sum, p) => sum + p.allocation, 0)
 
     // 週次稼働率（過去4週間）
     const weeklyUtilization = []
@@ -124,7 +124,7 @@ export async function getTeamUtilization(targetMonth?: string) {
         return startDate <= weekEnd && endDate >= weekStart
       })
 
-      const weekAllocation = weekProjects.reduce((sum, pm) => sum + pm.allocation, 0) * 100
+      const weekAllocation = weekProjects.reduce((sum, pm) => sum + pm.allocation, 0)
 
       weeklyUtilization.push({
         weekStart: format(weekStart, 'yyyy-MM-dd'),

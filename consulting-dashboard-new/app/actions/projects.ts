@@ -29,53 +29,62 @@ export async function getProjects() {
     return []
   }
 
+  console.log('Current user:', user.id, user.name, user.role.name)
+
   // プロジェクトサービスから詳細情報付きでプロジェクトを取得
   const projects = await projectService.getProjectsWithDetails({
     includeMembers: true,
-    includeTasks: false,
+    includeTasks: true,
     includeMilestones: false,
   })
+
+  console.log('Total projects found:', projects.length)
+  console.log('First project members:', projects[0]?.projectMembers)
 
   // ユーザーの権限に基づいてフィルタリング
   const filteredProjects = user.role.name === 'Executive'
     ? projects
-    : projects.filter(project =>
-        project.projectMembers.some(m => m.userId === user.id && m.role === 'PM')
-      )
+    : projects.filter(project => {
+        const isPM = project.projectMembers.some(m => m.userId === user.id && m.role === 'pm')
+        if (isPM) {
+          console.log(`User ${user.id} is PM for project: ${project.name}`)
+        }
+        return isPM
+      })
+  
+  console.log('Filtered projects:', filteredProjects.length)
 
-  // プロジェクトメトリクスを取得（コアサービスから）
-  const projectIds = filteredProjects.map(p => p.id)
-  const metrics = await db.projectMetric.findMany({
-    where: {
-      projectId: { in: projectIds }
-    },
-    orderBy: {
-      date: 'desc'
-    },
-    distinct: ['projectId'],
-  })
-  const metricsMap = new Map(metrics.map(m => [m.projectId, m]))
+  // プロジェクトの進捗を計算（タスクベース）
+  const projectsWithProgress = await Promise.all(
+    filteredProjects.map(async (project) => {
+      let progressRate = 0
+      
+      if (project.tasks && project.tasks.length > 0) {
+        const completedTasks = project.tasks.filter(t => t.status === 'completed').length
+        progressRate = Math.round((completedTasks / project.tasks.length) * 100)
+      }
+      
+      const pm = project.projectMembers.find(m => m.role === 'pm')
+      
+      return {
+        id: project.id,
+        name: project.name,
+        code: project.code,
+        status: project.status as ProjectStatus,
+        client: {
+          name: project.client?.name || 'Unknown Client'
+        },
+        startDate: project.startDate,
+        endDate: project.endDate,
+        budget: project.budget,
+        progress: progressRate,
+        teamSize: project.projectMembers.length,
+        pmName: pm?.user?.name || '未割当'
+      }
+    })
+  )
 
-  return filteredProjects.map(project => {
-    const pm = project.projectMembers.find(m => m.role === 'PM')
-    const metric = metricsMap.get(project.id)
-    
-    return {
-      id: project.id,
-      name: project.name,
-      code: project.code,
-      status: project.status as ProjectStatus,
-      client: {
-        name: project.client?.name || 'Unknown Client'
-      },
-      startDate: project.startDate,
-      endDate: project.endDate,
-      budget: project.budget,
-      progress: metric?.progressRate || 0,
-      teamSize: project.projectMembers.length,
-      pmName: pm?.user?.name || '未割当'
-    }
-  })
+  return projectsWithProgress
 }
 
 export async function createProject(data: {
@@ -209,12 +218,9 @@ export async function getProjectDetails(projectId: string) {
     throw new Error('このプロジェクトへのアクセス権限がありません')
   }
 
-  // プロジェクトメトリクスを取得（コアサービスから）
-  const projectMetrics = await db.projectMetric.findMany({
-    where: { projectId },
-    orderBy: { date: 'desc' },
-    take: 12,
-  })
+  // プロジェクトメトリクスを取得（現在は空配列を返す）
+  // TODO: 将来的に財務サービスから取得
+  const projectMetrics: any[] = []
 
   // メンバーのロール情報を追加
   const memberUserIds = project.projectMembers.map(m => m.userId)

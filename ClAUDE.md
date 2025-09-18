@@ -171,6 +171,51 @@ cp .env.example .env
 - **ロール**: Executive, PM, Consultant, Client, Admin
 - **アクセス制御**: ロールベースアクセス制御（RBAC）
 
+## データベースの初期化とシード
+
+### 初期セットアップ手順
+
+```bash
+# 1. データベーススキーマを作成
+npm run db:push
+
+# 2. テストデータを投入
+npm run db:seed
+
+# または、リセットして最初から実行
+npm run db:reset
+```
+
+### シードデータ構成
+
+プロジェクトはマイクロサービス構成に対応したシード構造を採用しています：
+
+```
+prisma/
+├── seed.ts                    # メインシードスクリプト
+└── seeds/                     # サービス毎のシードファイル
+    ├── core-seed.ts          # コアサービス（ユーザー、組織、ロール）
+    ├── project-seed.ts       # プロジェクトサービス（プロジェクト、タスク）
+    ├── resource-seed.ts      # リソースサービス（チーム、スキル）
+    ├── timesheet-seed.ts     # タイムシートサービス（工数データ）
+    └── notification-seed.ts  # 通知サービス（通知、メッセージ）
+```
+
+### 利用可能なコマンド
+
+- `npm run db:seed` - すべてのサービスのシードを実行
+- `npm run db:seed:core` - コアサービスのみシード実行
+- `npm run db:reset` - DBを削除して再作成＆シード
+
+### テストユーザー
+
+シード実行後、以下のテストユーザーが利用可能です：
+
+- **exec@example.com** / password123 (Executive)
+- **pm@example.com** / password123 (PM)
+- **consultant@example.com** / password123 (Consultant)
+- **client@example.com** / password123 (Client)
+
 ## 設計書 designディレクトリに配置複数あるものは、ディレクトリを作成 更新日をそれぞれ記載
 
 - プロジェクト定義

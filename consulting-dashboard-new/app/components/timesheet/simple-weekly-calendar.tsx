@@ -93,7 +93,7 @@ function CalendarEntry({
       <div className="flex items-center justify-between">
         <div className="flex-1 min-w-0">
           <div className="text-xs font-medium truncate">
-            {entry.project?.client.name || 'Unknown'}
+            {entry.project?.client?.name || 'Unknown'}
           </div>
           <div className="text-xs text-muted-foreground truncate">
             {entry.project?.name || 'Unknown Project'}
@@ -441,9 +441,15 @@ export function SimpleWeeklyCalendar({ projects, initialEntries = [], onRefresh 
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <h3 className="text-lg font-semibold">
-            {format(weekStart, 'yyyy年M月d日', { locale: ja })} - {format(weekEnd, 'M月d日', { locale: ja })}
-          </h3>
+          <div className="flex flex-col">
+            <h3 className="text-lg font-semibold">
+              {format(weekStart, 'yyyy年M月d日', { locale: ja })} - {format(weekEnd, 'M月d日', { locale: ja })}
+            </h3>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              <span>週合計: {weekTotal}時間</span>
+            </div>
+          </div>
           <Button
             variant="outline"
             size="icon"
@@ -452,35 +458,37 @@ export function SimpleWeeklyCalendar({ projects, initialEntries = [], onRefresh 
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-        <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">週合計: {weekTotal}時間</span>
-        </div>
       </div>
 
-      <div className="grid grid-cols-8 gap-2">
+      <div className="grid gap-2" style={{ gridTemplateColumns: 'minmax(100px, 150px) repeat(7, minmax(80px, 1fr))' }}>
         {/* プロジェクトリスト */}
         <div className="space-y-2">
-          <h4 className="text-sm font-medium mb-2">プロジェクト</h4>
-          {projectsWithColors.map((project) => (
-            <div
-              key={project.id}
-              draggable
-              onDragStart={(e) => handleDragStart(e, project)}
-              className="p-2 rounded-md border cursor-move hover:shadow-md transition-shadow bg-white"
-            >
-              <div className="flex items-center gap-2">
-                <div 
-                  className="w-3 h-3 rounded-full" 
-                  style={{ backgroundColor: project.color || '#3b82f6' }}
-                />
-                <div className="text-sm">
-                  <div className="font-medium">{project.client.name}</div>
-                  <div className="text-xs text-muted-foreground">{project.name}</div>
+          <div className="text-center p-2 rounded-md min-h-[60px] flex flex-col justify-center">
+            <h4 className="text-sm font-medium">プロジェクト</h4>
+          </div>
+          <Card className="min-h-[460px] p-2">
+            <div className="max-h-[440px] overflow-y-auto pr-2 space-y-2">
+              {projectsWithColors.map((project) => (
+                <div
+                  key={project.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, project)}
+                  className="p-2 rounded-md border cursor-move hover:shadow-md transition-shadow bg-white"
+                >
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full flex-shrink-0" 
+                      style={{ backgroundColor: project.color || '#3b82f6' }}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium text-xs mb-1 truncate">{project.client?.name || 'クライアント未設定'}</div>
+                      <div className="text-xs text-muted-foreground truncate">{project.name}</div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
+          </Card>
         </div>
 
         {/* 曜日カラム */}
@@ -493,7 +501,7 @@ export function SimpleWeeklyCalendar({ projects, initialEntries = [], onRefresh 
           return (
             <div key={dateStr} className="space-y-2">
               <div className={cn(
-                "text-center p-2 rounded-md",
+                "text-center rounded-md min-h-[60px] flex flex-col justify-center p-2",
                 isToday && "bg-primary/10"
               )}>
                 <div className="text-xs text-muted-foreground">
@@ -502,16 +510,20 @@ export function SimpleWeeklyCalendar({ projects, initialEntries = [], onRefresh 
                 <div className="text-sm font-medium">
                   {format(day, 'd')}
                 </div>
-                {dayTotal > 0 && (
-                  <Badge variant="secondary" className="text-xs mt-1">
-                    {dayTotal}h
-                  </Badge>
-                )}
+                <div className="mt-1">
+                  {dayTotal > 0 ? (
+                    <Badge variant="secondary" className="text-xs">
+                      {dayTotal}h
+                    </Badge>
+                  ) : (
+                    <div className="text-xs text-transparent">0h</div>
+                  )}
+                </div>
               </div>
               
               <Card 
                 className={cn(
-                  "min-h-[400px] p-2 transition-colors",
+                  "min-h-[460px] transition-colors flex flex-col p-2",
                   dropTarget === dateStr && "border-primary bg-primary/5"
                 )}
                 onDragOver={handleDragOver}
@@ -519,23 +531,24 @@ export function SimpleWeeklyCalendar({ projects, initialEntries = [], onRefresh 
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, day)}
               >
-                <div className="space-y-1">
-                  {dayEntries.map((entry) => (
-                    <CalendarEntry
-                      key={entry.id}
-                      entry={{
-                        ...entry,
-                        project: projectsWithColors.find(p => p.id === entry.projectId)
-                      }}
-                      onUpdate={async (hours) => {
-                        await handleUpdateEntry(entry.id, hours)
-                      }}
-                      onDelete={() => handleDeleteEntry(entry.id)}
-                    />
-                  ))}
-                </div>
-                {dayEntries.length === 0 && (
-                  <div className="flex items-center justify-center h-full min-h-[100px] text-xs text-muted-foreground">
+                {dayEntries.length > 0 ? (
+                  <div className="space-y-1">
+                    {dayEntries.map((entry) => (
+                      <CalendarEntry
+                        key={entry.id}
+                        entry={{
+                          ...entry,
+                          project: projectsWithColors.find(p => p.id === entry.projectId)
+                        }}
+                        onUpdate={async (hours) => {
+                          await handleUpdateEntry(entry.id, hours)
+                        }}
+                        onDelete={() => handleDeleteEntry(entry.id)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center flex-1 text-xs text-muted-foreground">
                     <Plus className="h-3 w-3 mr-1" />
                     ドロップして追加
                   </div>
@@ -559,7 +572,7 @@ export function SimpleWeeklyCalendar({ projects, initialEntries = [], onRefresh 
             <DialogDescription>
               {pendingEntry && (
                 <>
-                  {pendingEntry.project.client.name} - {pendingEntry.project.name}
+                  {pendingEntry.project.client?.name || 'クライアント未設定'} - {pendingEntry.project.name}
                   <br />
                   {format(pendingEntry.date, 'yyyy年M月d日 (E)', { locale: ja })}
                 </>

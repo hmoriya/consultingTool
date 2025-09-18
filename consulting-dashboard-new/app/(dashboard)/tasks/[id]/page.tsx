@@ -7,7 +7,9 @@ import { Separator } from '@/components/ui/separator'
 import { CheckCircle2, Circle, Clock, AlertCircle, Calendar, Timer, User, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { db } from '@/lib/db'
+import { projectDb } from '@/lib/db/project-db'
 import { PrismaClient as TimesheetPrismaClient } from '@prisma/timesheet-service'
+import { TaskActions } from '@/components/tasks/task-actions'
 
 const timesheetDb = new TimesheetPrismaClient()
 
@@ -18,25 +20,25 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
     redirect('/login')
   }
 
-  const task = await db.task.findUnique({
+  const task = await projectDb.task.findUnique({
     where: {
       id,
       assigneeId: user.id // ユーザーに割り当てられたタスクのみ表示
     },
     include: {
-      project: {
-        include: {
-          client: true
-        }
-      },
-      milestone: true,
-      assignee: true
+      project: true,
+      milestone: true
     }
   })
 
   if (!task) {
     notFound()
   }
+
+  // クライアント情報を取得
+  const client = await db.organization.findUnique({
+    where: { id: task.project.clientId }
+  })
 
   // timesheet-serviceから工数エントリを取得
   const timeEntries = await timesheetDb.timeEntry.findMany({
@@ -93,7 +95,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
                 {task.title}
               </CardTitle>
               <CardDescription className="text-base">
-                {task.project.client.name} - {task.project.name}
+                {client?.name || 'Unknown'} - {task.project.name}
                 {task.milestone && ` / ${task.milestone.name}`}
               </CardDescription>
             </div>
@@ -182,19 +184,8 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
             )}
           </div>
 
-          {task.status !== 'completed' && (
-            <>
-              <Separator />
-              <div className="flex gap-2">
-                <Button variant="outline">
-                  ステータスを更新
-                </Button>
-                <Button>
-                  工数を記録
-                </Button>
-              </div>
-            </>
-          )}
+          <Separator />
+          <TaskActions taskId={task.id} taskStatus={task.status} />
         </CardContent>
       </Card>
     </div>

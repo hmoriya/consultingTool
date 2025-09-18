@@ -18,8 +18,14 @@ export default function Header({ onMenuToggle }: HeaderProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   
   const handleLogout = async () => {
-    await logout()
-    router.push('/login')
+    try {
+      await logout()
+      // logout() already handles redirect, no need for router.push
+    } catch (error) {
+      console.error('Logout failed:', error)
+      // Fallback redirect if server action fails
+      router.push('/login')
+    }
   }
   
   return (

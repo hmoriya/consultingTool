@@ -85,7 +85,7 @@ export function ProjectCards({ projects }: ProjectCardsProps) {
                       <div>
                         <h4 className="font-medium">{project.name}</h4>
                         <p className="text-sm text-muted-foreground mt-1">
-                          {project.client.name}
+                          {project.code}
                         </p>
                       </div>
                       <Badge className={getStatusColor(project.status)} variant="secondary">

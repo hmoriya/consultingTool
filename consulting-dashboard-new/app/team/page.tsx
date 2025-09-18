@@ -16,8 +16,8 @@ export default async function TeamPage() {
     redirect('/login')
   }
 
-  // PMとエグゼクティブのみアクセス可能
-  if (user.role.name !== 'Executive' && user.role.name !== 'PM') {
+  // クライアント以外はアクセス可能（コンサルタントは閲覧のみ）
+  if (user.role.name === 'Client') {
     redirect('/dashboard/' + user.role.name.toLowerCase())
   }
 

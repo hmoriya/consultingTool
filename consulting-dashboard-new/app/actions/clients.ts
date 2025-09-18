@@ -48,10 +48,8 @@ export async function getClients() {
     return [] // TypeScriptのためのreturn
   }
 
-  // エグゼクティブまたはPMのみクライアント一覧を表示可能
-  if (user.role.name !== USER_ROLES.EXECUTIVE && user.role.name !== USER_ROLES.PM) {
-    throw new Error('権限がありません')
-  }
+  // コンサルタントも含めてクライアント一覧を表示可能
+  // (作成・編集・削除は別途制限)
 
   const clients = await db.organization.findMany({
     where: {
@@ -294,10 +292,8 @@ export async function searchClients(query: string) {
     redirect('/login')
   }
 
-  // エグゼクティブまたはPMのみクライアント検索可能
-  if (user.role.name !== 'Executive' && user.role.name !== 'PM') {
-    throw new Error('権限がありません')
-  }
+  // コンサルタントも含めてクライアント検索可能
+  // (作成・編集・削除は別途制限)
 
   const clients = await db.organization.findMany({
     where: {

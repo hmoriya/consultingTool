@@ -1,9 +1,11 @@
 'use server'
 
-import { prisma } from '@/lib/db'
+import { projectDb } from '@/lib/db/project-db'
+import { resourceDb } from '@/lib/db/resource-db'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek } from 'date-fns'
+import { USER_ROLES } from '@/constants/roles'
 
 export async function getConsultantDashboardData() {
   const user = await getCurrentUser()
@@ -11,12 +13,12 @@ export async function getConsultantDashboardData() {
     redirect('/login')
   }
 
-  if (user.role.name !== 'consultant' && user.role.name !== 'executive' && user.role.name !== 'pm') {
+  if (user.role.name !== USER_ROLES.CONSULTANT && user.role.name !== USER_ROLES.EXECUTIVE && user.role.name !== USER_ROLES.PM) {
     throw new Error('権限がありません')
   }
 
   // 自分が担当しているタスク
-  const myTasks = await prisma.task.findMany({
+  const myTasks = await projectDb.task.findMany({
     where: {
       assigneeId: user.id,
       status: {
@@ -24,11 +26,7 @@ export async function getConsultantDashboardData() {
       }
     },
     include: {
-      project: {
-        include: {
-          client: true
-        }
-      }
+      project: true
     },
     orderBy: {
       dueDate: 'asc'
@@ -39,7 +37,7 @@ export async function getConsultantDashboardData() {
   const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
   const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 })
 
-  const weeklyTasks = await prisma.task.findMany({
+  const weeklyTasks = await projectDb.task.findMany({
     where: {
       assigneeId: user.id,
       dueDate: {
@@ -48,11 +46,7 @@ export async function getConsultantDashboardData() {
       }
     },
     include: {
-      project: {
-        include: {
-          client: true
-        }
-      }
+      project: true
     },
     orderBy: {
       dueDate: 'asc'
@@ -60,7 +54,7 @@ export async function getConsultantDashboardData() {
   })
 
   // タスクステータス別の統計
-  const taskStats = await prisma.task.groupBy({
+  const taskStats = await projectDb.task.groupBy({
     by: ['status'],
     where: {
       assigneeId: user.id
@@ -69,7 +63,7 @@ export async function getConsultantDashboardData() {
   })
 
   // 自分が参加しているプロジェクト
-  const myProjects = await prisma.project.findMany({
+  const myProjects = await projectDb.project.findMany({
     where: {
       projectMembers: {
         some: {
@@ -81,12 +75,7 @@ export async function getConsultantDashboardData() {
       }
     },
     include: {
-      client: true,
-      projectMembers: {
-        include: {
-          user: true
-        }
-      },
+      projectMembers: true,
       _count: {
         select: {
           tasks: true,
@@ -100,7 +89,7 @@ export async function getConsultantDashboardData() {
   const monthStart = startOfMonth(new Date())
   const monthEnd = endOfMonth(new Date())
   
-  const completedTasksThisMonth = await prisma.task.count({
+  const completedTasksThisMonth = await projectDb.task.count({
     where: {
       assigneeId: user.id,
       status: 'completed',
@@ -112,7 +101,7 @@ export async function getConsultantDashboardData() {
   })
 
   // スキルの統計
-  const userSkills = await prisma.userSkill.findMany({
+  const userSkills = await resourceDb.userSkill.findMany({
     where: {
       userId: user.id
     },
@@ -143,7 +132,7 @@ export async function updateTaskStatus(taskId: string, status: 'todo' | 'in_prog
     redirect('/login')
   }
 
-  const task = await prisma.task.findUnique({
+  const task = await projectDb.task.findUnique({
     where: { id: taskId }
   })
 
@@ -151,7 +140,7 @@ export async function updateTaskStatus(taskId: string, status: 'todo' | 'in_prog
     throw new Error('タスクが見つかりません')
   }
 
-  const updatedTask = await prisma.task.update({
+  const updatedTask = await projectDb.task.update({
     where: { id: taskId },
     data: { status }
   })

@@ -1,6 +1,7 @@
 import { getCurrentUser } from '@/actions/auth'
 import { redirect } from 'next/navigation'
 import { getConsultantDashboardData } from '@/actions/consultant-dashboard'
+import { USER_ROLES } from '@/constants/roles'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { TaskList } from '@/components/dashboard/consultant/task-list'
@@ -15,8 +16,8 @@ export default async function ConsultantDashboard() {
     redirect('/login')
   }
 
-  if (user.role.name !== 'consultant' && user.role.name !== 'executive') {
-    redirect('/dashboard/' + user.role.name)
+  if (user.role.name !== USER_ROLES.CONSULTANT && user.role.name !== USER_ROLES.EXECUTIVE) {
+    redirect('/dashboard/' + user.role.name.toLowerCase())
   }
 
   const dashboardData = await getConsultantDashboardData()

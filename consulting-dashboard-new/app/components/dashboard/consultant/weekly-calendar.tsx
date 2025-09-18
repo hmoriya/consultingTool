@@ -82,7 +82,7 @@ export function WeeklyCalendar({ tasks }: WeeklyCalendarProps) {
                       >
                         <div className="font-medium line-clamp-1">{task.title}</div>
                         <div className="text-muted-foreground mt-0.5">
-                          {task.project.client.name}
+                          {task.project.name}
                         </div>
                       </div>
                     ))}

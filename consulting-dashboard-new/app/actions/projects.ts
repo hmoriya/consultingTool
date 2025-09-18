@@ -46,11 +46,13 @@ export async function getProjects() {
   const filteredProjects = user.role.name === USER_ROLES.EXECUTIVE
     ? projects
     : projects.filter(project => {
-        const isPM = project.projectMembers.some(m => m.userId === user.id && m.role === PROJECT_MEMBER_ROLES.PM)
-        if (isPM) {
-          console.log(`User ${user.id} is PM for project: ${project.name}`)
+        // PMまたはメンバーとして参加しているプロジェクトを表示
+        const isMember = project.projectMembers.some(m => m.userId === user.id)
+        if (isMember) {
+          const memberRole = project.projectMembers.find(m => m.userId === user.id)?.role
+          console.log(`User ${user.id} is ${memberRole} for project: ${project.name}`)
         }
-        return isPM
+        return isMember
       })
   
   console.log('Filtered projects:', filteredProjects.length)
@@ -73,7 +75,7 @@ export async function getProjects() {
         code: project.code,
         status: project.status as ProjectStatus,
         client: {
-          name: project.client?.name || 'Unknown Client'
+          name: project.client?.name || 'クライアント未設定'
         },
         startDate: project.startDate,
         endDate: project.endDate,

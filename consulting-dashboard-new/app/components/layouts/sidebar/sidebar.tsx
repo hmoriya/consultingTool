@@ -27,30 +27,31 @@ import { useApproval } from '@/contexts/approval-context'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import type { UserRole } from '@/types/user'
+import { USER_ROLES } from '@/constants/roles'
 
 interface MenuItem {
   id: string
   label: string
   path: string
   icon: React.ElementType
-  roles?: UserRole[]
+  roles?: string[]
 }
 
 const menuItems: MenuItem[] = [
   { id: 'dashboard', label: 'ダッシュボード', path: '/dashboard', icon: Home },
-  { id: 'projects', label: 'プロジェクト一覧', path: '/projects', icon: Folder, roles: ['executive', 'pm'] },
-  { id: 'clients', label: 'クライアント管理', path: '/clients', icon: Building2, roles: ['executive', 'pm'] },
-  { id: 'team', label: 'チーム管理', path: '/team', icon: Users, roles: ['executive', 'pm'] },
-  { id: 'skills', label: 'スキル管理', path: '/team/skills', icon: Award, roles: ['executive', 'pm', 'consultant'] },
-  { id: 'experience', label: 'プロジェクト経験', path: '/team/experience', icon: Briefcase, roles: ['executive', 'pm', 'consultant'] },
-  { id: 'utilization', label: '稼働率管理', path: '/team/utilization', icon: BarChart3, roles: ['executive', 'pm'] },
-  { id: 'tasks', label: 'タスク', path: '/tasks', icon: CheckSquare, roles: ['consultant'] },
-  { id: 'timesheet', label: '工数管理', path: '/timesheet', icon: Clock, roles: ['executive', 'pm', 'consultant'] },
-  { id: 'timesheet-approval', label: '工数承認', path: '/timesheet/approval', icon: CheckSquare, roles: ['executive', 'pm'] },
-  { id: 'knowledge', label: 'ナレッジ', path: '/knowledge', icon: BookOpen, roles: ['consultant'] },
+  { id: 'projects', label: 'プロジェクト一覧', path: '/projects', icon: Folder, roles: [USER_ROLES.EXECUTIVE, USER_ROLES.PM, USER_ROLES.CONSULTANT] },
+  { id: 'clients', label: 'クライアント管理', path: '/clients', icon: Building2, roles: [USER_ROLES.EXECUTIVE, USER_ROLES.PM, USER_ROLES.CONSULTANT] },
+  { id: 'team', label: 'チーム管理', path: '/team', icon: Users, roles: [USER_ROLES.EXECUTIVE, USER_ROLES.PM, USER_ROLES.CONSULTANT] },
+  { id: 'skills', label: 'スキル管理', path: '/team/skills', icon: Award, roles: [USER_ROLES.EXECUTIVE, USER_ROLES.PM, USER_ROLES.CONSULTANT] },
+  { id: 'experience', label: 'プロジェクト経験', path: '/team/experience', icon: Briefcase, roles: [USER_ROLES.EXECUTIVE, USER_ROLES.PM, USER_ROLES.CONSULTANT] },
+  { id: 'utilization', label: '稼働率管理', path: '/team/utilization', icon: BarChart3, roles: [USER_ROLES.EXECUTIVE, USER_ROLES.PM] },
+  { id: 'tasks', label: 'タスク', path: '/tasks', icon: CheckSquare, roles: [USER_ROLES.CONSULTANT] },
+  { id: 'timesheet', label: '工数管理', path: '/timesheet', icon: Clock, roles: [USER_ROLES.EXECUTIVE, USER_ROLES.PM, USER_ROLES.CONSULTANT] },
+  { id: 'timesheet-approval', label: '工数承認', path: '/timesheet/approval', icon: CheckSquare, roles: [USER_ROLES.EXECUTIVE, USER_ROLES.PM] },
+  { id: 'knowledge', label: 'ナレッジ', path: '/knowledge', icon: BookOpen, roles: [USER_ROLES.CONSULTANT] },
   { id: 'messages', label: 'メッセージ', path: '/messages', icon: MessageCircle },
-  { id: 'deliverables', label: '成果物', path: '/deliverables', icon: FileText, roles: ['client'] },
-  { id: 'reports', label: 'レポート', path: '/reports', icon: BarChart, roles: ['executive', 'pm'] },
+  { id: 'deliverables', label: '成果物', path: '/deliverables', icon: FileText, roles: [USER_ROLES.CLIENT] },
+  { id: 'reports', label: 'レポート', path: '/reports', icon: BarChart, roles: [USER_ROLES.EXECUTIVE, USER_ROLES.PM] },
   { id: 'settings', label: '設定', path: '/settings', icon: Settings },
   { id: 'help', label: 'ヘルプ', path: '/help', icon: HelpCircle }
 ]
@@ -80,11 +81,10 @@ export default function Sidebar({ isOpen, isCollapsed, onCollapse, onClose }: Si
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
   
-  // ロールベースでメニューアイテムをフィルタリング（一時的に全て表示）
-  const filteredMenuItems = menuItems
-  // const filteredMenuItems = menuItems.filter(
-  //   item => !item.roles || (user && item.roles.includes(user.role.name as UserRole))
-  // )
+  // ロールベースでメニューアイテムをフィルタリング
+  const filteredMenuItems = menuItems.filter(
+    item => !item.roles || (user && item.roles.includes(user.role.name))
+  )
   
   const getDashboardPath = () => {
     if (!user) return '/dashboard'

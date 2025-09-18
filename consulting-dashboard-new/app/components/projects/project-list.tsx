@@ -51,7 +51,7 @@ export function ProjectList({ projects: initialProjects }: ProjectListProps) {
       filtered = filtered.filter(project => 
         project.name.toLowerCase().includes(query) ||
         project.code.toLowerCase().includes(query) ||
-        project.client.name.toLowerCase().includes(query) ||
+        (project.client?.name || '').toLowerCase().includes(query) ||
         project.pmName.toLowerCase().includes(query)
       )
     }
@@ -130,7 +130,7 @@ export function ProjectList({ projects: initialProjects }: ProjectListProps) {
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <span>{project.code}</span>
                   <span>•</span>
-                  <span>{project.client.name}</span>
+                  <span>{project.client?.name || 'クライアント未設定'}</span>
                   <span>•</span>
                   <span>PM: {project.pmName}</span>
                 </div>

@@ -49,13 +49,18 @@ export async function login(data: z.infer<typeof LoginSchema>) {
     })
     
     // 監査ログ
-    await db.auditLog.create({
-      data: {
-        userId: user.id,
-        action: 'LOGIN',
-        resource: 'auth',
-      }
-    })
+    try {
+      await db.auditLog.create({
+        data: {
+          userId: user.id,
+          action: 'LOGIN',
+          resource: 'auth',
+        }
+      })
+    } catch (error) {
+      console.error('Failed to create audit log during login:', error)
+      // Continue with login even if audit log fails
+    }
     
     return {
       success: true,
@@ -88,14 +93,19 @@ export async function logout() {
   const session = await getSession()
   
   if (session) {
-    // 監査ログ
-    await db.auditLog.create({
-      data: {
-        userId: session.userId,
-        action: 'LOGOUT',
-        resource: 'auth',
-      }
-    })
+    try {
+      // 監査ログ
+      await db.auditLog.create({
+        data: {
+          userId: session.userId,
+          action: 'LOGOUT',
+          resource: 'auth',
+        }
+      })
+    } catch (error) {
+      console.error('Failed to create audit log during logout:', error)
+      // Continue with logout even if audit log fails
+    }
   }
   
   await deleteSession()

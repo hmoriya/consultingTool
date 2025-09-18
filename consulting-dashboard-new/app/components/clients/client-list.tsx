@@ -36,17 +36,23 @@ import { ClientEditDialog } from './client-edit-dialog'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import Link from 'next/link'
+import { useUser } from '@/contexts/user-context'
+import { USER_ROLES } from '@/constants/roles'
 
 interface ClientListProps {
   initialClients: ClientItem[]
 }
 
 export function ClientList({ initialClients }: ClientListProps) {
+  const { user } = useUser()
   const [clients, setClients] = useState<ClientItem[]>(initialClients)
   const [searchQuery, setSearchQuery] = useState('')
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [editingClient, setEditingClient] = useState<ClientItem | null>(null)
   const [loading, setLoading] = useState(false)
+
+  // クライアント作成・編集・削除権限のチェック
+  const canManageClients = user?.role.name === USER_ROLES.EXECUTIVE || user?.role.name === USER_ROLES.PM
 
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -92,10 +98,12 @@ export function ClientList({ initialClients }: ClientListProps) {
                 />
               </div>
             </div>
-            <Button onClick={() => setShowCreateDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              新規クライアント
-            </Button>
+            {canManageClients && (
+              <Button onClick={() => setShowCreateDialog(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                新規クライアント
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -212,19 +220,23 @@ export function ClientList({ initialClients }: ClientListProps) {
                               詳細を見る
                             </Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setEditingClient(client)}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            編集
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-red-600"
-                            onClick={() => handleDeleteClient(client.id)}
-                            disabled={loading || (client.projectCount || 0) > 0}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            削除
-                          </DropdownMenuItem>
+                          {canManageClients && (
+                            <>
+                              <DropdownMenuItem onClick={() => setEditingClient(client)}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                編集
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => handleDeleteClient(client.id)}
+                                disabled={loading || (client.projectCount || 0) > 0}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                削除
+                              </DropdownMenuItem>
+                            </>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

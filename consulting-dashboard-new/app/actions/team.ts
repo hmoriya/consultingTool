@@ -29,8 +29,8 @@ export async function getTeamMembers() {
     throw new Error('認証が必要です')
   }
 
-  // エグゼクティブとPMのみアクセス可能
-  if (user.role.name !== 'Executive' && user.role.name !== 'PM') {
+  // クライアントはアクセス不可
+  if (user.role.name === 'Client') {
     throw new Error('アクセス権限がありません')
   }
 
@@ -118,7 +118,7 @@ export async function searchTeamMembers(query: string) {
     throw new Error('認証が必要です')
   }
 
-  if (user.role.name !== 'Executive' && user.role.name !== 'PM') {
+  if (user.role.name === 'Client') {
     throw new Error('アクセス権限がありません')
   }
 
@@ -349,7 +349,7 @@ export async function getMemberUtilization(memberId?: string) {
     throw new Error('認証が必要です')
   }
 
-  if (user.role.name !== 'Executive' && user.role.name !== 'PM') {
+  if (user.role.name === 'Client') {
     throw new Error('アクセス権限がありません')
   }
 

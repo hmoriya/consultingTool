@@ -99,8 +99,6 @@ export function TaskList({ tasks }: TaskListProps) {
                         {task.title}
                       </Link>
                       <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                        <span>{task.project.client.name}</span>
-                        <span>•</span>
                         <span>{task.project.name}</span>
                       </div>
                     </div>

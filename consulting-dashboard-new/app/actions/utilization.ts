@@ -5,6 +5,7 @@ import { projectDb } from '@/lib/db/project-db'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
 import { startOfMonth, endOfMonth, eachDayOfInterval, format, startOfWeek, endOfWeek } from 'date-fns'
+import { USER_ROLES } from '@/constants/roles'
 
 export interface MemberUtilization {
   id: string
@@ -200,7 +201,7 @@ export async function getProjectResourceAllocation(projectId: string) {
       id: projectId,
       OR: [
         { projectMembers: { some: { userId: user.id } } },
-        ...(user.role.name === 'Executive' ? [{ id: projectId }] : [])
+        ...(user.role.name === USER_ROLES.EXECUTIVE ? [{ id: projectId }] : [])
       ]
     },
     include: {

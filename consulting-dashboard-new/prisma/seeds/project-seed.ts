@@ -381,6 +381,15 @@ export async function seedProjects(users?: any[], organizations?: any) {
     console.log('  - Created deliverables for each project')
     console.log('  - Assigned PMs and consultants to all projects')
     
+    // プロジェクトデータを返す（メンバー情報を含む）
+    const projectsWithMembers = await projectDb.project.findMany({
+      include: {
+        projectMembers: true
+      }
+    })
+    
+    return projectsWithMembers
+    
   } catch (error) {
     console.error('❌ Error seeding Project Service:', error)
     throw error

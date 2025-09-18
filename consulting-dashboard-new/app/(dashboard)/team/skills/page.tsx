@@ -8,6 +8,7 @@ import { SkillManagement } from './skill-management'
 import { MySkills } from './my-skills'
 import { SkillSearch } from './skill-search'
 import { Users, BookOpen, Award } from 'lucide-react'
+import { USER_ROLES } from '@/constants/roles'
 
 export default async function SkillsPage() {
   const [user, categories, allSkills, mySkills] = await Promise.all([
@@ -26,7 +27,7 @@ export default async function SkillsPage() {
   const totalUsers = new Set(allSkills.flatMap(skill => skill.users.map(u => u.userId))).size
   const mySkillsCount = mySkills.length
 
-  const isPMOrExecutive = user.role.name === 'pm' || user.role.name === 'executive'
+  const isPMOrExecutive = user.role.name === USER_ROLES.PM || user.role.name === USER_ROLES.EXECUTIVE
 
   return (
     <div className="space-y-6">
@@ -93,7 +94,7 @@ export default async function SkillsPage() {
             <>
               <TabsTrigger value="skills">スキル一覧</TabsTrigger>
               <TabsTrigger value="search">メンバー検索</TabsTrigger>
-              {user.role.name === 'executive' && (
+              {user.role.name === USER_ROLES.EXECUTIVE && (
                 <TabsTrigger value="manage">管理</TabsTrigger>
               )}
             </>
@@ -169,7 +170,7 @@ export default async function SkillsPage() {
         )}
 
         {/* 管理 */}
-        {user.role.name === 'executive' && (
+        {user.role.name === USER_ROLES.EXECUTIVE && (
           <TabsContent value="manage" className="space-y-4">
             <SkillManagement categories={categories} />
           </TabsContent>

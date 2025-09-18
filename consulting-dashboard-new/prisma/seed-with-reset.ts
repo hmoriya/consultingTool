@@ -49,12 +49,8 @@ async function resetAndSeed() {
     await projectDb.project.deleteMany({})
     
     console.log('Clearing Main Database...')
-    await db.auditLog.deleteMany({})
-    await db.cost.deleteMany({})
-    await db.revenue.deleteMany({})
-    await db.timeEntry.deleteMany({})
-    await db.projectMetric.deleteMany({})
-    await db.kPIHistory.deleteMany({})
+    // Main database is now auth service database
+    // Skip clearing as it will be cleared in the Auth Service section below
     
     console.log('Clearing Auth Service...')
     await authDb.session.deleteMany({})
@@ -73,16 +69,24 @@ async function resetAndSeed() {
     const coreData = await seedCore()
     
     // プロジェクトサービス
-    await seedProjects(coreData.users, coreData.organizations)
+    const projects = await seedProjects(coreData.users, coreData.organizations)
+    
+    // ユーザー情報を整理
+    const usersWithDetails = {
+      pmUser: coreData.users.find((u: any) => u.email === 'pm@example.com'),
+      consultantUser: coreData.users.find((u: any) => u.email === 'consultant@example.com'),
+      execUser: coreData.users.find((u: any) => u.email === 'exec@example.com'),
+      allUsers: coreData.users
+    }
     
     // リソースサービス
-    await seedResources()
+    await seedResources(usersWithDetails)
     
     // タイムシートサービス
-    await seedTimesheets()
+    await seedTimesheets(usersWithDetails, projects)
     
     // 通知サービス
-    await seedNotifications()
+    await seedNotifications(usersWithDetails, projects)
     
     console.log('================================')
     console.log('✅ All services seeded successfully!')

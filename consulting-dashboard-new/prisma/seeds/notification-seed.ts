@@ -5,24 +5,36 @@ const notificationDb = new NotificationPrismaClient({
   log: ['error', 'warn']
 })
 
-export async function seedNotifications() {
+export async function seedNotifications(users?: any, projects?: any) {
   console.log('🌱 Seeding Notification Service...')
   
   try {
-    // ユーザーID（メインDBから取得した実際のID）
-    const users = {
-      exec: 'cln8abc120001qs01example1',      // 山田 太郎 (Executive)
-      pm: 'cln8abc120001qs01example2',        // 鈴木 花子 (PM)
-      consultant: 'cln8abc120001qs01example3', // 佐藤 次郎 (Consultant)
-      takahashi: 'cln8abc120001qs01example4',  // 高橋 愛
-      watanabe: 'cln8abc120001qs01example5'    // 渡辺 健
+    // ユーザーIDとプロジェクトIDが渡されていない場合はスキップ
+    if (!users || !projects) {
+      console.log('⚠️  Users or projects not provided. Skipping notification seed.')
+      return
     }
 
-    // プロジェクトID（プロジェクトDBから取得した実際のID）
-    const projects = {
-      dataAnalysis: 'cmfoljjs70000ymz8dp1fjx01',    // データ分析基盤構築
-      businessProcess: 'cmfoljjs70002ymz86nhvz1w5',  // ビジネスプロセス最適化
-      dx: 'cmfoljjs70001ymz8x34kumf1'                // デジタルトランスフォーメーション推進
+    // ユーザーIDマッピング
+    const userIds = {
+      exec: users.execUser?.id,
+      pm: users.pmUser?.id,
+      consultant: users.consultantUser?.id,
+      takahashi: users.allUsers?.find((u: any) => u.name === '高橋 愛')?.id,
+      watanabe: users.allUsers?.find((u: any) => u.name === '渡辺 健')?.id
+    }
+
+    // プロジェクトIDマッピング
+    const projectIds = {
+      dataAnalysis: projects.find((p: any) => p.name === 'データ分析基盤構築')?.id,
+      businessProcess: projects.find((p: any) => p.name === 'ビジネスプロセス最適化')?.id,
+      dx: projects.find((p: any) => p.name === 'デジタルトランスフォーメーション推進')?.id
+    }
+
+    // IDが不足している場合はスキップ
+    if (!userIds.pm || !userIds.consultant || !projectIds.dataAnalysis) {
+      console.log('⚠️  Required user or project IDs not found. Skipping notification seed.')
+      return
     }
 
     // 1. プロジェクトチャンネルの作成
@@ -32,14 +44,14 @@ export async function seedNotifications() {
           name: 'データ分析PJ',
           description: 'データ分析基盤構築プロジェクトの専用チャンネル',
           type: 'PROJECT',
-          projectId: projects.dataAnalysis,
+          projectId: projectIds.dataAnalysis,
           isPrivate: false,
-          createdBy: users.pm,
+          createdBy: userIds.pm,
           members: {
             create: [
-              { userId: users.pm, role: 'admin' },
-              { userId: users.consultant, role: 'member' },
-              { userId: users.takahashi, role: 'member' },
+              { userId: userIds.pm, role: 'admin' },
+              { userId: userIds.consultant, role: 'member' },
+              ...(userIds.takahashi ? [{ userId: userIds.takahashi, role: 'member' as const }] : []),
             ]
           }
         }
@@ -49,14 +61,14 @@ export async function seedNotifications() {
           name: 'DX推進PJ',
           description: 'デジタルトランスフォーメーション推進プロジェクトの専用チャンネル',
           type: 'PROJECT',
-          projectId: projects.dx,
+          projectId: projectIds.dx,
           isPrivate: false,
-          createdBy: users.exec,
+          createdBy: userIds.exec || userIds.pm,
           members: {
             create: [
-              { userId: users.exec, role: 'admin' },
-              { userId: users.pm, role: 'member' },
-              { userId: users.watanabe, role: 'member' },
+              ...(userIds.exec ? [{ userId: userIds.exec, role: 'admin' as const }] : []),
+              { userId: userIds.pm, role: userIds.exec ? 'member' as const : 'admin' as const },
+              ...(userIds.watanabe ? [{ userId: userIds.watanabe, role: 'member' as const }] : []),
             ]
           }
         }
@@ -71,14 +83,14 @@ export async function seedNotifications() {
           description: '全社レベルの重要な情報を共有するチャンネル',
           type: 'GROUP',
           isPrivate: false,
-          createdBy: users.exec,
+          createdBy: userIds.exec || userIds.pm,
           members: {
             create: [
-              { userId: users.exec, role: 'admin' },
-              { userId: users.pm, role: 'member' },
-              { userId: users.consultant, role: 'member' },
-              { userId: users.takahashi, role: 'member' },
-              { userId: users.watanabe, role: 'member' },
+              ...(userIds.exec ? [{ userId: userIds.exec, role: 'admin' as const }] : []),
+              { userId: userIds.pm, role: userIds.exec ? 'member' as const : 'admin' as const },
+              { userId: userIds.consultant, role: 'member' as const },
+              ...(userIds.takahashi ? [{ userId: userIds.takahashi, role: 'member' as const }] : []),
+              ...(userIds.watanabe ? [{ userId: userIds.watanabe, role: 'member' as const }] : []),
             ]
           }
         }
@@ -89,13 +101,13 @@ export async function seedNotifications() {
           description: 'カジュアルな情報交換とランチの相談',
           type: 'GROUP',
           isPrivate: false,
-          createdBy: users.consultant,
+          createdBy: userIds.consultant,
           members: {
             create: [
-              { userId: users.pm, role: 'member' },
-              { userId: users.consultant, role: 'admin' },
-              { userId: users.takahashi, role: 'member' },
-              { userId: users.watanabe, role: 'member' },
+              { userId: userIds.pm, role: 'member' as const },
+              { userId: userIds.consultant, role: 'admin' as const },
+              ...(userIds.takahashi ? [{ userId: userIds.takahashi, role: 'member' as const }] : []),
+              ...(userIds.watanabe ? [{ userId: userIds.watanabe, role: 'member' as const }] : []),
             ]
           }
         }
@@ -108,11 +120,11 @@ export async function seedNotifications() {
         data: {
           type: 'DIRECT',
           isPrivate: true,
-          createdBy: users.pm,
+          createdBy: userIds.pm,
           members: {
             create: [
-              { userId: users.pm, role: 'member' },
-              { userId: users.consultant, role: 'member' },
+              { userId: userIds.pm, role: 'member' },
+              { userId: userIds.consultant, role: 'member' },
             ]
           }
         }
@@ -129,7 +141,7 @@ export async function seedNotifications() {
       notificationDb.message.create({
         data: {
           channelId: projectChannels[0].id,
-          senderId: users.pm,
+          senderId: userIds.pm,
           content: 'データ分析基盤構築プロジェクトのキックオフを行います。',
           type: 'text',
           createdAt: new Date('2024-01-15T09:00:00Z')
@@ -138,7 +150,7 @@ export async function seedNotifications() {
       notificationDb.message.create({
         data: {
           channelId: projectChannels[0].id,
-          senderId: users.consultant,
+          senderId: userIds.consultant,
           content: 'データモデルの設計について、来週までに初期案を作成します。',
           type: 'text',
           createdAt: new Date('2024-01-15T10:30:00Z')
@@ -147,7 +159,7 @@ export async function seedNotifications() {
       notificationDb.message.create({
         data: {
           channelId: projectChannels[0].id,
-          senderId: users.takahashi,
+          senderId: userIds.takahashi || userIds.consultant,
           content: 'ETLプロセスの要件定義書を共有します。',
           type: 'text',
           createdAt: new Date('2024-01-16T14:00:00Z')
@@ -160,7 +172,7 @@ export async function seedNotifications() {
       notificationDb.message.create({
         data: {
           channelId: projectChannels[1].id,
-          senderId: users.exec,
+          senderId: userIds.exec || userIds.pm,
           content: 'DX推進の戦略について、来月のボードミーティングで発表予定です。',
           type: 'text',
           createdAt: new Date('2024-01-20T11:00:00Z')
@@ -169,7 +181,7 @@ export async function seedNotifications() {
       notificationDb.message.create({
         data: {
           channelId: projectChannels[1].id,
-          senderId: users.pm,
+          senderId: userIds.pm,
           content: '現在の進捗は70%です。予定通り来月末には完了予定です。',
           type: 'text',
           createdAt: new Date('2024-01-21T15:30:00Z')
@@ -182,7 +194,7 @@ export async function seedNotifications() {
       notificationDb.message.create({
         data: {
           channelId: generalChannels[0].id,
-          senderId: users.exec,
+          senderId: userIds.exec || userIds.pm,
           content: '来月から新しいセキュリティポリシーが適用されます。詳細は添付資料をご確認ください。',
           type: 'text',
           createdAt: new Date('2024-01-18T09:00:00Z')
@@ -191,7 +203,7 @@ export async function seedNotifications() {
       notificationDb.message.create({
         data: {
           channelId: generalChannels[0].id,
-          senderId: users.pm,
+          senderId: userIds.pm,
           content: 'Q1の業績報告会は2月15日に開催予定です。',
           type: 'text',
           createdAt: new Date('2024-01-19T16:00:00Z')
@@ -204,7 +216,7 @@ export async function seedNotifications() {
       notificationDb.message.create({
         data: {
           channelId: generalChannels[1].id,
-          senderId: users.consultant,
+          senderId: userIds.consultant,
           content: '今日のランチは新しくできたイタリアンレストランはいかがですか？',
           type: 'text',
           createdAt: new Date('2024-01-22T11:30:00Z')
@@ -213,7 +225,7 @@ export async function seedNotifications() {
       notificationDb.message.create({
         data: {
           channelId: generalChannels[1].id,
-          senderId: users.takahashi,
+          senderId: userIds.takahashi || userIds.consultant,
           content: '良いですね！12:30に1階のロビーで待ち合わせしましょう。',
           type: 'text',
           createdAt: new Date('2024-01-22T11:35:00Z')
@@ -226,7 +238,7 @@ export async function seedNotifications() {
       notificationDb.message.create({
         data: {
           channelId: dmChannels[0].id,
-          senderId: users.pm,
+          senderId: userIds.pm,
           content: 'お疲れ様です。来週のプロジェクトレビューの件でご相談があります。',
           type: 'text',
           createdAt: new Date('2024-01-23T17:00:00Z')
@@ -235,7 +247,7 @@ export async function seedNotifications() {
       notificationDb.message.create({
         data: {
           channelId: dmChannels[0].id,
-          senderId: users.consultant,
+          senderId: userIds.consultant,
           content: 'お疲れ様です。明日の午前中でしたら時間がありますが、いかがでしょうか？',
           type: 'text',
           createdAt: new Date('2024-01-23T17:30:00Z')
@@ -259,11 +271,12 @@ export async function seedNotifications() {
     }
 
     // 6. 通知設定の作成
+    const validUserIds = Object.values(userIds).filter(id => id !== undefined)
     const notificationPreferences = await Promise.all(
-      Object.values(users).map(userId =>
+      validUserIds.map(userId =>
         notificationDb.notificationPreference.create({
           data: {
-            userId,
+            userId: userId as string,
             emailEnabled: true,
             pushEnabled: true,
             inAppEnabled: true,
@@ -281,7 +294,7 @@ export async function seedNotifications() {
     const notifications = await Promise.all([
       notificationDb.notification.create({
         data: {
-          userId: users.pm,
+          userId: userIds.pm,
           type: 'MESSAGE',
           title: '新しいメッセージ',
           content: 'データ分析PJチャンネルに新しいメッセージが投稿されました',
@@ -296,35 +309,37 @@ export async function seedNotifications() {
       }),
       notificationDb.notification.create({
         data: {
-          userId: users.consultant,
+          userId: userIds.consultant,
           type: 'MENTION',
           title: 'メンションされました',
           content: '佐藤 次郎さんがあなたをメンションしました',
           metadata: JSON.stringify({ 
             channelId: generalChannels[0].id,
-            senderId: users.pm
+            senderId: userIds.pm
           }),
           link: `/messages/${generalChannels[0].id}`,
           isRead: false,
           createdAt: new Date('2024-01-19T16:05:00Z')
         }
       }),
-      notificationDb.notification.create({
-        data: {
-          userId: users.exec,
-          type: 'PROJECT',
-          title: 'プロジェクト更新',
-          content: 'DX推進プロジェクトのマイルストーンが更新されました',
-          metadata: JSON.stringify({ 
-            projectId: projects.dx,
-            type: 'milestone_update'
-          }),
-          link: `/projects/${projects.dx}`,
-          isRead: true,
-          readAt: new Date('2024-01-22T10:00:00Z'),
-          createdAt: new Date('2024-01-21T18:00:00Z')
-        }
-      })
+      ...(userIds.exec ? [
+        await notificationDb.notification.create({
+          data: {
+            userId: userIds.exec,
+            type: 'PROJECT',
+            title: 'プロジェクト更新',
+            content: 'DX推進プロジェクトのマイルストーンが更新されました',
+            metadata: JSON.stringify({ 
+              projectId: projectIds.dx,
+              type: 'milestone_update'
+            }),
+            link: `/projects/${projectIds.dx}`,
+            isRead: true,
+            readAt: new Date('2024-01-22T10:00:00Z'),
+            createdAt: new Date('2024-01-21T18:00:00Z')
+          }
+        })
+      ] : [])
     ])
 
     console.log(`✅ Notification Service seeded successfully:`)

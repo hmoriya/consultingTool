@@ -5,6 +5,7 @@ import { resourceDb } from '@/lib/db/resource-db'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { USER_ROLES } from '@/constants/roles'
 
 // スキルカテゴリ一覧を取得
 export async function getSkillCategories() {
@@ -98,7 +99,7 @@ export async function getUserSkills(userId?: string) {
   }
 
   // 権限チェック：自分自身またはPM/エグゼクティブ
-  if (userId && userId !== user.id && user.role.name !== 'PM' && user.role.name !== 'Executive') {
+  if (userId && userId !== user.id && user.role.name !== USER_ROLES.PM && user.role.name !== USER_ROLES.EXECUTIVE) {
     throw new Error('アクセス権限がありません')
   }
 
@@ -129,7 +130,7 @@ export async function createSkillCategory(data: {
   order?: number
 }) {
   const user = await getCurrentUser()
-  if (!user || user.role.name !== 'Executive') {
+  if (!user || user.role.name !== USER_ROLES.EXECUTIVE) {
     throw new Error('エグゼクティブのみスキルカテゴリを作成できます')
   }
 
@@ -159,7 +160,7 @@ export async function createSkill(data: {
   categoryId: string
 }) {
   const user = await getCurrentUser()
-  if (!user || (user.role.name !== 'PM' && user.role.name !== 'Executive')) {
+  if (!user || (user.role.name !== USER_ROLES.PM && user.role.name !== USER_ROLES.EXECUTIVE)) {
     throw new Error('PM以上の権限が必要です')
   }
 
@@ -201,7 +202,7 @@ export async function upsertUserSkill(data: {
 
   // 権限チェック：自分自身またはPM/エグゼクティブ
   const targetUserId = data.userId || user.id
-  if (targetUserId !== user.id && user.role.name !== 'PM' && user.role.name !== 'Executive') {
+  if (targetUserId !== user.id && user.role.name !== USER_ROLES.PM && user.role.name !== USER_ROLES.EXECUTIVE) {
     throw new Error('アクセス権限がありません')
   }
 
@@ -289,7 +290,7 @@ export async function deleteUserSkill(userSkillId: string) {
       id: userSkillId,
       OR: [
         { userId: user.id },
-        ...(user.role.name === 'PM' || user.role.name === 'Executive'
+        ...(user.role.name === USER_ROLES.PM || user.role.name === USER_ROLES.EXECUTIVE
           ? [{ user: { organizationId: user.organizationId } }]
           : []
         )
@@ -325,7 +326,7 @@ export async function deleteUserSkill(userSkillId: string) {
 // スキルを持つメンバーを検索
 export async function searchMembersBySkill(skillIds: string[], minLevel?: number) {
   const user = await getCurrentUser()
-  if (!user || (user.role.name !== 'PM' && user.role.name !== 'Executive')) {
+  if (!user || (user.role.name !== USER_ROLES.PM && user.role.name !== USER_ROLES.EXECUTIVE)) {
     throw new Error('PM以上の権限が必要です')
   }
 
@@ -373,7 +374,7 @@ export async function searchMembersBySkill(skillIds: string[], minLevel?: number
 // プロジェクトに必要なスキルを分析（簡略版）
 export async function analyzeProjectSkillGap(projectId: string) {
   const user = await getCurrentUser()
-  if (!user || (user.role.name !== 'PM' && user.role.name !== 'Executive')) {
+  if (!user || (user.role.name !== USER_ROLES.PM && user.role.name !== USER_ROLES.EXECUTIVE)) {
     throw new Error('PM以上の権限が必要です')
   }
 

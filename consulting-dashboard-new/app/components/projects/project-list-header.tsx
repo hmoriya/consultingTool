@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@/contexts/user-context'
 import { useProjectFilters } from '@/contexts/project-filter-context'
+import { USER_ROLES } from '@/constants/roles'
 import {
   Select,
   SelectContent,
@@ -19,7 +20,7 @@ export function ProjectListHeader() {
   const { user } = useUser()
   const { filters, updateFilter, resetFilters } = useProjectFilters()
   
-  const canCreateProject = user?.role.name === 'pm' || user?.role.name === 'executive'
+  const canCreateProject = user?.role.name === USER_ROLES.PM || user?.role.name === USER_ROLES.EXECUTIVE
 
   const handleCreateProject = () => {
     router.push('/projects/new')

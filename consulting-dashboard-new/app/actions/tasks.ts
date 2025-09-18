@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { projectDb } from '@/lib/db/project-db'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
+import { USER_ROLES } from '@/constants/roles'
 
 export type TaskStatus = 'todo' | 'in_progress' | 'review' | 'completed'
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent'
@@ -45,7 +46,7 @@ export async function getProjectTasks(projectId: string) {
       id: projectId,
       OR: [
         { projectMembers: { some: { userId: user.id } } },
-        ...(user.role.name === 'Executive' ? [{ id: projectId }] : [])
+        ...(user.role.name === USER_ROLES.EXECUTIVE ? [{ id: projectId }] : [])
       ]
     }
   })

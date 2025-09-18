@@ -12,7 +12,7 @@ const projectDb = new ProjectPrismaClient({
 const authDb = new AuthPrismaClient({
   datasources: {
     db: {
-      url: process.env.AUTH_DATABASE_URL || 'file:./prisma/auth-service/data/auth.db'
+      url: process.env.AUTH_DATABASE_URL || 'file:./dev.db'
     }
   }
 })
@@ -91,9 +91,9 @@ export async function seedProjectService() {
     console.log(`✅ Created ${projects.length} projects`)
 
     // プロジェクトメンバーを追加
-    // PMユーザーのIDを直接使用
-    const pmUserId = 'cmfoiscfi000cym9dvineq5jx' // pm@example.com
-    const consultantUserId = consultantUser?.id || 'cmfoiscfi000eym9d7c4cqwrk'
+    // 実際のユーザーIDを使用
+    const pmUserId = pmUser.id
+    const consultantUserId = consultantUser.id
     
     await projectDb.projectMember.createMany({
       data: [

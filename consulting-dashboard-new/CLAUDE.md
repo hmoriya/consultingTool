@@ -57,6 +57,59 @@ npm run db:seed     # 初期データ投入
 npm run db:studio   # Prisma Studio起動
 ```
 
+## データベースファイル管理
+
+### データベースファイル配置
+開発用のサンプルデータベースはGitに含まれているため、新しいPCでclone後すぐに動作します。
+
+```
+dev.db                                    # 認証サービス用DB
+prisma/project-service/data/project.db   # プロジェクト管理DB
+prisma/resource-service/data/resource.db # リソース管理DB
+prisma/timesheet-service/data/timesheet.db # タイムシート管理DB
+prisma/notification-service/data/notification.db # 通知サービスDB
+```
+
+### 環境セットアップ手順
+```bash
+# 1. リポジトリをクローン
+git clone <repository-url>
+cd consulting-dashboard-new
+
+# 2. 依存関係インストール
+npm install
+
+# 3. 環境変数設定（マシン固有の絶対パス生成）
+./setup-env.js
+
+# 4. アプリケーション起動（データベースは既に含まれているのでシード不要）
+npm run dev
+```
+
+### ⚠️ 重要：データベースの取り扱い
+
+**データベースファイルは既にGitに含まれているため、新規作成は不要です！**
+
+```bash
+# ❌ 以下のコマンドは実行しないでください（データベースを上書きしてしまいます）
+npx tsx prisma/seed.ts           # 実行不要
+npx prisma db push                # 実行不要
+npx prisma migrate reset          # 実行不要
+```
+
+### データベースの再初期化が必要な場合のみ（通常は不要）
+データベースが破損した場合や、スキーマが大幅に変更された場合のみ：
+```bash
+# ⚠️ 警告：既存データが削除されます
+npx tsx prisma/seed.ts
+```
+
+### 重要な注意事項
+- **データベースファイルはGitに含まれています**（開発効率化のため）
+- **本番環境では別途データベースを構築してください**
+- **センシティブなデータは絶対に開発DBに入れないでください**
+- **`.env`ファイルは各マシンで`setup-env.js`により生成されるため、Gitには含まれません**
+
 ## マイクロサービス設計方針
 
 ### 設計思想

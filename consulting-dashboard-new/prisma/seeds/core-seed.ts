@@ -1,5 +1,6 @@
 import { PrismaClient as AuthPrismaClient } from '@prisma/auth-client'
 import bcrypt from 'bcryptjs'
+import { USER_ROLES } from '../../constants/roles'
 
 const authDb = new AuthPrismaClient()
 
@@ -26,11 +27,11 @@ export async function seedCore() {
         energy: organizations.find(o => o.name === 'エネルギー開発株式会社')
       },
       roles: {
-        execRole: roles.find(r => r.name === 'Executive'),
-        pmRole: roles.find(r => r.name === 'PM'),
-        consultantRole: roles.find(r => r.name === 'Consultant'),
-        clientRole: roles.find(r => r.name === 'Client'),
-        adminRole: roles.find(r => r.name === 'Admin')
+        execRole: roles.find(r => r.name === USER_ROLES.EXECUTIVE),
+        pmRole: roles.find(r => r.name === USER_ROLES.PM),
+        consultantRole: roles.find(r => r.name === USER_ROLES.CONSULTANT),
+        clientRole: roles.find(r => r.name === USER_ROLES.CLIENT),
+        adminRole: roles.find(r => r.name === USER_ROLES.ADMIN)
       },
       users
     }
@@ -88,11 +89,11 @@ export async function seedCore() {
 
   // ロールの作成
   const roles = await Promise.all([
-    authDb.role.create({ data: { name: 'Executive', description: 'エグゼクティブ' } }),
-    authDb.role.create({ data: { name: 'PM', description: 'プロジェクトマネージャー' } }),
-    authDb.role.create({ data: { name: 'Consultant', description: 'コンサルタント' } }),
-    authDb.role.create({ data: { name: 'Client', description: 'クライアント' } }),
-    authDb.role.create({ data: { name: 'Admin', description: '管理者' } })
+    authDb.role.create({ data: { name: USER_ROLES.EXECUTIVE, description: 'エグゼクティブ' } }),
+    authDb.role.create({ data: { name: USER_ROLES.PM, description: 'プロジェクトマネージャー' } }),
+    authDb.role.create({ data: { name: USER_ROLES.CONSULTANT, description: 'コンサルタント' } }),
+    authDb.role.create({ data: { name: USER_ROLES.CLIENT, description: 'クライアント' } }),
+    authDb.role.create({ data: { name: USER_ROLES.ADMIN, description: '管理者' } })
   ])
 
   const [execRole, pmRole, consultantRole, clientRole, adminRole] = roles
@@ -224,7 +225,114 @@ export async function seedCore() {
     })
   ])
 
+  // 担当者データの追加
+  const contacts = await Promise.all([
+    // テックイノベーション
+    authDb.organizationContact.create({
+      data: {
+        organizationId: clientOrg.id,
+        name: '田中 次郎',
+        title: '情報システム部長',
+        department: '情報システム部',
+        email: 'tanaka@tech-innovation.com',
+        phone: '03-1234-5678',
+        mobile: '090-1234-5678',
+        isPrimary: true,
+        notes: 'DXプロジェクトの窓口担当'
+      }
+    }),
+    authDb.organizationContact.create({
+      data: {
+        organizationId: clientOrg.id,
+        name: '佐藤 美咲',
+        title: 'プロジェクトマネージャー',
+        department: '情報システム部',
+        email: 'sato@tech-innovation.com',
+        phone: '03-1234-5679',
+        isPrimary: false
+      }
+    }),
+    // グローバル製造
+    authDb.organizationContact.create({
+      data: {
+        organizationId: globalMfg.id,
+        name: '製造 一郎',
+        title: '執行役員',
+        department: '製造本部',
+        email: 'ichiro@global-manufacturing.com',
+        phone: '052-123-4567',
+        mobile: '080-1234-5678',
+        isPrimary: true,
+        notes: 'スマートファクトリープロジェクト統括'
+      }
+    }),
+    // 金融ソリューションズ
+    authDb.organizationContact.create({
+      data: {
+        organizationId: financeCorp.id,
+        name: '金子 健太',
+        title: 'デジタル推進室長',
+        department: 'デジタル推進室',
+        email: 'kaneko@finance-solutions.com',
+        phone: '03-9876-5432',
+        mobile: '090-8765-4321',
+        isPrimary: true
+      }
+    }),
+    authDb.organizationContact.create({
+      data: {
+        organizationId: financeCorp.id,
+        name: '山田 愛子',
+        title: '部長',
+        department: 'IT企画部',
+        email: 'yamada@finance-solutions.com',
+        phone: '03-9876-5433',
+        isPrimary: false
+      }
+    }),
+    // ヘルスケアイノベーション
+    authDb.organizationContact.create({
+      data: {
+        organizationId: healthcare.id,
+        name: '医療 花子',
+        title: 'IT統括責任者',
+        department: '医療情報システム部',
+        email: 'hanako@healthcare-innovation.com',
+        phone: '06-1111-2222',
+        isPrimary: true,
+        notes: '電子カルテ統合プロジェクト責任者'
+      }
+    }),
+    // リテールチェーン
+    authDb.organizationContact.create({
+      data: {
+        organizationId: retail.id,
+        name: '小売 太郎',
+        title: 'オムニチャネル推進部長',
+        department: 'マーケティング本部',
+        email: 'taro@retail-chain.com',
+        phone: '03-2222-3333',
+        mobile: '090-2222-3333',
+        isPrimary: true
+      }
+    }),
+    // エネルギー開発
+    authDb.organizationContact.create({
+      data: {
+        organizationId: energy.id,
+        name: 'エネルギー 和子',
+        title: '新エネルギー事業部長',
+        department: '新エネルギー事業部',
+        email: 'kazuko@energy-dev.com',
+        phone: '03-3333-4444',
+        isPrimary: true,
+        notes: '再生可能エネルギー管理システム導入プロジェクト担当'
+      }
+    })
+  ])
+
   console.log('✅ Auth Service seeded successfully')
+  console.log(`  - Created ${contacts.length} organization contacts`)
   
   return {
     organizations: { 

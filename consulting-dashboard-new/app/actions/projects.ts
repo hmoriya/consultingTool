@@ -43,7 +43,7 @@ export async function getProjects() {
   console.log('First project members:', projects[0]?.projectMembers)
 
   // ユーザーの権限に基づいてフィルタリング
-  const filteredProjects = user.role.name === 'Executive'
+  const filteredProjects = user.role.name === USER_ROLES.EXECUTIVE
     ? projects
     : projects.filter(project => {
         const isPM = project.projectMembers.some(m => m.userId === user.id && m.role === PROJECT_MEMBER_ROLES.PM)

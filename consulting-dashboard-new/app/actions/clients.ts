@@ -4,15 +4,41 @@ import { db } from '@/lib/db'
 import { projectDb } from '@/lib/db/project-db'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
+import { USER_ROLES } from '@/constants/roles'
 
 export interface ClientItem {
   id: string
   name: string
   type: string
+  industry?: string | null
+  description?: string | null
+  website?: string | null
+  employeeCount?: number | null
+  foundedYear?: number | null
+  address?: string | null
+  phone?: string | null
+  email?: string | null
   createdAt: Date
   updatedAt: Date
   projectCount?: number
   activeProjectCount?: number
+  contacts?: OrganizationContact[]
+}
+
+export interface OrganizationContact {
+  id: string
+  organizationId: string
+  name: string
+  title?: string | null
+  department?: string | null
+  email?: string | null
+  phone?: string | null
+  mobile?: string | null
+  isPrimary: boolean
+  isActive: boolean
+  notes?: string | null
+  createdAt: Date
+  updatedAt: Date
 }
 
 export async function getClients() {
@@ -23,13 +49,24 @@ export async function getClients() {
   }
 
   // エグゼクティブまたはPMのみクライアント一覧を表示可能
-  if (user.role.name !== 'Executive' && user.role.name !== 'PM') {
+  if (user.role.name !== USER_ROLES.EXECUTIVE && user.role.name !== USER_ROLES.PM) {
     throw new Error('権限がありません')
   }
 
   const clients = await db.organization.findMany({
     where: {
       type: 'client'
+    },
+    include: {
+      contacts: {
+        where: {
+          isActive: true
+        },
+        orderBy: [
+          { isPrimary: 'desc' },
+          { name: 'asc' }
+        ]
+      }
     },
     orderBy: {
       name: 'asc'
@@ -59,10 +96,19 @@ export async function getClients() {
         id: client.id,
         name: client.name,
         type: client.type,
+        industry: client.industry,
+        description: client.description,
+        website: client.website,
+        employeeCount: client.employeeCount,
+        foundedYear: client.foundedYear,
+        address: client.address,
+        phone: client.phone,
+        email: client.email,
         createdAt: client.createdAt,
         updatedAt: client.updatedAt,
         projectCount: projects.length,
-        activeProjectCount: projects.filter(p => p.status === 'active').length
+        activeProjectCount: projects.filter(p => p.status === 'active').length,
+        contacts: client.contacts
       }
     })
   )
@@ -72,9 +118,17 @@ export async function getClients() {
 
 export async function createClient(data: {
   name: string
+  industry?: string
+  description?: string
+  website?: string
+  employeeCount?: number
+  foundedYear?: number
+  address?: string
+  phone?: string
+  email?: string
 }) {
   const user = await getCurrentUser()
-  if (!user || (user.role.name !== 'Executive' && user.role.name !== 'PM')) {
+  if (!user || (user.role.name !== USER_ROLES.EXECUTIVE && user.role.name !== USER_ROLES.PM)) {
     throw new Error('権限がありません')
   }
 
@@ -93,7 +147,15 @@ export async function createClient(data: {
   const client = await db.organization.create({
     data: {
       name: data.name,
-      type: 'client'
+      type: 'client',
+      industry: data.industry,
+      description: data.description,
+      website: data.website,
+      employeeCount: data.employeeCount,
+      foundedYear: data.foundedYear,
+      address: data.address,
+      phone: data.phone,
+      email: data.email
     }
   })
 
@@ -113,9 +175,17 @@ export async function createClient(data: {
 
 export async function updateClient(clientId: string, data: {
   name: string
+  industry?: string
+  description?: string
+  website?: string
+  employeeCount?: number
+  foundedYear?: number
+  address?: string
+  phone?: string
+  email?: string
 }) {
   const user = await getCurrentUser()
-  if (!user || (user.role.name !== 'Executive' && user.role.name !== 'PM')) {
+  if (!user || (user.role.name !== USER_ROLES.EXECUTIVE && user.role.name !== USER_ROLES.PM)) {
     throw new Error('権限がありません')
   }
 
@@ -146,7 +216,15 @@ export async function updateClient(clientId: string, data: {
   const updatedClient = await db.organization.update({
     where: { id: clientId },
     data: {
-      name: data.name
+      name: data.name,
+      industry: data.industry,
+      description: data.description,
+      website: data.website,
+      employeeCount: data.employeeCount,
+      foundedYear: data.foundedYear,
+      address: data.address,
+      phone: data.phone,
+      email: data.email
     }
   })
 
@@ -166,7 +244,7 @@ export async function updateClient(clientId: string, data: {
 
 export async function deleteClient(clientId: string) {
   const user = await getCurrentUser()
-  if (!user || user.role.name !== 'Executive') {
+  if (!user || user.role.name !== USER_ROLES.EXECUTIVE) {
     throw new Error('権限がありません（エグゼクティブのみ削除可能）')
   }
 

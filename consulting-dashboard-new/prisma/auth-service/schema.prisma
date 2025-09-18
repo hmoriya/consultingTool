@@ -12,12 +12,42 @@ datasource db {
 
 // 組織
 model Organization {
-  id        String   @id @default(cuid())
-  name      String
-  type      String   // consultingFirm, client
-  users     User[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String              @id @default(cuid())
+  name         String
+  type         String              // consultingFirm, client
+  industry     String?             // 業界
+  description  String?             // 企業概要
+  website      String?             // ウェブサイト
+  employeeCount Int?               // 従業員数
+  foundedYear  Int?               // 設立年
+  address      String?             // 住所
+  phone        String?             // 電話番号
+  email        String?             // 代表メールアドレス
+  users        User[]
+  contacts     OrganizationContact[] // 担当者
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+}
+
+// 企業担当者
+model OrganizationContact {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String       // 担当者名
+  title          String?      // 役職
+  department     String?      // 部署
+  email          String?      // メールアドレス
+  phone          String?      // 電話番号
+  mobile         String?      // 携帯電話
+  isPrimary      Boolean      @default(false) // 主担当者フラグ
+  isActive       Boolean      @default(true)  // アクティブフラグ
+  notes          String?      // 備考
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@index([email])
 }
 
 // ロール
@@ -26,6 +56,7 @@ model Role {
   name        String   @unique
   description String?
   users       User[]
+  isSystem    Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

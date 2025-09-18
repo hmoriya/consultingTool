@@ -27,13 +27,15 @@ import {
   Edit,
   Trash2,
   MoreVertical,
-  Briefcase
+  Briefcase,
+  ExternalLink
 } from 'lucide-react'
 import { ClientItem, deleteClient } from '@/actions/clients'
 import { ClientCreateDialog } from './client-create-dialog'
 import { ClientEditDialog } from './client-edit-dialog'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
+import Link from 'next/link'
 
 interface ClientListProps {
   initialClients: ClientItem[]
@@ -171,7 +173,12 @@ export function ClientList({ initialClients }: ClientListProps) {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Building2 className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{client.name}</span>
+                        <Link 
+                          href={`/clients/${client.id}`}
+                          className="font-medium text-blue-600 hover:underline"
+                        >
+                          {client.name}
+                        </Link>
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
@@ -199,6 +206,12 @@ export function ClientList({ initialClients }: ClientListProps) {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link href={`/clients/${client.id}`}>
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              詳細を見る
+                            </Link>
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => setEditingClient(client)}>
                             <Edit className="h-4 w-4 mr-2" />
                             編集

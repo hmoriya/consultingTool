@@ -115,13 +115,10 @@ export default function Sidebar({ isOpen, isCollapsed, onCollapse, onClose }: Si
           "fixed left-0 top-16 h-[calc(100vh-4rem)] bg-white border-r shadow-sm transition-all duration-300 z-40",
           isMobile && (isOpen ? "translate-x-0" : "-translate-x-full"),
           !isMobile && "translate-x-0",
-          // 強制的に展開状態にする
-          "w-64"
-          // isCollapsed && !isMobile ? "w-16" : "w-64"
+          isCollapsed && !isMobile ? "w-16" : "w-64"
         )}
         data-testid="sidebar"
-        data-state="expanded"
-        style={{ width: '256px' }} // 強制的に幅を設定
+        data-state={isCollapsed ? "collapsed" : "expanded"}
       >
         {/* 折りたたみボタン */}
         {!isMobile && (
@@ -162,15 +159,16 @@ export default function Sidebar({ isOpen, isCollapsed, onCollapse, onClose }: Si
                       className="w-5 h-5 flex-shrink-0"
                       data-testid={`${item.id}-icon`}
                     />
-                    {/* 常に表示（強制的に展開状態） */}
-                    <span className="flex items-center gap-2 flex-1">
-                      {item.label}
-                      {item.id === 'timesheet-approval' && pendingCount > 0 && (
-                        <Badge variant="destructive" className="ml-auto px-2 py-0 text-xs">
-                          {pendingCount}
-                        </Badge>
-                      )}
-                    </span>
+                    {(!isCollapsed || isMobile) && (
+                      <span className="flex items-center gap-2 flex-1">
+                        {item.label}
+                        {item.id === 'timesheet-approval' && pendingCount > 0 && (
+                          <Badge variant="destructive" className="ml-auto px-2 py-0 text-xs">
+                            {pendingCount}
+                          </Badge>
+                        )}
+                      </span>
+                    )}
                     {isCollapsed && !isMobile && item.id === 'timesheet-approval' && pendingCount > 0 && (
                       <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
                     )}
@@ -180,13 +178,15 @@ export default function Sidebar({ isOpen, isCollapsed, onCollapse, onClose }: Si
             })}
           </ul>
           
-          {/* ユーザー情報（常に表示） */}
-          <div className="border-t p-4">
-            <div className="text-sm">
-              <p className="font-medium">{user?.name || 'テストユーザー'}</p>
-              <p className="text-gray-500 text-xs capitalize">{user?.role?.name || 'PM'}</p>
+          {/* ユーザー情報 */}
+          {(!isCollapsed || isMobile) && (
+            <div className="border-t p-4">
+              <div className="text-sm">
+                <p className="font-medium">{user?.name || 'テストユーザー'}</p>
+                <p className="text-gray-500 text-xs capitalize">{user?.role?.name || 'PM'}</p>
+              </div>
             </div>
-          </div>
+          )}
         </nav>
       </aside>
     </>

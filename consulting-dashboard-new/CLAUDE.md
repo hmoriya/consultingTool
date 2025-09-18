@@ -57,6 +57,59 @@ npm run db:seed     # 初期データ投入
 npm run db:studio   # Prisma Studio起動
 ```
 
+## データベースファイル管理
+
+### データベースファイル配置
+開発用のサンプルデータベースはGitに含まれているため、新しいPCでclone後すぐに動作します。
+
+```
+dev.db                                    # 認証サービス用DB
+prisma/project-service/data/project.db   # プロジェクト管理DB
+prisma/resource-service/data/resource.db # リソース管理DB
+prisma/timesheet-service/data/timesheet.db # タイムシート管理DB
+prisma/notification-service/data/notification.db # 通知サービスDB
+```
+
+### 環境セットアップ手順
+```bash
+# 1. リポジトリをクローン
+git clone <repository-url>
+cd consulting-dashboard-new
+
+# 2. 依存関係インストール
+npm install
+
+# 3. 環境変数設定（マシン固有の絶対パス生成）
+./setup-env.js
+
+# 4. アプリケーション起動（データベースは既に含まれているのでシード不要）
+npm run dev
+```
+
+### ⚠️ 重要：データベースの取り扱い
+
+**データベースファイルは既にGitに含まれているため、新規作成は不要です！**
+
+```bash
+# ❌ 以下のコマンドは実行しないでください（データベースを上書きしてしまいます）
+npx tsx prisma/seed.ts           # 実行不要
+npx prisma db push                # 実行不要
+npx prisma migrate reset          # 実行不要
+```
+
+### データベースの再初期化が必要な場合のみ（通常は不要）
+データベースが破損した場合や、スキーマが大幅に変更された場合のみ：
+```bash
+# ⚠️ 警告：既存データが削除されます
+npx tsx prisma/seed.ts
+```
+
+### 重要な注意事項
+- **データベースファイルはGitに含まれています**（開発効率化のため）
+- **本番環境では別途データベースを構築してください**
+- **センシティブなデータは絶対に開発DBに入れないでください**
+- **`.env`ファイルは各マシンで`setup-env.js`により生成されるため、Gitには含まれません**
+
 ## マイクロサービス設計方針
 
 ### 設計思想
@@ -167,9 +220,10 @@ export const projectDb = new ProjectPrismaClient({
 ##### 開発環境
 各マイクロサービス毎に個別のSQLiteファイルを使用:
 
-1. **コアサービス** (認証・ユーザー管理)
-   - パス: `prisma/core-service/data/core.db`
-   - 環境変数: `DATABASE_URL="file:./prisma/core-service/data/core.db"`
+1. **認証サービス** (認証・ユーザー管理)
+   - パス: `prisma/auth-service/data/auth.db`
+   - 環境変数: `AUTH_DATABASE_URL="file:./prisma/auth-service/data/auth.db"`
+   - ⚠️ **重要**: ルートディレクトリに`dev.db`を配置することは禁止
 
 2. **プロジェクトサービス**
    - パス: `prisma/project-service/data/project.db`
@@ -192,10 +246,18 @@ export const projectDb = new ProjectPrismaClient({
 
 ### 現在のデータベースファイル構成
 
-以下の4つのSQLiteデータベースファイルが正常に配置されています：
+⚠️ **重要なルール**:
+- **禁止**: ルートディレクトリに`dev.db`や他のデータベースファイルを配置すること
+- **必須**: すべてのデータベースは各サービスの`prisma/[service-name]/data/`ディレクトリに配置
+- **理由**: マイクロサービスの独立性を保ち、将来の分散化に備えるため
+
+以下の5つのSQLiteデータベースファイルが正常に配置されています：
 
 ```
 prisma/
+├── auth-service/
+│   └── data/
+│       └── auth.db                 # 認証・ユーザー管理データ
 ├── project-service/
 │   └── data/
 │       └── project.db              # プロジェクト管理データ
@@ -210,7 +272,10 @@ prisma/
         └── notification.db         # 通知・メッセージデータ
 ```
 
-**重要**: 上記4つのファイルのみが正規のデータベースファイルです。他の場所にある.dbファイルは重複ファイルのため削除してください。
+**重要**:
+- 上記5つのファイルのみが正規のデータベースファイルです
+- ルートディレクトリの`dev.db`は作成禁止
+- 他の場所にある.dbファイルは重複ファイルのため削除してください
 
 ### 移行戦略
 
@@ -434,12 +499,66 @@ npm run db:studio   # Prisma Studio起動
 ## トラブルシューティング
 
 ### ログインできない場合
-1. データベースが正しい場所にあるか確認: `prisma/core-service/data/core.db`
+1. データベースが正しい場所にあるか確認: `prisma/auth-service/data/auth.db`
 2. データベースにテストデータがあるか確認:
    ```bash
-   sqlite3 prisma/core-service/data/core.db "SELECT email FROM User;"
+   sqlite3 prisma/auth-service/data/auth.db "SELECT email FROM User;"
    ```
 3. データがない場合は、シードスクリプトを実行:
    ```bash
    npm run db:seed
    ```
+
+### ロール名に関する重要な注意事項
+
+⚠️ **ロール名の大文字小文字が原因でエラーが頻繁に発生します**
+
+#### 問題の背景
+- **Userテーブルのロール**: `Executive`, `PM`, `Consultant`, `Client`, `Admin` (大文字)
+- **ProjectMemberのロール**: `pm`, `member`, `reviewer`, `observer` (小文字)
+- この不一致により、ロールチェック時にデータが表示されない問題が発生
+
+#### 解決策
+`constants/roles.ts` ファイルで一元管理：
+
+```typescript
+// ユーザーロール（認証サービス）
+export const USER_ROLES = {
+  EXECUTIVE: 'Executive',
+  PM: 'PM',
+  CONSULTANT: 'Consultant',
+  CLIENT: 'Client',
+  ADMIN: 'Admin'
+} as const
+
+// プロジェクトメンバーロール（プロジェクトサービス）
+export const PROJECT_MEMBER_ROLES = {
+  PM: 'pm',
+  MEMBER: 'member',
+  REVIEWER: 'reviewer',
+  OBSERVER: 'observer'
+} as const
+```
+
+#### 使用例
+```typescript
+// ❌ 避けるべき直接文字列の使用
+if (member.role === 'PM') { ... }  // 大文字小文字の違いでマッチしない
+
+// ✅ 推奨: 定数を使用
+import { PROJECT_MEMBER_ROLES } from '@/constants/roles'
+if (member.role === PROJECT_MEMBER_ROLES.PM) { ... }  // 常に正しい値
+```
+
+#### tsconfig.json の設定
+constants フォルダへのパスマッピングが必要：
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./app/*"],
+      "@/components/*": ["./components/*", "./app/components/*"],
+      "@/constants/*": ["./constants/*"]
+    }
+  }
+}

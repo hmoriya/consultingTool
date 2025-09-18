@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { projectService } from '@/lib/services/project-service'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
+import { PROJECT_MEMBER_ROLES, USER_ROLES } from '@/constants/roles'
 
 export type ProjectStatus = 'planning' | 'active' | 'completed' | 'onhold'
 
@@ -45,7 +46,7 @@ export async function getProjects() {
   const filteredProjects = user.role.name === 'Executive'
     ? projects
     : projects.filter(project => {
-        const isPM = project.projectMembers.some(m => m.userId === user.id && m.role === 'pm')
+        const isPM = project.projectMembers.some(m => m.userId === user.id && m.role === PROJECT_MEMBER_ROLES.PM)
         if (isPM) {
           console.log(`User ${user.id} is PM for project: ${project.name}`)
         }
@@ -64,7 +65,7 @@ export async function getProjects() {
         progressRate = Math.round((completedTasks / project.tasks.length) * 100)
       }
       
-      const pm = project.projectMembers.find(m => m.role === 'pm')
+      const pm = project.projectMembers.find(m => m.role === PROJECT_MEMBER_ROLES.PM)
       
       return {
         id: project.id,
@@ -99,7 +100,7 @@ export async function createProject(data: {
   tags?: string[]
 }) {
   const user = await getCurrentUser()
-  if (!user || (user.role.name !== 'pm' && user.role.name !== 'executive')) {
+  if (!user || (user.role.name !== USER_ROLES.PM && user.role.name !== USER_ROLES.EXECUTIVE)) {
     throw new Error('権限がありません')
   }
 
@@ -123,7 +124,7 @@ export async function createProject(data: {
       description: data.description,
       members: [{
         userId: user.id,
-        role: 'pm',
+        role: PROJECT_MEMBER_ROLES.PM,
         allocation: 1.0,
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate)
@@ -169,8 +170,8 @@ export async function updateProjectStatus(projectId: string, status: ProjectStat
   }
 
   // 権限チェック
-  const hasPermission = user.role.name === 'executive' || 
-    project.projectMembers.some(m => m.userId === user.id && m.role === 'pm')
+  const hasPermission = user.role.name === USER_ROLES.EXECUTIVE ||
+    project.projectMembers.some(m => m.userId === user.id && m.role === PROJECT_MEMBER_ROLES.PM)
   
   if (!hasPermission) {
     throw new Error('このプロジェクトを更新する権限がありません')
@@ -211,7 +212,7 @@ export async function getProjectDetails(projectId: string) {
   }
 
   // アクセス権限チェック
-  const hasAccess = user.role.name === 'executive' || 
+  const hasAccess = user.role.name === USER_ROLES.EXECUTIVE || 
     project.projectMembers.some(member => member.userId === user.id)
 
   if (!hasAccess) {

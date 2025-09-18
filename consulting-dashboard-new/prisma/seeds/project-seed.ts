@@ -1,12 +1,7 @@
 import { PrismaClient as ProjectPrismaClient } from '@prisma/project-client'
+import { PROJECT_MEMBER_ROLES } from '../../constants/roles'
 
-const projectDb = new ProjectPrismaClient({
-  datasources: {
-    db: {
-      url: process.env.PROJECT_DATABASE_URL || 'file:./prisma/project-service/data/project.db'
-    }
-  }
-})
+const projectDb = new ProjectPrismaClient()
 
 export async function seedProjects(users?: any[], organizations?: any) {
   console.log('🌱 Seeding Project Service...')
@@ -350,7 +345,7 @@ export async function seedProjects(users?: any[], organizations?: any) {
         data: {
           projectId: project.id,
           userId: assignedPmId,
-          role: 'PM',
+          role: PROJECT_MEMBER_ROLES.PM,
           allocation: 30,
           startDate: project.startDate
         }
@@ -372,7 +367,7 @@ export async function seedProjects(users?: any[], organizations?: any) {
           data: {
             projectId: project.id,
             userId: consultantIds[consultantIndex],
-            role: 'member',
+            role: PROJECT_MEMBER_ROLES.MEMBER,
             allocation: 40 + (j * 10), // 40%, 50%, 60%
             startDate: project.startDate
           }

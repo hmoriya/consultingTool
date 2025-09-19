@@ -1,0 +1,124 @@
+// 財務サービスのスキーマ
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../node_modules/@prisma/finance-client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("FINANCE_DATABASE_URL")
+}
+
+// 収益記録
+model Revenue {
+  id          String   @id @default(cuid())
+  projectId   String
+  date        DateTime
+  amount      Float    // 金額
+  type        String   // 収益タイプ（monthly_fee, milestone, etc）
+  description String?
+  invoiceNo   String?  // 請求書番号
+  status      String   @default("pending") // pending, invoiced, paid
+  paidAt      DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([projectId, date])
+  @@index([status])
+}
+
+// コスト記録
+model Cost {
+  id          String   @id @default(cuid())
+  projectId   String
+  date        DateTime
+  amount      Float    // 金額
+  category    String   // labor, outsourcing, expense, etc
+  description String?
+  userId      String?  // 人件費の場合のユーザー
+  approved    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([projectId, date])
+  @@index([category])
+  @@index([userId])
+}
+
+// 工数記録（財務計算用）
+model TimeEntry {
+  id          String   @id @default(cuid())
+  userId      String
+  projectId   String
+  taskId      String?
+  date        DateTime
+  hours       Float    // 実働時間
+  description String?  // 作業内容
+  billable    Boolean  @default(true) // 請求可能かどうか
+  approved    Boolean  @default(false) // 承認済みかどうか
+  approvedBy  String?
+  approvedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, date])
+  @@index([projectId, date])
+  @@index([taskId])
+}
+
+// プロジェクトメトリクス
+model ProjectMetric {
+  id           String   @id @default(cuid())
+  projectId    String
+  date         DateTime
+  revenue      Float
+  cost         Float
+  margin       Float
+  utilization  Float // リソース使用率
+  progressRate Float // 進捗率
+  createdAt    DateTime @default(now())
+
+  @@index([projectId, date])
+}
+
+// KPI履歴
+model KPIHistory {
+  id             String   @id @default(cuid())
+  date           DateTime
+  type           String   // daily, weekly, monthly
+  // 全社KPI
+  totalRevenue   Float
+  totalCost      Float
+  totalMargin    Float
+  marginRate     Float
+  avgUtilization Float
+  activeProjects Int
+  totalMembers   Int
+  // プロジェクト別KPI（JSON形式で保存）
+  projectKPIs    String?  // JSON
+  // ロール別KPI（JSON形式で保存）
+  roleKPIs       String?  // JSON
+  createdAt      DateTime @default(now())
+
+  @@unique([date, type])
+  @@index([type])
+}
+
+// 予算管理
+model Budget {
+  id          String   @id @default(cuid())
+  projectId   String
+  fiscalYear  Int      // 会計年度
+  quarter     Int?     // 四半期（1-4）
+  amount      Float    // 予算額
+  type        String   // revenue, cost
+  status      String   @default("active") // active, revised, closed
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([projectId, fiscalYear, quarter, type])
+  @@index([projectId])
+  @@index([fiscalYear])
+}

@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: ディスカッション
+    url: https://github.com/hmoriya/consultingTool/discussions
+    about: 一般的な質問や議論はこちら
+  - name: セキュリティ脆弱性の報告
+    url: https://github.com/hmoriya/consultingTool/security/policy
+    about: セキュリティに関する問題は非公開で報告してください

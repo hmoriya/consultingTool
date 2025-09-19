@@ -20,6 +20,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
   
+  // 大文字のダッシュボードURLを小文字にリダイレクト
+  // 一時的に無効化 - ファイルシステムが大文字小文字を区別しない場合の対応
+  // const dashboardPattern = /^\/dashboard\/(Executive|PM|Consultant|Client)$/i
+  // const match = path.match(dashboardPattern)
+  // if (match && match[1] !== match[1].toLowerCase()) {
+  //   const role = match[1].toLowerCase()
+  //   return NextResponse.redirect(new URL(`/dashboard/${role}`, request.url))
+  // }
+  
   // セッションチェック
   const sessionCookie = request.cookies.get('session')
   if (!sessionCookie) {

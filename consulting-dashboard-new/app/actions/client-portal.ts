@@ -1,8 +1,9 @@
 'use server'
 
-import { prisma } from '@/lib/db'
+import { authDb, projectDb } from '@/lib/db'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
+import { hasAnyUserRole } from '@/lib/auth/role-check'
 
 export async function getClientPortalData() {
   const user = await getCurrentUser()
@@ -10,30 +11,32 @@ export async function getClientPortalData() {
     redirect('/login')
   }
 
-  if (user.role.name !== 'client' && user.role.name !== 'executive') {
+  console.log('Current user:', JSON.stringify(user, null, 2))
+
+  if (!hasAnyUserRole(user.role.name, ['CLIENT', 'EXECUTIVE'])) {
     throw new Error('権限がありません')
   }
 
   // ユーザーが所属する組織を取得
-  const organization = await prisma.organization.findUnique({
+  const organization = await authDb.organization.findUnique({
     where: { id: user.organizationId }
   })
+
+  console.log('Organization found:', JSON.stringify(organization, null, 2))
 
   if (!organization) {
     throw new Error('組織が見つかりません')
   }
 
   // 組織に関連するプロジェクトを取得
-  const projects = await prisma.project.findMany({
+  console.log('Looking for projects with clientId:', organization.id)
+  console.log('Organization:', organization)
+  const projects = await projectDb.project.findMany({
     where: {
       clientId: organization.id
     },
     include: {
-      projectMembers: {
-        include: {
-          user: true
-        }
-      },
+      projectMembers: true,
       _count: {
         select: {
           tasks: true,
@@ -45,20 +48,22 @@ export async function getClientPortalData() {
       createdAt: 'desc'
     }
   })
+  
+  console.log('Found projects:', projects.length, projects.map(p => ({ id: p.id, name: p.name, clientId: p.clientId })))
 
   // 各プロジェクトのマイルストーンと進捗を取得
   const projectsWithDetails = await Promise.all(
     projects.map(async (project) => {
-      const milestones = await prisma.milestone.findMany({
+      const milestones = await projectDb.milestone.findMany({
         where: {
           projectId: project.id
         },
         orderBy: {
-          targetDate: 'asc'
+          dueDate: 'asc'
         }
       })
 
-      const tasks = await prisma.task.findMany({
+      const tasks = await projectDb.task.findMany({
         where: {
           projectId: project.id
         }
@@ -74,7 +79,7 @@ export async function getClientPortalData() {
         ...project,
         milestones,
         progress,
-        pm: pm?.user || null,
+        pmId: pm?.userId || null,
         totalTasks: tasks.length,
         completedTasks
       }
@@ -86,7 +91,7 @@ export async function getClientPortalData() {
   const totalBudget = activeProjects.reduce((sum, p) => sum + p.budget, 0)
 
   // 最近のプロジェクト活動（簡易版）
-  const recentActivities = await prisma.task.findMany({
+  const recentActivities = await projectDb.task.findMany({
     where: {
       project: {
         clientId: organization.id
@@ -96,8 +101,7 @@ export async function getClientPortalData() {
       }
     },
     include: {
-      project: true,
-      assignee: true
+      project: true
     },
     orderBy: {
       updatedAt: 'desc'
@@ -125,12 +129,10 @@ export async function getProjectDocuments(projectId: string) {
   }
 
   // プロジェクトへのアクセス権を確認
-  const project = await prisma.project.findFirst({
+  const project = await projectDb.project.findFirst({
     where: {
       id: projectId,
-      client: {
-        id: user.organizationId
-      }
+      clientId: user.organizationId
     }
   })
 

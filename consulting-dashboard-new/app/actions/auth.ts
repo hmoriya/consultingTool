@@ -3,7 +3,7 @@
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { redirect } from 'next/navigation'
-import { db } from '@/lib/db'
+import { authDb } from '@/lib/db'
 import { LoginSchema } from '@/lib/schemas/auth'
 import { createSession, deleteSession, getSession } from '@/lib/auth/session'
 
@@ -16,7 +16,7 @@ export async function login(data: z.infer<typeof LoginSchema>) {
     console.log('Login attempt for:', validated.email)
     
     // ユーザー検索
-    const user = await db.user.findUnique({
+    const user = await authDb.user.findUnique({
       where: { email: validated.email },
       include: { role: true, organization: true }
     })
@@ -43,14 +43,14 @@ export async function login(data: z.infer<typeof LoginSchema>) {
     await createSession(user.id)
     
     // 最終ログイン更新
-    await db.user.update({
+    await authDb.user.update({
       where: { id: user.id },
       data: { lastLogin: new Date() }
     })
     
     // 監査ログ
     try {
-      await db.auditLog.create({
+      await authDb.auditLog.create({
         data: {
           userId: user.id,
           action: 'LOGIN',
@@ -95,7 +95,7 @@ export async function logout() {
   if (session) {
     try {
       // 監査ログ
-      await db.auditLog.create({
+      await authDb.auditLog.create({
         data: {
           userId: session.userId,
           action: 'LOGOUT',
@@ -123,10 +123,12 @@ export async function getCurrentUser() {
     id: session.user.id,
     name: session.user.name,
     email: session.user.email,
+    organizationId: session.user.organization.id,
     role: {
       name: session.user.role.name
     },
     organization: {
+      id: session.user.organization.id,
       name: session.user.organization.name
     }
   }

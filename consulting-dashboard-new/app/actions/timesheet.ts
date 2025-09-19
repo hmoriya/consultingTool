@@ -5,6 +5,7 @@ import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'
 import { z } from 'zod'
+import { hasAnyUserRole } from '@/lib/auth/role-check'
 
 // 工数入力スキーマ
 const timeEntrySchema = z.object({
@@ -108,7 +109,7 @@ export async function updateTimeEntry(
       }
     }
 
-    if (timeEntry.userId !== user.id && user.role.name !== 'pm' && user.role.name !== 'executive') {
+    if (timeEntry.userId !== user.id && !hasAnyUserRole(user.role.name, ['PM', 'EXECUTIVE'])) {
       return {
         success: false,
         error: '権限がありません',
@@ -160,7 +161,7 @@ export async function deleteTimeEntry(id: string) {
       }
     }
 
-    if (timeEntry.userId !== user.id && user.role.name !== 'pm' && user.role.name !== 'executive') {
+    if (timeEntry.userId !== user.id && !hasAnyUserRole(user.role.name, ['PM', 'EXECUTIVE'])) {
       return {
         success: false,
         error: '権限がありません',
@@ -321,7 +322,7 @@ export async function approveTimeEntries(ids: string[]) {
     redirect('/login')
   }
 
-  if (user.role.name !== 'pm' && user.role.name !== 'executive') {
+  if (!hasAnyUserRole(user.role.name, ['PM', 'EXECUTIVE'])) {
     return {
       success: false,
       error: '権限がありません',
@@ -330,7 +331,7 @@ export async function approveTimeEntries(ids: string[]) {
 
   try {
     // PMの場合は自分のプロジェクトの工数のみ承認可能
-    if (user.role.name === 'pm') {
+    if (hasAnyUserRole(user.role.name, ['PM'])) {
       const projectIds = await prisma.projectMember.findMany({
         where: {
           userId: user.id,

@@ -157,9 +157,9 @@ export function ProjectOverview({ projects }: ProjectOverviewProps) {
                           className="flex items-center justify-between p-3 rounded-lg border bg-muted/50"
                         >
                           <div>
-                            <p className="font-medium text-sm">{milestone.title}</p>
+                            <p className="font-medium text-sm">{milestone.name}</p>
                             <p className="text-xs text-muted-foreground mt-1">
-                              期限: {formatDate(milestone.targetDate)}
+                              期限: {formatDate(milestone.dueDate)}
                             </p>
                           </div>
                           <Badge

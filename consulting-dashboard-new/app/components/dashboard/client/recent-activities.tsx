@@ -74,8 +74,6 @@ export function RecentActivities({ activities }: RecentActivitiesProps) {
                   </p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <span>{activity.project.name}</span>
-                    <span>•</span>
-                    <span>{activity.assignee.name}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge 

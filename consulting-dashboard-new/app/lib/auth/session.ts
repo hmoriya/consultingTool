@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { db } from '@/lib/db'
+import { authDb } from '@/lib/db'
 
 export async function createSession(userId: string) {
   // 開発環境では8時間、本番環境では2時間の有効期限
@@ -9,7 +9,7 @@ export async function createSession(userId: string) {
   
   const expiresAt = new Date(Date.now() + sessionDuration)
   
-  const session = await db.session.create({
+  const session = await authDb.session.create({
     data: {
       userId,
       token: crypto.randomUUID(),
@@ -39,7 +39,7 @@ export async function getSession() {
     return null
   }
   
-  const session = await db.session.findUnique({
+  const session = await authDb.session.findUnique({
     where: { id: sessionId },
     include: {
       user: {
@@ -65,7 +65,7 @@ export async function getSession() {
   // 残り時間が元の有効期限の半分以下の場合、DBのセッション期限のみ延長
   if (remainingTime < sessionDuration / 2) {
     const newExpiresAt = new Date(Date.now() + sessionDuration)
-    await db.session.update({
+    await authDb.session.update({
       where: { id: sessionId },
       data: { expiresAt: newExpiresAt }
     })
@@ -79,7 +79,7 @@ export async function deleteSession() {
   const sessionId = cookieStore.get('session')?.value
   
   if (sessionId) {
-    await db.session.delete({
+    await authDb.session.delete({
       where: { id: sessionId }
     }).catch(() => {})
     

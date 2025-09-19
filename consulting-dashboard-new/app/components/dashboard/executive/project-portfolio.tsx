@@ -47,7 +47,7 @@ export function ProjectPortfolio({ projects }: ProjectPortfolioProps) {
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {projects.map((project) => {
         const status = statusConfig[project.status as keyof typeof statusConfig] || statusConfig.planning
-        const progressRate = (project.latestMetrics?.progressRate || 0) * 100
+        const progressRate = project.latestMetrics?.progressRate || 0
         const marginRate = project.budget > 0 
           ? ((project.latestMetrics?.margin || 0) / project.budget) * 100 
           : 0
@@ -59,7 +59,7 @@ export function ProjectPortfolio({ projects }: ProjectPortfolioProps) {
                 <div className="space-y-1">
                   <CardTitle className="text-lg">{project.name}</CardTitle>
                   <CardDescription className="text-xs">
-                    {project.code} · {project.client.name}
+                    {project.code}
                   </CardDescription>
                 </div>
                 <Badge className={`${status.color} text-xs`}>

@@ -4,6 +4,7 @@ import { TeamList } from '@/components/team/team-list'
 import { getTeamMembers } from '@/actions/team'
 import { getCurrentUser } from '@/actions/auth'
 import { redirect } from 'next/navigation'
+import { USER_ROLES } from '@/constants/roles'
 
 export const metadata: Metadata = {
   title: 'チーム管理',
@@ -17,8 +18,8 @@ export default async function TeamPage() {
   }
 
   // クライアント以外はアクセス可能（コンサルタントは閲覧のみ）
-  if (user.role.name === 'Client') {
-    redirect('/dashboard/' + user.role.name.toLowerCase())
+  if (user.role.name === USER_ROLES.CLIENT) {
+    redirect('/dashboard/client')
   }
 
   const members = await getTeamMembers()

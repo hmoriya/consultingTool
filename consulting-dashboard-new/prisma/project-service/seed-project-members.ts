@@ -8,7 +8,7 @@ const projectRoot = path.resolve(__dirname, '../..')
 const authDb = new AuthPrismaClient({
   datasources: {
     db: {
-      url: process.env.DATABASE_URL || `file:${path.join(projectRoot, 'prisma/dev.db')}`
+      url: process.env.AUTH_DATABASE_URL || `file:${path.join(projectRoot, 'prisma/auth-service/data/auth.db')}`
     }
   }
 })
@@ -24,7 +24,7 @@ const projectDb = new ProjectPrismaClient({
 async function main() {
   try {
     console.log('Project root:', projectRoot)
-    console.log('Auth DB path:', path.join(projectRoot, 'prisma/dev.db'))
+    console.log('Auth DB path:', path.join(projectRoot, 'prisma/auth-service/data/auth.db'))
     console.log('Project DB path:', path.join(projectRoot, 'prisma/project-service/data/project.db'))
     
     // Get 鈴木花子 (PM user)

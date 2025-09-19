@@ -12,7 +12,7 @@ const projectDb = new ProjectPrismaClient({
 const authDb = new AuthPrismaClient({
   datasources: {
     db: {
-      url: process.env.AUTH_DATABASE_URL || 'file:./dev.db'
+      url: process.env.AUTH_DATABASE_URL || 'file:./prisma/auth-service/data/auth.db'
     }
   }
 })
@@ -45,88 +45,106 @@ export async function seedProjectService() {
       throw new Error('Required users not found. Please run auth service seed first.')
     }
 
-    // プロジェクトを作成
-    const projects = await Promise.all([
-      projectDb.project.create({
-        data: {
-          name: 'デジタルトランスフォーメーション推進',
-          code: 'DX001',
-          clientId: clientOrg.id,
-          status: 'active',
-          priority: 'high',
-          startDate: new Date('2024-01-15'),
-          endDate: new Date('2024-12-31'),
-          budget: 30000000,
-          description: '既存業務プロセスのデジタル化と新規ビジネスモデル構築',
+    // プロジェクトを作成または取得
+    const projectData = [
+      {
+        name: 'デジタルトランスフォーメーション推進',
+        code: 'DX001',
+        clientId: clientOrg.id,
+        status: 'active',
+        priority: 'high',
+        startDate: new Date('2024-01-15'),
+        endDate: new Date('2024-12-31'),
+        budget: 30000000,
+        description: '既存業務プロセスのデジタル化と新規ビジネスモデル構築',
+      },
+      {
+        name: 'ビジネスプロセス最適化',
+        code: 'BPO001',
+        clientId: clientOrg.id,
+        status: 'planning',
+        priority: 'medium',
+        startDate: new Date('2024-04-01'),
+        endDate: new Date('2024-09-30'),
+        budget: 15000000,
+        description: '業務効率化と生産性向上を目的としたプロセス改善',
+      },
+      {
+        name: 'データ分析基盤構築',
+        code: 'DAP001',
+        clientId: clientOrg.id,
+        status: 'active',
+        priority: 'high',
+        startDate: new Date('2024-03-01'),
+        endDate: new Date('2024-11-30'),
+        budget: 25000000,
+        description: '全社データ統合とAI活用に向けた基盤整備',
+      }
+    ]
+
+    const projects = await Promise.all(
+      projectData.map(async (data) => {
+        // 既存のプロジェクトを確認
+        const existing = await projectDb.project.findUnique({
+          where: { code: data.code }
+        })
+        
+        if (existing) {
+          console.log(`✅ Project ${data.code} already exists`)
+          return existing
         }
-      }),
-      projectDb.project.create({
-        data: {
-          name: 'ビジネスプロセス最適化',
-          code: 'BPO001',
-          clientId: clientOrg.id,
-          status: 'planning',
-          priority: 'medium',
-          startDate: new Date('2024-04-01'),
-          endDate: new Date('2024-09-30'),
-          budget: 15000000,
-          description: '業務効率化と生産性向上を目的としたプロセス改善',
-        }
-      }),
-      projectDb.project.create({
-        data: {
-          name: 'データ分析基盤構築',
-          code: 'DAP001',
-          clientId: clientOrg.id,
-          status: 'active',
-          priority: 'high',
-          startDate: new Date('2024-03-01'),
-          endDate: new Date('2024-11-30'),
-          budget: 25000000,
-          description: '全社データ統合とAI活用に向けた基盤整備',
-        }
+        
+        // 存在しない場合は作成
+        return await projectDb.project.create({ data })
       })
-    ])
+    )
 
-    console.log(`✅ Created ${projects.length} projects`)
+    console.log(`✅ Ensured ${projects.length} projects exist`)
 
+    // 既存のProjectMemberを削除してから追加
+    console.log('Clearing existing project members...')
+    await projectDb.projectMember.deleteMany({})
+    
     // プロジェクトメンバーを追加
-    // 実際のユーザーIDを使用
     const pmUserId = pmUser.id
     const consultantUserId = consultantUser.id
     
+    const memberData = [
+      {
+        projectId: projects[0].id,
+        userId: pmUserId,
+        role: 'PM',
+        allocation: 0.5,
+        startDate: new Date('2024-01-15')
+      },
+      {
+        projectId: projects[0].id,
+        userId: consultantUserId,
+        role: 'consultant',
+        allocation: 1.0,
+        startDate: new Date('2024-01-15')
+      },
+      {
+        projectId: projects[1].id,
+        userId: pmUserId,
+        role: 'PM',
+        allocation: 0.3,
+        startDate: new Date('2024-04-01')
+      },
+      {
+        projectId: projects[2].id,
+        userId: pmUserId,
+        role: 'PM',
+        allocation: 0.5,
+        startDate: new Date('2024-03-01')
+      }
+    ]
+
     await projectDb.projectMember.createMany({
-      data: [
-        {
-          projectId: projects[0].id,
-          userId: pmUserId,
-          role: 'PM',  // 大文字に変更
-          allocation: 0.5,
-          startDate: new Date('2024-01-15')
-        },
-        {
-          projectId: projects[0].id,
-          userId: consultantUserId,
-          role: 'consultant',
-          allocation: 1.0,
-          startDate: new Date('2024-01-15')
-        },
-        {
-          projectId: projects[1].id,  // 2番目のプロジェクトも追加
-          userId: pmUserId,
-          role: 'PM',  // 大文字に変更
-          allocation: 0.3,
-          startDate: new Date('2024-04-01')
-        },
-        {
-          projectId: projects[2].id,
-          userId: pmUserId,
-          role: 'PM',  // 大文字に変更
-          allocation: 0.5,
-          startDate: new Date('2024-03-01')
-        }
-      ]
+      data: memberData
     })
+    
+    console.log(`✅ Added ${memberData.length} project members with correct user IDs`)
 
     console.log('✅ Added project members')
 

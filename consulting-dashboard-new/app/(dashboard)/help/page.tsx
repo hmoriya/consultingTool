@@ -4,9 +4,12 @@ import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { BookOpen, Users, Target, FileText, MessageSquare, ZoomIn } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { BookOpen, Users, Target, FileText, MessageSquare, ZoomIn, ChevronDown, ChevronUp } from 'lucide-react'
 import { USE_CASES, USE_CASE_CATEGORIES } from '@/constants/use-cases'
 import type { UseCase } from '@/constants/use-cases'
+import { getUseCaseDetails } from '@/constants/use-case-details'
+import { DetailedStepView } from '@/components/help/detailed-step-view'
 
 const categoryIcons = {
   executive: Target,
@@ -20,6 +23,14 @@ export default function HelpPage() {
   const [selectedUseCase, setSelectedUseCase] = useState<UseCase | null>(null)
   const [expandedImage, setExpandedImage] = useState<string | null>(null)
   const [imageLoadingStates, setImageLoadingStates] = useState<Record<string, boolean>>({})
+  const [expandedSteps, setExpandedSteps] = useState<Record<number, boolean>>({})
+
+  const toggleStepDetails = (stepIndex: number) => {
+    setExpandedSteps(prev => ({
+      ...prev,
+      [stepIndex]: !prev[stepIndex]
+    }))
+  }
 
   return (
     <div className="p-6">
@@ -170,6 +181,8 @@ export default function HelpPage() {
                     const svgPath = `/captures/${selectedUseCase.category}/${selectedUseCase.id}/step-${index + 1}.svg`
                     const imagePath = pngPath // PNGを使用
                     const hasImage = true // すべてのステップで画像を表示
+                    const detailedStep = getUseCaseDetails(selectedUseCase.id, index + 1)
+                    const isExpanded = expandedSteps[index] || false
                     
                     return (
                       <li key={index} className="flex gap-4">
@@ -177,16 +190,38 @@ export default function HelpPage() {
                           {index + 1}
                         </span>
                         <div className="flex-1 space-y-2">
-                          <span className="text-sm">{step}</span>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">{step}</span>
+                            {detailedStep && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 text-xs"
+                                onClick={() => toggleStepDetails(index)}
+                              >
+                                {isExpanded ? (
+                                  <>
+                                    詳細を閉じる
+                                    <ChevronUp className="ml-1 h-3 w-3" />
+                                  </>
+                                ) : (
+                                  <>
+                                    詳細を見る
+                                    <ChevronDown className="ml-1 h-3 w-3" />
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                          </div>
                           {hasImage && (
                             <div className="relative w-full max-w-md">
-                              <div className="relative aspect-video w-full overflow-hidden rounded-lg border bg-muted cursor-pointer hover:shadow-md transition-shadow"
+                              <div className="relative aspect-video w-full overflow-hidden rounded-lg border bg-muted cursor-zoom-in hover:shadow-lg transition-all hover:scale-[1.02] group"
                                    onClick={() => setExpandedImage(imagePath)}>
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                   src={imagePath}
                                   alt={`${selectedUseCase.title} - ステップ ${index + 1}`}
-                                  className="w-full h-full object-cover hover:opacity-90 transition-opacity"
+                                  className="w-full h-full object-cover group-hover:opacity-95 transition-opacity"
                                   onError={(e) => {
                                     // PNGが見つからない場合はSVGにフォールバック
                                     const img = e.target as HTMLImageElement
@@ -201,17 +236,15 @@ export default function HelpPage() {
                                     }
                                   }}
                                 />
-                                <button
-                                  className="absolute bottom-2 right-2 p-1 bg-background/80 rounded hover:bg-background/90 transition-colors"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    setExpandedImage(imagePath)
-                                  }}
-                                >
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                                <div className="absolute bottom-2 right-2 p-2 bg-background/90 backdrop-blur rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
                                   <ZoomIn className="h-4 w-4" />
-                                </button>
+                                </div>
                               </div>
                             </div>
+                          )}
+                          {detailedStep && isExpanded && (
+                            <DetailedStepView step={detailedStep} className="mt-4" />
                           )}
                         </div>
                       </li>
@@ -236,21 +269,30 @@ export default function HelpPage() {
       {/* 画像拡大モーダル */}
       {expandedImage && (
         <div 
-          className="fixed inset-0 bg-background/95 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 cursor-zoom-out"
           onClick={() => setExpandedImage(null)}
         >
-          <div className="relative max-w-6xl max-h-[90vh] w-full h-full flex items-center justify-center">
+          <div 
+            className="relative max-w-[95vw] max-h-[95vh] flex items-center justify-center"
+            onClick={e => e.stopPropagation()}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={expandedImage}
               alt="拡大画像"
-              className="max-w-full max-h-full object-contain"
+              className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl cursor-default"
+              onError={(e) => {
+                const img = e.target as HTMLImageElement
+                if (img.src.endsWith('.png')) {
+                  img.src = img.src.replace('.png', '.svg')
+                }
+              }}
             />
             <button
               onClick={() => setExpandedImage(null)}
-              className="absolute top-4 right-4 p-2 rounded-full bg-background/80 hover:bg-background/90 transition-colors"
+              className="absolute -top-10 right-0 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white"
+              aria-label="閉じる"
             >
-              <span className="sr-only">閉じる</span>
               <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />

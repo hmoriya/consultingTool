@@ -16,3 +16,4 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
 // 各サービスのクライアントを明示的にエクスポート
 export { authDb } from './db/auth-db'
 export { projectDb } from './db/project-db'
+export { financeDb } from './db/finance-db'

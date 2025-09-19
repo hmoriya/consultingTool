@@ -6,6 +6,7 @@ import { ProjectOverview } from '@/components/dashboard/client/project-overview'
 import { RecentActivities } from '@/components/dashboard/client/recent-activities'
 import { ProjectStats } from '@/components/dashboard/client/project-stats'
 import { Briefcase, TrendingUp, Clock, CheckCircle2 } from 'lucide-react'
+import { USER_ROLES } from '@/constants/roles'
 
 export default async function ClientDashboard() {
   const user = await getCurrentUser()
@@ -13,8 +14,8 @@ export default async function ClientDashboard() {
     redirect('/login')
   }
 
-  if (user.role.name !== 'client' && user.role.name !== 'executive') {
-    redirect('/dashboard/' + user.role.name)
+  if (user.role.name !== USER_ROLES.CLIENT) {
+    redirect('/dashboard/' + user.role.name.toLowerCase())
   }
 
   const portalData = await getClientPortalData()

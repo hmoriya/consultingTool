@@ -1,12 +1,14 @@
 'use server'
 
-import { db } from '@/lib/db'
+import { authDb, projectDb, financeDb } from '@/lib/db'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
+import { hasUserRole } from '@/lib/auth/role-check'
+import { calculateUtilization } from '@/lib/utils/utilization'
 
 export async function getDashboardData() {
   const user = await getCurrentUser()
-  if (!user || user.role.name !== 'executive') {
+  if (!user || !hasUserRole(user.role.name, 'EXECUTIVE')) {
     redirect('/login')
   }
 
@@ -25,18 +27,14 @@ export async function getDashboardData() {
   }
 
   // プロジェクトサマリー
-  const projects = await db.project.findMany({
+  const projects = await projectDb.project.findMany({
     select: {
       id: true,
       name: true,
       code: true,
       status: true,
       budget: true,
-      client: {
-        select: {
-          name: true,
-        },
-      },
+      clientId: true,
       _count: {
         select: {
           projectMembers: true,
@@ -55,7 +53,7 @@ export async function getDashboardData() {
   const projectsWithMetrics = await Promise.all(
     projects.map(async (project) => {
       // 今月の収益
-      const revenue = await db.revenue.aggregate({
+      const revenue = await financeDb.revenue.aggregate({
         where: {
           projectId: project.id,
           date: {
@@ -68,7 +66,7 @@ export async function getDashboardData() {
       })
 
       // 今月のコスト
-      const cost = await db.cost.aggregate({
+      const cost = await financeDb.cost.aggregate({
         where: {
           projectId: project.id,
           date: {
@@ -81,7 +79,7 @@ export async function getDashboardData() {
       })
 
       // 今月の工数
-      const timeEntries = await db.timeEntry.aggregate({
+      const timeEntries = await financeDb.timeEntry.aggregate({
         where: {
           projectId: project.id,
           date: {
@@ -95,7 +93,7 @@ export async function getDashboardData() {
       })
 
       // プロジェクトメンバーの稼働率
-      const members = await db.projectMember.findMany({
+      const members = await projectDb.projectMember.findMany({
         where: { projectId: project.id },
         select: { allocation: true },
       })
@@ -120,7 +118,7 @@ export async function getDashboardData() {
           revenue: projectRevenue,
           cost: projectCost,
           margin,
-          utilization: avgUtilization,
+          utilization: avgUtilization * 100,
           progressRate,
         },
       }
@@ -134,7 +132,7 @@ export async function getDashboardData() {
     const mEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59, 999)
     
     // 収益集計
-    const monthRevenue = await db.revenue.aggregate({
+    const monthRevenue = await financeDb.revenue.aggregate({
       where: {
         date: {
           gte: mStart,
@@ -146,7 +144,7 @@ export async function getDashboardData() {
     })
     
     // コスト集計
-    const monthCost = await db.cost.aggregate({
+    const monthCost = await financeDb.cost.aggregate({
       where: {
         date: {
           gte: mStart,
@@ -158,7 +156,7 @@ export async function getDashboardData() {
     })
 
     // 工数ベースの人件費を追加
-    const monthTimeEntries = await db.timeEntry.findMany({
+    const monthTimeEntries = await financeDb.timeEntry.findMany({
       where: {
         date: {
           gte: mStart,
@@ -166,14 +164,23 @@ export async function getDashboardData() {
         },
         approved: true,
       },
-      include: {
-        user: {
-          include: {
-            role: true,
-          },
+    })
+
+    // ユーザー情報を取得
+    const userIds = [...new Set(monthTimeEntries.map(te => te.userId))]
+    const users = await authDb.user.findMany({
+      where: {
+        id: {
+          in: userIds,
         },
       },
+      include: {
+        role: true,
+      },
     })
+
+    // ユーザーIDとロールのマップを作成
+    const userRoleMap = new Map(users.map(u => [u.id, u.role.name]))
 
     const hourlyRates: Record<string, number> = {
       executive: 20000,
@@ -184,7 +191,8 @@ export async function getDashboardData() {
     }
 
     const laborCost = monthTimeEntries.reduce((sum, entry) => {
-      const rate = hourlyRates[entry.user.role.name] || 8000
+      const roleName = userRoleMap.get(entry.userId) || 'consultant'
+      const rate = hourlyRates[roleName] || 8000
       return sum + (entry.hours * rate)
     }, 0)
     
@@ -205,7 +213,7 @@ export async function getDashboardData() {
   const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
   const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999)
   
-  const prevMonthRevenue = await db.revenue.aggregate({
+  const prevMonthRevenue = await financeDb.revenue.aggregate({
     where: {
       date: {
         gte: prevMonthStart,
@@ -252,30 +260,14 @@ export async function getProjectDetails(projectId: string) {
     return null // TypeScriptのためのreturn
   }
 
-  const project = await db.project.findUnique({
+  const project = await projectDb.project.findUnique({
     where: { id: projectId },
     include: {
-      client: true,
-      projectMembers: {
-        include: {
-          user: {
-            select: {
-              name: true,
-              email: true,
-            },
-          },
-        },
-      },
+      projectMembers: true,
       milestones: {
         orderBy: {
           dueDate: 'asc',
         },
-      },
-      projectMetrics: {
-        orderBy: {
-          date: 'desc',
-        },
-        take: 12,
       },
     },
   })
@@ -289,17 +281,17 @@ export async function getProjectDetails(projectId: string) {
 
 export async function getResourceData() {
   const user = await getCurrentUser()
-  if (!user || user.role.name !== 'executive') {
+  if (!user || !hasUserRole(user.role.name, 'EXECUTIVE')) {
     redirect('/login')
   }
 
-  // 全メンバーの稼働状況を取得
-  const members = await db.user.findMany({
-    where: {
-      projectMembers: {
-        some: {},
-      },
-    },
+  // 今月の期間を計算
+  const now = new Date()
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+
+  // 全メンバーの情報を取得
+  const members = await authDb.user.findMany({
     select: {
       id: true,
       name: true,
@@ -309,70 +301,114 @@ export async function getResourceData() {
           name: true,
         },
       },
-      projectMembers: {
-        select: {
-          allocation: true,
-          project: {
-            select: {
-              status: true,
-            },
-          },
-        },
-      },
     },
   })
 
+  // メンバーごとの今月の工数データを取得
+  const timeEntriesByUser = await financeDb.timeEntry.groupBy({
+    by: ['userId'],
+    where: {
+      date: {
+        gte: monthStart,
+        lte: monthEnd,
+      },
+      approved: true,
+    },
+    _sum: {
+      hours: true,
+    },
+  })
+
+  // 工数データをマップに変換
+  const hoursMap = new Map(
+    timeEntriesByUser.map(entry => [entry.userId, entry._sum.hours || 0])
+  )
+
+  // アクティブなプロジェクト数を取得
+  const projectCounts = await projectDb.projectMember.groupBy({
+    by: ['userId'],
+    where: {
+      project: {
+        status: 'active',
+      },
+    },
+    _count: true,
+  })
+
+  const projectCountMap = new Map(
+    projectCounts.map(entry => [entry.userId, entry._count])
+  )
+
   // メンバーごとの稼働率を計算
   const memberData = members.map(member => {
-    const activeProjects = member.projectMembers.filter(
-      pm => pm.project.status === 'active'
-    )
-    const totalAllocation = activeProjects.reduce((sum, pm) => sum + pm.allocation, 0)
+    const actualHours = hoursMap.get(member.id) || 0
+    const utilization = calculateUtilization(actualHours, monthStart, monthEnd)
+    const projects = projectCountMap.get(member.id) || 0
     
     return {
       id: member.id,
       name: member.name,
       email: member.email,
       role: member.role.name,
-      utilization: totalAllocation,
-      projects: activeProjects.length,
+      utilization,
+      projects,
     }
-  })
+  }).filter(member => member.projects > 0) // アクティブなメンバーのみ
 
   // ロール別の集計
-  const roleDistribution = await db.role.findMany({
-    select: {
-      name: true,
-      users: {
-        select: {
-          projectMembers: {
-            where: {
-              project: {
-                status: 'active',
-              },
-            },
-            select: {
-              allocation: true,
-            },
+  const roles = await authDb.role.findMany()
+
+  const roleData = await Promise.all(
+    roles.map(async (role) => {
+      // ロールのユーザーを取得
+      const roleUsers = await authDb.user.findMany({
+        where: {
+          role: {
+            name: role.name,
           },
         },
-      },
-    },
-  })
+        select: {
+          id: true,
+        },
+      })
 
-  const roleData = roleDistribution.map(role => {
-    const roleUsers = role.users.filter(u => u.projectMembers.length > 0)
-    const totalUtilization = roleUsers.reduce(
-      (sum, user) => sum + user.projectMembers.reduce((s, pm) => s + pm.allocation, 0),
-      0
-    )
-    
-    return {
-      role: role.name,
-      count: roleUsers.length,
-      avgUtilization: roleUsers.length > 0 ? totalUtilization / roleUsers.length : 0,
-    }
-  })
+      const userIds = roleUsers.map(u => u.id)
+      
+      // ロールのユーザーの工数データを取得
+      const roleTimeEntries = await financeDb.timeEntry.groupBy({
+        by: ['userId'],
+        where: {
+          userId: {
+            in: userIds,
+          },
+          date: {
+            gte: monthStart,
+            lte: monthEnd,
+          },
+          approved: true,
+        },
+        _sum: {
+          hours: true,
+        },
+      })
+
+      // 稼働率を計算
+      const utilizations = roleTimeEntries.map(entry => 
+        calculateUtilization(entry._sum.hours || 0, monthStart, monthEnd)
+      )
+      
+      const count = utilizations.length
+      const avgUtilization = count > 0 
+        ? utilizations.reduce((sum, util) => sum + util, 0) / count 
+        : 0
+      
+      return {
+        role: role.name,
+        count,
+        avgUtilization,
+      }
+    })
+  )
 
   return {
     members: memberData,

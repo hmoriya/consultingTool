@@ -40,6 +40,20 @@ export const USE_CASES: UseCase[] = [
 
   // PM向け
   {
+    id: 'pm-project-create',
+    title: '新規プロジェクト作成・セットアップ',
+    description: '新規プロジェクトの基本情報登録、チーム編成、初期計画の策定',
+    actors: ['PM', 'Executive'],
+    category: 'pm',
+    steps: [
+      'プロジェクト作成画面にアクセス',
+      '基本情報（プロジェクト名、期間、予算）を入力',
+      'チームメンバーをアサイン',
+      'マイルストーンとタスクを設定',
+      'キックオフ会議の設定'
+    ]
+  },
+  {
     id: 'pm-project-mgmt',
     title: 'プロジェクト進捗管理',
     description: 'タスク・マイルストーンを管理し、プロジェクトを成功に導く',

@@ -48,7 +48,7 @@ const menuItems: MenuItem[] = [
   { id: 'tasks', label: 'タスク', path: '/tasks', icon: CheckSquare, roles: [USER_ROLES.CONSULTANT] },
   { id: 'timesheet', label: '工数管理', path: '/timesheet', icon: Clock, roles: [USER_ROLES.EXECUTIVE, USER_ROLES.PM, USER_ROLES.CONSULTANT] },
   { id: 'timesheet-approval', label: '工数承認', path: '/timesheet/approval', icon: CheckSquare, roles: [USER_ROLES.EXECUTIVE, USER_ROLES.PM] },
-  { id: 'knowledge', label: 'ナレッジ', path: '/knowledge', icon: BookOpen, roles: [USER_ROLES.CONSULTANT] },
+  { id: 'knowledge', label: 'ナレッジ', path: '/knowledge', icon: BookOpen },
   { id: 'messages', label: 'メッセージ', path: '/messages', icon: MessageCircle },
   { id: 'deliverables', label: '成果物', path: '/deliverables', icon: FileText, roles: [USER_ROLES.CLIENT] },
   { id: 'reports', label: 'レポート', path: '/reports', icon: BarChart, roles: [USER_ROLES.EXECUTIVE, USER_ROLES.PM] },

@@ -184,6 +184,78 @@ export const USE_CASES: UseCase[] = [
       '必要なアクション実行',
       '通知の既読処理'
     ]
+  },
+
+  // ナレッジ管理
+  {
+    id: 'knowledge-article-create',
+    title: 'ナレッジ記事の作成・公開',
+    description: 'プロジェクトの教訓、技術的知見、業界情報を文書化し共有',
+    actors: ['Consultant', 'PM'],
+    category: 'common',
+    steps: [
+      'ナレッジ管理画面にアクセス',
+      '新規記事の作成',
+      'カテゴリとタグの設定',
+      '内容の執筆（マークダウン形式）',
+      'レビュー申請と公開'
+    ]
+  },
+  {
+    id: 'knowledge-search',
+    title: 'ナレッジ検索・活用',
+    description: '過去の知見やベストプラクティスを検索し、プロジェクトに活用',
+    actors: ['All'],
+    category: 'common',
+    steps: [
+      'ナレッジ検索画面を開く',
+      'キーワード・カテゴリで検索',
+      '検索結果の確認',
+      '記事の詳細閲覧',
+      'ブックマーク・いいねの追加'
+    ]
+  },
+  {
+    id: 'knowledge-faq',
+    title: 'FAQ管理',
+    description: 'よくある質問と回答を管理し、問題解決を効率化',
+    actors: ['PM', 'Admin'],
+    category: 'common',
+    steps: [
+      'FAQ管理画面にアクセス',
+      '新規FAQ項目の作成',
+      '質問と回答の記入',
+      'カテゴリの分類',
+      '公開・更新'
+    ]
+  },
+  {
+    id: 'knowledge-template',
+    title: 'テンプレート管理',
+    description: '提案書やレポートのテンプレートを管理・共有',
+    actors: ['PM', 'Consultant'],
+    category: 'common',
+    steps: [
+      'テンプレート一覧にアクセス',
+      'テンプレートの選択・ダウンロード',
+      '新規テンプレートの登録',
+      'テンプレートの編集・更新',
+      '使用履歴の確認'
+    ]
+  },
+  {
+    id: 'knowledge-expert',
+    title: 'エキスパート検索・相談',
+    description: '社内の専門家を検索し、知見を共有',
+    actors: ['All'],
+    category: 'common',
+    steps: [
+      'エキスパート検索画面を開く',
+      '専門分野・スキルで検索',
+      'エキスパートプロフィール確認',
+      '相談リクエストの送信',
+      'レビュー・評価の投稿'
+    ]
   }
 ]
 

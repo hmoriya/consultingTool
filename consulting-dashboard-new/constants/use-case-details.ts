@@ -790,6 +790,11 @@ import { CLIENT_PROGRESS_DETAILS } from './use-case-details/client-progress'
 import { CLIENT_DOCUMENT_DETAILS } from './use-case-details/client-document'
 import { COMMON_MESSAGE_DETAILS } from './use-case-details/common-message'
 import { COMMON_NOTIFICATION_DETAILS } from './use-case-details/common-notification'
+import { KNOWLEDGE_ARTICLE_CREATE_DETAILS } from './use-case-details/knowledge-article-create'
+import { KNOWLEDGE_SEARCH_DETAILS } from './use-case-details/knowledge-search'
+import { KNOWLEDGE_FAQ_DETAILS } from './use-case-details/knowledge-faq'
+import { KNOWLEDGE_TEMPLATE_DETAILS } from './use-case-details/knowledge-template'
+import { KNOWLEDGE_EXPERT_DETAILS } from './use-case-details/knowledge-expert'
 
 // 詳細情報の取得関数
 export function getUseCaseDetails(useCaseId: string, stepNumber: number): DetailedStep | undefined {
@@ -828,6 +833,18 @@ export function getUseCaseDetails(useCaseId: string, stepNumber: number): Detail
       return COMMON_MESSAGE_DETAILS.find(detail => detail.stepNumber === stepNumber)
     case 'common-notification':
       return COMMON_NOTIFICATION_DETAILS.find(detail => detail.stepNumber === stepNumber)
+    
+    // ナレッジ管理
+    case 'knowledge-article-create':
+      return KNOWLEDGE_ARTICLE_CREATE_DETAILS.find(detail => detail.stepNumber === stepNumber)
+    case 'knowledge-search':
+      return KNOWLEDGE_SEARCH_DETAILS.find(detail => detail.stepNumber === stepNumber)
+    case 'knowledge-faq':
+      return KNOWLEDGE_FAQ_DETAILS.find(detail => detail.stepNumber === stepNumber)
+    case 'knowledge-template':
+      return KNOWLEDGE_TEMPLATE_DETAILS.find(detail => detail.stepNumber === stepNumber)
+    case 'knowledge-expert':
+      return KNOWLEDGE_EXPERT_DETAILS.find(detail => detail.stepNumber === stepNumber)
     
     default:
       return undefined

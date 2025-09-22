@@ -15,7 +15,22 @@ export async function seedResources(users?: any) {
     // 既存のスキルカテゴリをチェック
     const existingCategories = await resourceDb.skillCategory.count()
     if (existingCategories > 0) {
-      console.log('⚠️  Resource Service already has skill data. Skipping seed.')
+      console.log('⚠️  Resource Service already has skill data. Checking user skills...')
+      
+      // 既存のスキルを取得
+      const skills = await resourceDb.skill.findMany()
+      
+      // ユーザースキルのチェックと作成
+      if (users && skills.length > 0) {
+        const existingUserSkills = await resourceDb.userSkill.count()
+        if (existingUserSkills === 0) {
+          console.log('  - Creating user skills...')
+          await seedUserSkills(users, skills)
+        } else {
+          console.log('  - User skills already exist.')
+        }
+      }
+      
       return
     }
 

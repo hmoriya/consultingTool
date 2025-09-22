@@ -10,8 +10,9 @@ export async function seedProjects(users?: any[], organizations?: any) {
     // 既存のプロジェクトをチェック
     const existingProjects = await projectDb.project.count()
     if (existingProjects > 0) {
-      console.log('⚠️  Project Service already has data. Skipping seed.')
-      return
+      console.log('⚠️  Project Service already has data. Returning existing projects.')
+      const projects = await projectDb.project.findMany()
+      return projects
     }
     // ユーザーIDを取得
     const pmUser = users?.find(u => u.email === 'pm@example.com')

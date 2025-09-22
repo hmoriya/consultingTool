@@ -20,6 +20,7 @@ export async function seedNotifications(users?: any, projects?: any) {
       exec: users.execUser?.id,
       pm: users.pmUser?.id,
       consultant: users.consultantUser?.id,
+      client: users.clientUser?.id,
       takahashi: users.allUsers?.find((u: any) => u.name === '高橋 愛')?.id,
       watanabe: users.allUsers?.find((u: any) => u.name === '渡辺 健')?.id
     }
@@ -89,6 +90,7 @@ export async function seedNotifications(users?: any, projects?: any) {
               ...(userIds.exec ? [{ userId: userIds.exec, role: 'admin' as const }] : []),
               { userId: userIds.pm, role: userIds.exec ? 'member' as const : 'admin' as const },
               { userId: userIds.consultant, role: 'member' as const },
+              ...(userIds.client ? [{ userId: userIds.client, role: 'member' as const }] : []),
               ...(userIds.takahashi ? [{ userId: userIds.takahashi, role: 'member' as const }] : []),
               ...(userIds.watanabe ? [{ userId: userIds.watanabe, role: 'member' as const }] : []),
             ]

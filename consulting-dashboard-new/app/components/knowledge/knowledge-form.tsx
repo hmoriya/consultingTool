@@ -88,23 +88,47 @@ export function KnowledgeForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       setIsSubmitting(true)
-      
-      // 実際はここでAPIを呼び出してデータベースに保存
-      console.log('Submitting knowledge:', values)
-      
-      // 仮の成功処理
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
+
+      // createArticle関数をインポートして使用
+      const { createArticle } = await import('@/actions/knowledge')
+
+      // カテゴリIDをマップ（仮のIDマッピング）
+      const categoryMap: Record<string, string> = {
+        'frontend': 'cmfq7g3zf0001z5m8x5y5g4dr',
+        'backend': 'cmfq7g3zf0002z5m8y6z7h5es',
+        'architecture': 'cmfq7g3zf0003z5m8z8a9i6ft',
+        'project-management': 'cmfq7g3zf0004z5m8a9b0j7gu',
+        'best-practices': 'cmfq7g3zf0005z5m8b0c1k8hv',
+        'tools': 'cmfq7g3zf0006z5m8c1d2l9iw',
+        'security': 'cmfq7g3zf0007z5m8d2e3m0jx',
+        'performance': 'cmfq7g3zf0008z5m8e3f4n1ky',
+        'other': 'cmfq7g3zf0009z5m8f4g5o2lz'
+      }
+
+      const result = await createArticle({
+        title: values.title,
+        content: values.content,
+        summary: values.content.substring(0, 200),
+        categoryId: categoryMap[values.category] || 'cmfq7g3zf0009z5m8f4g5o2lz',
+        tags: values.tags,
+        status: 'PUBLISHED'
+      })
+
+      if (!result.success) {
+        throw new Error(result.error || 'ナレッジの作成に失敗しました')
+      }
+
       toast({
         title: 'ナレッジを作成しました',
         description: 'ナレッジが正常に保存されました',
       })
-      
+
       router.push('/knowledge')
     } catch (error) {
+      console.error('Error creating knowledge:', error)
       toast({
         title: 'エラー',
-        description: 'ナレッジの作成に失敗しました',
+        description: error instanceof Error ? error.message : 'ナレッジの作成に失敗しました',
         variant: 'destructive',
       })
     } finally {

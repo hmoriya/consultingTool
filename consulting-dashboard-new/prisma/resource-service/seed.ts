@@ -23,13 +23,14 @@ async function main() {
 
     // ユーザーIDの定義（authサービスのシードデータと同期）
     // これらのIDはauth-service/seed.tsで作成されたユーザーのIDと一致する必要があります
+    // 実際のユーザーIDをハードコーディング（本来は環境変数や別ファイルから取得すべき）
     const userIds = {
-      pm1: 'user1',      // 鈴木花子
-      pm2: 'user2',      // 木村大輔  
-      consultant1: 'user3', // 佐藤次郎
-      consultant2: 'user4', // 高橋愛
-      consultant3: 'user5', // 渡辺健
-      consultant4: 'user6'  // 伊藤真由美
+      pm1: 'cmfpgd1d60011z5kwcikmwrfn',      // 鈴木花子
+      pm2: 'cmfpgd1d2000pz5kw7vcj5in7',      // 木村大輔
+      consultant1: 'cmfpgd1d2000mz5kw8jlans3g', // 佐藤次郎
+      consultant2: 'cmfpgd1d2000hz5kw30szns2b', // 高橋愛
+      consultant3: 'cmfpgd1d2000iz5kwl5477yk7', // 渡辺健
+      consultant4: 'cmfpgd1d2000nz5kwvraucmfp'  // 伊藤真由美
     }
 
     // ユーザースキルデータを作成

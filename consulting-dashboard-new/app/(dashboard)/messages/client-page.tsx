@@ -118,8 +118,8 @@ export default function MessageListClient({ initialChannels }: MessageListClient
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent dark:from-gray-100 dark:to-gray-400">
+        <div className="ml-4">
+          <h1 className="text-3xl font-bold text-foreground">
             メッセージ
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -216,7 +216,7 @@ export default function MessageListClient({ initialChannels }: MessageListClient
                         {/* コンテンツ */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
-                            <h3 className="font-semibold text-base truncate max-w-[200px]">
+                            <h3 className="font-semibold text-lg truncate max-w-[200px] text-foreground">
                               {getChannelName(channel)}
                             </h3>
                             <div className="flex items-center gap-2">
@@ -226,7 +226,7 @@ export default function MessageListClient({ initialChannels }: MessageListClient
                                 </Badge>
                               )}
                               {channel.lastMessage && (
-                                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                <span className="text-sm text-muted-foreground whitespace-nowrap">
                                   {formatDistanceToNow(new Date(channel.lastMessage.createdAt), {
                                     addSuffix: true,
                                     locale: ja
@@ -236,24 +236,24 @@ export default function MessageListClient({ initialChannels }: MessageListClient
                             </div>
                           </div>
                           {channel.lastMessage ? (
-                            <p className="text-sm text-muted-foreground truncate mt-1">
+                            <p className="text-base text-muted-foreground truncate mt-1 leading-relaxed">
                               {channel.lastMessage.content}
                             </p>
                           ) : (
-                            <p className="text-sm text-muted-foreground italic mt-1">
+                            <p className="text-base text-muted-foreground/70 italic mt-1">
                               まだメッセージがありません
                             </p>
                           )}
                           {channel.type !== 'DIRECT' && (
                             <div className="flex items-center gap-3 mt-3">
-                              <span className="inline-flex items-center gap-1.5 text-xs">
+                              <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
                                 <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
                                 <span className="text-muted-foreground">{channel.members.length}人のメンバー</span>
                               </span>
                               {(channel._count?.messages || 0) > 0 && (
-                                <span className="inline-flex items-center gap-1.5 text-xs">
+                                <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
                                   <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-                                  <span className="text-muted-foreground">{channel._count.messages}件のメッセージ</span>
+                                  <span>{channel._count.messages}件のメッセージ</span>
                                 </span>
                               )}
                             </div>

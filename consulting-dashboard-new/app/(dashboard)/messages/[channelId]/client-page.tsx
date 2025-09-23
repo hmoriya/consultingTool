@@ -9,24 +9,32 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import { 
-  Send, 
-  Paperclip, 
+import { Progress } from '@/components/ui/progress'
+import {
+  Send,
+  Paperclip,
   MoreVertical,
   Hash,
   Lock,
   MessageCircle,
   Smile,
   ArrowLeft,
-  Users
+  Users,
+  X,
+  File,
+  FileText,
+  Image,
+  Download
 } from 'lucide-react'
 import { format, formatDistanceToNow, isSameDay, isToday, isYesterday } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import { sendMessage, markMessageAsRead, toggleReaction } from '@/actions/messages'
+import { sendMessage, markMessageAsRead, addReaction, editMessage, deleteMessage, pinMessage, markChannelAsRead } from '@/actions/messages'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { MessageItem } from '@/components/messages/message-item'
 import { ChannelHeader } from '@/components/messages/channel-header'
+import { ThreadView } from '@/components/messages/thread-view'
+import { sendThreadMessage, getThreadMessages } from '@/actions/messages'
 
 interface Message {
   id: string
@@ -94,20 +102,251 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [newMessage, setNewMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [isUploading, setIsUploading] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [showMentionList, setShowMentionList] = useState(false)
+  const [mentionSearch, setMentionSearch] = useState('')
+  const [mentionIndex, setMentionIndex] = useState(0)
+  const [selectedThread, setSelectedThread] = useState<Message | null>(null)
+  const [threadMessages, setThreadMessages] = useState<any[]>([])
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null)
+  const [editContent, setEditContent] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // よく使う絵文字のリスト
+  const quickEmojis = ['😊', '👍', '❤️', '🎉', '😂', '🙏', '👏', '🔥', '✨', '💪', '🚀', '💯']
+
+  // メンション用のユーザーリスト（デモデータ）
+  const mentionUsers = [
+    { id: 'user1', name: '山田 太郎', email: 'yamada@example.com' },
+    { id: 'user2', name: '佐藤 次郎', email: 'sato@example.com' },
+    { id: 'user3', name: '鈴木 花子', email: 'suzuki@example.com' },
+    { id: 'user4', name: '高橋 愛', email: 'takahashi@example.com' },
+    { id: 'user5', name: '渡辺 健', email: 'watanabe@example.com' },
+  ]
+
+  // メンション検索結果
+  const filteredMentionUsers = mentionUsers.filter(user =>
+    user.name.toLowerCase().includes(mentionSearch.toLowerCase()) ||
+    user.email.toLowerCase().includes(mentionSearch.toLowerCase())
+  )
 
   // 最下部にスクロール
   const scrollToBottom = () => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
+  // メッセージ入力のハンドラ
+  const handleMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setNewMessage(value)
+
+    // @が入力された場合、メンションリストを表示
+    const lastAtIndex = value.lastIndexOf('@')
+    if (lastAtIndex !== -1) {
+      const afterAt = value.substring(lastAtIndex + 1)
+      const spaceIndex = afterAt.indexOf(' ')
+
+      if (spaceIndex === -1) {
+        // @の後にスペースがない場合、メンションリストを表示
+        setMentionSearch(afterAt)
+        setShowMentionList(true)
+        setMentionIndex(0)
+      } else {
+        setShowMentionList(false)
+      }
+    } else {
+      setShowMentionList(false)
+    }
+  }
+
+  // メンションを選択
+  const selectMention = (user: typeof mentionUsers[0]) => {
+    const lastAtIndex = newMessage.lastIndexOf('@')
+    if (lastAtIndex !== -1) {
+      const beforeAt = newMessage.substring(0, lastAtIndex)
+      const afterAt = newMessage.substring(lastAtIndex + 1)
+      const spaceIndex = afterAt.indexOf(' ')
+      const afterMention = spaceIndex !== -1 ? afterAt.substring(spaceIndex) : ''
+
+      setNewMessage(`${beforeAt}@[${user.name}] ${afterMention}`)
+      setShowMentionList(false)
+      inputRef.current?.focus()
+    }
+  }
+
+  // キーボードナビゲーション
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showMentionList) return
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setMentionIndex(prev =>
+        prev < filteredMentionUsers.length - 1 ? prev + 1 : prev
+      )
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setMentionIndex(prev => prev > 0 ? prev - 1 : 0)
+    } else if (e.key === 'Enter' && filteredMentionUsers.length > 0) {
+      e.preventDefault()
+      selectMention(filteredMentionUsers[mentionIndex])
+    } else if (e.key === 'Escape') {
+      setShowMentionList(false)
+    }
+  }
+
   useEffect(() => {
     scrollToBottom()
   }, [messages])
 
+  // チャンネルを開いた時に既読を更新（ページロード後に実行）
+  useEffect(() => {
+    console.log('Setting up markChannelAsRead for channel:', channel.id)
+    // タイムアウトを使用してレンダリング完了後に実行
+    const timer = setTimeout(async () => {
+      try {
+        console.log('Calling markChannelAsRead for channel:', channel.id)
+        const result = await markChannelAsRead(channel.id)
+        console.log('markChannelAsRead result:', result)
+      } catch (error) {
+        console.error('Failed to mark channel as read:', error)
+      }
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [channel.id])
+
+  // ネイティブDOMイベントリスナーを使用してファイル選択を処理
+  useEffect(() => {
+    const fileInput = fileInputRef.current
+    if (!fileInput) return
+
+    const handleNativeFileSelect = (e: Event) => {
+      const target = e.target as HTMLInputElement
+      const file = target.files?.[0]
+
+      if (file) {
+        // ファイルサイズチェック（10MB）
+        if (file.size > 10 * 1024 * 1024) {
+          toast.error('ファイルサイズが大きすぎます（10MB以下にしてください）')
+          // inputをリセット
+          target.value = ''
+          return
+        }
+        setSelectedFile(file)
+      }
+    }
+
+    // ネイティブDOMイベントリスナーを追加
+    fileInput.addEventListener('change', handleNativeFileSelect)
+
+    // クリーンアップ
+    return () => {
+      fileInput.removeEventListener('change', handleNativeFileSelect)
+    }
+  }, [])
+
+  // ファイル選択ハンドラ
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      // ファイルサイズチェック（10MB）
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('ファイルサイズが大きすぎます（10MB以下にしてください）')
+        return
+      }
+      setSelectedFile(file)
+    }
+  }
+
+  // ファイルアップロードとメッセージ送信
+  const handleFileUpload = async () => {
+    if (!selectedFile || isUploading) return
+
+    setIsUploading(true)
+    setUploadProgress(0)
+
+    try {
+      // ファイルをアップロード
+      const formData = new FormData()
+      formData.append('file', selectedFile)
+
+      // アップロードの進捗をシミュレート（実際のXHRでは onUploadProgress を使用）
+      setUploadProgress(30)
+
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+
+      setUploadProgress(60)
+
+      const uploadResult = await uploadResponse.json()
+      if (!uploadResult.success) {
+        throw new Error(uploadResult.error || 'アップロードに失敗しました')
+      }
+
+      setUploadProgress(80)
+
+      // ファイルメッセージを送信
+      const metadata = {
+        fileUrl: uploadResult.fileUrl,
+        fileName: uploadResult.fileName,
+        fileSize: uploadResult.fileSize,
+        fileType: uploadResult.fileType
+      }
+
+      const result = await sendMessage({
+        channelId: channel.id,
+        content: uploadResult.fileName,
+        type: 'file',
+        metadata
+      })
+
+      setUploadProgress(100)
+
+      if (result.success && result.data) {
+        const tempMsg: Message = {
+          ...result.data,
+          reactions: result.data.reactions || [],
+          mentions: result.data.mentions || [],
+          readReceipts: result.data.readReceipts || [],
+          _count: result.data._count || { threadMessages: 0 },
+          sender: currentUser || {
+            id: currentUserId,
+            name: 'You',
+            email: ''
+          }
+        }
+        setMessages(prev => [...prev, tempMsg])
+        router.refresh()
+        setSelectedFile(null)
+        toast.success('ファイルを送信しました')
+      } else {
+        throw new Error(result.error || 'メッセージの送信に失敗しました')
+      }
+    } catch (error) {
+      console.error('File upload error:', error)
+      toast.error(error instanceof Error ? error.message : 'ファイルの送信に失敗しました')
+    } finally {
+      setIsUploading(false)
+      setUploadProgress(0)
+    }
+  }
+
   // メッセージ送信
   const handleSendMessage = async () => {
+    // ファイルが選択されている場合はファイルアップロード
+    if (selectedFile) {
+      await handleFileUpload()
+      return
+    }
+
     if (!newMessage.trim() || isLoading) return
 
     setIsLoading(true)
@@ -129,10 +368,10 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
           mentions: result.data.mentions || [],
           readReceipts: result.data.readReceipts || [],
           _count: result.data._count || { threadMessages: 0 },
-          sender: currentUser || { 
-            id: currentUserId, 
-            name: 'You', 
-            email: '' 
+          sender: currentUser || {
+            id: currentUserId,
+            name: 'You',
+            email: ''
           }
         }
         setMessages(prev => [...prev, tempMsg])
@@ -170,14 +409,102 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
     return format(date, 'M月d日(E)', { locale: ja })
   }
 
+  // スレッドを開く
+  const handleThreadClick = async (message: Message) => {
+    setSelectedThread(message)
+    // スレッドメッセージを取得
+    const result = await getThreadMessages(message.id)
+    if (result.success && result.data) {
+      setThreadMessages(result.data)
+    }
+  }
+
+  // スレッドに返信を送信
+  const handleSendThreadReply = async (content: string) => {
+    if (!selectedThread) return
+
+    const result = await sendThreadMessage({
+      messageId: selectedThread.id,
+      content
+    })
+
+    if (result.success && result.data) {
+      // 送信者情報を追加
+      const newMessage = {
+        ...result.data,
+        sender: currentUser || {
+          id: currentUserId,
+          name: 'You',
+          email: ''
+        }
+      }
+      setThreadMessages(prev => [...prev, newMessage])
+      // メインメッセージのスレッドカウントを更新
+      setMessages(prev => prev.map(msg =>
+        msg.id === selectedThread.id
+          ? { ...msg, _count: { ...msg._count, threadMessages: (msg._count?.threadMessages || 0) + 1 } }
+          : msg
+      ))
+      toast.success('返信を送信しました')
+    } else {
+      throw new Error(result.error || '返信の送信に失敗しました')
+    }
+  }
+
+  // メッセージを編集
+  const handleEditMessage = (message: Message) => {
+    setEditingMessageId(message.id)
+    setEditContent(message.content)
+  }
+
+  // 編集を保存
+  const handleSaveEdit = async () => {
+    if (!editingMessageId || !editContent.trim()) return
+
+    const result = await editMessage(editingMessageId, editContent)
+    if (result.success) {
+      setMessages(prev => prev.map(msg =>
+        msg.id === editingMessageId
+          ? { ...msg, content: editContent, editedAt: new Date().toISOString() }
+          : msg
+      ))
+      setEditingMessageId(null)
+      setEditContent('')
+      toast.success('メッセージを編集しました')
+    } else {
+      toast.error(result.error || '編集に失敗しました')
+    }
+  }
+
+  // メッセージを削除
+  const handleDeleteMessage = async (messageId: string) => {
+    const result = await deleteMessage(messageId)
+    if (result.success) {
+      setMessages(prev => prev.filter(msg => msg.id !== messageId))
+      toast.success('メッセージを削除しました')
+    } else {
+      toast.error(result.error || '削除に失敗しました')
+    }
+  }
+
+  // メッセージをピン留め
+  const handlePinMessage = async (messageId: string) => {
+    const result = await pinMessage(messageId, channel.id)
+    if (result.success) {
+      toast.success('メッセージをピン留めしました')
+    } else {
+      toast.error(result.error || 'ピン留めに失敗しました')
+    }
+  }
+
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)]">
+    <div className="flex flex-col h-full">
       {/* ヘッダー */}
       <ChannelHeader channel={channel} />
 
       {/* メッセージエリア */}
-      <ScrollArea className="flex-1 px-4" ref={scrollAreaRef}>
-        <div className="space-y-4 py-6 max-w-4xl mx-auto">
+      <ScrollArea className="flex-1" ref={scrollAreaRef}>
+        <div className="py-4">
           {Object.entries(groupedMessages).map(([dateKey, dateMessages]) => (
             <div key={dateKey}>
               {/* 日付セパレーター */}
@@ -190,13 +517,47 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
               </div>
 
               {/* メッセージ */}
-              <div className="space-y-4">
+              <div className="space-y-0">
                 {dateMessages.map((message, index) => {
                   const prevMessage = index > 0 ? dateMessages[index - 1] : null
-                  const showAvatar = !prevMessage || 
+                  const showAvatar = !prevMessage ||
                     prevMessage.senderId !== message.senderId ||
                     new Date(message.createdAt).getTime() - new Date(prevMessage.createdAt).getTime() > 300000 // 5分以上の差
 
+
+                  // 編集中のメッセージの場合
+                  if (editingMessageId === message.id) {
+                    return (
+                      <div key={message.id} className="px-4 py-2">
+                        <div className="flex gap-2">
+                          <Input
+                            value={editContent}
+                            onChange={(e) => setEditContent(e.target.value)}
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault()
+                                handleSaveEdit()
+                              }
+                            }}
+                            className="flex-1"
+                          />
+                          <Button onClick={handleSaveEdit} size="sm">
+                            保存
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              setEditingMessageId(null)
+                              setEditContent('')
+                            }}
+                            variant="outline"
+                            size="sm"
+                          >
+                            キャンセル
+                          </Button>
+                        </div>
+                      </div>
+                    )
+                  }
 
                   return (
                     <MessageItem
@@ -204,7 +565,51 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
                       message={message}
                       isOwn={message.senderId === currentUserId}
                       showAvatar={showAvatar}
-                      onReaction={(emoji) => toggleReaction(message.id, emoji)}
+                      onReaction={async (emoji) => {
+                        const result = await addReaction(message.id, emoji)
+                        if (result.success) {
+                          // メッセージリストを更新
+                          const updatedMessages = messages.map(msg => {
+                            if (msg.id === message.id) {
+                              const reactions = msg.reactions || []
+                              const existingReaction = reactions.find(
+                                r => r.userId === currentUserId && r.emoji === emoji
+                              )
+
+                              if (result.data?.action === 'removed') {
+                                // リアクションを削除
+                                return {
+                                  ...msg,
+                                  reactions: reactions.filter(
+                                    r => !(r.userId === currentUserId && r.emoji === emoji)
+                                  )
+                                }
+                              } else {
+                                // リアクションを追加
+                                return {
+                                  ...msg,
+                                  reactions: existingReaction
+                                    ? reactions
+                                    : [...reactions, {
+                                        id: Date.now().toString(),
+                                        userId: currentUserId,
+                                        emoji,
+                                        messageId: message.id
+                                      }]
+                                }
+                              }
+                            }
+                            return msg
+                          })
+                          setMessages(updatedMessages)
+                        } else {
+                          toast.error('リアクションの追加に失敗しました')
+                        }
+                      }}
+                      onThreadClick={() => handleThreadClick(message)}
+                      onEdit={() => handleEditMessage(message)}
+                      onDelete={() => handleDeleteMessage(message.id)}
+                      onPin={() => handlePinMessage(message.id)}
                     />
                   )
                 })}
@@ -218,18 +623,69 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
       {/* 入力エリア */}
       <div className="border-t bg-background p-4">
         <div className="max-w-4xl mx-auto">
+          {/* ファイル選択表示 */}
+          {selectedFile && (
+            <div className="mb-3 p-3 bg-muted/50 rounded-lg border">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {selectedFile.type.startsWith('image/') ? (
+                    <Image className="h-5 w-5 text-blue-500" />
+                  ) : selectedFile.type === 'application/pdf' ? (
+                    <FileText className="h-5 w-5 text-red-500" />
+                  ) : (
+                    <File className="h-5 w-5 text-gray-500" />
+                  )}
+                  <span className="text-sm font-medium">{selectedFile.name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                  </span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSelectedFile(null)}
+                  disabled={isUploading}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              {isUploading && (
+                <div className="mt-2">
+                  <Progress value={uploadProgress} className="h-2" />
+                  <span className="text-xs text-muted-foreground">アップロード中... {uploadProgress}%</span>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex gap-2 items-end">
-            <Button variant="ghost" size="icon" className="flex-shrink-0 hover:bg-gray-100 dark:hover:bg-gray-800">
-              <Paperclip className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-            </Button>
+            {/* ネイティブDOM addEventListenerを使用（onChange属性を削除） */}
+            <label
+              htmlFor="file-upload-input"
+              className={`inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring hover:bg-accent hover:text-accent-foreground h-9 w-9 ${
+                isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+            >
+              <Paperclip className="h-5 w-5" />
+            </label>
+            <input
+              ref={fileInputRef}
+              id="file-upload-input"
+              type="file"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.txt,.zip"
+              disabled={isUploading}
+              style={{ display: 'none' }}
+            />
             
             <div className="flex-1 relative">
               <Input
-                placeholder="メッセージを入力..."
+                ref={inputRef}
+                placeholder="メッセージを入力... (@でメンション)"
                 value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
+                onChange={handleMessageChange}
+                onKeyDown={handleKeyDown}
                 onKeyPress={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
+                  if (e.key === 'Enter' && !e.shiftKey && !showMentionList) {
                     e.preventDefault()
                     handleSendMessage()
                   }
@@ -237,18 +693,63 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
                 disabled={isLoading}
                 className="pr-10 py-6 text-base bg-muted/50 border-input focus:ring-2 focus:ring-primary"
               />
+
+              {/* メンションリスト */}
+              {showMentionList && filteredMentionUsers.length > 0 && (
+                <div className="absolute bottom-full left-0 mb-2 w-full max-w-sm bg-popover border rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
+                  {filteredMentionUsers.map((user, index) => (
+                    <button
+                      key={user.id}
+                      onClick={() => selectMention(user)}
+                      className={cn(
+                        "w-full text-left px-3 py-2 hover:bg-muted transition-colors flex items-center gap-2",
+                        index === mentionIndex && "bg-muted"
+                      )}
+                    >
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs flex items-center justify-center">
+                        {user.name.slice(0, 2)}
+                      </div>
+                      <div>
+                        <div className="font-medium text-sm">{user.name}</div>
+                        <div className="text-xs text-muted-foreground">{user.email}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
               <Button
                 variant="ghost"
                 size="icon"
                 className="absolute right-2 top-1/2 -translate-y-1/2 hover:bg-transparent"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
               >
                 <Smile className="h-5 w-5 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200" />
               </Button>
+
+              {/* 絵文字ピッカー */}
+              {showEmojiPicker && (
+                <div className="absolute bottom-full right-0 mb-2 p-3 bg-popover border rounded-lg shadow-lg z-50">
+                  <div className="grid grid-cols-6 gap-1">
+                    {quickEmojis.map(emoji => (
+                      <button
+                        key={emoji}
+                        onClick={() => {
+                          setNewMessage(prev => prev + emoji)
+                          setShowEmojiPicker(false)
+                        }}
+                        className="p-2 hover:bg-muted rounded text-lg transition-colors"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             
-            <Button 
+            <Button
               onClick={handleSendMessage}
-              disabled={!newMessage.trim() || isLoading}
+              disabled={(!newMessage.trim() && !selectedFile) || isLoading || isUploading}
               size="icon"
               className="h-10 w-10 rounded-full bg-primary hover:bg-primary/90 disabled:opacity-50"
             >
@@ -257,6 +758,18 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
           </div>
         </div>
       </div>
+
+      {/* スレッドビュー */}
+      {selectedThread && (
+        <ThreadView
+          parentMessage={selectedThread}
+          isOpen={!!selectedThread}
+          onClose={() => setSelectedThread(null)}
+          onSendReply={handleSendThreadReply}
+          threadMessages={threadMessages}
+          currentUserId={currentUserId}
+        />
+      )}
     </div>
   )
 }

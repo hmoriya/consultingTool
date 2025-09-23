@@ -1,89 +1,23 @@
 import { getCurrentUser } from '@/actions/auth'
+import { getArticle } from '@/actions/knowledge'
 import { redirect, notFound } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { BookOpen, Calendar, User, Tag, ArrowLeft, Edit, Trash2, Share2, FileText, Link as LinkIcon } from 'lucide-react'
+import { BookOpen, Calendar, User, Tag, ArrowLeft, Edit, Trash2, Share2, FileText, Link as LinkIcon, Eye } from 'lucide-react'
 import Link from 'next/link'
+import { MarkdownRenderer } from '@/components/markdown-renderer'
+import { LikeButton } from '@/components/knowledge/like-button'
 
-// 仮のナレッジデータ（実際はデータベースから取得）
-const mockKnowledgeData = {
-  '1': {
-    id: '1',
-    title: 'React Query を使った効率的なデータフェッチング戦略',
-    category: 'フロントエンド開発',
-    tags: ['React', 'React Query', 'パフォーマンス', 'キャッシュ'],
-    author: '田中 太郎',
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-20'),
-    views: 234,
-    likes: 15,
-    content: `
-# React Query を使った効率的なデータフェッチング戦略
-
-## 概要
-React Queryは、Reactアプリケーションにおけるサーバー状態の管理を簡単にするライブラリです。
-データフェッチング、キャッシング、同期、更新などの複雑な処理を簡潔に実装できます。
-
-## 主な利点
-
-### 1. 自動的なキャッシング
-React Queryは取得したデータを自動的にキャッシュし、同じデータへの重複リクエストを防ぎます。
-
-### 2. バックグラウンドでの再取得
-ウィンドウにフォーカスが戻った時やネットワークが再接続された時に、自動的にデータを最新化します。
-
-### 3. 楽観的更新
-ユーザーの操作に対して即座にUIを更新し、バックグラウンドでサーバーと同期を取ることができます。
-
-## 実装例
-
-\`\`\`typescript
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-
-// データ取得の例
-function useProjects() {
-  return useQuery({
-    queryKey: ['projects'],
-    queryFn: fetchProjects,
-    staleTime: 5 * 60 * 1000, // 5分間はデータを新鮮とみなす
-  })
-}
-
-// データ更新の例
-function useUpdateProject() {
-  const queryClient = useQueryClient()
-  
-  return useMutation({
-    mutationFn: updateProject,
-    onSuccess: () => {
-      // キャッシュを無効化して再取得
-      queryClient.invalidateQueries({ queryKey: ['projects'] })
-    },
-  })
-}
-\`\`\`
-
-## ベストプラクティス
-
-1. **適切なキャッシュ時間の設定**: データの性質に応じてstaleTimeとcacheTimeを調整する
-2. **エラーハンドリング**: onErrorコールバックを使用してエラーを適切に処理する
-3. **楽観的更新の活用**: ユーザー体験を向上させるため、可能な限り楽観的更新を使用する
-
-## まとめ
-React Queryを使用することで、複雑なデータ管理ロジックを簡潔に実装でき、
-アプリケーションのパフォーマンスとユーザー体験を大幅に向上させることができます。
-`,
-    relatedArticles: [
-      { id: '2', title: 'SWRとReact Queryの比較' },
-      { id: '3', title: 'Next.js 13のServer Componentsとデータフェッチング' }
-    ],
-    attachments: [
-      { name: 'react-query-examples.zip', size: '234KB', type: 'zip' },
-      { name: 'performance-comparison.pdf', size: '1.2MB', type: 'pdf' }
-    ]
+// ユーザー名を取得するダミー関数
+function getUserName(authorId: string): string {
+  const userMap: Record<string, string> = {
+    'consultant-user-id': '山田太郎',
+    'pm-user-id': '佐藤花子',
+    'exec-user-id': '鈴木一郎'
   }
+  return userMap[authorId] || '不明なユーザー'
 }
 
 export default async function KnowledgeDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -93,12 +27,22 @@ export default async function KnowledgeDetailPage({ params }: { params: Promise<
     redirect('/login')
   }
 
-  // 実際はデータベースから取得
-  const knowledge = mockKnowledgeData[id as keyof typeof mockKnowledgeData]
+  // データベースから記事を取得
+  const articleResult = await getArticle(id)
 
-  if (!knowledge) {
+  if (!articleResult.success || !articleResult.data) {
     notFound()
   }
+
+  const article = articleResult.data
+  const tags = article.tags ? JSON.parse(article.tags as string) : []
+
+  // デバッグ用ログ
+  console.log('Current user:', user.id, user.name, user.role)
+  console.log('Article author:', article.authorId)
+  const userRole = typeof user.role === 'object' ? (user.role as any).name : user.role
+  console.log('User role (parsed):', userRole)
+  console.log('Should show edit button:', user.id === article.authorId || userRole === 'Executive')
 
   const categoryColors: Record<string, string> = {
     'フロントエンド開発': 'bg-blue-100 text-blue-800',
@@ -106,6 +50,8 @@ export default async function KnowledgeDetailPage({ params }: { params: Promise<
     'アーキテクチャ': 'bg-purple-100 text-purple-800',
     'プロジェクト管理': 'bg-yellow-100 text-yellow-800',
     'ベストプラクティス': 'bg-orange-100 text-orange-800',
+    '技術': 'bg-indigo-100 text-indigo-800',
+    'ナレッジ': 'bg-purple-100 text-purple-800',
   }
 
   return (
@@ -126,15 +72,15 @@ export default async function KnowledgeDetailPage({ params }: { params: Promise<
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="space-y-2">
-                  <CardTitle className="text-2xl">{knowledge.title}</CardTitle>
+                  <CardTitle className="text-2xl">{article.title}</CardTitle>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <User className="h-4 w-4" />
-                      {knowledge.author}
+                      {getUserName(article.authorId)}
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      {knowledge.createdAt.toLocaleDateString('ja-JP')}
+                      {new Date(article.createdAt).toLocaleDateString('ja-JP')}
                     </div>
                   </div>
                 </div>
@@ -142,41 +88,90 @@ export default async function KnowledgeDetailPage({ params }: { params: Promise<
                   <Button variant="ghost" size="icon">
                     <Share2 className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  {(user.id === article.authorId || (typeof user.role === 'object' ? (user.role as any).name : user.role) === 'Executive') && (
+                    <>
+                      <Link href={`/knowledge/${article.id}/edit`}>
+                        <Button variant="ghost" size="icon" title="編集">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                      <Button variant="ghost" size="icon" title="削除">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="prose prose-sm max-w-none">
-                <div dangerouslySetInnerHTML={{ __html: knowledge.content.replace(/\n/g, '<br />') }} />
-              </div>
+              <MarkdownRenderer content={article.content} />
             </CardContent>
           </Card>
 
           {/* 添付ファイル */}
-          {knowledge.attachments.length > 0 && (
+          {article.attachments && article.attachments.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">添付ファイル</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {knowledge.attachments.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50">
+                {article.attachments.map((file) => (
+                  <div key={file.id} className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50">
                     <div className="flex items-center gap-3">
                       <FileText className="h-5 w-5 text-muted-foreground" />
                       <div>
-                        <p className="text-sm font-medium">{file.name}</p>
-                        <p className="text-xs text-muted-foreground">{file.size}</p>
+                        <p className="text-sm font-medium">{file.originalName}</p>
+                        <p className="text-xs text-muted-foreground">{Math.round(file.size / 1024)}KB</p>
                       </div>
                     </div>
                     <Button variant="ghost" size="sm">
                       ダウンロード
                     </Button>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* コメントセクション */}
+          {article.comments && article.comments.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">コメント ({article.comments.length})</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {article.comments.map((comment) => (
+                  <div key={comment.id} className="space-y-2">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                        {getUserName(comment.authorId).substring(0, 1)}
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">{getUserName(comment.authorId)}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(comment.createdAt).toLocaleDateString('ja-JP')}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{comment.content}</p>
+                      </div>
+                    </div>
+                    {comment.replies && comment.replies.map((reply) => (
+                      <div key={reply.id} className="ml-11 flex items-start gap-3">
+                        <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs">
+                          {getUserName(reply.authorId).substring(0, 1)}
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium">{getUserName(reply.authorId)}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(reply.createdAt).toLocaleDateString('ja-JP')}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">{reply.content}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ))}
               </CardContent>
@@ -194,22 +189,24 @@ export default async function KnowledgeDetailPage({ params }: { params: Promise<
             <CardContent className="space-y-4">
               <div>
                 <p className="text-sm font-medium mb-2">カテゴリ</p>
-                <Badge className={categoryColors[knowledge.category] || 'bg-gray-100 text-gray-800'}>
+                <Badge className={categoryColors[article.category?.name || ''] || 'bg-gray-100 text-gray-800'}>
                   <BookOpen className="h-3 w-3 mr-1" />
-                  {knowledge.category}
+                  {article.category?.name || 'その他'}
                 </Badge>
               </div>
-              <div>
-                <p className="text-sm font-medium mb-2">タグ</p>
-                <div className="flex flex-wrap gap-2">
-                  {knowledge.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="text-xs">
-                      <Tag className="h-3 w-3 mr-1" />
-                      {tag}
-                    </Badge>
-                  ))}
+              {tags.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium mb-2">タグ</p>
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map((tag: string) => (
+                      <Badge key={tag} variant="secondary" className="text-xs">
+                        <Tag className="h-3 w-3 mr-1" />
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
@@ -220,40 +217,58 @@ export default async function KnowledgeDetailPage({ params }: { params: Promise<
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">閲覧数</span>
-                <span className="text-sm font-medium">{knowledge.views}回</span>
+                <span className="text-sm text-muted-foreground">
+                  <Eye className="inline h-3 w-3 mr-1" />
+                  閲覧数
+                </span>
+                <span className="text-sm font-medium">{article.viewCount}回</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">いいね</span>
-                <span className="text-sm font-medium">{knowledge.likes}件</span>
+                <LikeButton
+                  articleId={article.id}
+                  initialLikeCount={article.likeCount}
+                  isInitiallyLiked={article.isLikedByUser}
+                />
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">最終更新</span>
-                <span className="text-sm font-medium">{knowledge.updatedAt.toLocaleDateString('ja-JP')}</span>
+              <Separator />
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">作成日</span>
+                  <span className="text-xs">{new Date(article.createdAt).toLocaleDateString('ja-JP')}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">最終更新</span>
+                  <span className="text-xs">{new Date(article.updatedAt).toLocaleDateString('ja-JP')}</span>
+                </div>
+                {article.publishedAt && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">公開日</span>
+                    <span className="text-xs">{new Date(article.publishedAt).toLocaleDateString('ja-JP')}</span>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
 
-          {/* 関連記事 */}
-          {knowledge.relatedArticles.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">関連記事</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {knowledge.relatedArticles.map((article) => (
-                  <Link key={article.id} href={`/knowledge/${article.id}`}>
-                    <div className="p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                      <div className="flex items-start gap-2">
-                        <LinkIcon className="h-4 w-4 text-muted-foreground mt-0.5" />
-                        <p className="text-sm hover:underline">{article.title}</p>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </CardContent>
-            </Card>
-          )}
+          {/* ステータス */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">ステータス</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Badge
+                variant={article.status === 'PUBLISHED' ? 'default' : 'secondary'}
+                className="w-full justify-center"
+              >
+                {article.status === 'PUBLISHED' && '公開済み'}
+                {article.status === 'DRAFT' && '下書き'}
+                {article.status === 'REVIEW' && 'レビュー中'}
+                {article.status === 'APPROVED' && '承認済み'}
+                {article.status === 'ARCHIVED' && 'アーカイブ'}
+              </Badge>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

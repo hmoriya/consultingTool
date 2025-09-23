@@ -28,7 +28,7 @@ import {
 } from 'lucide-react'
 import { format, formatDistanceToNow, isSameDay, isToday, isYesterday } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import { sendMessage, markMessageAsRead, addReaction, editMessage, deleteMessage, pinMessage } from '@/actions/messages'
+import { sendMessage, markMessageAsRead, addReaction, editMessage, deleteMessage, pinMessage, markChannelAsRead } from '@/actions/messages'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { MessageItem } from '@/components/messages/message-item'
@@ -203,6 +203,23 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  // チャンネルを開いた時に既読を更新（ページロード後に実行）
+  useEffect(() => {
+    console.log('Setting up markChannelAsRead for channel:', channel.id)
+    // タイムアウトを使用してレンダリング完了後に実行
+    const timer = setTimeout(async () => {
+      try {
+        console.log('Calling markChannelAsRead for channel:', channel.id)
+        const result = await markChannelAsRead(channel.id)
+        console.log('markChannelAsRead result:', result)
+      } catch (error) {
+        console.error('Failed to mark channel as read:', error)
+      }
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [channel.id])
 
   // ネイティブDOMイベントリスナーを使用してファイル選択を処理
   useEffect(() => {

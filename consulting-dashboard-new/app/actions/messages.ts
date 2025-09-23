@@ -455,6 +455,71 @@ export async function getChannelDetails(channelId: string) {
   }
 }
 
+// チャンネルの既読時刻を更新（Server Action用）
+export async function markChannelAsRead(channelId: string) {
+  'use server'
+
+  console.log('markChannelAsRead called for channel:', channelId)
+
+  try {
+    const user = await getCurrentUser()
+    console.log('Current user:', user?.id, user?.email)
+
+    if (!user) {
+      return { success: false, error: '認証が必要です' }
+    }
+
+    // メンバーか確認し、既読時刻を更新
+    const member = await notificationDb.channelMember.update({
+      where: {
+        channelId_userId: {
+          channelId,
+          userId: user.id
+        }
+      },
+      data: {
+        lastReadAt: new Date()
+      }
+    })
+
+    console.log('Updated member lastReadAt:', member.lastReadAt)
+
+    if (!member) {
+      return { success: false, error: 'このチャンネルにアクセスできません' }
+    }
+
+    revalidatePath('/messages')
+    revalidatePath(`/messages/${channelId}`)
+    return { success: true, data: { lastReadAt: member.lastReadAt } }
+  } catch (error) {
+    console.error('markChannelAsRead error:', error)
+    return { success: false, error: '既読の更新に失敗しました' }
+  }
+}
+
+// チャンネルの既読時刻を更新（Server Component用）
+export async function updateChannelReadStatus(channelId: string, userId: string) {
+  try {
+    // メンバーか確認し、既読時刻を更新
+    const member = await notificationDb.channelMember.update({
+      where: {
+        channelId_userId: {
+          channelId,
+          userId: userId
+        }
+      },
+      data: {
+        lastReadAt: new Date()
+      }
+    })
+
+    return { success: true, data: { lastReadAt: member.lastReadAt } }
+  } catch (error) {
+    console.error('updateChannelReadStatus error:', error)
+    return { success: false, error: '既読の更新に失敗しました' }
+  }
+}
+
 // リアクションを追加
 export async function addReaction(messageId: string, emoji: string) {
   try {

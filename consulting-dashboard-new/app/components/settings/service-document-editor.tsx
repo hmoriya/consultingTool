@@ -214,7 +214,7 @@ TEXT: 長文テキスト（制限なし）
           <TabsList>
             <TabsTrigger value="domain" className="flex items-center gap-2">
               <Layers className="h-4 w-4" />
-              ドメイン
+              パラソルドメイン言語
             </TabsTrigger>
             <TabsTrigger value="api" className="flex items-center gap-2">
               <Code2 className="h-4 w-4" />

@@ -792,6 +792,7 @@ import { COMMON_MESSAGE_DETAILS } from './use-case-details/common-message'
 import { COMMON_NOTIFICATION_DETAILS } from './use-case-details/common-notification'
 import { KNOWLEDGE_ARTICLE_CREATE_DETAILS } from './use-case-details/knowledge-article-create'
 import { KNOWLEDGE_SEARCH_DETAILS } from './use-case-details/knowledge-search'
+import { KNOWLEDGE_EDIT_DETAILS } from './use-case-details/knowledge-edit'
 import { KNOWLEDGE_FAQ_DETAILS } from './use-case-details/knowledge-faq'
 import { KNOWLEDGE_TEMPLATE_DETAILS } from './use-case-details/knowledge-template'
 import { KNOWLEDGE_EXPERT_DETAILS } from './use-case-details/knowledge-expert'
@@ -839,6 +840,8 @@ export function getUseCaseDetails(useCaseId: string, stepNumber: number): Detail
       return KNOWLEDGE_ARTICLE_CREATE_DETAILS.find(detail => detail.stepNumber === stepNumber)
     case 'knowledge-search':
       return KNOWLEDGE_SEARCH_DETAILS.find(detail => detail.stepNumber === stepNumber)
+    case 'knowledge-edit':
+      return KNOWLEDGE_EDIT_DETAILS.find(detail => detail.stepNumber === stepNumber)
     case 'knowledge-faq':
       return KNOWLEDGE_FAQ_DETAILS.find(detail => detail.stepNumber === stepNumber)
     case 'knowledge-template':

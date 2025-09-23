@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { BookOpen, Calendar, User, Tag, ArrowLeft, Edit, Trash2, Share2, FileText, Link as LinkIcon, Eye, Heart } from 'lucide-react'
 import Link from 'next/link'
+import { MarkdownRenderer } from '@/components/markdown-renderer'
 
 // ユーザー名を取得するダミー関数
 function getUserName(authorId: string): string {
@@ -34,6 +35,13 @@ export default async function KnowledgeDetailPage({ params }: { params: Promise<
 
   const article = articleResult.data
   const tags = article.tags ? JSON.parse(article.tags as string) : []
+
+  // デバッグ用ログ
+  console.log('Current user:', user.id, user.name, user.role)
+  console.log('Article author:', article.authorId)
+  const userRole = typeof user.role === 'object' ? (user.role as any).name : user.role
+  console.log('User role (parsed):', userRole)
+  console.log('Should show edit button:', user.id === article.authorId || userRole === 'Executive')
 
   const categoryColors: Record<string, string> = {
     'フロントエンド開発': 'bg-blue-100 text-blue-800',
@@ -79,12 +87,14 @@ export default async function KnowledgeDetailPage({ params }: { params: Promise<
                   <Button variant="ghost" size="icon">
                     <Share2 className="h-4 w-4" />
                   </Button>
-                  {user.id === article.authorId && (
+                  {(user.id === article.authorId || (typeof user.role === 'object' ? (user.role as any).name : user.role) === 'Executive') && (
                     <>
-                      <Button variant="ghost" size="icon">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon">
+                      <Link href={`/knowledge/${article.id}/edit`}>
+                        <Button variant="ghost" size="icon" title="編集">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                      <Button variant="ghost" size="icon" title="削除">
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </>
@@ -93,10 +103,7 @@ export default async function KnowledgeDetailPage({ params }: { params: Promise<
               </div>
             </CardHeader>
             <CardContent>
-              <div className="prose prose-sm max-w-none">
-                {/* Markdownコンテンツの表示（簡易的な改行処理） */}
-                <div dangerouslySetInnerHTML={{ __html: article.content.replace(/\n/g, '<br />') }} />
-              </div>
+              <MarkdownRenderer content={article.content} />
             </CardContent>
           </Card>
 

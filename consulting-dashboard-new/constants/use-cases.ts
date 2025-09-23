@@ -220,6 +220,19 @@ export const USE_CASES: UseCase[] = [
     ]
   },
   {
+    id: 'knowledge-edit',
+    title: 'ナレッジ記事の編集・更新',
+    description: '既存のナレッジ記事を編集し、内容やステータスを更新',
+    actors: ['Article Author', 'Executive'],
+    category: 'common',
+    steps: [
+      'ナレッジ記事詳細画面で編集ボタンをクリック',
+      '記事編集フォームで各項目を修正',
+      'ステータスドロップダウンで公開状態を変更',
+      '「更新する」ボタンをクリックして変更を保存'
+    ]
+  },
+  {
     id: 'knowledge-faq',
     title: 'FAQ管理',
     description: 'よくある質問と回答を管理し、問題解決を効率化',

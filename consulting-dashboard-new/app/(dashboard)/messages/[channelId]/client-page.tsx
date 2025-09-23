@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -678,20 +679,21 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
             />
             
             <div className="flex-1 relative">
-              <Input
+              <Textarea
                 ref={inputRef}
-                placeholder="メッセージを入力... (@でメンション)"
+                placeholder="メッセージを入力... (@でメンション)\nShift+Enterで改行"
                 value={newMessage}
                 onChange={handleMessageChange}
-                onKeyDown={handleKeyDown}
-                onKeyPress={(e) => {
+                onKeyDown={(e) => {
+                  handleKeyDown(e)
                   if (e.key === 'Enter' && !e.shiftKey && !showMentionList) {
                     e.preventDefault()
                     handleSendMessage()
                   }
                 }}
                 disabled={isLoading}
-                className="pr-10 py-6 text-base bg-muted/50 border-input focus:ring-2 focus:ring-primary"
+                className="pr-10 py-3 text-base bg-muted/50 border-input focus:ring-2 focus:ring-primary resize-none min-h-[60px] max-h-[200px]"
+                rows={2}
               />
 
               {/* メンションリスト */}

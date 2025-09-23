@@ -498,12 +498,12 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-[calc(100vh-4rem)]">
       {/* ヘッダー */}
       <ChannelHeader channel={channel} />
 
       {/* メッセージエリア */}
-      <ScrollArea className="flex-1" ref={scrollAreaRef}>
+      <ScrollArea className="flex-1 overflow-y-auto" ref={scrollAreaRef}>
         <div className="py-4">
           {Object.entries(groupedMessages).map(([dateKey, dateMessages]) => (
             <div key={dateKey}>
@@ -621,7 +621,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
       </ScrollArea>
 
       {/* 入力エリア */}
-      <div className="border-t bg-background p-4">
+      <div className="border-t bg-background p-4 shrink-0">
         <div className="max-w-4xl mx-auto">
           {/* ファイル選択表示 */}
           {selectedFile && (

@@ -67,15 +67,86 @@ export async function getArticle(id: string) {
       }
     }
 
-    // 閲覧数を増やす
-    await knowledgeDb.article.update({
-      where: { id },
-      data: {
-        viewCount: {
-          increment: 1
+    // ユーザー固有の閲覧数カウント
+    const user = await getCurrentUser()
+    if (user) {
+      // 既存の閲覧記録を確認
+      const existingView = await knowledgeDb.articleView.findUnique({
+        where: {
+          articleId_userId: {
+            articleId: id,
+            userId: user.id
+          }
+        }
+      })
+
+      if (!existingView) {
+        // 新規閲覧の場合のみカウントアップ
+        await knowledgeDb.articleView.create({
+          data: {
+            articleId: id,
+            userId: user.id
+          }
+        })
+
+        await knowledgeDb.article.update({
+          where: { id },
+          data: {
+            viewCount: {
+              increment: 1
+            }
+          }
+        })
+      } else {
+        // 既存の閲覧者の場合は、閲覧日時だけ更新
+        await knowledgeDb.articleView.update({
+          where: {
+            articleId_userId: {
+              articleId: id,
+              userId: user.id
+            }
+          },
+          data: {
+            viewedAt: new Date()
+          }
+        })
+      }
+
+      // 最新の記事データを再取得（カウント更新後）
+      const updatedArticle = await knowledgeDb.article.findUnique({
+        where: { id },
+        include: {
+          category: true,
+          attachments: true,
+          comments: {
+            include: {
+              replies: true
+            },
+            orderBy: {
+              createdAt: 'desc'
+            }
+          }
+        }
+      })
+
+      // ユーザーのいいね状態を確認
+      const userLike = await knowledgeDb.articleLike.findUnique({
+        where: {
+          articleId_userId: {
+            articleId: id,
+            userId: user.id
+          }
+        }
+      })
+
+      return {
+        success: true,
+        data: {
+          ...updatedArticle,
+          isLikedByUser: !!userLike
         }
       }
-    })
+    }
 
     return {
       success: true,

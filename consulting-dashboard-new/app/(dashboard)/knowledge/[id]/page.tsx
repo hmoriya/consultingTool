@@ -5,9 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { BookOpen, Calendar, User, Tag, ArrowLeft, Edit, Trash2, Share2, FileText, Link as LinkIcon, Eye, Heart } from 'lucide-react'
+import { BookOpen, Calendar, User, Tag, ArrowLeft, Edit, Trash2, Share2, FileText, Link as LinkIcon, Eye } from 'lucide-react'
 import Link from 'next/link'
 import { MarkdownRenderer } from '@/components/markdown-renderer'
+import { LikeButton } from '@/components/knowledge/like-button'
 
 // ユーザー名を取得するダミー関数
 function getUserName(authorId: string): string {
@@ -223,11 +224,12 @@ export default async function KnowledgeDetailPage({ params }: { params: Promise<
                 <span className="text-sm font-medium">{article.viewCount}回</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">
-                  <Heart className="inline h-3 w-3 mr-1" />
-                  いいね
-                </span>
-                <span className="text-sm font-medium">{article.likeCount}件</span>
+                <span className="text-sm text-muted-foreground">いいね</span>
+                <LikeButton
+                  articleId={article.id}
+                  initialLikeCount={article.likeCount}
+                  isInitiallyLiked={article.isLikedByUser}
+                />
               </div>
               <Separator />
               <div className="space-y-2">

@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { Hash, Lock, ChevronDown, ChevronRight, Plus, Users, MessageSquare } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { CreateChannelDialog } from './create-channel-dialog'
 
 interface Channel {
   id: string
@@ -42,6 +43,7 @@ export function ChannelSidebar({ channels, currentUserId }: ChannelSidebarProps)
   const router = useRouter()
   const params = useParams()
   const currentChannelId = params?.channelId as string
+  const [createChannelOpen, setCreateChannelOpen] = useState(false)
 
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     projects: true,
@@ -186,7 +188,18 @@ export function ChannelSidebar({ channels, currentUserId }: ChannelSidebarProps)
     <div className="w-60 bg-background border-r h-full flex flex-col">
       {/* ヘッダー */}
       <div className="p-3 border-b">
-        <h2 className="font-semibold text-sm">チャンネル</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-semibold text-sm">チャンネル</h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            onClick={() => setCreateChannelOpen(true)}
+            title="チャンネルを作成"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* チャンネルリスト */}
@@ -213,13 +226,11 @@ export function ChannelSidebar({ channels, currentUserId }: ChannelSidebarProps)
         />
       </div>
 
-      {/* フッター */}
-      <div className="p-4 border-t">
-        <Button variant="outline" className="w-full justify-start" size="sm">
-          <Plus className="h-4 w-4 mr-2" />
-          チャンネルを作成
-        </Button>
-      </div>
+      {/* チャンネル作成ダイアログ */}
+      <CreateChannelDialog
+        open={createChannelOpen}
+        onOpenChange={setCreateChannelOpen}
+      />
     </div>
   )
 }

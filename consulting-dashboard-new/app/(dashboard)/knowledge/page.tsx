@@ -1,4 +1,5 @@
 import { getCurrentUser } from '@/actions/auth'
+import { getArticles } from '@/actions/knowledge'
 import { redirect } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -7,42 +8,40 @@ import { Input } from '@/components/ui/input'
 import { FileText, BookOpen, Lightbulb, Search, Plus } from 'lucide-react'
 import Link from 'next/link'
 
+// ユーザー名を取得するダミー関数
+function getUserName(authorId: string): string {
+  const userMap: Record<string, string> = {
+    'consultant-user-id': '山田太郎',
+    'pm-user-id': '佐藤花子',
+    'exec-user-id': '鈴木一郎'
+  }
+  return userMap[authorId] || '不明なユーザー'
+}
+
 export default async function KnowledgePage() {
   const user = await getCurrentUser()
   if (!user) {
     redirect('/login')
   }
 
-  // 仮のナレッジデータ（将来的にはデータベースから取得）
-  const knowledgeItems = [
-    {
-      id: 1,
-      title: 'アジャイル開発手法のベストプラクティス',
-      category: 'プロジェクト管理',
+  // データベースから記事を取得
+  const articlesResult = await getArticles()
+  const articles = articlesResult.success ? articlesResult.data || [] : []
+
+  // 記事データをUI表示用に変換
+  const knowledgeItems = articles.map((article) => {
+    const tags = article.tags ? JSON.parse(article.tags as string) : []
+
+    return {
+      id: article.id,
+      title: article.title,
+      category: article.category?.name || 'その他',
       type: 'article',
-      author: '山田太郎',
-      createdAt: new Date('2024-01-15'),
-      tags: ['アジャイル', 'スクラム', 'プロジェクト管理']
-    },
-    {
-      id: 2,
-      title: 'クライアント提案書テンプレート',
-      category: 'テンプレート',
-      type: 'template',
-      author: '佐藤花子',
-      createdAt: new Date('2024-02-20'),
-      tags: ['提案書', 'テンプレート', '営業']
-    },
-    {
-      id: 3,
-      title: 'DX推進における成功要因分析',
-      category: 'ケーススタディ',
-      type: 'case-study',
-      author: '鈴木一郎',
-      createdAt: new Date('2024-03-10'),
-      tags: ['DX', 'デジタル変革', '事例']
+      author: getUserName(article.authorId),
+      createdAt: new Date(article.publishedAt || article.createdAt),
+      tags: tags
     }
-  ]
+  })
 
   const categoryColors = {
     'プロジェクト管理': 'bg-blue-500',

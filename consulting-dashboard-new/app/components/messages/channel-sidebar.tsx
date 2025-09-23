@@ -122,7 +122,7 @@ export function ChannelSidebar({ channels, currentUserId }: ChannelSidebarProps)
           {channel.type === 'DIRECT' && <div className="w-2 h-2 rounded-full bg-green-500" />}
         </span>
         <span className="flex-1 truncate text-left">{displayName}</span>
-        {channel.unreadCount && channel.unreadCount > 0 && (
+        {channel.unreadCount !== undefined && channel.unreadCount > 0 && (
           <span className="flex-shrink-0 bg-primary text-primary-foreground text-xs rounded-full px-1.5 py-0.5 min-w-[20px] text-center">
             {channel.unreadCount > 99 ? '99+' : channel.unreadCount}
           </span>

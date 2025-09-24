@@ -21,7 +21,7 @@ export default async function UtilizationPage() {
     return null
   }
 
-  const isExecutive = user.role.name === 'executive'
+  const isExecutive = user.role.name === 'Executive'
 
   // 統計情報の計算
   const totalMembers = utilization.length

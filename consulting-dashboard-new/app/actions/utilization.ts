@@ -2,6 +2,7 @@
 
 import { db } from '@/lib/db'
 import { projectDb } from '@/lib/db/project-db'
+import { timesheetDb } from '@/lib/db/timesheet-db'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
 import { startOfMonth, endOfMonth, eachDayOfInterval, format, startOfWeek, endOfWeek } from 'date-fns'
@@ -87,6 +88,23 @@ export async function getTeamUtilization(targetMonth?: string) {
       }
     })
 
+    // 実際の工数データを取得（オプション - タイムシートDBが存在する場合）
+    let timesheetData = null
+    try {
+      timesheetData = await timesheetDb.timesheetEntry.findMany({
+        where: {
+          userId: member.id,
+          date: {
+            gte: monthStart,
+            lte: monthEnd
+          }
+        }
+      })
+    } catch (error) {
+      // タイムシートデータが取得できない場合はallocationベースで計算
+      console.log('Timesheet data not available, using allocation-based calculation')
+    }
+
     // クライアント情報を取得
     const clientIds = [...new Set(projectMembers.map(pm => pm.project.clientId))]
     const clients = await db.organization.findMany({
@@ -118,13 +136,15 @@ export async function getTeamUtilization(targetMonth?: string) {
       const weekStart = startOfWeek(weekDate, { weekStartsOn: 1 })
       const weekEnd = endOfWeek(weekDate, { weekStartsOn: 1 })
 
+      // その週にアクティブなプロジェクトを取得
       const weekProjects = projectMembers.filter(pm => {
         const startDate = new Date(pm.startDate)
         const endDate = pm.endDate ? new Date(pm.endDate) : new Date()
-        
+
         return startDate <= weekEnd && endDate >= weekStart
       })
 
+      // 週の稼働率を計算（複数プロジェクトの合計）
       const weekAllocation = weekProjects.reduce((sum, pm) => sum + pm.allocation, 0)
 
       weeklyUtilization.push({
@@ -143,32 +163,34 @@ export async function getTeamUtilization(targetMonth?: string) {
 
       // 月内の各日の稼働率を計算
       const days = eachDayOfInterval({ start: mStart, end: mEnd })
-      let allocatedDays = 0
-      
+      let totalAllocation = 0
+      let workingDays = 0
+
       for (const day of days) {
         // 週末を除外
         if (day.getDay() === 0 || day.getDay() === 6) continue
+        workingDays++
 
         const dayProjects = projectMembers.filter(pm => {
           const startDate = new Date(pm.startDate)
           const endDate = pm.endDate ? new Date(pm.endDate) : new Date()
-          
+
           return startDate <= day && endDate >= day
         })
 
-        if (dayProjects.length > 0) {
-          allocatedDays++
-        }
+        // その日の稼働率を計算（プロジェクトのallocationの合計）
+        const dayAllocation = dayProjects.reduce((sum, pm) => sum + pm.allocation, 0)
+        totalAllocation += Math.min(dayAllocation, 100) // 1日の上限は100%
       }
 
-      // 営業日数を計算（週末を除く）
-      const totalDays = days.filter(d => d.getDay() !== 0 && d.getDay() !== 6).length
+      // 月の平均稼働率を計算
+      const avgUtilization = workingDays > 0 ? Math.round(totalAllocation / workingDays) : 0
 
       monthlyUtilization.push({
         month: format(mStart, 'yyyy-MM'),
-        utilization: totalDays > 0 ? Math.round((allocatedDays / totalDays) * 100) : 0,
-        allocatedDays,
-        totalDays
+        utilization: avgUtilization,
+        allocatedDays: workingDays,
+        totalDays: workingDays
       })
     }
 
@@ -271,16 +293,19 @@ export async function getProjectResourceAllocation(projectId: string) {
     totalAllocation,
     totalMembers: project.projectMembers.length,
     roleAllocation,
-    members: project.projectMembers.map(pm => ({
-      id: pm.user.id,
-      name: pm.user.name,
-      email: pm.user.email,
-      role: pm.user.role.name,
-      projectRole: pm.role,
-      allocation: pm.allocation,
-      startDate: pm.startDate,
-      endDate: pm.endDate
-    }))
+    members: project.projectMembers.map(pm => {
+      const user = userMap.get(pm.userId)
+      return {
+        id: pm.userId,
+        name: user?.name || 'Unknown',
+        email: user?.email || '',
+        role: user?.role?.name || 'Unknown',
+        projectRole: pm.role,
+        allocation: pm.allocation,
+        startDate: pm.startDate,
+        endDate: pm.endDate
+      }
+    })
   }
 }
 
@@ -343,23 +368,14 @@ export async function getUtilizationRecommendations() {
     .sort((a, b) => b.currentAllocation - a.currentAllocation)
 
   // プロジェクト別のリソース不足
-  const projects = await db.project.findMany({
+  const projects = await projectDb.project.findMany({
     where: {
-      status: 'active',
-      client: {
-        organization: {
-          id: user.organizationId
-        }
-      }
+      status: 'active'
     },
     include: {
       projectMembers: {
         include: {
-          user: {
-            include: {
-              role: true
-            }
-          }
+          user: true
         }
       }
     }
@@ -375,7 +391,7 @@ export async function getUtilizationRecommendations() {
       }
 
       const currentResources = project.projectMembers.reduce((acc, pm) => {
-        const role = pm.role.toLowerCase()
+        const role = (pm.role || 'member').toLowerCase()
         acc[role] = (acc[role] || 0) + 1
         return acc
       }, {} as Record<string, number>)

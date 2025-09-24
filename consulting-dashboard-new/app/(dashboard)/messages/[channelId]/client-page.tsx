@@ -35,7 +35,10 @@ import { cn } from '@/lib/utils'
 import { MessageItem } from '@/components/messages/message-item'
 import { ChannelHeader } from '@/components/messages/channel-header'
 import { ThreadView } from '@/components/messages/thread-view'
+import { EditMessageDialog } from '@/components/messages/edit-message-dialog'
+import { DeleteMessageDialog } from '@/components/messages/delete-message-dialog'
 import { sendThreadMessage, getThreadMessages } from '@/actions/messages'
+import { updateMessage } from '@/actions/messages'
 
 interface Message {
   id: string
@@ -112,8 +115,8 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
   const [mentionIndex, setMentionIndex] = useState(0)
   const [selectedThread, setSelectedThread] = useState<Message | null>(null)
   const [threadMessages, setThreadMessages] = useState<any[]>([])
-  const [editingMessageId, setEditingMessageId] = useState<string | null>(null)
-  const [editContent, setEditContent] = useState('')
+  const [editingMessage, setEditingMessage] = useState<{ id: string; content: string } | null>(null)
+  const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -454,38 +457,26 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
 
   // メッセージを編集
   const handleEditMessage = (message: Message) => {
-    setEditingMessageId(message.id)
-    setEditContent(message.content)
+    setEditingMessage({ id: message.id, content: message.content })
   }
 
-  // 編集を保存
-  const handleSaveEdit = async () => {
-    if (!editingMessageId || !editContent.trim()) return
-
-    const result = await editMessage(editingMessageId, editContent)
-    if (result.success) {
-      setMessages(prev => prev.map(msg =>
-        msg.id === editingMessageId
-          ? { ...msg, content: editContent, editedAt: new Date().toISOString() }
-          : msg
-      ))
-      setEditingMessageId(null)
-      setEditContent('')
-      toast.success('メッセージを編集しました')
-    } else {
-      toast.error(result.error || '編集に失敗しました')
-    }
+  // 編集成功時の処理
+  const handleEditSuccess = () => {
+    // メッセージリストをリフレッシュ
+    router.refresh()
+    setEditingMessage(null)
   }
 
   // メッセージを削除
-  const handleDeleteMessage = async (messageId: string) => {
-    const result = await deleteMessage(messageId)
-    if (result.success) {
-      setMessages(prev => prev.filter(msg => msg.id !== messageId))
-      toast.success('メッセージを削除しました')
-    } else {
-      toast.error(result.error || '削除に失敗しました')
-    }
+  const handleDeleteMessage = (messageId: string) => {
+    setDeletingMessageId(messageId)
+  }
+
+  // 削除成功時の処理
+  const handleDeleteSuccess = () => {
+    // メッセージリストをリフレッシュ
+    router.refresh()
+    setDeletingMessageId(null)
   }
 
   // メッセージをピン留め
@@ -527,38 +518,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
 
 
                   // 編集中のメッセージの場合
-                  if (editingMessageId === message.id) {
-                    return (
-                      <div key={message.id} className="px-4 py-2">
-                        <div className="flex gap-2">
-                          <Input
-                            value={editContent}
-                            onChange={(e) => setEditContent(e.target.value)}
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault()
-                                handleSaveEdit()
-                              }
-                            }}
-                            className="flex-1"
-                          />
-                          <Button onClick={handleSaveEdit} size="sm">
-                            保存
-                          </Button>
-                          <Button
-                            onClick={() => {
-                              setEditingMessageId(null)
-                              setEditContent('')
-                            }}
-                            variant="outline"
-                            size="sm"
-                          >
-                            キャンセル
-                          </Button>
-                        </div>
-                      </div>
-                    )
-                  }
+                  // インライン編集を削除（モーダルで編集）
 
                   return (
                     <MessageItem
@@ -770,6 +730,27 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
           onSendReply={handleSendThreadReply}
           threadMessages={threadMessages}
           currentUserId={currentUserId}
+        />
+      )}
+
+      {/* 編集ダイアログ */}
+      {editingMessage && (
+        <EditMessageDialog
+          messageId={editingMessage.id}
+          initialContent={editingMessage.content}
+          open={!!editingMessage}
+          onClose={() => setEditingMessage(null)}
+          onSuccess={handleEditSuccess}
+        />
+      )}
+
+      {/* 削除確認ダイアログ */}
+      {deletingMessageId && (
+        <DeleteMessageDialog
+          messageId={deletingMessageId}
+          open={!!deletingMessageId}
+          onClose={() => setDeletingMessageId(null)}
+          onSuccess={handleDeleteSuccess}
         />
       )}
     </div>

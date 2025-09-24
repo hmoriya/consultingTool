@@ -1,4 +1,4 @@
-import { PrismaClient as KnowledgePrismaClient } from '@prisma/knowledge-client'
+import { PrismaClient as KnowledgePrismaClient } from '@/prisma/knowledge-service/generated/client'
 
 const globalForKnowledgeDb = globalThis as unknown as {
   knowledgeDb: KnowledgePrismaClient | undefined

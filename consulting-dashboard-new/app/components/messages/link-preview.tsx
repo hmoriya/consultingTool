@@ -86,31 +86,31 @@ export function LinkPreview({ url, className }: LinkPreviewProps) {
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        "block border rounded-lg overflow-hidden hover:bg-muted/50 transition-colors",
+        "block border rounded-lg overflow-hidden hover:bg-muted/50 transition-colors max-w-md",
         className
       )}
     >
       {metadata.image && (
-        <div className="relative w-full h-32 bg-muted">
+        <div className="relative w-full h-48 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900">
           <NextImage
             src={metadata.image}
             alt={metadata.title || 'Link preview'}
             fill
-            className="object-cover"
+            className="object-contain p-4"
             unoptimized
           />
         </div>
       )}
 
-      <div className="p-2">
-        <div className="flex items-start gap-2">
+      <div className="p-3">
+        <div className="flex items-start gap-3">
           {metadata.favicon && !metadata.image && (
             <div className="flex-shrink-0">
               <NextImage
                 src={metadata.favicon}
                 alt=""
-                width={24}
-                height={24}
+                width={32}
+                height={32}
                 className="rounded"
                 unoptimized
               />
@@ -118,29 +118,24 @@ export function LinkPreview({ url, className }: LinkPreviewProps) {
           )}
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-start gap-2">
-              <div className="flex-1 min-w-0">
-                {metadata.title && (
-                  <h3 className="font-semibold text-xs line-clamp-1">
-                    {metadata.title}
-                  </h3>
-                )}
+            {metadata.title && (
+              <h3 className="font-semibold text-sm line-clamp-2 text-foreground">
+                {metadata.title}
+              </h3>
+            )}
 
-                {metadata.description && (
-                  <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
-                    {metadata.description}
-                  </p>
-                )}
+            {metadata.description && (
+              <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                {metadata.description}
+              </p>
+            )}
 
-                <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-                  <Globe className="h-3 w-3" />
-                  <span className="truncate text-xs">
-                    {metadata.siteName || new URL(url).hostname}
-                  </span>
-                </div>
-              </div>
-
-              <ExternalLink className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+            <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+              <Globe className="h-3 w-3" />
+              <span className="truncate">
+                {metadata.siteName || new URL(url).hostname}
+              </span>
+              <ExternalLink className="h-3 w-3 ml-auto" />
             </div>
           </div>
         </div>

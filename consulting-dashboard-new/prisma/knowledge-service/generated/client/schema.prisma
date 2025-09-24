@@ -1,0 +1,324 @@
+// ナレッジ管理サービス
+// 知識記事、テンプレート、FAQ、エキスパート情報を管理
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("KNOWLEDGE_DATABASE_URL")
+}
+
+// ナレッジカテゴリ
+model KnowledgeCategory {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+  icon        String? // アイコン名
+  color       String? // カテゴリ色
+  order       Int     @default(0)
+  parentId    String?
+  isActive    Boolean @default(true)
+
+  // 関連
+  parent    KnowledgeCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children  KnowledgeCategory[] @relation("CategoryHierarchy")
+  articles  Article[]
+  templates Template[]
+  faqs      FAQ[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ナレッジ記事
+model Article {
+  id         String            @id @default(cuid())
+  title      String
+  content    String // Markdown形式
+  summary    String? // 要約
+  categoryId String
+  authorId   String // ユーザーID（他サービス）
+  status     ArticleStatus     @default(DRAFT)
+  visibility ArticleVisibility @default(ORGANIZATION)
+
+  // メタデータ
+  tags              String? // JSON配列として保存
+  keywords          String? // 検索用キーワード
+  estimatedReadTime Int? // 推定読了時間（分）
+  difficulty        DifficultyLevel @default(BEGINNER)
+
+  // 統計
+  viewCount Int @default(0)
+  likeCount Int @default(0)
+
+  // 関連
+  category    KnowledgeCategory   @relation(fields: [categoryId], references: [id])
+  comments    ArticleComment[]
+  likes       ArticleLike[]
+  views       ArticleView[]
+  revisions   ArticleRevision[]
+  attachments ArticleAttachment[]
+
+  // 承認フロー
+  reviewerId  String?
+  reviewedAt  DateTime?
+  publishedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([authorId])
+  @@index([status])
+  @@index([publishedAt])
+}
+
+// 記事のステータス
+enum ArticleStatus {
+  DRAFT // 下書き
+  REVIEW // レビュー中
+  APPROVED // 承認済み
+  PUBLISHED // 公開済み
+  ARCHIVED // アーカイブ
+}
+
+// 記事の可視性
+enum ArticleVisibility {
+  PRIVATE // 作成者のみ
+  TEAM // チームメンバー
+  ORGANIZATION // 組織内
+  PUBLIC // 全体公開
+}
+
+// 難易度レベル
+enum DifficultyLevel {
+  BEGINNER // 初級
+  INTERMEDIATE // 中級
+  ADVANCED // 上級
+  EXPERT // エキスパート
+}
+
+// 記事のリビジョン（履歴管理）
+model ArticleRevision {
+  id        String  @id @default(cuid())
+  articleId String
+  version   Int
+  title     String
+  content   String
+  summary   String?
+  changes   String? // 変更内容の説明
+  authorId  String
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([articleId, version])
+  @@index([articleId])
+}
+
+// 記事のコメント
+model ArticleComment {
+  id        String  @id @default(cuid())
+  articleId String
+  authorId  String // ユーザーID
+  content   String
+  parentId  String? // 返信コメントの場合
+
+  article Article          @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  parent  ArticleComment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies ArticleComment[] @relation("CommentReplies")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([articleId])
+  @@index([authorId])
+}
+
+// 記事のいいね
+model ArticleLike {
+  id        String @id @default(cuid())
+  articleId String
+  userId    String // ユーザーID
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([articleId, userId])
+  @@index([articleId])
+  @@index([userId])
+}
+
+// 記事の閲覧履歴
+model ArticleView {
+  id        String @id @default(cuid())
+  articleId String
+  userId    String // ユーザーID
+  duration  Int? // 閲覧時間（秒）
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  viewedAt DateTime @default(now())
+
+  @@unique([articleId, userId])
+  @@index([articleId])
+  @@index([userId])
+  @@index([viewedAt])
+}
+
+// 記事の添付ファイル
+model ArticleAttachment {
+  id           String @id @default(cuid())
+  articleId    String
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int // バイト数
+  url          String // ファイルURL
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([articleId])
+}
+
+// テンプレート
+model Template {
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  content     String // Markdown形式
+  categoryId  String
+  authorId    String // ユーザーID
+  type        TemplateType
+
+  // メタデータ
+  tags      String? // JSON配列
+  variables String? // テンプレート変数のJSON
+
+  // 使用統計
+  useCount Int @default(0)
+
+  // 関連
+  category KnowledgeCategory @relation(fields: [categoryId], references: [id])
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([authorId])
+  @@index([type])
+}
+
+// テンプレートの種類
+enum TemplateType {
+  DOCUMENT // 文書テンプレート
+  EMAIL // メールテンプレート
+  PROPOSAL // 提案書テンプレート
+  REPORT // レポートテンプレート
+  CHECKLIST // チェックリストテンプレート
+}
+
+// FAQ
+model FAQ {
+  id         String @id @default(cuid())
+  question   String
+  answer     String // Markdown形式
+  categoryId String
+  authorId   String // ユーザーID
+
+  // 統計
+  viewCount    Int @default(0)
+  helpfulCount Int @default(0)
+
+  // 関連
+  category KnowledgeCategory @relation(fields: [categoryId], references: [id])
+  feedback FAQFeedback[]
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([authorId])
+}
+
+// FAQのフィードバック
+model FAQFeedback {
+  id        String  @id @default(cuid())
+  faqId     String
+  userId    String // ユーザーID
+  isHelpful Boolean
+  comment   String?
+
+  faq FAQ @relation(fields: [faqId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([faqId, userId])
+  @@index([faqId])
+  @@index([userId])
+}
+
+// エキスパート情報
+model Expert {
+  id             String  @id @default(cuid())
+  userId         String  @unique // ユーザーID
+  bio            String? // 自己紹介
+  specialties    String // JSON配列: 専門分野
+  certifications String? // JSON配列: 資格・認定
+  experience     String? // 経験・実績
+  contactInfo    String? // 連絡先情報
+
+  // 評価
+  rating      Float @default(0.0)
+  reviewCount Int   @default(0)
+
+  // 関連
+  reviews ExpertReview[]
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// エキスパートのレビュー
+model ExpertReview {
+  id         String  @id @default(cuid())
+  expertId   String
+  reviewerId String // レビューアーのユーザーID
+  rating     Int // 1-5の評価
+  comment    String?
+
+  expert Expert @relation(fields: [expertId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([expertId, reviewerId])
+  @@index([expertId])
+  @@index([reviewerId])
+}
+
+// 検索ログ（検索改善のため）
+model SearchLog {
+  id      String  @id @default(cuid())
+  userId  String // ユーザーID
+  query   String // 検索クエリ
+  results Int // 結果件数
+  clicked String? // クリックされた記事ID
+
+  searchedAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([query])
+  @@index([searchedAt])
+}

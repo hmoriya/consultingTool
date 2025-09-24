@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -498,12 +499,12 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-[calc(100vh-4rem)]">
       {/* ヘッダー */}
       <ChannelHeader channel={channel} />
 
       {/* メッセージエリア */}
-      <ScrollArea className="flex-1" ref={scrollAreaRef}>
+      <ScrollArea className="flex-1 overflow-y-auto pb-32" ref={scrollAreaRef}>
         <div className="py-4">
           {Object.entries(groupedMessages).map(([dateKey, dateMessages]) => (
             <div key={dateKey}>
@@ -620,8 +621,8 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
         </div>
       </ScrollArea>
 
-      {/* 入力エリア */}
-      <div className="border-t bg-background p-4">
+      {/* 入力エリア - 固定位置 */}
+      <div className="fixed bottom-0 left-64 right-0 border-t bg-background p-4 z-10">
         <div className="max-w-4xl mx-auto">
           {/* ファイル選択表示 */}
           {selectedFile && (
@@ -678,20 +679,21 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
             />
             
             <div className="flex-1 relative">
-              <Input
+              <Textarea
                 ref={inputRef}
-                placeholder="メッセージを入力... (@でメンション)"
+                placeholder="メッセージを入力... (@でメンション)\nShift+Enterで改行"
                 value={newMessage}
                 onChange={handleMessageChange}
-                onKeyDown={handleKeyDown}
-                onKeyPress={(e) => {
+                onKeyDown={(e) => {
+                  handleKeyDown(e)
                   if (e.key === 'Enter' && !e.shiftKey && !showMentionList) {
                     e.preventDefault()
                     handleSendMessage()
                   }
                 }}
                 disabled={isLoading}
-                className="pr-10 py-6 text-base bg-muted/50 border-input focus:ring-2 focus:ring-primary"
+                className="pr-10 py-3 text-base bg-muted/50 border-input focus:ring-2 focus:ring-primary resize-none min-h-[60px] max-h-[200px]"
+                rows={2}
               />
 
               {/* メンションリスト */}

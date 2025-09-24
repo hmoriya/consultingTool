@@ -1,6 +1,6 @@
 'use server'
 
-import { PrismaClient as KnowledgePrismaClient } from '@prisma/knowledge-client'
+import { PrismaClient as KnowledgePrismaClient } from '@/prisma/knowledge-service/generated/client'
 import { getCurrentUser } from './auth'
 import { revalidatePath } from 'next/cache'
 

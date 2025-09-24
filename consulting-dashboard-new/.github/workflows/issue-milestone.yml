@@ -1,0 +1,52 @@
+name: Issue Milestone Reminder
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  check-milestone:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for milestone
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const issue = context.issue;
+            const milestone = context.payload.issue.milestone;
+
+            if (!milestone) {
+              // マイルストーンが設定されていない場合、コメントを追加
+              const comment = `
+                📌 **マイルストーンが設定されていません**
+
+                このissueに適切なマイルストーンを設定してください：
+                - **v1.1.0 - 機能改善版**: バグ修正・基本機能改善
+                - **v1.2.0 - UI/UX改善版**: UI/UX改善・新機能追加
+                - **v2.0.0 - マイクロサービス版**: アーキテクチャ変更
+                - **v3.0.0 - パッケージアプリケーション版**: エンタープライズ機能
+
+                issueの内容に基づいて適切なマイルストーンを選択してください。
+              `;
+
+              // 既に同じコメントがないか確認
+              const comments = await github.rest.issues.listComments({
+                owner: issue.owner,
+                repo: issue.repo,
+                issue_number: issue.number
+              });
+
+              const hasReminderComment = comments.data.some(comment =>
+                comment.body.includes('マイルストーンが設定されていません')
+              );
+
+              if (!hasReminderComment) {
+                await github.rest.issues.createComment({
+                  owner: issue.owner,
+                  repo: issue.repo,
+                  issue_number: issue.number,
+                  body: comment
+                });
+              }
+            }

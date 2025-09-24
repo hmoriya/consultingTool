@@ -73,7 +73,7 @@ export function MessageItem({ message, isOwn, showAvatar, onReaction, onThreadCl
   }
 
   return (
-    <div className="flex gap-3 group hover:bg-muted/30 px-4 py-1 transition-colors">
+    <div className="flex gap-3 group hover:bg-muted/30 px-4 py-1 transition-colors relative">
       {/* アバター */}
       {showAvatar ? (
         <Avatar className="h-9 w-9 flex-shrink-0 mt-0.5">
@@ -88,7 +88,7 @@ export function MessageItem({ message, isOwn, showAvatar, onReaction, onThreadCl
       )}
 
       {/* メッセージ本体 */}
-      <div className="flex-1">
+      <div className="flex-1 relative">
         {/* 名前と時刻 */}
         {showAvatar && (
           <div className="flex items-center gap-2 mb-1">
@@ -102,7 +102,7 @@ export function MessageItem({ message, isOwn, showAvatar, onReaction, onThreadCl
         )}
 
         {/* メッセージコンテンツ */}
-        <div className="relative">
+        <div className="relative pr-8">
           <div className="inline-block max-w-full">
             {message.type === 'file' && fileMetadata ? (
               // ファイルメッセージ
@@ -289,8 +289,8 @@ export function MessageItem({ message, isOwn, showAvatar, onReaction, onThreadCl
 
         {/* アクションボタン（ホバー時のみ表示） */}
         <div className={cn(
-          "absolute top-0 opacity-0 group-hover:opacity-100 transition-opacity",
-          isOwn ? "left-0 -ml-8" : "right-0 -mr-8"
+          "absolute -top-1 opacity-0 group-hover:opacity-100 transition-opacity z-10",
+          "right-0"
         )}>
           <div data-message-id={message.id} className="hidden">
             {message.content}

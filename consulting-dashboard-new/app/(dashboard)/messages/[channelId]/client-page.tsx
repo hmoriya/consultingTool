@@ -461,10 +461,18 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
   }
 
   // 編集成功時の処理
-  const handleEditSuccess = () => {
-    // メッセージリストをリフレッシュ
-    router.refresh()
+  const handleEditSuccess = (newContent: string) => {
+    // メッセージリストの内容を更新
+    if (editingMessage) {
+      setMessages(prevMessages => prevMessages.map(msg => 
+        msg.id === editingMessage.id 
+          ? { ...msg, content: newContent, editedAt: new Date().toISOString() }
+          : msg
+      ))
+    }
     setEditingMessage(null)
+    // 念のためリフレッシュも実行
+    router.refresh()
   }
 
   // メッセージを削除
@@ -474,9 +482,13 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
 
   // 削除成功時の処理
   const handleDeleteSuccess = () => {
-    // メッセージリストをリフレッシュ
-    router.refresh()
+    // メッセージリストから削除されたメッセージを除外
+    if (deletingMessageId) {
+      setMessages(prevMessages => prevMessages.filter(msg => msg.id !== deletingMessageId))
+    }
     setDeletingMessageId(null)
+    // 念のためリフレッシュも実行
+    router.refresh()
   }
 
   // メッセージをピン留め

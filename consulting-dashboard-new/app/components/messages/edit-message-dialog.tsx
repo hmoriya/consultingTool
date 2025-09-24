@@ -19,7 +19,7 @@ interface EditMessageDialogProps {
   initialContent: string
   open: boolean
   onClose: () => void
-  onSuccess?: () => void
+  onSuccess?: (newContent: string) => void
 }
 
 export function EditMessageDialog({
@@ -43,7 +43,7 @@ export function EditMessageDialog({
       const result = await updateMessage(messageId, content.trim())
       if (result.success) {
         toast.success('メッセージを編集しました')
-        onSuccess?.()
+        onSuccess?.(content.trim())
         onClose()
       } else {
         toast.error(result.error || 'メッセージの編集に失敗しました')

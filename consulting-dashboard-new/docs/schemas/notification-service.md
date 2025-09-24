@@ -71,7 +71,9 @@ URL: URL形式の文字列
 | mentions | JSON | NULL | メンション |
 | reactions | JSON | NULL | リアクション |
 | editedAt | TIMESTAMP | NULL | 編集日時 |
+| isEdited | BOOLEAN | DEFAULT false | 編集済みフラグ |
 | deletedAt | TIMESTAMP | NULL | 削除日時 |
+| isDeleted | BOOLEAN | DEFAULT false | 削除済みフラグ（ソフトデリート） |
 | createdAt | TIMESTAMP | NOT NULL | 作成日時 |
 | updatedAt | TIMESTAMP | NOT NULL | 更新日時 |
 

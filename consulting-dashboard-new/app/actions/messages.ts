@@ -687,8 +687,8 @@ export async function editMessage(messageId: string, content: string) {
   }
 }
 
-// メッセージを削除
-export async function deleteMessage(messageId: string) {
+// メッセージを編集
+export async function updateMessage(messageId: string, content: string) {
   try {
     const user = await getCurrentUser()
     if (!user) {
@@ -705,7 +705,97 @@ export async function deleteMessage(messageId: string) {
     }
 
     if (message.senderId !== user.id) {
-      return { success: false, error: '自分のメッセージのみ削除できます' }
+      return { success: false, error: '自分のメッセージのみ編集できます' }
+    }
+
+    // 24時間以内か確認
+    const createdAt = new Date(message.createdAt)
+    const now = new Date()
+    const hoursSinceCreation = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60)
+
+    if (hoursSinceCreation > 24) {
+      return { success: false, error: '投稿から24時間を過ぎたメッセージは編集できません' }
+    }
+
+    // メッセージを更新
+    const updated = await notificationDb.message.update({
+      where: { id: messageId },
+      data: {
+        content,
+        editedAt: new Date()
+      }
+    })
+
+    // 更新されたメッセージに送信者情報を追加
+    const messageWithSender = await notificationDb.message.findUnique({
+      where: { id: messageId },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            name: true,
+            image: true
+          }
+        },
+        thread: {
+          include: {
+            sender: {
+              select: {
+                id: true,
+                name: true,
+                image: true
+              }
+            }
+          }
+        },
+        _count: {
+          select: {
+            replies: true
+          }
+        }
+      }
+    })
+
+    return { success: true, data: messageWithSender }
+  } catch (error) {
+    console.error('updateMessage error:', error)
+    return { success: false, error: 'メッセージの編集に失敗しました' }
+  }
+}
+
+// メッセージを削除
+export async function deleteMessage(messageId: string) {
+  try {
+    const user = await getCurrentUser()
+    if (!user) {
+      return { success: false, error: '認証が必要です' }
+    }
+
+    // メッセージとチャンネル情報を取得
+    const message = await notificationDb.message.findUnique({
+      where: { id: messageId },
+      include: {
+        channel: {
+          include: {
+            members: {
+              where: { userId: user.id }
+            }
+          }
+        }
+      }
+    })
+
+    if (!message) {
+      return { success: false, error: 'メッセージが見つかりません' }
+    }
+
+    // 削除権限の確認（送信者またはチャンネル管理者）
+    const isOwner = message.senderId === user.id
+    const isAdmin = message.channel.members[0]?.role === 'Admin' ||
+                    message.channel.members[0]?.role === 'Owner'
+
+    if (!isOwner && !isAdmin) {
+      return { success: false, error: '削除権限がありません' }
     }
 
     // ソフトデリート

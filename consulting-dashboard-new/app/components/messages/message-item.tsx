@@ -33,18 +33,26 @@ interface MessageItemProps {
       name: string
       email: string
     }
+    flags?: Array<{
+      userId: string
+    }>
   }
   isOwn: boolean
   showAvatar: boolean
+  currentUserId?: string
   onReaction?: (emoji: string) => void
   onThreadClick?: () => void
   onEdit?: () => void
   onDelete?: () => void
   onPin?: () => void
+  onFlag?: () => void
 }
 
-export function MessageItem({ message, isOwn, showAvatar, onReaction, onThreadClick, onEdit, onDelete, onPin }: MessageItemProps) {
+export function MessageItem({ message, isOwn, showAvatar, currentUserId, onReaction, onThreadClick, onEdit, onDelete, onPin, onFlag }: MessageItemProps) {
   const [showReactionPicker, setShowReactionPicker] = useState(false)
+  
+  // フラグ状態を判定
+  const isFlagged = currentUserId && message.flags?.some(flag => flag.userId === currentUserId)
 
   // リアクション絵文字の集計
   const reactionCounts = (message.reactions || []).reduce((acc, reaction) => {
@@ -298,10 +306,12 @@ export function MessageItem({ message, isOwn, showAvatar, onReaction, onThreadCl
           <MessageActions
             messageId={message.id}
             isOwn={isOwn}
+            isFlagged={isFlagged}
             onEdit={isOwn ? onEdit : undefined}
             onDelete={isOwn ? onDelete : undefined}
             onPin={onPin}
             onReply={onThreadClick}
+            onFlag={onFlag}
           />
         </div>
       </div>

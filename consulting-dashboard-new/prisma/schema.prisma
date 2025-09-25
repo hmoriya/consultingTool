@@ -241,3 +241,38 @@ model KPIHistory {
   @@index([type])
   @@map("kpi_history")
 }
+
+// パラソルドメイン言語サービス定義
+model Service {
+  id                    String                  @id @default(cuid())
+  name                  String                  @unique
+  displayName           String
+  description           String?
+  domainLanguage        Json                    // パラソルドメイン言語定義
+  apiSpecification      Json                    // API仕様（OpenAPI形式）
+  dbSchema              Json                    // データベース設計
+  businessOperations    BusinessOperation[]
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+
+  @@map("services")
+}
+
+// ビジネスオペレーション
+model BusinessOperation {
+  id                String            @id @default(cuid())
+  serviceId         String
+  service           Service           @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  name              String
+  operationId       String            @unique // BO_PROJ_CREATE_001
+  pattern           String            // CRUD, Workflow, Analytics等
+  subPattern        String?           // 副パターン
+  businessContext   Json              // ビジネスゴール、価値提供
+  roles             Json              // ロール定義（3要素記法）
+  stateSequence     Json              // 状態遷移シーケンス
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([serviceId])
+  @@map("business_operations")
+}

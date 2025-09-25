@@ -298,6 +298,11 @@ export async function getChannelMessages(channelId: string, limit = 50, cursor?:
             userId: user.id
           }
         },
+        flags: {
+          where: {
+            userId: user.id
+          }
+        },
         threadMessages: {
           take: 1
         },
@@ -842,5 +847,128 @@ export async function pinMessage(messageId: string, channelId: string) {
   } catch (error) {
     console.error('pinMessage error:', error)
     return { success: false, error: 'メッセージのピン留めに失敗しました' }
+  }
+}
+
+// メッセージにフラグを立てる/解除する
+export async function toggleMessageFlag(messageId: string) {
+  try {
+    const user = await getCurrentUser()
+    if (!user) {
+      return { success: false, error: '認証が必要です' }
+    }
+
+    // メッセージが存在するか確認
+    const message = await notificationDb.message.findUnique({
+      where: { id: messageId },
+      include: {
+        channel: {
+          include: {
+            members: {
+              where: { userId: user.id }
+            }
+          }
+        }
+      }
+    })
+
+    if (!message) {
+      return { success: false, error: 'メッセージが見つかりません' }
+    }
+
+    if (message.channel.members.length === 0) {
+      return { success: false, error: 'このメッセージにアクセスできません' }
+    }
+
+    // 既存のフラグを確認
+    const existingFlag = await notificationDb.messageFlag.findUnique({
+      where: {
+        messageId_userId: {
+          messageId,
+          userId: user.id
+        }
+      }
+    })
+
+    if (existingFlag) {
+      // フラグが存在する場合は削除
+      await notificationDb.messageFlag.delete({
+        where: { id: existingFlag.id }
+      })
+      return { success: true, data: { flagged: false } }
+    } else {
+      // フラグが存在しない場合は作成
+      await notificationDb.messageFlag.create({
+        data: {
+          messageId,
+          userId: user.id
+        }
+      })
+      return { success: true, data: { flagged: true } }
+    }
+  } catch (error) {
+    console.error('toggleMessageFlag error:', error)
+    return { success: false, error: 'フラグの設定に失敗しました' }
+  }
+}
+
+// フラグ付きメッセージ一覧を取得
+export async function getFlaggedMessages() {
+  try {
+    const user = await getCurrentUser()
+    if (!user) {
+      return { success: false, error: '認証が必要です' }
+    }
+
+    const flags = await notificationDb.messageFlag.findMany({
+      where: {
+        userId: user.id
+      },
+      include: {
+        message: {
+          include: {
+            channel: true,
+            reactions: true,
+            mentions: true,
+            flags: {
+              where: {
+                userId: user.id
+              }
+            },
+            _count: {
+              select: {
+                threadMessages: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
+
+    // ユーザー情報を取得
+    const senderIds = [...new Set(flags.map(f => f.message.senderId))]
+    const users = await db.user.findMany({
+      where: { id: { in: senderIds } },
+      select: { id: true, name: true, email: true }
+    })
+
+    const userMap = new Map(users.map(u => [u.id, u]))
+
+    const messagesWithSender = flags.map(flag => ({
+      ...flag.message,
+      sender: userMap.get(flag.message.senderId) || {
+        id: flag.message.senderId,
+        name: 'Unknown User',
+        email: ''
+      }
+    }))
+
+    return { success: true, data: messagesWithSender }
+  } catch (error) {
+    console.error('getFlaggedMessages error:', error)
+    return { success: false, error: 'フラグ付きメッセージの取得に失敗しました' }
   }
 }

@@ -64,6 +64,7 @@ model Message {
   reactions   MessageReaction[]
   mentions    MessageMention[]
   readReceipts MessageReadReceipt[]
+  flags       MessageFlag[]
   parentMessage Message? @relation("ThreadMessages", fields: [parentId], references: [id])
   parentId    String?
   threadMessages Message[] @relation("ThreadMessages")
@@ -101,6 +102,20 @@ model MessageMention {
 
   @@unique([messageId, userId])
   @@index([userId])
+}
+
+// メッセージフラグ（重要なメッセージのマーキング）
+model MessageFlag {
+  id          String    @id @default(cuid())
+  messageId   String
+  userId      String    // フラグを立てたユーザー
+  createdAt   DateTime  @default(now())
+
+  message     Message   @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([userId])
+  @@index([createdAt])
 }
 
 // 既読管理

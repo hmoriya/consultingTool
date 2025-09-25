@@ -29,7 +29,7 @@ import {
 } from 'lucide-react'
 import { format, formatDistanceToNow, isSameDay, isToday, isYesterday } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import { sendMessage, markMessageAsRead, addReaction, editMessage, deleteMessage, pinMessage, markChannelAsRead } from '@/actions/messages'
+import { sendMessage, markMessageAsRead, addReaction, editMessage, deleteMessage, pinMessage, markChannelAsRead, toggleMessageFlag } from '@/actions/messages'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { MessageItem } from '@/components/messages/message-item'
@@ -64,6 +64,10 @@ interface Message {
     id: string
     userId: string
     readAt: string
+  }>
+  flags?: Array<{
+    id: string
+    userId: string
   }>
   _count?: {
     threadMessages: number
@@ -501,6 +505,39 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
     }
   }
 
+  // メッセージにフラグを立てる/外す
+  const handleToggleFlag = async (messageId: string) => {
+    const result = await toggleMessageFlag(messageId)
+    if (result.success) {
+      // メッセージリストを更新
+      setMessages(prevMessages => prevMessages.map(msg => {
+        if (msg.id === messageId) {
+          const flags = msg.flags || []
+          const hasFlagged = result.data?.flagged
+          
+          if (hasFlagged) {
+            // フラグを追加
+            return {
+              ...msg,
+              flags: [...flags, { id: Date.now().toString(), userId: currentUserId }]
+            }
+          } else {
+            // フラグを削除
+            return {
+              ...msg,
+              flags: flags.filter(f => f.userId !== currentUserId)
+            }
+          }
+        }
+        return msg
+      }))
+      
+      toast.success(result.data?.flagged ? 'フラグを立てました' : 'フラグを外しました')
+    } else {
+      toast.error(result.error || 'フラグの設定に失敗しました')
+    }
+  }
+
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
       {/* ヘッダー */}
@@ -538,6 +575,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
                       message={message}
                       isOwn={message.senderId === currentUserId}
                       showAvatar={showAvatar}
+                      currentUserId={currentUserId}
                       onReaction={async (emoji) => {
                         const result = await addReaction(message.id, emoji)
                         if (result.success) {
@@ -583,6 +621,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
                       onEdit={() => handleEditMessage(message)}
                       onDelete={() => handleDeleteMessage(message.id)}
                       onPin={() => handlePinMessage(message.id)}
+                      onFlag={() => handleToggleFlag(message.id)}
                     />
                   )
                 })}

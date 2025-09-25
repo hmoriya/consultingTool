@@ -23,19 +23,23 @@ import { toast } from 'sonner'
 interface MessageActionsProps {
   messageId: string
   isOwn: boolean
+  isFlagged?: boolean
   onEdit?: () => void
   onDelete?: () => void
   onPin?: () => void
   onReply?: () => void
+  onFlag?: () => void
 }
 
 export function MessageActions({
   messageId,
   isOwn,
+  isFlagged = false,
   onEdit,
   onDelete,
   onPin,
-  onReply
+  onReply,
+  onFlag
 }: MessageActionsProps) {
   const handleCopy = () => {
     const messageElement = document.querySelector(`[data-message-id="${messageId}"]`)
@@ -53,8 +57,9 @@ export function MessageActions({
   }
 
   const handleFlag = () => {
-    // TODO: フラグ機能の実装
-    toast.info('フラグ機能は準備中です')
+    if (onFlag) {
+      onFlag()
+    }
   }
 
   return (
@@ -99,8 +104,8 @@ export function MessageActions({
         </DropdownMenuItem>
 
         <DropdownMenuItem onClick={handleFlag}>
-          <Flag className="mr-2 h-4 w-4" />
-          フラグを立てる
+          <Flag className={`mr-2 h-4 w-4 ${isFlagged ? 'fill-orange-500 text-orange-500' : ''}`} />
+          {isFlagged ? 'フラグを外す' : 'フラグを立てる'}
         </DropdownMenuItem>
 
         {isOwn && (

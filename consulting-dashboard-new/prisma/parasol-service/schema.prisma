@@ -1,0 +1,136 @@
+// Parasol Domain Language Service Schema
+// Purpose: パラソルドメイン言語定義とビジネスオペレーションの管理
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../../node_modules/@prisma/parasol-client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("PARASOL_DATABASE_URL")
+}
+
+// サービス定義
+model Service {
+  id                    String                  @id @default(cuid())
+  name                  String                  @unique // サービス識別子（例: projectService）
+  displayName           String                  // 表示名（例: プロジェクト管理）
+  description           String?                 // サービスの説明
+  domainLanguage        String                  // パラソルドメイン言語定義（JSON）
+  apiSpecification      String                  // API仕様（OpenAPI形式 JSON）
+  dbSchema              String                  // データベース設計（JSON）
+  capabilities          BusinessCapability[]    // ビジネスケーパビリティ
+  businessOperations    BusinessOperation[]     // ビジネスオペレーション
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  
+  @@map("services")
+}
+
+// ビジネスケーパビリティ定義
+model BusinessCapability {
+  id                    String                  @id @default(cuid())
+  serviceId             String                  // 所属サービス
+  service               Service                 @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  name                  String                  // ケーパビリティ名（英語）
+  displayName           String                  // 表示名（日本語）
+  description           String?                 // 説明
+  category              String                  // カテゴリ（Core, Supporting, Generic）
+  businessOperations    BusinessOperation[]     // 関連するビジネスオペレーション
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  
+  @@unique([serviceId, name])
+  @@map("business_capabilities")
+}
+
+// ビジネスオペレーション定義
+model BusinessOperation {
+  id                    String                  @id @default(cuid())
+  serviceId             String                  // 所属サービス
+  service               Service                 @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  capabilityId          String?                 // 所属ケーパビリティ
+  capability            BusinessCapability?     @relation(fields: [capabilityId], references: [id], onDelete: SetNull)
+  name                  String                  // オペレーション名
+  displayName           String                  // 表示名
+  pattern               String                  // パターン（CRUD, Workflow, Analytics, Communication, Administration）
+  goal                  String                  // ビジネスゴール
+  roles                 String                  // 関連ロール（JSON配列）
+  operations            String                  // オペレーション詳細（JSON）
+  businessStates        String                  // ビジネス状態（JSON）
+  useCases              String                  // ユースケース（JSON）
+  uiDefinitions         String                  // UI定義（JSON）
+  testCases             String                  // テストケース（JSON）
+  robustnessModel       String?                 // ロバストネス図（JSON）
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  
+  @@unique([serviceId, name])
+  @@map("business_operations")
+}
+
+// ドメインエンティティ
+model DomainEntity {
+  id                    String                  @id @default(cuid())
+  serviceId             String                  // 所属サービス
+  name                  String                  // エンティティ名（英語）
+  displayName           String                  // 表示名（日本語）
+  description           String?                 // 説明
+  isAggregate           Boolean                 @default(false) // 集約ルートかどうか
+  properties            String                  // プロパティ定義（JSON）
+  businessRules         String?                 // ビジネスルール（JSON）
+  domainEvents          String?                 // ドメインイベント（JSON）
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  
+  @@unique([serviceId, name])
+  @@map("domain_entities")
+}
+
+// 値オブジェクト
+model ValueObject {
+  id                    String                  @id @default(cuid())
+  serviceId             String                  // 所属サービス
+  name                  String                  // 値オブジェクト名（英語）
+  displayName           String                  // 表示名（日本語）
+  description           String?                 // 説明
+  properties            String                  // プロパティ定義（JSON）
+  validationRules       String                  // バリデーションルール（JSON）
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  
+  @@unique([serviceId, name])
+  @@map("value_objects")
+}
+
+// ドメインサービス
+model DomainService {
+  id                    String                  @id @default(cuid())
+  serviceId             String                  // 所属サービス
+  name                  String                  // ドメインサービス名（英語）
+  displayName           String                  // 表示名（日本語）
+  description           String?                 // 説明
+  methods               String                  // メソッド定義（JSON）
+  aggregates            String                  // 関連集約（JSON配列）
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  
+  @@unique([serviceId, name])
+  @@map("domain_services")
+}
+
+// インパクト分析記録
+model ImpactAnalysis {
+  id                    String                  @id @default(cuid())
+  serviceId             String                  // 対象サービス
+  analysisType          String                  // 分析タイプ（design, implementation, test）
+  changedElements       String                  // 変更された要素（JSON）
+  impactedAreas         String                  // 影響範囲（JSON）
+  tasks                 String                  // 生成されたタスク（JSON）
+  issueNumber           String?                 // GitHub Issue番号
+  createdAt             DateTime                @default(now())
+  createdBy             String                  // 実行者
+  
+  @@map("impact_analyses")
+}

@@ -4,8 +4,10 @@ import { useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Database, Code2, Layers, Settings2, Package } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Database, Code2, Layers, Settings2, Package, ExternalLink } from 'lucide-react'
 import { ServiceDocumentEditor } from '@/components/settings/service-document-editor'
+import Link from 'next/link'
 
 const services = [
   { value: 'auth-service', label: '認証サービス', domain: 'auth-domain' },
@@ -77,7 +79,7 @@ export default function SettingsPage() {
                     実装言語に依存しない中間言語として、ドメインモデルを記述します。
                     この言語で定義されたモデルから、データベーススキーマやAPI仕様を自動生成できます。
                   </p>
-                  <dl className="space-y-2 text-sm">
+                  <dl className="space-y-2 text-sm mb-4">
                     <div className="flex justify-between">
                       <dt className="text-muted-foreground">設計思想</dt>
                       <dd>ドメイン駆動設計（DDD）</dd>
@@ -91,6 +93,14 @@ export default function SettingsPage() {
                       <dd>Markdown</dd>
                     </div>
                   </dl>
+                  <div className="flex justify-end">
+                    <Link href="/settings/parasol">
+                      <Button variant="outline" size="sm">
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        パラソルドメイン言語設定を開く
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </CardContent>

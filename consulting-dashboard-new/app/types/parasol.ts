@@ -1,5 +1,32 @@
 // パラソルドメイン言語の型定義
 
+// 階層構造のノード型（ツリービュー用）
+export interface TreeNode {
+  id: string;
+  name: string;
+  displayName: string;
+  type: 'service' | 'capability' | 'operation' | 'useCase' | 'page';
+  parentId?: string;
+  children?: TreeNode[];
+  isExpanded?: boolean;
+  isSelected?: boolean;
+  metadata?: Record<string, any>;
+}
+
+// サービス定義（最上位）
+export interface ParasolService {
+  id: string;
+  name: string;
+  displayName: string;
+  description?: string;
+  domainLanguage?: DomainLanguageDefinition;
+  apiSpec?: ApiSpecification;
+  dbDesign?: DbDesign;
+  capabilities?: BusinessCapability[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
 export interface DomainEntity {
   name: string;
   japaneseNotation: string;
@@ -213,4 +240,100 @@ export interface StateTransition {
   event: string;
   condition?: string;
   actions: string[];
+}
+
+// ビジネスケーパビリティ
+export interface BusinessCapability {
+  id: string;
+  serviceId: string;
+  name: string;
+  displayName: string;
+  category: 'Core' | 'Supporting' | 'Generic';
+  description?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+// ビジネスオペレーション
+export interface BusinessOperation {
+  id: string;
+  serviceId: string;
+  capabilityId: string;
+  name: string;
+  displayName: string;
+  pattern: string;
+  goal?: string;
+  roles: string[] | string;
+  operations: string[] | string;
+  businessStates: string[] | string;
+  useCases?: any[] | string;
+  uiDefinitions?: any[] | string;
+  testCases?: any[] | string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+// 改善されたAPI仕様型
+export interface ApiSpecification {
+  openapi: string;
+  info: {
+    title: string;
+    version: string;
+    description?: string;
+  };
+  servers?: Array<{
+    url: string;
+    description?: string;
+  }>;
+  paths: Record<string, any>;
+  components?: {
+    schemas?: Record<string, any>;
+  };
+}
+
+// 改善されたDB設計型
+export interface DbDesign {
+  description?: string;
+  tables: DbTable[];
+  relations: DbRelation[];
+}
+
+export interface DbTable {
+  name: string;
+  displayName: string;
+  description?: string;
+  columns: DbColumn[];
+  indexes?: DbIndex[];
+  constraints?: DbConstraint[];
+}
+
+export interface DbColumn {
+  name: string;
+  type: string;
+  nullable: boolean;
+  primaryKey?: boolean;
+  foreignKey?: boolean;
+  defaultValue?: any;
+  description?: string;
+}
+
+export interface DbRelation {
+  fromTable: string;
+  toTable: string;
+  type: string;
+  foreignKey: string;
+  description?: string;
+}
+
+export interface DbIndex {
+  name: string;
+  columns: string[] | string;
+  type: string;
+  description?: string;
+}
+
+export interface DbConstraint {
+  type: string;
+  definition: string;
+  description?: string;
 }

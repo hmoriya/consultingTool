@@ -81,6 +81,7 @@ export async function createService(data: {
 
 export async function getServices() {
   try {
+    console.log('Fetching services from Parasol DB...');
     const services = await parasolDb.service.findMany({
       include: {
         capabilities: {
@@ -95,7 +96,9 @@ export async function getServices() {
       },
     });
     
-    return services.map(service => ({
+    console.log(`Found ${services.length} services`);
+    
+    const mappedServices = services.map(service => ({
       ...service,
       domainLanguage: JSON.parse(service.domainLanguage),
       apiSpecification: JSON.parse(service.apiSpecification),
@@ -124,9 +127,15 @@ export async function getServices() {
         robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
       }))
     }));
+    
+    return { success: true, data: mappedServices };
   } catch (error) {
     console.error('Failed to fetch services:', error);
-    return [];
+    if (error instanceof Error) {
+      console.error('Error details:', error.message);
+      console.error('Stack:', error.stack);
+    }
+    return { success: false, data: [], error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 

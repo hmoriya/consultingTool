@@ -16,6 +16,8 @@ const services = [
   { value: 'timesheet-service', label: 'タイムシートサービス', domain: 'timesheet-domain' },
   { value: 'notification-service', label: '通知サービス', domain: 'notification-domain' },
   { value: 'knowledge-service', label: 'ナレッジサービス', domain: 'knowledge-domain' },
+  { value: 'finance-service', label: '財務サービス', domain: 'finance-domain' },
+  { value: 'parasol-service', label: 'パラソルサービス', domain: 'parasol-domain' },
 ]
 
 export default function SettingsPage() {
@@ -67,8 +69,8 @@ export default function SettingsPage() {
                       <dd className="font-mono">Development</dd>
                     </div>
                     <div className="flex justify-between">
-                      <dt className="text-muted-foreground">サービス数</dt>
-                      <dd className="font-mono">6</dd>
+                      <dt className="text-muted-foreground">マイクロサービス数</dt>
+                      <dd className="font-mono">8</dd>
                     </div>
                   </dl>
                 </div>
@@ -101,6 +103,36 @@ export default function SettingsPage() {
                       </Button>
                     </Link>
                   </div>
+                </div>
+
+                <div className="rounded-lg border p-4">
+                  <h3 className="font-semibold mb-2">パラソルサービス設計情報</h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    パラソルV4フレームワークの6概念レイヤーマッピングに基づいて、
+                    各マイクロサービスのビジネスケーパビリティとオペレーションを管理します。
+                  </p>
+                  <dl className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">登録サービス数</dt>
+                      <dd className="font-mono">6</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">ビジネスケーパビリティ数</dt>
+                      <dd className="font-mono">9</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">ビジネスオペレーション数</dt>
+                      <dd className="font-mono">8</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">データモデル</dt>
+                      <dd>Service → Capability → Operation</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">自動生成機能</dt>
+                      <dd>オペレーション → ドメイン言語</dd>
+                    </div>
+                  </dl>
                 </div>
               </div>
             </CardContent>

@@ -9,11 +9,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Plus, Search, Save } from 'lucide-react';
 import { saveServiceData, createBusinessOperation, createBusinessCapability, updateBusinessOperation, deleteBusinessOperation } from '@/app/actions/parasol';
 import { DomainLanguageEditor } from './DomainLanguageEditor';
+import { DomainLanguageMarkdownEditor } from './DomainLanguageMarkdownEditor';
 import { APISpecificationEditor } from './APISpecificationEditor';
 import { DBSchemaEditor } from './DBSchemaEditor';
+import { UnifiedDesignEditor, DesignType } from './UnifiedDesignEditor';
 import { ServiceForm } from './ServiceForm';
 import { BusinessCapabilityEditor } from './BusinessCapabilityEditor';
 import { BusinessOperationEditor } from './BusinessOperationEditor';
+import { CodeGenerationPanel } from './CodeGenerationPanel';
 import { useToast } from '@/hooks/use-toast';
 import { DomainLanguageDefinition, APISpecification, DBSchema } from '@/types/parasol';
 
@@ -556,11 +559,12 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue="capability" className="space-y-4">
-                  <TabsList className="grid w-full grid-cols-4">
+                  <TabsList className="grid w-full grid-cols-5">
                     <TabsTrigger value="capability">ケーパビリティ</TabsTrigger>
                     <TabsTrigger value="foundation">ドメイン言語</TabsTrigger>
                     <TabsTrigger value="api">API仕様</TabsTrigger>
                     <TabsTrigger value="db">DB設計</TabsTrigger>
+                    <TabsTrigger value="generation">生成</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="capability" className="space-y-4">
@@ -665,23 +669,58 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
                   </TabsContent>
 
                   <TabsContent value="foundation" className="space-y-4">
-                    <DomainLanguageEditor
-                      value={selectedService.domainLanguage || getInitialDomainLanguage()}
-                      onChange={handleDomainLanguageChange}
+                    <UnifiedDesignEditor
+                      type="domain"
+                      value={JSON.stringify(selectedService.domainLanguage || getInitialDomainLanguage())}
+                      onChange={(value) => {
+                        try {
+                          const parsed = JSON.parse(value);
+                          handleDomainLanguageChange(parsed);
+                        } catch (e) {
+                          console.error('Invalid JSON:', e);
+                        }
+                      }}
+                      serviceId={selectedService.id}
                     />
                   </TabsContent>
 
                   <TabsContent value="api" className="space-y-4">
-                    <APISpecificationEditor
-                      value={selectedService.apiSpecification || getInitialAPISpec()}
-                      onChange={handleAPISpecChange}
+                    <UnifiedDesignEditor
+                      type="api"
+                      value={JSON.stringify(selectedService.apiSpecification || getInitialAPISpec())}
+                      onChange={(value) => {
+                        try {
+                          const parsed = JSON.parse(value);
+                          handleAPISpecChange(parsed);
+                        } catch (e) {
+                          console.error('Invalid JSON:', e);
+                        }
+                      }}
+                      serviceId={selectedService.id}
                     />
                   </TabsContent>
 
                   <TabsContent value="db" className="space-y-4">
-                    <DBSchemaEditor
-                      value={selectedService.dbSchema || getInitialDBSchema()}
-                      onChange={handleDBSchemaChange}
+                    <UnifiedDesignEditor
+                      type="db"
+                      value={JSON.stringify(selectedService.dbSchema || getInitialDBSchema())}
+                      onChange={(value) => {
+                        try {
+                          const parsed = JSON.parse(value);
+                          handleDBSchemaChange(parsed);
+                        } catch (e) {
+                          console.error('Invalid JSON:', e);
+                        }
+                      }}
+                      serviceId={selectedService.id}
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="generation" className="space-y-4">
+                    <CodeGenerationPanel
+                      serviceId={selectedService.id}
+                      capabilities={selectedService.capabilities || []}
+                      operations={selectedService.businessOperations || []}
                     />
                   </TabsContent>
                 </Tabs>

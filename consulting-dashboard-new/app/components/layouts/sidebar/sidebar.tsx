@@ -20,7 +20,8 @@ import {
   Award,
   BarChart3,
   Briefcase,
-  MessageCircle
+  MessageCircle,
+  Sparkles
 } from 'lucide-react'
 import { useUser } from '@/contexts/user-context'
 import { useApproval } from '@/contexts/approval-context'
@@ -52,6 +53,7 @@ const menuItems: MenuItem[] = [
   { id: 'messages', label: 'メッセージ', path: '/messages', icon: MessageCircle },
   { id: 'deliverables', label: '成果物', path: '/deliverables', icon: FileText, roles: [USER_ROLES.CLIENT] },
   { id: 'reports', label: 'レポート', path: '/reports', icon: BarChart, roles: [USER_ROLES.EXECUTIVE, USER_ROLES.PM] },
+  { id: 'parasol', label: 'パラソル開発', path: '/parasol', icon: Sparkles, roles: [USER_ROLES.EXECUTIVE, USER_ROLES.PM, USER_ROLES.ADMIN] },
   { id: 'settings', label: '設定', path: '/settings', icon: Settings },
   { id: 'help', label: 'ヘルプ', path: '/help', icon: HelpCircle }
 ]

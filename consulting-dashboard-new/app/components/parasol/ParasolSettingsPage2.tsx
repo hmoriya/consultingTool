@@ -10,6 +10,7 @@ import { ParasolTreeView } from './ParasolTreeView';
 import { UnifiedTreeView } from './UnifiedTreeView';
 import { TreeNode, ParasolService } from '@/types/parasol';
 import { UnifiedDesignEditor, DesignType } from './UnifiedDesignEditor';
+import { UnifiedMDEditor, MDEditorType } from './UnifiedMDEditor';
 import { ServiceForm } from './ServiceForm';
 import { BusinessCapabilityEditor } from './BusinessCapabilityEditor';
 import { BusinessOperationEditor } from './BusinessOperationEditor';
@@ -27,9 +28,13 @@ interface Service {
   name: string;
   displayName: string;
   description?: string | null;
-  domainLanguage: any;
-  apiSpecification: any;
-  dbSchema: any;
+  serviceDescription?: string; // MD形式のサービス説明
+  domainLanguageDefinition?: string; // MD形式のドメイン言語定義
+  apiSpecificationDefinition?: string; // MD形式のAPI仕様
+  databaseDesignDefinition?: string; // MD形式のDB設計
+  domainLanguage: any; // 既存のJSON形式（後で廃止予定）
+  apiSpecification: any; // 既存のJSON形式（後で廃止予定）
+  dbSchema: any; // 既存のJSON形式（後で廃止予定）
   capabilities?: any[];
   businessOperations: any[];
 }
@@ -46,7 +51,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
   
   // 初期表示時にすべてのノードを展開
   useEffect(() => {
-    if (services.length > 0) {
+    if (services.length > 0 && expandedNodes.size === 0) {
       const allNodeIds = new Set<string>();
       
       // すべてのノードIDを収集
@@ -86,7 +91,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
       
       setExpandedNodes(allNodeIds);
     }
-  }, []); // 依存配列を空にして初回のみ実行
+  }, [services.length]); // services.lengthの変更時にのみ実行
   const [searchTerm, setSearchTerm] = useState('');
   const [showServiceForm, setShowServiceForm] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
@@ -173,6 +178,33 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
       if (service) {
         setSelectedService(service);
       }
+    } else if (node.type === 'capability' || node.type === 'operation' || node.type === 'useCase') {
+      // ケーパビリティ、オペレーション、ユースケースノードが選択された場合
+      // 親のサービスを見つける
+      const findServiceForNode = (nodeId: string): Service | null => {
+        for (const service of services) {
+          // ケーパビリティをチェック
+          if (service.capabilities?.some(c => c.id === nodeId)) {
+            return service;
+          }
+          // オペレーションをチェック
+          if (service.businessOperations?.some(o => o.id === nodeId)) {
+            return service;
+          }
+          // ユースケースをチェック（オペレーション内）
+          for (const op of service.businessOperations || []) {
+            if (op.useCaseModels?.some((uc: any) => uc.id === nodeId)) {
+              return service;
+            }
+          }
+        }
+        return null;
+      };
+      
+      const service = findServiceForNode(node.id);
+      if (service) {
+        setSelectedService(service);
+      }
     }
   };
 
@@ -184,7 +216,11 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
       const result = await saveServiceData(selectedService.id, {
         domainLanguage: selectedService.domainLanguage,
         apiSpecification: selectedService.apiSpecification,
-        dbSchema: selectedService.dbSchema
+        dbSchema: selectedService.dbSchema,
+        serviceDescription: selectedService.serviceDescription,
+        domainLanguageDefinition: selectedService.domainLanguageDefinition,
+        apiSpecificationDefinition: selectedService.apiSpecificationDefinition,
+        databaseDesignDefinition: selectedService.databaseDesignDefinition
       });
 
       if (result.success) {
@@ -255,60 +291,81 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
             </div>
           </CardHeader>
           <CardContent className="overflow-auto">
-            <Tabs defaultValue="domain" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="domain">ドメイン言語</TabsTrigger>
-                <TabsTrigger value="api">API仕様</TabsTrigger>
-                <TabsTrigger value="db">DB設計</TabsTrigger>
+            <Tabs defaultValue="service-description" className="space-y-4">
+              <TabsList className="grid w-full grid-cols-6">
+                <TabsTrigger value="service-description">サービス説明</TabsTrigger>
+                <TabsTrigger value="domain-language">ドメイン言語</TabsTrigger>
+                <TabsTrigger value="api-spec">API仕様</TabsTrigger>
+                <TabsTrigger value="db-design">DB設計</TabsTrigger>
                 <TabsTrigger value="capability">ケーパビリティ</TabsTrigger>
                 <TabsTrigger value="generation">生成</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="domain">
-                <UnifiedDesignEditor
-                  type="domain"
-                  value={JSON.stringify(selectedService.domainLanguage || getInitialDomainLanguage())}
+              <TabsContent value="service-description">
+                <UnifiedMDEditor
+                  type="service-description"
+                  value={selectedService.serviceDescription || ''}
                   onChange={(value) => {
-                    try {
-                      const parsed = JSON.parse(value);
-                      handleDomainLanguageChange(parsed);
-                    } catch (e) {
-                      console.error('Invalid JSON:', e);
-                    }
+                    setSelectedService({
+                      ...selectedService,
+                      serviceDescription: value
+                    });
+                    setHasChanges(true);
                   }}
-                  serviceId={selectedService.id}
+                  onSave={handleSave}
+                  title="サービス説明"
+                  description="このサービスの概要、責務、依存関係をMarkdownで記述します"
                 />
               </TabsContent>
 
-              <TabsContent value="api">
-                <UnifiedDesignEditor
-                  type="api"
-                  value={JSON.stringify(selectedService.apiSpecification || getInitialAPISpec())}
+              <TabsContent value="domain-language">
+                <UnifiedMDEditor
+                  type="domain-language"
+                  value={selectedService.domainLanguageDefinition || ''}
                   onChange={(value) => {
-                    try {
-                      const parsed = JSON.parse(value);
-                      handleAPISpecChange(parsed);
-                    } catch (e) {
-                      console.error('Invalid JSON:', e);
-                    }
+                    setSelectedService({
+                      ...selectedService,
+                      domainLanguageDefinition: value
+                    });
+                    setHasChanges(true);
                   }}
-                  serviceId={selectedService.id}
+                  onSave={handleSave}
+                  title="ドメイン言語定義"
+                  description="エンティティ、値オブジェクト、ドメインサービスをMarkdownで定義します"
                 />
               </TabsContent>
 
-              <TabsContent value="db">
-                <UnifiedDesignEditor
-                  type="db"
-                  value={JSON.stringify(selectedService.dbSchema || getInitialDBSchema())}
+              <TabsContent value="api-spec">
+                <UnifiedMDEditor
+                  type="api-specification"
+                  value={selectedService.apiSpecificationDefinition || ''}
                   onChange={(value) => {
-                    try {
-                      const parsed = JSON.parse(value);
-                      handleDBSchemaChange(parsed);
-                    } catch (e) {
-                      console.error('Invalid JSON:', e);
-                    }
+                    setSelectedService({
+                      ...selectedService,
+                      apiSpecificationDefinition: value
+                    });
+                    setHasChanges(true);
                   }}
-                  serviceId={selectedService.id}
+                  onSave={handleSave}
+                  title="API仕様"
+                  description="RESTful APIのエンドポイントをMarkdownで定義します"
+                />
+              </TabsContent>
+
+              <TabsContent value="db-design">
+                <UnifiedMDEditor
+                  type="database-design"
+                  value={selectedService.databaseDesignDefinition || ''}
+                  onChange={(value) => {
+                    setSelectedService({
+                      ...selectedService,
+                      databaseDesignDefinition: value
+                    });
+                    setHasChanges(true);
+                  }}
+                  onSave={handleSave}
+                  title="DB設計"
+                  description="テーブル、カラム、リレーションをMarkdownで定義します"
                 />
               </TabsContent>
 
@@ -356,17 +413,27 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
           <Card className="h-full">
             <CardHeader>
               <CardTitle>{selectedNode.displayName}</CardTitle>
-              <CardDescription>ケーパビリティの詳細</CardDescription>
+              <CardDescription>ケーパビリティ定義</CardDescription>
             </CardHeader>
-            <CardContent>
-              <UnifiedDesignEditor
-                type="capability"
-                value={JSON.stringify({ capabilities: [capability], operations: [] })}
+            <CardContent className="overflow-auto">
+              <UnifiedMDEditor
+                type="capability-definition"
+                value={capability.definition || ''}
                 onChange={(value) => {
                   // ケーパビリティ変更処理
+                  const updatedCapability = { ...capability, definition: value };
+                  const updatedCapabilities = selectedService.capabilities?.map(c => 
+                    c.id === capability.id ? updatedCapability : c
+                  );
+                  setSelectedService({
+                    ...selectedService,
+                    capabilities: updatedCapabilities
+                  });
+                  setHasChanges(true);
                 }}
-                serviceId={selectedService.id}
-                capabilityId={capability.id}
+                onSave={handleSave}
+                title="ケーパビリティ定義"
+                description="このケーパビリティの責務と提供価値をMarkdownで記述します"
               />
             </CardContent>
           </Card>
@@ -380,17 +447,27 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
           <Card className="h-full">
             <CardHeader>
               <CardTitle>{selectedNode.displayName}</CardTitle>
-              <CardDescription>オペレーションの詳細</CardDescription>
+              <CardDescription>ビジネスオペレーション設計</CardDescription>
             </CardHeader>
-            <CardContent>
-              <UnifiedDesignEditor
-                type="operation"
-                value={JSON.stringify(operation)}
+            <CardContent className="overflow-auto">
+              <UnifiedMDEditor
+                type="operation-design"
+                value={operation.design || ''}
                 onChange={(value) => {
                   // オペレーション変更処理
+                  const updatedOperation = { ...operation, design: value };
+                  const updatedOperations = selectedService.businessOperations?.map(o => 
+                    o.id === operation.id ? updatedOperation : o
+                  );
+                  setSelectedService({
+                    ...selectedService,
+                    businessOperations: updatedOperations
+                  });
+                  setHasChanges(true);
                 }}
-                serviceId={selectedService.id}
-                capabilityId={operation.capabilityId}
+                onSave={handleSave}
+                title="ビジネスオペレーション設計"
+                description="このオペレーションの処理フローと入出力をMarkdownで記述します"
               />
             </CardContent>
           </Card>
@@ -398,20 +475,25 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
         
       case 'useCase':
         // ユースケースの詳細表示
+        const useCaseData = selectedNode.metadata;
         return (
           <Card className="h-full">
             <CardHeader>
               <CardTitle>{selectedNode.displayName}</CardTitle>
-              <CardDescription>ユースケースの詳細</CardDescription>
+              <CardDescription>ユースケース定義</CardDescription>
             </CardHeader>
-            <CardContent>
-              <UnifiedDesignEditor
-                type="useCase"
-                value={JSON.stringify(selectedNode.metadata || {})}
+            <CardContent className="overflow-auto">
+              <UnifiedMDEditor
+                type="usecase-definition"
+                value={useCaseData?.definition || ''}
                 onChange={(value) => {
                   // ユースケース変更処理
+                  // TODO: ユースケースの更新ロジックを実装
+                  setHasChanges(true);
                 }}
-                serviceId={selectedService.id}
+                onSave={handleSave}
+                title="ユースケース定義"
+                description="アクター、事前/事後条件、基本フローをMarkdownで記述します"
               />
             </CardContent>
           </Card>
@@ -427,14 +509,17 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
               <CardDescription>ページ定義</CardDescription>
             </CardHeader>
             <CardContent className="overflow-auto">
-              <UnifiedDesignEditor
-                type="markdown"
+              <UnifiedMDEditor
+                type="page-definition"
                 value={pageDef?.description || ''}
                 onChange={(value) => {
-                  // ページ定義変更処理（将来的に実装）
+                  // ページ定義変更処理
+                  // TODO: ページ定義の更新ロジックを実装
+                  setHasChanges(true);
                 }}
-                serviceId={selectedService.id}
-                readOnly={true}
+                onSave={handleSave}
+                title="ページ定義"
+                description="画面構成、振る舞い、遷移をMarkdownで記述します"
               />
             </CardContent>
           </Card>
@@ -450,14 +535,17 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
               <CardDescription>テスト定義</CardDescription>
             </CardHeader>
             <CardContent className="overflow-auto">
-              <UnifiedDesignEditor
-                type="markdown"
+              <UnifiedMDEditor
+                type="test-definition"
                 value={testDef?.description || ''}
                 onChange={(value) => {
-                  // テスト定義変更処理（将来的に実装）
+                  // テスト定義変更処理
+                  // TODO: テスト定義の更新ロジックを実装
+                  setHasChanges(true);
                 }}
-                serviceId={selectedService.id}
-                readOnly={true}
+                onSave={handleSave}
+                title="テスト定義"
+                description="テストケース、期待結果をMarkdownで記述します"
               />
             </CardContent>
           </Card>

@@ -430,10 +430,29 @@ export async function saveServiceData(serviceId: string, data: {
   domainLanguage?: any;
   apiSpecification?: any;
   dbSchema?: any;
+  serviceDescription?: string;
+  domainLanguageDefinition?: string;
+  apiSpecificationDefinition?: string;
+  databaseDesignDefinition?: string;
 }) {
   try {
     const updateData: any = {};
     
+    // MD形式のフィールド
+    if (data.serviceDescription !== undefined) {
+      updateData.serviceDescription = data.serviceDescription;
+    }
+    if (data.domainLanguageDefinition !== undefined) {
+      updateData.domainLanguageDefinition = data.domainLanguageDefinition;
+    }
+    if (data.apiSpecificationDefinition !== undefined) {
+      updateData.apiSpecificationDefinition = data.apiSpecificationDefinition;
+    }
+    if (data.databaseDesignDefinition !== undefined) {
+      updateData.databaseDesignDefinition = data.databaseDesignDefinition;
+    }
+    
+    // JSON形式のフィールド（既存）
     if (data.domainLanguage !== undefined) {
       updateData.domainLanguage = JSON.stringify(data.domainLanguage);
     }

@@ -1,8 +1,9 @@
 import { getServices } from '@/app/actions/parasol';
-import { ParasolSettingsPage } from '@/app/components/parasol/ParasolSettingsPage';
+import { ParasolSettingsPage2 } from '@/app/components/parasol/ParasolSettingsPage2';
 
 export default async function ParasolDomainLanguagePage() {
-  const services = await getServices();
+  const result = await getServices();
+  const services = result.success ? result.data : [];
 
-  return <ParasolSettingsPage initialServices={services} />;
+  return <ParasolSettingsPage2 initialServices={services} />;
 }

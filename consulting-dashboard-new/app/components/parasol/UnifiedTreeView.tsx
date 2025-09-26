@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { ChevronRight, ChevronDown, Folder, Package, Code, FileText, Layout, FileCheck, Maximize2, Minimize2 } from 'lucide-react';
 import { TreeNode, ParasolService, BusinessCapability, BusinessOperation } from '@/types/parasol';
 import { buildUnifiedTreeFromServices, searchNodes, flattenTree } from '@/lib/parasol/tree-utils';
@@ -53,8 +53,8 @@ export function UnifiedTreeView({
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredNodes, setFilteredNodes] = useState<Set<string>>(new Set());
   
-  // 統合されたツリー構造を構築
-  const treeNodes = buildUnifiedTreeFromServices(services);
+  // 統合されたツリー構造を構築（メモ化）
+  const treeNodes = useMemo(() => buildUnifiedTreeFromServices(services), [services]);
   
   // 検索処理
   useEffect(() => {

@@ -17,9 +17,18 @@ model Service {
   name                  String                  @unique // サービス識別子（例: projectService）
   displayName           String                  // 表示名（例: プロジェクト管理）
   description           String?                 // サービスの説明
+  
+  // MD形式の定義（新方式）
+  serviceDescription    String?                 // MD形式のサービス説明
+  domainLanguageDefinition String?              // MD形式のドメイン言語定義
+  apiSpecificationDefinition String?            // MD形式のAPI仕様
+  databaseDesignDefinition String?              // MD形式のDB設計
+  
+  // JSON形式の定義（旧方式、後で廃止予定）
   domainLanguage        String                  // パラソルドメイン言語定義（JSON）
   apiSpecification      String                  // API仕様（OpenAPI形式 JSON）
   dbSchema              String                  // データベース設計（JSON）
+  
   capabilities          BusinessCapability[]    // ビジネスケーパビリティ
   businessOperations    BusinessOperation[]     // ビジネスオペレーション
   createdAt             DateTime                @default(now())
@@ -36,6 +45,7 @@ model BusinessCapability {
   name                  String                  // ケーパビリティ名（英語）
   displayName           String                  // 表示名（日本語）
   description           String?                 // 説明
+  definition            String?                 // MD形式のケーパビリティ定義
   category              String                  // カテゴリ（Core, Supporting, Generic）
   businessOperations    BusinessOperation[]     // 関連するビジネスオペレーション
   createdAt             DateTime                @default(now())
@@ -54,6 +64,7 @@ model BusinessOperation {
   capability            BusinessCapability?     @relation(fields: [capabilityId], references: [id], onDelete: SetNull)
   name                  String                  // オペレーション名
   displayName           String                  // 表示名
+  design                String?                 // MD形式のビジネスオペレーション設計
   pattern               String                  // パターン（CRUD, Workflow, Analytics, Communication, Administration）
   goal                  String                  // ビジネスゴール
   roles                 String                  // 関連ロール（JSON配列）
@@ -142,11 +153,12 @@ model UseCase {
   name            String              // ユースケース名（英語）
   displayName     String              // 表示名（日本語）
   description     String?             // 説明
+  definition      String?             // MD形式のユースケース定義
   operationId     String              // 所属ビジネスオペレーション
   operation       BusinessOperation   @relation(fields: [operationId], references: [id], onDelete: Cascade)
   order           Int                 @default(0) // 表示順序
   
-  // ユースケース詳細
+  // ユースケース詳細（JSON形式、後で廃止予定）
   actors          String?             // アクター（JSON: {primary: string, secondary: string[]})
   preconditions   String?             // 事前条件（JSON配列）
   postconditions  String?             // 事後条件（JSON配列）

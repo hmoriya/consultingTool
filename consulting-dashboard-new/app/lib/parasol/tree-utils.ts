@@ -60,8 +60,72 @@ export function buildTreeFromParasolData(
           },
         };
 
-        // ユースケースとページ定義を追加（今後の拡張用）
-        if (operation.useCases && Array.isArray(operation.useCases)) {
+        // ユースケースモデルを追加
+        if ((operation as any).useCaseModels && Array.isArray((operation as any).useCaseModels)) {
+          (operation as any).useCaseModels.forEach((useCase: any) => {
+            const useCaseNode: TreeNode = {
+              id: useCase.id,
+              name: useCase.name,
+              displayName: useCase.displayName,
+              type: 'useCase',
+              parentId: operation.id,
+              children: [],
+              metadata: {
+                description: useCase.description,
+                actors: useCase.actors,
+                preconditions: useCase.preconditions,
+                postconditions: useCase.postconditions,
+                basicFlow: useCase.basicFlow,
+                alternativeFlow: useCase.alternativeFlow,
+                exceptionFlow: useCase.exceptionFlow,
+              },
+            };
+            
+            // ページ定義を追加
+            if (useCase.pageDefinitions && Array.isArray(useCase.pageDefinitions)) {
+              useCase.pageDefinitions.forEach((pageDef: any) => {
+                const pageDefNode: TreeNode = {
+                  id: pageDef.id,
+                  name: pageDef.name,
+                  displayName: pageDef.displayName,
+                  type: 'pageDefinition',
+                  parentId: useCase.id,
+                  children: [],
+                  metadata: {
+                    description: pageDef.description,
+                    url: pageDef.url,
+                    layout: pageDef.layout,
+                  },
+                };
+                useCaseNode.children?.push(pageDefNode);
+              });
+            }
+            
+            // テスト定義を追加
+            if (useCase.testDefinitions && Array.isArray(useCase.testDefinitions)) {
+              useCase.testDefinitions.forEach((testDef: any) => {
+                const testDefNode: TreeNode = {
+                  id: testDef.id,
+                  name: testDef.name,
+                  displayName: testDef.displayName,
+                  type: 'testDefinition',
+                  parentId: useCase.id,
+                  children: [],
+                  metadata: {
+                    description: testDef.description,
+                    testType: testDef.testType,
+                    testCases: testDef.testCases,
+                  },
+                };
+                useCaseNode.children?.push(testDefNode);
+              });
+            }
+            
+            operationNode.children?.push(useCaseNode);
+          });
+        }
+        // 従来のuseCasesプロパティも後方互換性のため残す
+        else if (operation.useCases && Array.isArray(operation.useCases)) {
           operation.useCases.forEach((useCase, index) => {
             const useCaseNode: TreeNode = {
               id: `${operation.id}-usecase-${index}`,
@@ -69,6 +133,7 @@ export function buildTreeFromParasolData(
               displayName: useCase.displayName || `ユースケース ${index + 1}`,
               type: 'useCase',
               parentId: operation.id,
+              children: [],
               metadata: useCase,
             };
             operationNode.children?.push(useCaseNode);

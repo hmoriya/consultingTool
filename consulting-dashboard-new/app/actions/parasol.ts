@@ -86,10 +86,34 @@ export async function getServices() {
       include: {
         capabilities: {
           include: {
-            businessOperations: true
+            businessOperations: {
+              include: {
+                useCaseModels: {
+                  include: {
+                    pageDefinitions: true,
+                    testDefinitions: true
+                  },
+                  orderBy: {
+                    order: 'asc'
+                  }
+                }
+              }
+            }
           }
         },
-        businessOperations: true,
+        businessOperations: {
+          include: {
+            useCaseModels: {
+              include: {
+                pageDefinitions: true,
+                testDefinitions: true
+              },
+              orderBy: {
+                order: 'asc'
+              }
+            }
+          }
+        },
       },
       orderBy: {
         displayName: 'asc',
@@ -114,6 +138,17 @@ export async function getServices() {
           uiDefinitions: JSON.parse(op.uiDefinitions),
           testCases: JSON.parse(op.testCases),
           robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
+          useCaseModels: op.useCaseModels.map(uc => ({
+            ...uc,
+            actors: uc.actors ? JSON.parse(uc.actors) : null,
+            preconditions: uc.preconditions ? JSON.parse(uc.preconditions) : null,
+            postconditions: uc.postconditions ? JSON.parse(uc.postconditions) : null,
+            basicFlow: uc.basicFlow ? JSON.parse(uc.basicFlow) : null,
+            alternativeFlow: uc.alternativeFlow ? JSON.parse(uc.alternativeFlow) : null,
+            exceptionFlow: uc.exceptionFlow ? JSON.parse(uc.exceptionFlow) : null,
+            pageDefinitions: uc.pageDefinitions || [],
+            testDefinitions: uc.testDefinitions || [],
+          }))
         }))
       })),
       businessOperations: service.businessOperations.map(op => ({
@@ -125,6 +160,17 @@ export async function getServices() {
         uiDefinitions: JSON.parse(op.uiDefinitions),
         testCases: JSON.parse(op.testCases),
         robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
+        useCaseModels: op.useCaseModels.map(uc => ({
+          ...uc,
+          actors: uc.actors ? JSON.parse(uc.actors) : null,
+          preconditions: uc.preconditions ? JSON.parse(uc.preconditions) : null,
+          postconditions: uc.postconditions ? JSON.parse(uc.postconditions) : null,
+          basicFlow: uc.basicFlow ? JSON.parse(uc.basicFlow) : null,
+          alternativeFlow: uc.alternativeFlow ? JSON.parse(uc.alternativeFlow) : null,
+          exceptionFlow: uc.exceptionFlow ? JSON.parse(uc.exceptionFlow) : null,
+          pageDefinitions: uc.pageDefinitions || [],
+          testDefinitions: uc.testDefinitions || [],
+        }))
       }))
     }));
     

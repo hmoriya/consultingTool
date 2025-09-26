@@ -39,7 +39,7 @@ import {
   validateDbDesignMarkdown
 } from '@/lib/parasol/db-markdown-converter';
 
-export type DesignType = 'domain' | 'capability' | 'operation' | 'api' | 'db';
+export type DesignType = 'domain' | 'capability' | 'operation' | 'api' | 'db' | 'markdown' | 'useCase';
 
 interface UnifiedDesignEditorProps {
   type: DesignType;
@@ -48,6 +48,7 @@ interface UnifiedDesignEditorProps {
   serviceId?: string;
   capabilityId?: string;
   className?: string;
+  readOnly?: boolean;
 }
 
 const designTypeConfig = {
@@ -99,6 +100,46 @@ const designTypeConfig = {
     toMarkdown: (data: any) => dbDesignToMarkdown(JSON.parse(data)),
     fromMarkdown: (md: string) => JSON.stringify(markdownToDbDesign(md), null, 2),
     validate: validateDbDesignMarkdown
+  },
+  markdown: {
+    title: 'Markdown',
+    description: '自然言語での記述',
+    icon: FileText,
+    toMarkdown: (data: any) => data,  // そのまま返す
+    fromMarkdown: (md: string) => md, // そのまま返す
+    validate: () => ({ isValid: true, errors: [] }) // 常に有効
+  },
+  useCase: {
+    title: 'ユースケース',
+    description: 'ユースケースの詳細定義',
+    icon: FileText,
+    toMarkdown: (data: any) => {
+      const useCase = JSON.parse(data);
+      return `# ユースケース: ${useCase.displayName || useCase.name || 'ユースケース'}
+
+## 概要
+${useCase.description || ''}
+
+## アクター
+${useCase.actors ? useCase.actors.map((a: any) => `- ${a}`).join('\n') : ''}
+
+## 事前条件
+${useCase.preconditions ? useCase.preconditions.map((p: any) => `- ${p}`).join('\n') : ''}
+
+## 事後条件
+${useCase.postconditions ? useCase.postconditions.map((p: any) => `- ${p}`).join('\n') : ''}
+
+## 基本フロー
+${useCase.basicFlow ? useCase.basicFlow.map((s: any, i: number) => `${i + 1}. ${s}`).join('\n') : ''}
+
+## 代替フロー
+${useCase.alternativeFlow ? useCase.alternativeFlow.map((f: any) => `- ${f}`).join('\n') : ''}
+
+## 例外フロー
+${useCase.exceptionFlow ? useCase.exceptionFlow.map((f: any) => `- ${f}`).join('\n') : ''}`;
+    },
+    fromMarkdown: (md: string) => md, // 変換しない
+    validate: () => ({ isValid: true, errors: [] })
   }
 };
 
@@ -108,7 +149,8 @@ export function UnifiedDesignEditor({
   onChange,
   serviceId,
   capabilityId,
-  className
+  className,
+  readOnly = false
 }: UnifiedDesignEditorProps) {
   const config = designTypeConfig[type];
   const Icon = config.icon;
@@ -210,6 +252,8 @@ export function UnifiedDesignEditor({
               onChange={handleMarkdownChange}
               className="font-mono text-sm h-[600px]"
               placeholder={`${config.title}のMarkdown定義を入力...`}
+              readOnly={readOnly}
+              disabled={readOnly}
             />
           </TabsContent>
 

@@ -46,7 +46,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
   
   // 初期表示時にすべてのノードを展開
   useEffect(() => {
-    if (services.length > 0 && expandedNodes.size === 0) {
+    if (services.length > 0) {
       const allNodeIds = new Set<string>();
       
       // すべてのノードIDを収集
@@ -62,14 +62,31 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
             const operations = service.businessOperations?.filter(op => op.capabilityId === capability.id) || [];
             operations.forEach(operation => {
               allNodeIds.add(operation.id);
+              // ユースケースのIDも追加
+              if (operation.useCaseModels) {
+                operation.useCaseModels.forEach((uc: any) => {
+                  allNodeIds.add(uc.id);
+                });
+              }
             });
           });
         }
+        
+        // ケーパビリティに属さないオペレーションも処理
+        const uncategorizedOps = service.businessOperations?.filter(op => !op.capabilityId) || [];
+        uncategorizedOps.forEach(operation => {
+          allNodeIds.add(operation.id);
+          if (operation.useCaseModels) {
+            operation.useCaseModels.forEach((uc: any) => {
+              allNodeIds.add(uc.id);
+            });
+          }
+        });
       });
       
       setExpandedNodes(allNodeIds);
     }
-  }, [services]);
+  }, []); // 依存配列を空にして初回のみ実行
   const [searchTerm, setSearchTerm] = useState('');
   const [showServiceForm, setShowServiceForm] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
@@ -378,6 +395,73 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
             </CardContent>
           </Card>
         );
+        
+      case 'useCase':
+        // ユースケースの詳細表示
+        return (
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle>{selectedNode.displayName}</CardTitle>
+              <CardDescription>ユースケースの詳細</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <UnifiedDesignEditor
+                type="useCase"
+                value={JSON.stringify(selectedNode.metadata || {})}
+                onChange={(value) => {
+                  // ユースケース変更処理
+                }}
+                serviceId={selectedService.id}
+              />
+            </CardContent>
+          </Card>
+        );
+        
+      case 'pageDefinition':
+        // ページ定義のMD表示
+        const pageDef = selectedNode.metadata;
+        return (
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle>{selectedNode.displayName}</CardTitle>
+              <CardDescription>ページ定義</CardDescription>
+            </CardHeader>
+            <CardContent className="overflow-auto">
+              <UnifiedDesignEditor
+                type="markdown"
+                value={pageDef?.description || ''}
+                onChange={(value) => {
+                  // ページ定義変更処理（将来的に実装）
+                }}
+                serviceId={selectedService.id}
+                readOnly={true}
+              />
+            </CardContent>
+          </Card>
+        );
+        
+      case 'testDefinition':
+        // テスト定義のMD表示
+        const testDef = selectedNode.metadata;
+        return (
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle>{selectedNode.displayName}</CardTitle>
+              <CardDescription>テスト定義</CardDescription>
+            </CardHeader>
+            <CardContent className="overflow-auto">
+              <UnifiedDesignEditor
+                type="markdown"
+                value={testDef?.description || ''}
+                onChange={(value) => {
+                  // テスト定義変更処理（将来的に実装）
+                }}
+                serviceId={selectedService.id}
+                readOnly={true}
+              />
+            </CardContent>
+          </Card>
+        );
 
       default:
         return null;
@@ -433,35 +517,43 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                     onNodeSelect={handleNodeSelect}
                     expandedNodes={expandedNodes}
                     onToggleNode={(nodeId) => {
-                      if (nodeId === '__EXPAND_ALL__') {
-                        // すべて展開
-                        const allNodeIds = new Set<string>();
-                        filteredServices.forEach(service => {
-                          allNodeIds.add(service.id);
-                          if (service.capabilities) {
-                            service.capabilities.forEach(capability => {
-                              allNodeIds.add(capability.id);
-                              const operations = service.businessOperations?.filter(op => op.capabilityId === capability.id) || [];
-                              operations.forEach(operation => {
-                                allNodeIds.add(operation.id);
+                      setExpandedNodes(prev => {
+                        if (nodeId === '__EXPAND_ALL__') {
+                          // すべて展開
+                          const allNodeIds = new Set<string>();
+                          filteredServices.forEach(service => {
+                            allNodeIds.add(service.id);
+                            if (service.capabilities) {
+                              service.capabilities.forEach(capability => {
+                                allNodeIds.add(capability.id);
+                                const operations = service.businessOperations?.filter(op => op.capabilityId === capability.id) || [];
+                                operations.forEach(operation => {
+                                  allNodeIds.add(operation.id);
+                                  // ユースケースのIDも追加
+                                  if (operation.useCaseModels) {
+                                    operation.useCaseModels.forEach((uc: any) => {
+                                      allNodeIds.add(uc.id);
+                                    });
+                                  }
+                                });
                               });
-                            });
-                          }
-                        });
-                        setExpandedNodes(allNodeIds);
-                      } else if (nodeId === '__COLLAPSE_ALL__') {
-                        // すべて折りたたむ
-                        setExpandedNodes(new Set());
-                      } else {
-                        // 通常のトグル
-                        const newExpanded = new Set(expandedNodes);
-                        if (newExpanded.has(nodeId)) {
-                          newExpanded.delete(nodeId);
+                            }
+                          });
+                          return allNodeIds;
+                        } else if (nodeId === '__COLLAPSE_ALL__') {
+                          // すべて折りたたむ
+                          return new Set();
                         } else {
-                          newExpanded.add(nodeId);
+                          // 通常のトグル
+                          const newExpanded = new Set(prev);
+                          if (newExpanded.has(nodeId)) {
+                            newExpanded.delete(nodeId);
+                          } else {
+                            newExpanded.add(nodeId);
+                          }
+                          return newExpanded;
                         }
-                        setExpandedNodes(newExpanded);
-                      }
+                      });
                     }}
                   />
                 </CardContent>

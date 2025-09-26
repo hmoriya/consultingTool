@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ChevronRight, ChevronDown, Folder, Package, Code, FileText, Layout, Maximize2, Minimize2 } from 'lucide-react';
+import { ChevronRight, ChevronDown, Folder, Package, Code, FileText, Layout, FileCheck, Maximize2, Minimize2 } from 'lucide-react';
 import { TreeNode, ParasolService, BusinessCapability, BusinessOperation } from '@/types/parasol';
 import { buildUnifiedTreeFromServices, searchNodes, flattenTree } from '@/lib/parasol/tree-utils';
 import { cn } from '@/lib/utils';
@@ -28,6 +28,8 @@ const nodeIcons = {
   operation: Code,
   useCase: FileText,
   page: Layout,
+  pageDefinition: Layout,
+  testDefinition: FileCheck,
 };
 
 const nodeColors = {
@@ -36,6 +38,8 @@ const nodeColors = {
   operation: 'text-purple-600',
   useCase: 'text-orange-600',
   page: 'text-pink-600',
+  pageDefinition: 'text-pink-600',
+  testDefinition: 'text-teal-600',
 };
 
 export function UnifiedTreeView({
@@ -150,13 +154,7 @@ export function UnifiedTreeView({
   
   // 全展開/全折りたたみ処理
   const handleExpandAll = () => {
-    const allNodeIds = new Set<string>();
-    treeNodes.forEach(node => {
-      flattenTree(node).forEach(n => allNodeIds.add(n.id));
-    });
     onToggleNode('__EXPAND_ALL__'); // 特殊なIDを送信して親コンポーネントに通知
-    expandedNodes.clear();
-    allNodeIds.forEach(id => expandedNodes.add(id));
   };
 
   const handleCollapseAll = () => {

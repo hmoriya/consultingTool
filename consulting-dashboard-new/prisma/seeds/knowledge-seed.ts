@@ -1,5 +1,5 @@
 // ナレッジサービス用シード
-import { PrismaClient as KnowledgePrismaClient } from '@prisma/knowledge-client'
+import { PrismaClient as KnowledgePrismaClient } from '../knowledge-service/generated/client'
 
 const knowledgeDb = new KnowledgePrismaClient({
   log: ['error', 'warn']

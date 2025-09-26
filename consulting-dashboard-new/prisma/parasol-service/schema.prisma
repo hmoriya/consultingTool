@@ -63,6 +63,7 @@ model BusinessOperation {
   uiDefinitions         String                  // UI定義（JSON）
   testCases             String                  // テストケース（JSON）
   robustnessModel       String?                 // ロバストネス図（JSON）
+  useCaseModels         UseCase[]               // ユースケースモデル（リレーション）
   createdAt             DateTime                @default(now())
   updatedAt             DateTime                @updatedAt
   
@@ -133,4 +134,77 @@ model ImpactAnalysis {
   createdBy             String                  // 実行者
   
   @@map("impact_analyses")
+}
+
+// ユースケース定義
+model UseCase {
+  id              String              @id @default(cuid())
+  name            String              // ユースケース名（英語）
+  displayName     String              // 表示名（日本語）
+  description     String?             // 説明
+  operationId     String              // 所属ビジネスオペレーション
+  operation       BusinessOperation   @relation(fields: [operationId], references: [id], onDelete: Cascade)
+  order           Int                 @default(0) // 表示順序
+  
+  // ユースケース詳細
+  actors          String?             // アクター（JSON: {primary: string, secondary: string[]})
+  preconditions   String?             // 事前条件（JSON配列）
+  postconditions  String?             // 事後条件（JSON配列）
+  basicFlow       String?             // 基本フロー（JSON配列）
+  alternativeFlow String?             // 代替フロー（JSON配列）
+  exceptionFlow   String?             // 例外フロー（JSON配列）
+  
+  // 関連定義
+  pageDefinitions PageDefinition[]    // ページ定義
+  testDefinitions TestDefinition[]    // テスト定義
+  
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  @@unique([operationId, name])
+  @@map("use_cases")
+}
+
+// ページ定義
+model PageDefinition {
+  id              String              @id @default(cuid())
+  name            String              // ページ名（英語）
+  displayName     String              // 表示名（日本語）
+  description     String?             // 説明
+  useCaseId       String              // 所属ユースケース
+  useCase         UseCase             @relation(fields: [useCaseId], references: [id], onDelete: Cascade)
+  
+  // ページ詳細
+  url             String              // URL
+  layout          String?             // レイアウト定義（JSON）
+  components      String?             // コンポーネント構成（JSON）
+  stateManagement String?             // 状態管理（JSON）
+  validations     String?             // バリデーション（JSON）
+  
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  @@unique([useCaseId, name])
+  @@map("page_definitions")
+}
+
+// テスト定義
+model TestDefinition {
+  id              String              @id @default(cuid())
+  name            String              // テスト名（英語）
+  displayName     String              // 表示名（日本語）
+  description     String?             // 説明
+  useCaseId       String              // 所属ユースケース
+  useCase         UseCase             @relation(fields: [useCaseId], references: [id], onDelete: Cascade)
+  
+  // テスト詳細
+  testType        String              // テストタイプ（unit, integration, e2e）
+  testCases       String?             // テストケース（JSON配列）
+  expectedResults String?             // 期待結果（JSON）
+  testData        String?             // テストデータ（JSON）
+  
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  @@map("test_definitions")
 }

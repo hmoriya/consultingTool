@@ -45,6 +45,20 @@ interface ParasolSettingsPageProps {
 
 export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPageProps) {
   const [services, setServices] = useState<Service[]>(initialServices);
+  
+  // デバッグログ
+  useEffect(() => {
+    console.log('ParasolSettingsPage2: Initial services loaded');
+    initialServices.forEach(service => {
+      if (service.name === 'knowledge-service' || service.name === 'finance-service' || service.name === 'notification-service') {
+        console.log(`Service: ${service.name}`);
+        console.log(`  Capabilities: ${service.capabilities?.length || 0}`);
+        service.capabilities?.forEach((cap: any) => {
+          console.log(`    ${cap.name}: ${cap.businessOperations?.length || 0} operations`);
+        });
+      }
+    });
+  }, [initialServices]);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedNode, setSelectedNode] = useState<TreeNode | null>(null);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
@@ -440,7 +454,17 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
         );
 
       case 'operation':
-        const operation = selectedService.businessOperations?.find(o => o.id === selectedNode.id);
+        // オペレーションはケーパビリティの下にある可能性があるので両方を探す
+        let operation = selectedService.businessOperations?.find(o => o.id === selectedNode.id);
+        
+        // サービス直下になければ、ケーパビリティ配下を探す
+        if (!operation && selectedService.capabilities) {
+          for (const cap of selectedService.capabilities) {
+            operation = cap.businessOperations?.find(o => o.id === selectedNode.id);
+            if (operation) break;
+          }
+        }
+        
         if (!operation) return null;
 
         return (
@@ -456,13 +480,36 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                 onChange={(value) => {
                   // オペレーション変更処理
                   const updatedOperation = { ...operation, design: value };
-                  const updatedOperations = selectedService.businessOperations?.map(o => 
-                    o.id === operation.id ? updatedOperation : o
-                  );
-                  setSelectedService({
-                    ...selectedService,
-                    businessOperations: updatedOperations
-                  });
+                  
+                  // オペレーションがサービス直下にある場合
+                  if (selectedService.businessOperations?.some(o => o.id === operation.id)) {
+                    const updatedOperations = selectedService.businessOperations.map(o => 
+                      o.id === operation.id ? updatedOperation : o
+                    );
+                    setSelectedService({
+                      ...selectedService,
+                      businessOperations: updatedOperations
+                    });
+                  } 
+                  // オペレーションがケーパビリティ配下にある場合
+                  else if (selectedService.capabilities) {
+                    const updatedCapabilities = selectedService.capabilities.map(cap => {
+                      if (cap.businessOperations?.some(o => o.id === operation.id)) {
+                        return {
+                          ...cap,
+                          businessOperations: cap.businessOperations.map(o =>
+                            o.id === operation.id ? updatedOperation : o
+                          )
+                        };
+                      }
+                      return cap;
+                    });
+                    setSelectedService({
+                      ...selectedService,
+                      capabilities: updatedCapabilities
+                    });
+                  }
+                  
                   setHasChanges(true);
                 }}
                 onSave={handleSave}

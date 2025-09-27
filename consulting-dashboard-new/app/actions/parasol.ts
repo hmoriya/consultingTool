@@ -122,6 +122,16 @@ export async function getServices() {
     
     console.log(`Found ${services.length} services`);
     
+    // デバッグ: 各サービスのケーパビリティとオペレーション数を表示
+    services.forEach(service => {
+      console.log(`Service: ${service.name}`);
+      console.log(`  Capabilities: ${service.capabilities.length}`);
+      service.capabilities.forEach(cap => {
+        console.log(`    ${cap.name}: ${cap.businessOperations.length} operations`);
+      });
+      console.log(`  Direct operations: ${service.businessOperations.length}`);
+    });
+    
     const mappedServices = services.map(service => ({
       ...service,
       domainLanguage: JSON.parse(service.domainLanguage),

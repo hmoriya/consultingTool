@@ -22,7 +22,7 @@
       "@/*": ["./app/*"],
       "@/components/*": ["./components/*", "./app/components/*"],
       "@/constants/*": ["./constants/*"],
-      "@/lib/*": ["./app/lib/*"],
+      "@/lib/*": ["./lib/*", "./app/lib/*"],
       "@/prisma/*": ["./prisma/*"],
       "@/app/*": ["./app/*"],
       "@/types/*": ["./app/types/*"],

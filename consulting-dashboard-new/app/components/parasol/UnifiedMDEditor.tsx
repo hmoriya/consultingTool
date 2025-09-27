@@ -14,12 +14,15 @@ import {
   Upload, 
   RotateCcw,
   Save,
-  FileCode2
+  FileCode2,
+  GitBranch
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/app/hooks/use-toast';
+import { DiagramView } from './DiagramView';
+import { DiagramConverter } from '../../../lib/parasol/diagram-converter';
 
 export type MDEditorType = 
   | 'service-description'
@@ -74,32 +77,102 @@ const mdTemplates: MDTemplate[] = [
     type: 'domain-language',
     template: `# ドメイン言語定義
 
+## ドメイン概要
+[ドメインの目的と責務を記述]
+
+## ユビキタス言語定義
+
+### 基本型定義
+\`\`\`
+UUID: 一意識別子（36文字）
+STRING_20: 最大20文字の文字列
+STRING_50: 最大50文字の文字列
+STRING_100: 最大100文字の文字列
+STRING_255: 最大255文字の文字列
+STRING_500: 最大500文字の文字列
+TEXT: 長文テキスト（制限なし）
+MARKDOWN: Markdown形式のテキスト
+EMAIL: メールアドレス形式（RFC5322準拠）
+PASSWORD_HASH: ハッシュ化されたパスワード
+URL: URL形式（RFC3986準拠）
+DATE: 日付（YYYY-MM-DD形式）
+TIMESTAMP: 日時（ISO8601形式）
+DECIMAL: 小数点数値
+INTEGER: 整数
+PERCENTAGE: パーセンテージ（0-100）
+MONEY: 金額（通貨単位付き）
+BOOLEAN: 真偽値（true/false）
+JSON: JSON形式のデータ
+ENUM: 列挙型
+\`\`\`
+
 ## エンティティ
-### エンティティ名
-- **概要**: エンティティの説明
-- **属性**:
-  - id: 識別子
-  - name: 名前
-  - createdAt: 作成日時
-- **振る舞い**:
-  - メソッド1(): 説明
-  - メソッド2(): 説明
+
+### [エンティティ名]
+[エンティティの説明]
+
+| 属性名 | 型 | 必須 | 説明 |
+|--------|-----|------|------|
+| ID | UUID | ○ | 一意識別子 |
+| 名称 | STRING_100 | ○ | エンティティの名称 |
+| 説明 | TEXT | - | 詳細説明 |
+| ステータス | ENUM | ○ | 状態 |
+| 作成日時 | TIMESTAMP | ○ | レコード作成日時 |
+| 更新日時 | TIMESTAMP | ○ | 最終更新日時 |
+
+#### ビジネスルール
+- [ルール1]: 詳細説明
+- [ルール2]: 詳細説明
+
+#### ドメインイベント
+- [イベント名]: トリガー条件と内容
+
+#### 集約ルート
+[この場合のみ記載] このエンティティは[集約名]集約のルートエンティティ
 
 ## 値オブジェクト
-### 値オブジェクト名
-- **概要**: 値オブジェクトの説明
-- **属性**:
-  - value: 値
-- **制約**:
-  - 制約1
-  - 制約2
+
+### [値オブジェクト名]
+[値オブジェクトの説明]
+
+#### 属性
+- [属性名]: [型] - [説明]
+
+#### 制約
+- [制約1]
+- [制約2]
+
+## 集約
+
+### [集約名]
+- **集約ルート**: [エンティティ名]
+- **含まれるエンティティ**: [エンティティ1], [エンティティ2]
+- **トランザクション境界**: [説明]
+- **不変条件**: [条件説明]
 
 ## ドメインサービス
-### サービス名
-- **概要**: ドメインサービスの説明
-- **提供機能**:
-  - 機能1
-  - 機能2`
+
+### [サービス名]
+[サービスの説明]
+
+#### 提供機能
+- [メソッド名]([パラメータ]): [説明]
+
+## ドメインイベント
+
+### [イベント名]
+- **発生タイミング**: [説明]
+- **ペイロード**: 
+  - [属性1]: [型]
+  - [属性2]: [型]
+
+## リポジトリインターフェース
+
+### [リポジトリ名]
+- findById(id: UUID): [エンティティ名]
+- save(entity: [エンティティ名]): void
+- delete(id: UUID): void
+- [カスタムメソッド]: [説明]`
   },
   {
     name: 'API仕様',
@@ -397,7 +470,9 @@ export function UnifiedMDEditor({
   className
 }: UnifiedMDEditorProps) {
   const [markdown, setMarkdown] = useState(value);
-  const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit');
+  const [activeTab, setActiveTab] = useState<'edit' | 'preview' | 'diagram'>('edit');
+  const [diagramCode, setDiagramCode] = useState<string>('');
+  const [diagramType, setDiagramType] = useState<'mermaid' | 'plantuml'>('mermaid');
   const [hasChanges, setHasChanges] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
@@ -406,6 +481,46 @@ export function UnifiedMDEditor({
   useEffect(() => {
     setMarkdown(value);
   }, [value]);
+
+  // ダイアグラムコードの生成
+  useEffect(() => {
+    if (!markdown) {
+      setDiagramCode('');
+      return;
+    }
+
+    try {
+      let code = '';
+      let diagType: 'mermaid' | 'plantuml' = 'mermaid';
+
+      console.log('UnifiedMDEditor: Generating diagram for type:', type);
+      
+      switch (type) {
+        case 'domain-language':
+          code = DiagramConverter.domainToClassDiagram(markdown);
+          break;
+        case 'database-design':
+          code = DiagramConverter.dbToERDiagram(markdown);
+          break;
+        case 'operation-design':
+          code = DiagramConverter.operationToFlowDiagram(markdown);
+          break;
+        case 'usecase-definition':
+          code = DiagramConverter.useCaseToRobustnessDiagram(markdown);
+          diagType = 'plantuml';
+          break;
+        default:
+          code = '';
+      }
+
+      console.log('UnifiedMDEditor: Generated diagram code:', code);
+      setDiagramCode(code);
+      setDiagramType(diagType);
+    } catch (err) {
+      console.error('Diagram generation error:', err);
+      setDiagramCode('');
+    }
+  }, [markdown, type]);
 
   // Markdown変更ハンドラ
   const handleMarkdownChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -572,7 +687,7 @@ export function UnifiedMDEditor({
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="edit" className="flex items-center gap-2" disabled={readOnly}>
               <FileText className="h-4 w-4" />
               編集
@@ -580,6 +695,14 @@ export function UnifiedMDEditor({
             <TabsTrigger value="preview" className="flex items-center gap-2">
               <Eye className="h-4 w-4" />
               プレビュー
+            </TabsTrigger>
+            <TabsTrigger 
+              value="diagram" 
+              className="flex items-center gap-2"
+              disabled={!diagramCode}
+            >
+              <GitBranch className="h-4 w-4" />
+              ダイアグラム
             </TabsTrigger>
           </TabsList>
 
@@ -638,6 +761,27 @@ export function UnifiedMDEditor({
                 </ReactMarkdown>
               </div>
             </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="diagram" className="mt-4">
+            {diagramCode ? (
+              <DiagramView
+                type={diagramType}
+                code={diagramCode}
+                title={title || type}
+                onError={(error) => {
+                  toast({
+                    title: 'ダイアグラムエラー',
+                    description: error,
+                    variant: 'destructive',
+                  });
+                }}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-[600px] text-muted-foreground">
+                <p>このコンテンツタイプではダイアグラムを生成できません</p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </CardContent>

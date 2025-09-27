@@ -826,3 +826,47 @@ stateDiagram-v2
 - PageDefinitionとTestDefinitionエンティティの`content`フィールドに、上記MD形式のテキスト全体を文字列として格納
 - 実装詳細（HTMLタグ、CSSクラス、JSONスキーマ等）は一切含めない
 - ビジネスドメインの言葉のみを使用
+
+## パラソル設計ドキュメント種別と仕様
+
+パラソル設計手法では、以下の種別のドキュメントを作成し、各々の仕様とテンプレートに従います。
+
+### 1. ビジネスケーパビリティ定義
+- **仕様**: `design/parasol/specifications/business-capability-spec.md`
+- **テンプレート**: `design/parasol/templates/business-capability-template.md`
+
+### 2. ビジネスオペレーション設計
+- **仕様**: `design/parasol/specifications/business-operation-spec.md`
+- **テンプレート**: `design/parasol/templates/business-operation-template.md`
+
+### 3. ユースケース定義
+- **仕様**: `design/parasol/specifications/use-case-spec.md`
+- **テンプレート**: `design/parasol/templates/use-case-template.md`
+
+### 4. ドメイン言語モデル
+- **仕様**: `design/parasol/specifications/domain-language-spec.md`
+- **テンプレート**: `design/parasol/templates/domain-language-template.md`
+
+### 5. ページ定義
+- **仕様**: `design/parasol/specifications/page-definition-spec.md`
+- **テンプレート**: `design/parasol/templates/page-definition-template.md`
+
+### 6. テスト定義
+- **仕様**: `design/parasol/specifications/test-definition-spec.md`
+- **テンプレート**: `design/parasol/templates/test-definition-template.md`
+
+### 7. API仕様
+- **仕様**: `design/parasol/specifications/api-specification-spec.md`
+- **テンプレート**: `design/parasol/templates/api-specification-template.md`
+
+### 8. ロバストネス図
+- **仕様**: `design/parasol/specifications/robustness-diagram-spec.md`
+- **テンプレート**: `design/parasol/templates/robustness-diagram-template.md`
+
+### 9. データベース設計
+- **仕様**: `design/parasol/specifications/database-design-spec.md`
+- **テンプレート**: `design/parasol/templates/database-design-template.md`
+
+### 10. イテレーション計画
+- **仕様**: `design/parasol/specifications/iteration-plan-spec.md`
+- **テンプレート**: `design/parasol/templates/iteration-plan-template.md`

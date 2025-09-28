@@ -8,22 +8,154 @@ export async function seedResourceServiceFullParasol() {
   
   // 既存のサービスをチェック
   const existingService = await parasolDb.service.findFirst({
-    where: { name: 'resource-management' }
+    where: { name: 'talent-optimization' }
   })
   
   if (existingService) {
-    console.log('  リソース管理サービス already exists, skipping...')
+    console.log('  タレント最適化サービス already exists, skipping...')
     return
   }
   
   // サービスを作成
   const service = await parasolDb.service.create({
     data: {
-      name: 'resource-management',
-      displayName: 'リソース管理サービス',
-      description: '人的リソースの最適配置、スキル管理、チーム編成を支援',
+      name: 'talent-optimization',
+      displayName: 'タレント最適化サービス',
+      description: '人材の能力を最大化し、最適なチーム編成とスキル開発を実現',
 
-      domainLanguage: JSON.stringify({}),
+      domainLanguage: JSON.stringify({
+        entities: [
+          {
+            name: 'メンバー [Member] [MEMBER]',
+            attributes: [
+              { name: 'ID [id] [MEMBER_ID]', type: 'UUID' },
+              { name: '社員番号 [employeeNumber] [EMPLOYEE_NUMBER]', type: 'STRING_20' },
+              { name: '氏名 [name] [NAME]', type: 'STRING_100' },
+              { name: 'メールアドレス [email] [EMAIL]', type: 'EMAIL' },
+              { name: '部門ID [departmentId] [DEPARTMENT_ID]', type: 'UUID' },
+              { name: '役職 [position] [POSITION]', type: 'STRING_50' },
+              { name: 'ランク [rank] [RANK]', type: 'ENUM' },
+              { name: '入社日 [joinedDate] [JOINED_DATE]', type: 'DATE' },
+              { name: '稼働率 [utilization] [UTILIZATION]', type: 'PERCENTAGE' },
+              { name: '単価 [hourlyRate] [HOURLY_RATE]', type: 'MONEY' }
+            ],
+            businessRules: [
+              '社員番号は企業内で一意',
+              '稼働率は80%を目標とする',
+              '単価はランクとスキルにより決定'
+            ]
+          },
+          {
+            name: 'チーム [Team] [TEAM]',
+            attributes: [
+              { name: 'ID [id] [TEAM_ID]', type: 'UUID' },
+              { name: 'チーム名 [name] [NAME]', type: 'STRING_100' },
+              { name: '説明 [description] [DESCRIPTION]', type: 'TEXT' },
+              { name: 'プロジェクトID [projectId] [PROJECT_ID]', type: 'UUID' },
+              { name: 'リーダーID [leaderId] [LEADER_ID]', type: 'UUID' },
+              { name: '開始日 [startDate] [START_DATE]', type: 'DATE' },
+              { name: '終了日 [endDate] [END_DATE]', type: 'DATE' },
+              { name: 'ステータス [status] [STATUS]', type: 'ENUM' }
+            ],
+            businessRules: [
+              'チームには必ずリーダーを置く',
+              'チームメンバーは3-10名が適正',
+              'チーム編成はスキルバランスを考慮'
+            ]
+          },
+          {
+            name: 'スキル [Skill] [SKILL]',
+            attributes: [
+              { name: 'ID [id] [SKILL_ID]', type: 'UUID' },
+              { name: 'スキル名 [name] [NAME]', type: 'STRING_100' },
+              { name: 'カテゴリ [category] [CATEGORY]', type: 'ENUM' },
+              { name: '説明 [description] [DESCRIPTION]', type: 'TEXT' },
+              { name: 'レベル定義 [levelDefinition] [LEVEL_DEFINITION]', type: 'JSON' }
+            ],
+            businessRules: [
+              'スキルは技術スキルとビジネススキルに分類',
+              'レベルは1-5の5段階評価',
+              'スキル定義は定期的に見直し'
+            ]
+          },
+          {
+            name: 'メンバースキル [MemberSkill] [MEMBER_SKILL]',
+            attributes: [
+              { name: 'ID [id] [MEMBER_SKILL_ID]', type: 'UUID' },
+              { name: 'メンバーID [memberId] [MEMBER_ID]', type: 'UUID' },
+              { name: 'スキルID [skillId] [SKILL_ID]', type: 'UUID' },
+              { name: 'レベル [level] [LEVEL]', type: 'INTEGER' },
+              { name: '経験年数 [experienceYears] [EXPERIENCE_YEARS]', type: 'DECIMAL' },
+              { name: '認定日 [certifiedDate] [CERTIFIED_DATE]', type: 'DATE' },
+              { name: '次回評価日 [nextReviewDate] [NEXT_REVIEW_DATE]', type: 'DATE' }
+            ],
+            businessRules: [
+              'スキルレベルは実務経験と試験で評価',
+              '年次でスキルレビューを実施',
+              'レベル3以上はプロジェクトリード可能'
+            ]
+          },
+          {
+            name: 'アサインメント [Assignment] [ASSIGNMENT]',
+            attributes: [
+              { name: 'ID [id] [ASSIGNMENT_ID]', type: 'UUID' },
+              { name: 'メンバーID [memberId] [MEMBER_ID]', type: 'UUID' },
+              { name: 'プロジェクトID [projectId] [PROJECT_ID]', type: 'UUID' },
+              { name: 'チームID [teamId] [TEAM_ID]', type: 'UUID' },
+              { name: '役割 [role] [ROLE]', type: 'ENUM' },
+              { name: '稼働率 [allocationPercent] [ALLOCATION_PERCENT]', type: 'PERCENTAGE' },
+              { name: '開始日 [startDate] [START_DATE]', type: 'DATE' },
+              { name: '終了日 [endDate] [END_DATE]', type: 'DATE' },
+              { name: 'ステータス [status] [STATUS]', type: 'ENUM' }
+            ],
+            businessRules: [
+              '同時期の稼働率合計は100%を超えない',
+              'アサイン変更は2週間前までに通知',
+              'スキルマッチ度を考慮したアサイン'
+            ]
+          }
+        ],
+        valueObjects: [
+          {
+            name: 'ランク [Rank] [RANK]',
+            attributes: [{ name: '値 [value] [VALUE]', type: 'ENUM' }],
+            businessRules: [
+              'ランク: ジュニア、ミドル、シニア、マネージャー、エグゼクティブ',
+              '升格には最低期間とパフォーマンス要件あり',
+              'ランクごとに期待スキルセットを定義'
+            ]
+          },
+          {
+            name: '稼働率 [Utilization] [UTILIZATION]',
+            attributes: [{ name: '値 [value] [VALUE]', type: 'PERCENTAGE' }],
+            businessRules: [
+              '0-100%の範囲',
+              '80%が標準目標',
+              '90%超は過負荷アラート'
+            ]
+          }
+        ],
+        domainServices: [
+          {
+            name: 'チーム編成サービス [TeamFormationService] [TEAM_FORMATION_SERVICE]',
+            operations: [
+              '最適チームの提案',
+              'スキルギャップ分析',
+              'ロードバランシング',
+              'チームパフォーマンス予測'
+            ]
+          },
+          {
+            name: 'スキル管理サービス [SkillManagementService] [SKILL_MANAGEMENT_SERVICE]',
+            operations: [
+              'スキルアセスメント',
+              '学習パスの提案',
+              'スキルマップの作成',
+              '組織スキル棚卸'
+            ]
+          }
+        ]
+      }),
       apiSpecification: JSON.stringify({}),
       dbSchema: JSON.stringify({})
     }

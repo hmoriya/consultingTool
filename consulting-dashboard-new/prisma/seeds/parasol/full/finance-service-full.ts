@@ -8,22 +8,222 @@ export async function seedFinanceServiceFullParasol() {
   
   // 既存のサービスをチェック
   const existingService = await parasolDb.service.findFirst({
-    where: { name: 'finance-management' }
+    where: { name: 'revenue-optimization' }
   })
   
   if (existingService) {
-    console.log('  財務管理サービス already exists, skipping...')
+    console.log('  収益最適化サービス already exists, skipping...')
     return
   }
   
   // サービスを作成
   const service = await parasolDb.service.create({
     data: {
-      name: 'finance-management',
-      displayName: '財務管理サービス',
-      description: 'プロジェクト収支、コスト管理、収益性分析を支援',
+      name: 'revenue-optimization',
+      displayName: '収益最適化サービス',
+      description: 'プロジェクトの収益性を最大化し、財務健全性を確保',
 
-      domainLanguage: JSON.stringify({}),
+      domainLanguage: JSON.stringify({
+        entities: [
+          {
+            name: '収益 [Revenue] [REVENUE]',
+            attributes: [
+              { name: 'ID [id] [REVENUE_ID]', type: 'UUID' },
+              { name: 'プロジェクトID [projectId] [PROJECT_ID]', type: 'UUID' },
+              { name: '収益種別 [type] [TYPE]', type: 'ENUM' },
+              { name: '金額 [amount] [AMOUNT]', type: 'MONEY' },
+              { name: '記録日 [recordedDate] [RECORDED_DATE]', type: 'DATE' },
+              { name: '認識期間 [recognitionPeriod] [RECOGNITION_PERIOD]', type: 'STRING_20' },
+              { name: 'ステータス [status] [STATUS]', type: 'ENUM' },
+              { name: '説明 [description] [DESCRIPTION]', type: 'TEXT' },
+              { name: '承認者ID [approvedBy] [APPROVED_BY]', type: 'UUID' },
+              { name: '承認日 [approvedDate] [APPROVED_DATE]', type: 'DATE' }
+            ],
+            businessRules: [
+              '収益認識基準に従って計上',
+              'プロジェクト完了時またはマイルストーン達成時に認識',
+              '承認後の修正は原則不可'
+            ]
+          },
+          {
+            name: 'コスト [Cost] [COST]',
+            attributes: [
+              { name: 'ID [id] [COST_ID]', type: 'UUID' },
+              { name: 'プロジェクトID [projectId] [PROJECT_ID]', type: 'UUID' },
+              { name: 'コスト種別 [type] [TYPE]', type: 'ENUM' },
+              { name: '金額 [amount] [AMOUNT]', type: 'MONEY' },
+              { name: '発生日 [incurredDate] [INCURRED_DATE]', type: 'DATE' },
+              { name: 'メンバーID [memberId] [MEMBER_ID]', type: 'UUID' },
+              { name: '工数 [hours] [HOURS]', type: 'DECIMAL' },
+              { name: '単価 [rate] [RATE]', type: 'MONEY' },
+              { name: 'ステータス [status] [STATUS]', type: 'ENUM' }
+            ],
+            businessRules: [
+              '人件費は工数×単価で自動計算',
+              '経費は領収書と紐付け必須',
+              '承認フロー完了後に確定'
+            ]
+          },
+          {
+            name: '請求書 [Invoice] [INVOICE]',
+            attributes: [
+              { name: 'ID [id] [INVOICE_ID]', type: 'UUID' },
+              { name: '請求書番号 [invoiceNumber] [INVOICE_NUMBER]', type: 'STRING_20' },
+              { name: 'プロジェクトID [projectId] [PROJECT_ID]', type: 'UUID' },
+              { name: 'クライアントID [clientId] [CLIENT_ID]', type: 'UUID' },
+              { name: '請求日 [invoiceDate] [INVOICE_DATE]', type: 'DATE' },
+              { name: '支払期限 [dueDate] [DUE_DATE]', type: 'DATE' },
+              { name: '請求額 [amount] [AMOUNT]', type: 'MONEY' },
+              { name: '税額 [taxAmount] [TAX_AMOUNT]', type: 'MONEY' },
+              { name: 'ステータス [status] [STATUS]', type: 'ENUM' },
+              { name: '入金日 [paidDate] [PAID_DATE]', type: 'DATE' }
+            ],
+            businessRules: [
+              '請求書番号は全社で一意',
+              '支払期限は請求日から30日後が標準',
+              '入金確認後にステータスを「入金済」に変更'
+            ]
+          },
+          {
+            name: '予算 [Budget] [BUDGET]',
+            attributes: [
+              { name: 'ID [id] [BUDGET_ID]', type: 'UUID' },
+              { name: 'プロジェクトID [projectId] [PROJECT_ID]', type: 'UUID' },
+              { name: '予算種別 [type] [TYPE]', type: 'ENUM' },
+              { name: '予算額 [plannedAmount] [PLANNED_AMOUNT]', type: 'MONEY' },
+              { name: '実績額 [actualAmount] [ACTUAL_AMOUNT]', type: 'MONEY' },
+              { name: '期間 [period] [PERIOD]', type: 'STRING_20' },
+              { name: 'ステータス [status] [STATUS]', type: 'ENUM' },
+              { name: '承認日 [approvedDate] [APPROVED_DATE]', type: 'DATE' }
+            ],
+            businessRules: [
+              '予算はPMの承認が必須',
+              '実績が予算の90%を超えたらアラート',
+              '予算超過には追加承認が必要'
+            ]
+          },
+          {
+            name: '経費 [Expense] [EXPENSE]',
+            attributes: [
+              { name: 'ID [id] [EXPENSE_ID]', type: 'UUID' },
+              { name: 'メンバーID [memberId] [MEMBER_ID]', type: 'UUID' },
+              { name: 'プロジェクトID [projectId] [PROJECT_ID]', type: 'UUID' },
+              { name: '経費種別 [type] [TYPE]', type: 'ENUM' },
+              { name: '金額 [amount] [AMOUNT]', type: 'MONEY' },
+              { name: '発生日 [expenseDate] [EXPENSE_DATE]', type: 'DATE' },
+              { name: '説明 [description] [DESCRIPTION]', type: 'TEXT' },
+              { name: '領収書URL [receiptUrl] [RECEIPT_URL]', type: 'STRING_500' },
+              { name: 'ステータス [status] [STATUS]', type: 'ENUM' },
+              { name: '承認者ID [approvedBy] [APPROVED_BY]', type: 'UUID' }
+            ],
+            businessRules: [
+              '領収書の添付が必須（5000円以上）',
+              '交通費は最安ルートが原則',
+              '経費精算は月次で実施'
+            ]
+          },
+          {
+            name: '収益性分析 [ProfitabilityAnalysis] [PROFITABILITY_ANALYSIS]',
+            attributes: [
+              { name: 'ID [id] [PROFITABILITY_ANALYSIS_ID]', type: 'UUID' },
+              { name: 'プロジェクトID [projectId] [PROJECT_ID]', type: 'UUID' },
+              { name: '分析期間 [analysisPeriod] [ANALYSIS_PERIOD]', type: 'STRING_20' },
+              { name: '収益 [revenue] [REVENUE]', type: 'MONEY' },
+              { name: 'コスト [cost] [COST]', type: 'MONEY' },
+              { name: '利益 [profit] [PROFIT]', type: 'MONEY' },
+              { name: '利益率 [profitRate] [PROFIT_RATE]', type: 'PERCENTAGE' },
+              { name: 'ROI [roi] [ROI]', type: 'PERCENTAGE' },
+              { name: '分析日 [analyzedDate] [ANALYZED_DATE]', type: 'DATE' }
+            ],
+            businessRules: [
+              '利益 = 収益 - コスト',
+              '利益率 = 利益 / 収益 × 100',
+              '月次で自動集計'
+            ]
+          }
+        ],
+        valueObjects: [
+          {
+            name: '金額 [Money] [MONEY]',
+            attributes: [{ name: '値 [value] [VALUE]', type: 'DECIMAL' }],
+            businessRules: [
+              '通貨はJPY（日本円）',
+              '最小単位は1円',
+              'マイナス値は不可（コストの場合）'
+            ]
+          },
+          {
+            name: '利益率 [ProfitRate] [PROFIT_RATE]',
+            attributes: [{ name: '値 [value] [VALUE]', type: 'PERCENTAGE' }],
+            businessRules: [
+              '-100%から100%の範囲',
+              '小数点2位まで表示',
+              '目標値: 25%以上'
+            ]
+          },
+          {
+            name: '請求書番号 [InvoiceNumber] [INVOICE_NUMBER]',
+            attributes: [{ name: '値 [value] [VALUE]', type: 'STRING_20' }],
+            businessRules: [
+              'フォーマット: INV-YYYY-NNNNN',
+              '年度内で連番',
+              '一度発番されたら変更不可'
+            ]
+          },
+          {
+            name: '予実差異 [Variance] [VARIANCE]',
+            attributes: [
+              { name: '予算 [budget] [BUDGET]', type: 'MONEY' },
+              { name: '実績 [actual] [ACTUAL]', type: 'MONEY' },
+              { name: '差異額 [variance] [VARIANCE]', type: 'MONEY' },
+              { name: '差異率 [varianceRate] [VARIANCE_RATE]', type: 'PERCENTAGE' }
+            ],
+            businessRules: [
+              '差異額 = 実績 - 予算',
+              '差異率 = 差異額 / 予算 × 100',
+              '±10%以内が許容範囲'
+            ]
+          }
+        ],
+        domainServices: [
+          {
+            name: '収益認識サービス [RevenueRecognitionService] [REVENUE_RECOGNITION_SERVICE]',
+            operations: [
+              '収益認識タイミングの判定',
+              '進行基準での計上',
+              '完成基準での計上',
+              '収益の配分計算'
+            ]
+          },
+          {
+            name: 'コスト配賦サービス [CostAllocationService] [COST_ALLOCATION_SERVICE]',
+            operations: [
+              '人件費の自動配賦',
+              '共通費の按分',
+              'プロジェクト別コスト集計',
+              'コスト予測'
+            ]
+          },
+          {
+            name: '請求管理サービス [InvoiceManagementService] [INVOICE_MANAGEMENT_SERVICE]',
+            operations: [
+              '請求書番号の発番',
+              '請求書PDF生成',
+              '入金確認処理',
+              '督促アラート'
+            ]
+          },
+          {
+            name: '収益性分析サービス [ProfitabilityAnalysisService] [PROFITABILITY_ANALYSIS_SERVICE]',
+            operations: [
+              'プロジェクト別収益性計算',
+              '期間別分析',
+              'トレンド分析',
+              '予測モデル構築'
+            ]
+          }
+        ]
+      }),
       apiSpecification: JSON.stringify({}),
       dbSchema: JSON.stringify({})
     }

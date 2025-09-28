@@ -2,16 +2,16 @@ import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 
 const parasolDb = new ParasolPrismaClient()
 
-export async function seedManageCosts(service: any, capability: any) {
-  console.log('    Creating business operation: コストを厳密に管理する...')
+export async function seedOptimizeCosts(service: any, capability: any) {
+  console.log('    Creating business operation: コストを最適化する...')
   
   const operation = await parasolDb.businessOperation.create({
     data: {
       serviceId: service.id,
       capabilityId: capability.id,
-      name: 'ManageCosts',
-      displayName: 'コストを厳密に管理する',
-      design: `# ビジネスオペレーション: コストを厳密に管理する [ManageCosts] [MANAGE_COSTS]
+      name: 'OptimizeCosts',
+      displayName: 'コストを最適化する',
+      design: `# ビジネスオペレーション: コストを最適化する [OptimizeCosts] [OPTIMIZE_COSTS]
 
 ## オペレーション概要
 

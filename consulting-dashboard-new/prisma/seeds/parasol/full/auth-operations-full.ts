@@ -3,13 +3,13 @@
 export async function seedAuthOperationsFull(service: any, capability: any) {
   console.log('  Creating auth business operations...')
   
-  // 1. ユーザーを登録・管理する
-  const { seedRegisterAndManageUsers } = await import('./auth-operations/01-register-and-manage-users')
-  await seedRegisterAndManageUsers(service, capability)
+  // 1. ユーザーアイデンティティを確立する
+  const { seedEstablishUserIdentity } = await import('./auth-operations/01-establish-user-identity')
+  await seedEstablishUserIdentity(service, capability)
   
-  // 2. 組織構造を管理する
-  const { seedManageOrganizationStructure } = await import('./auth-operations/02-manage-organization-structure')
-  await seedManageOrganizationStructure(service, capability)
+  // 2. 組織構造を最適化する
+  const { seedOptimizeOrganizationStructure } = await import('./auth-operations/02-optimize-organization-structure')
+  await seedOptimizeOrganizationStructure(service, capability)
   
   // 3. アクセス権限を制御する
   const { seedControlAccessPermissions } = await import('./auth-operations/03-control-access-permissions')

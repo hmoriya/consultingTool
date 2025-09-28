@@ -2,17 +2,17 @@ import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 
 const parasolDb = new ParasolPrismaClient()
 
-export async function seedRegisterAndManageUsers(service: any, capability: any) {
-  console.log('    Creating business operation: ユーザーを登録・管理する...')
+export async function seedEstablishUserIdentity(service: any, capability: any) {
+  console.log('    Creating business operation: ユーザーアイデンティティを確立する...')
   
   const operation = await parasolDb.businessOperation.create({
     data: {
       serviceId: service.id,
       capabilityId: capability.id,
-      name: 'RegisterAndManageUsers',
-      displayName: 'ユーザーを登録・管理する',
+      name: 'EstablishUserIdentity',
+      displayName: 'ユーザーアイデンティティを確立する',
       pattern: 'Administration',
-      design: `# ビジネスオペレーション: ユーザーを登録・管理する [RegisterAndManageUsers] [REGISTER_AND_MANAGE_USERS]
+      design: `# ビジネスオペレーション: ユーザーアイデンティティを確立する [EstablishUserIdentity] [ESTABLISH_USER_IDENTITY]
 
 ## オペレーション概要
 

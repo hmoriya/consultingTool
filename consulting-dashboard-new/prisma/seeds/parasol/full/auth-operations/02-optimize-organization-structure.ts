@@ -2,22 +2,22 @@ import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 
 const parasolDb = new ParasolPrismaClient()
 
-export async function seedManageOrganizationStructure(service: any, capability: any) {
-  console.log('    Creating business operation: 組織構造を管理する...')
+export async function seedOptimizeOrganizationStructure(service: any, capability: any) {
+  console.log('    Creating business operation: 組織構造を最適化する...')
   
   const operation = await parasolDb.businessOperation.create({
     data: {
       serviceId: service.id,
       capabilityId: capability.id,
-      name: 'ManageOrganizationStructure',
-      displayName: '組織構造を管理する',
+      name: 'OptimizeOrganizationStructure',
+      displayName: '組織構造を最適化する',
       pattern: 'Administration',
-      design: `# ビジネスオペレーション: 組織構造を管理する [ManageOrganizationStructure] [MANAGE_ORGANIZATION_STRUCTURE]
+      design: `# ビジネスオペレーション: 組織構造を最適化する [OptimizeOrganizationStructure] [OPTIMIZE_ORGANIZATION_STRUCTURE]
 
 ## オペレーション概要
 
 ### 目的
-組織の部門、チーム、階層構造を正確に管理し、組織変更に迅速に対応する
+組織の部門、チーム、階層構造を最適化し、組織変更に迅速に対応する
 
 ### ビジネス価値
 - **運用効率**: 組織変更対応時間を60%削減
@@ -40,7 +40,7 @@ export async function seedManageOrganizationStructure(service: any, capability: 
    - 目標値: 2営業日以内
 3. **階層整合性**: 組織階層の論理的整合性
    - 目標値: エラー0件`,
-      goal: '組織の階層構造、部門、チームを正確に管理し、組織変更に迅速に対応して権限管理の基盤を提供する',
+      goal: '組織の階層構造、部門、チームを最適化し、組織変更に迅速に対応して権限管理の基盤を提供する',
       
       roles: JSON.stringify([
         {

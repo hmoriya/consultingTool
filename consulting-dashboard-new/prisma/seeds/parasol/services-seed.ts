@@ -5,10 +5,10 @@ const parasolDb = new ParasolPrismaClient()
 // 各サービスのMD形式定義
 export const serviceDefinitions = [
   {
-    name: 'auth-service',
-    displayName: '認証・組織管理サービス',
+    name: 'secure-access',
+    displayName: 'セキュアアクセスサービス',
     description: 'ユーザー認証、組織管理、アクセス制御を担当するサービス',
-    serviceDescription: `# 認証・組織管理サービス
+    serviceDescription: `# セキュアアクセスサービス
 
 ## サービス概要
 システムへのセキュアなアクセスを提供し、組織とユーザーの基本情報を管理する
@@ -44,10 +44,10 @@ export const serviceDefinitions = [
   },
   
   {
-    name: 'project-service',
-    displayName: 'プロジェクト管理サービス',
+    name: 'project-success-support',
+    displayName: 'プロジェクト成功支援サービス',
     description: 'プロジェクトのライフサイクル全体を管理するサービス',
-    serviceDescription: `# プロジェクト管理サービス
+    serviceDescription: `# プロジェクト成功支援サービス
 
 ## サービス概要
 コンサルティングプロジェクトの計画から完了までを一元管理
@@ -87,10 +87,10 @@ export const serviceDefinitions = [
   },
   
   {
-    name: 'resource-service',
-    displayName: 'リソース管理サービス',
+    name: 'talent-optimization',
+    displayName: 'タレント最適化サービス',
     description: 'チーム編成、スキル管理、リソース配分を担当するサービス',
-    serviceDescription: `# リソース管理サービス
+    serviceDescription: `# タレント最適化サービス
 
 ## サービス概要
 人材のスキルと配置を最適化し、組織の生産性を最大化
@@ -126,10 +126,10 @@ export const serviceDefinitions = [
   },
   
   {
-    name: 'timesheet-service',
-    displayName: '工数管理サービス',
+    name: 'productivity-visualization',
+    displayName: '生産性可視化サービス',
     description: '工数入力、承認、集計を担当するサービス',
-    serviceDescription: `# 工数管理サービス
+    serviceDescription: `# 生産性可視化サービス
 
 ## サービス概要
 コンサルタントの作業時間を正確に記録・管理し、プロジェクト収益性を分析
@@ -162,10 +162,10 @@ export const serviceDefinitions = [
   },
   
   {
-    name: 'notification-service',
-    displayName: '通知・コミュニケーションサービス',
+    name: 'collaboration-facilitation',
+    displayName: 'コラボレーション促進サービス',
     description: 'システム通知、メッセージング、チャンネル管理を担当するサービス',
-    serviceDescription: `# 通知・コミュニケーションサービス
+    serviceDescription: `# コラボレーション促進サービス
 
 ## サービス概要
 リアルタイムな情報共有とコミュニケーションを実現
@@ -201,10 +201,10 @@ export const serviceDefinitions = [
   },
   
   {
-    name: 'knowledge-service',
-    displayName: 'ナレッジ管理サービス',
+    name: 'knowledge-cocreation',
+    displayName: 'ナレッジ共創サービス',
     description: 'ナレッジ記事、テンプレート、FAQの管理を担当するサービス',
-    serviceDescription: `# ナレッジ管理サービス
+    serviceDescription: `# ナレッジ共創サービス
 
 ## サービス概要
 プロジェクトで得られた知識を体系化し、組織の知的資産として蓄積
@@ -240,10 +240,10 @@ export const serviceDefinitions = [
   },
   
   {
-    name: 'finance-service',
-    displayName: '財務管理サービス',
+    name: 'revenue-optimization',
+    displayName: '収益最適化サービス',
     description: '収益、コスト、請求の管理を担当するサービス',
-    serviceDescription: `# 財務管理サービス
+    serviceDescription: `# 収益最適化サービス
 
 ## サービス概要
 プロジェクトの収益性を管理し、財務健全性を維持

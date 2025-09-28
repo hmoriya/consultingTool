@@ -8,22 +8,136 @@ export async function seedTimesheetServiceFullParasol() {
   
   // 既存のサービスをチェック
   const existingService = await parasolDb.service.findFirst({
-    where: { name: 'timesheet-management' }
+    where: { name: 'productivity-visualization' }
   })
   
   if (existingService) {
-    console.log('  タイムシート管理サービス already exists, skipping...')
+    console.log('  生産性可視化サービス already exists, skipping...')
     return
   }
   
   // サービスを作成
   const service = await parasolDb.service.create({
     data: {
-      name: 'timesheet-management',
-      displayName: 'タイムシート管理サービス',
-      description: '工数の記録、承認、分析を通じて稼働状況を可視化',
+      name: 'productivity-visualization',
+      displayName: '生産性可視化サービス',
+      description: '工数の見える化により生産性を分析し、継続的な改善を支援',
 
-      domainLanguage: JSON.stringify({}),
+      domainLanguage: JSON.stringify({
+        entities: [
+          {
+            name: 'タイムシート [Timesheet] [TIMESHEET]',
+            attributes: [
+              { name: 'ID [id] [TIMESHEET_ID]', type: 'UUID' },
+              { name: 'ユーザーID [userId] [USER_ID]', type: 'UUID' },
+              { name: '週開始日 [weekStartDate] [WEEK_START_DATE]', type: 'DATE' },
+              { name: 'ステータス [status] [STATUS]', type: 'ENUM' },
+              { name: '総工数 [totalHours] [TOTAL_HOURS]', type: 'DECIMAL' },
+              { name: '提出日 [submittedDate] [SUBMITTED_DATE]', type: 'DATE' },
+              { name: '承認者ID [approverId] [APPROVER_ID]', type: 'UUID' },
+              { name: '承認日 [approvedDate] [APPROVED_DATE]', type: 'DATE' },
+              { name: 'コメント [comment] [COMMENT]', type: 'TEXT' }
+            ],
+            businessRules: [
+              '週単位で管理（月曜開始）',
+              '週末までに提出が必須',
+              '承認後は修正不可'
+            ]
+          },
+          {
+            name: '工数明細 [TimeEntry] [TIME_ENTRY]',
+            attributes: [
+              { name: 'ID [id] [TIME_ENTRY_ID]', type: 'UUID' },
+              { name: 'タイムシートID [timesheetId] [TIMESHEET_ID]', type: 'UUID' },
+              { name: 'プロジェクトID [projectId] [PROJECT_ID]', type: 'UUID' },
+              { name: 'タスクID [taskId] [TASK_ID]', type: 'UUID' },
+              { name: '作業日 [workDate] [WORK_DATE]', type: 'DATE' },
+              { name: '工数 [hours] [HOURS]', type: 'DECIMAL' },
+              { name: '作業内容 [description] [DESCRIPTION]', type: 'TEXT' },
+              { name: '作業種別 [workType] [WORK_TYPE]', type: 'ENUM' },
+              { name: '課金可否 [billable] [BILLABLE]', type: 'BOOLEAN' }
+            ],
+            businessRules: [
+              '1日の工数は24時間以内',
+              '過去日の入力は3日以内',
+              '作業内容は必須入力'
+            ]
+          },
+          {
+            name: '承認履歴 [ApprovalHistory] [APPROVAL_HISTORY]',
+            attributes: [
+              { name: 'ID [id] [APPROVAL_HISTORY_ID]', type: 'UUID' },
+              { name: 'タイムシートID [timesheetId] [TIMESHEET_ID]', type: 'UUID' },
+              { name: '承認者ID [approverId] [APPROVER_ID]', type: 'UUID' },
+              { name: 'アクション [action] [ACTION]', type: 'ENUM' },
+              { name: 'コメント [comment] [COMMENT]', type: 'TEXT' },
+              { name: '実行日時 [performedAt] [PERFORMED_AT]', type: 'TIMESTAMP' }
+            ],
+            businessRules: [
+              '承認履歴は変更不可',
+              '却下時は理由必須',
+              'すべてのアクションを記録'
+            ]
+          },
+          {
+            name: '稼働分析 [UtilizationAnalysis] [UTILIZATION_ANALYSIS]',
+            attributes: [
+              { name: 'ID [id] [UTILIZATION_ANALYSIS_ID]', type: 'UUID' },
+              { name: 'ユーザーID [userId] [USER_ID]', type: 'UUID' },
+              { name: '分析期間 [period] [PERIOD]', type: 'STRING_20' },
+              { name: '課金可能工数 [billableHours] [BILLABLE_HOURS]', type: 'DECIMAL' },
+              { name: '非課金工数 [nonBillableHours] [NON_BILLABLE_HOURS]', type: 'DECIMAL' },
+              { name: '稼働率 [utilizationRate] [UTILIZATION_RATE]', type: 'PERCENTAGE' },
+              { name: '目標達成率 [targetAchievement] [TARGET_ACHIEVEMENT]', type: 'PERCENTAGE' }
+            ],
+            businessRules: [
+              '稼働率 = 課金可能工数 / 総労働時間',
+              '月次で自動集計',
+              '部門別・個人別に分析'
+            ]
+          }
+        ],
+        valueObjects: [
+          {
+            name: '工数 [Hours] [HOURS]',
+            attributes: [{ name: '値 [value] [VALUE]', type: 'DECIMAL' }],
+            businessRules: [
+              '0.25時間単位（15分単位）',
+              '最小0.25、最大24.0',
+              '小数点2位まで'
+            ]
+          },
+          {
+            name: '稼働率 [UtilizationRate] [UTILIZATION_RATE]',
+            attributes: [{ name: '値 [value] [VALUE]', type: 'PERCENTAGE' }],
+            businessRules: [
+              '0-100%の範囲',
+              '目標: 80%',
+              '警告: 90%超または60%未満'
+            ]
+          }
+        ],
+        domainServices: [
+          {
+            name: '工数管理サービス [TimesheetManagementService] [TIMESHEET_MANAGEMENT_SERVICE]',
+            operations: [
+              'タイムシートの作成・提出',
+              '承認ワークフロー実行',
+              '工数データの集計',
+              'リマインダー送信'
+            ]
+          },
+          {
+            name: '稼働分析サービス [UtilizationAnalysisService] [UTILIZATION_ANALYSIS_SERVICE]',
+            operations: [
+              '稼働率の算出',
+              'トレンド分析',
+              '異常値検知',
+              '改善提案生成'
+            ]
+          }
+        ]
+      }),
       apiSpecification: JSON.stringify({}),
       dbSchema: JSON.stringify({})
     }

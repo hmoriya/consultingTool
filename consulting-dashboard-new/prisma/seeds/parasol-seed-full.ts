@@ -35,7 +35,7 @@ export async function seedParasolServiceFull() {
     let fullSpecCount = 0
     
     // 1. Project Service
-    const projectService = services.find(s => s.name === 'project-service')
+    const projectService = services.find(s => s.name === 'project-success-support')
     if (projectService) {
       await seedProjectServiceFullParasol(projectService)
       console.log('  ✅ Project service parasol data seeded (full spec)')
@@ -43,7 +43,7 @@ export async function seedParasolServiceFull() {
     }
     
     // 2. Resource Service
-    const resourceService = services.find(s => s.name === 'resource-service')
+    const resourceService = services.find(s => s.name === 'talent-optimization')
     if (resourceService) {
       await seedResourceServiceFullParasol(resourceService)
       console.log('  ✅ Resource service parasol data seeded (full spec)')
@@ -51,7 +51,7 @@ export async function seedParasolServiceFull() {
     }
     
     // 3. Timesheet Service
-    const timesheetService = services.find(s => s.name === 'timesheet-service')
+    const timesheetService = services.find(s => s.name === 'productivity-visualization')
     if (timesheetService) {
       await seedTimesheetServiceFullParasol(timesheetService)
       console.log('  ✅ Timesheet service parasol data seeded (full spec)')
@@ -59,7 +59,7 @@ export async function seedParasolServiceFull() {
     }
     
     // 4. Notification Service
-    const notificationService = services.find(s => s.name === 'notification-service')
+    const notificationService = services.find(s => s.name === 'collaboration-facilitation')
     if (notificationService) {
       await seedNotificationServiceFullParasol(notificationService)
       console.log('  ✅ Notification service parasol data seeded (full spec)')
@@ -67,7 +67,7 @@ export async function seedParasolServiceFull() {
     }
     
     // 5. Knowledge Service
-    const knowledgeService = services.find(s => s.name === 'knowledge-service')
+    const knowledgeService = services.find(s => s.name === 'knowledge-cocreation')
     if (knowledgeService) {
       await seedKnowledgeServiceFullParasol(knowledgeService)
       console.log('  ✅ Knowledge service parasol data seeded (full spec)')
@@ -75,7 +75,7 @@ export async function seedParasolServiceFull() {
     }
     
     // 6. Finance Service
-    const financeService = services.find(s => s.name === 'finance-service')
+    const financeService = services.find(s => s.name === 'revenue-optimization')
     if (financeService) {
       await seedFinanceServiceFullParasol(financeService)
       console.log('  ✅ Finance service parasol data seeded (full spec)')
@@ -83,7 +83,7 @@ export async function seedParasolServiceFull() {
     }
 
     // 7. Auth Service
-    const authService = services.find(s => s.name === 'auth-service')
+    const authService = services.find(s => s.name === 'secure-access')
     if (authService) {
       await seedAuthServiceFullParasol(authService)
       console.log('  ✅ Auth service parasol data seeded (full spec)')
@@ -100,8 +100,8 @@ export async function seedParasolServiceFull() {
     console.log(`  - KPI: 測定可能な指標設定済み（3-5指標）`)
     
     console.log('\n📋 Services:')
-    const fullSpecServices = ['project-service', 'resource-service', 'timesheet-service', 
-                               'notification-service', 'knowledge-service', 'finance-service', 'auth-service']
+    const fullSpecServices = ['project-success-support', 'talent-optimization', 'productivity-visualization', 
+                               'collaboration-facilitation', 'knowledge-cocreation', 'revenue-optimization', 'secure-access']
     services.forEach(s => {
       const status = fullSpecServices.includes(s.name) ? '✅ Full Spec' : '⚠️ Basic'
       console.log(`  ${status} ${s.displayName} (${s.name})`)

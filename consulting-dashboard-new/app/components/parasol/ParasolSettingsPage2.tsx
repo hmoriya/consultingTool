@@ -22,6 +22,7 @@ import { useToast } from '@/app/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
+import { generateInitialDomainLanguageFromCapabilities, refineDomainLanguageFromOperations } from '@/lib/parasol/domain-language-generator';
 
 interface Service {
   id: string;
@@ -116,6 +117,61 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
   const [operationModalOpen, setOperationModalOpen] = useState(false);
   const [editingOperation, setEditingOperation] = useState<any>(null);
   const [editingCapability, setEditingCapability] = useState<any>(null);
+  
+  // ドメイン言語生成関数
+  const handleGenerateDomainLanguageFromCapability = () => {
+    if (!selectedService.capabilities || selectedService.capabilities.length === 0) {
+      toast({
+        title: 'エラー',
+        description: 'ケーパビリティが定義されていません',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // ケーパビリティ定義から初期ドメイン言語を生成
+    const domainLanguage = generateInitialDomainLanguageFromCapabilities(selectedService.capabilities);
+    
+    setSelectedService({
+      ...selectedService,
+      domainLanguageDefinition: domainLanguage
+    });
+    setHasChanges(true);
+    
+    toast({
+      title: '生成完了',
+      description: 'ケーパビリティ定義から初期ドメイン言語を生成しました',
+    });
+  };
+  
+  const handleRefineDomainLanguageFromOperations = () => {
+    if (!selectedService.businessOperations || selectedService.businessOperations.length === 0) {
+      toast({
+        title: 'エラー',
+        description: 'ビジネスオペレーションが定義されていません',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // 既存のドメイン言語にオペレーションから抽出した詳細を追加
+    const refinedDomainLanguage = refineDomainLanguageFromOperations(
+      selectedService.domainLanguageDefinition || '',
+      selectedService.businessOperations,
+      selectedService.capabilities || []
+    );
+    
+    setSelectedService({
+      ...selectedService,
+      domainLanguageDefinition: refinedDomainLanguage
+    });
+    setHasChanges(true);
+    
+    toast({
+      title: '詳細化完了',
+      description: 'ビジネスオペレーションからドメイン言語を詳細化しました',
+    });
+  };
 
   // サービス一覧のフィルタリング
   const filteredServices = services.filter(service =>
@@ -333,20 +389,55 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
               </TabsContent>
 
               <TabsContent value="domain-language">
-                <UnifiedMDEditor
-                  type="domain-language"
-                  value={selectedService.domainLanguageDefinition || ''}
-                  onChange={(value) => {
-                    setSelectedService({
-                      ...selectedService,
-                      domainLanguageDefinition: value
-                    });
-                    setHasChanges(true);
-                  }}
-                  onSave={handleSave}
-                  title="ドメイン言語定義"
-                  description="エンティティ、値オブジェクト、ドメインサービスをMarkdownで定義します"
-                />
+                <div className="space-y-4">
+                  {/* ドメイン言語生成ボタン */}
+                  <Alert>
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <strong>段階的ドメイン言語生成</strong>
+                          <p className="text-sm mt-1">
+                            ケーパビリティ定義から初期ドメイン言語を生成し、ビジネスオペレーションから詳細化できます。
+                          </p>
+                        </div>
+                        <div className="flex gap-2 ml-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleGenerateDomainLanguageFromCapability()}
+                            disabled={!selectedService.capabilities || selectedService.capabilities.length === 0}
+                          >
+                            ケーパビリティから生成
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRefineDomainLanguageFromOperations()}
+                            disabled={!selectedService.businessOperations || selectedService.businessOperations.length === 0}
+                          >
+                            オペレーションから詳細化
+                          </Button>
+                        </div>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                  
+                  <UnifiedMDEditor
+                    type="domain-language"
+                    value={selectedService.domainLanguageDefinition || ''}
+                    onChange={(value) => {
+                      setSelectedService({
+                        ...selectedService,
+                        domainLanguageDefinition: value
+                      });
+                      setHasChanges(true);
+                    }}
+                    onSave={handleSave}
+                    title="ドメイン言語定義"
+                    description="エンティティ、値オブジェクト、ドメインサービスをMarkdownで定義します"
+                  />
+                </div>
               </TabsContent>
 
               <TabsContent value="api-spec">

@@ -8,22 +8,148 @@ export async function seedAuthServiceFullParasol() {
   
   // 既存のサービスをチェック
   const existingService = await parasolDb.service.findFirst({
-    where: { name: 'auth-service' }
+    where: { name: 'secure-access' }
   })
   
   if (existingService) {
-    console.log('  Auth service already exists, skipping...')
+    console.log('  セキュアアクセスサービス already exists, skipping...')
     return
   }
   
   // サービスを作成
   const service = await parasolDb.service.create({
     data: {
-      name: 'auth-service',
-      displayName: '認証・組織管理サービス',
-      description: 'ユーザー認証、組織・ロール管理、アクセス制御を提供する基盤サービス',
+      name: 'secure-access',
+      displayName: 'セキュアアクセスサービス',
+      description: '安全なアクセスを保証し、組織のセキュリティとガバナンスを実現',
 
-      domainLanguage: JSON.stringify({}),
+      domainLanguage: JSON.stringify({
+        entities: [
+          {
+            name: 'ユーザー [User] [USER]',
+            attributes: [
+              { name: 'ID [id] [USER_ID]', type: 'UUID' },
+              { name: 'メールアドレス [email] [EMAIL]', type: 'EMAIL' },
+              { name: 'パスワードハッシュ [passwordHash] [PASSWORD_HASH]', type: 'PASSWORD_HASH' },
+              { name: '氏名 [name] [NAME]', type: 'STRING_100' },
+              { name: 'ロール [role] [ROLE]', type: 'ENUM' },
+              { name: '有効フラグ [isActive] [IS_ACTIVE]', type: 'BOOLEAN' },
+              { name: '最終ログイン日時 [lastLoginAt] [LAST_LOGIN_AT]', type: 'TIMESTAMP' },
+              { name: '作成日時 [createdAt] [CREATED_AT]', type: 'TIMESTAMP' },
+              { name: '更新日時 [updatedAt] [UPDATED_AT]', type: 'TIMESTAMP' }
+            ],
+            businessRules: [
+              'メールアドレスはシステム全体で一意であること',
+              'パスワードは最低8文字以上で、英数字・記号を含むこと',
+              'ユーザーは必ず1つの組織に所属すること'
+            ]
+          },
+          {
+            name: '組織 [Organization] [ORGANIZATION]',
+            attributes: [
+              { name: 'ID [id] [ORGANIZATION_ID]', type: 'UUID' },
+              { name: '組織名 [name] [NAME]', type: 'STRING_100' },
+              { name: '組織コード [code] [CODE]', type: 'STRING_50' },
+              { name: '親組織ID [parentId] [PARENT_ID]', type: 'UUID' },
+              { name: '階層レベル [level] [LEVEL]', type: 'INTEGER' },
+              { name: 'パス [path] [PATH]', type: 'STRING_500' },
+              { name: '有効フラグ [isActive] [IS_ACTIVE]', type: 'BOOLEAN' }
+            ],
+            businessRules: [
+              '組織コードは企業内で一意であること',
+              '組織階層は最大5レベルまで',
+              '親組織の削除時は子組織を先に処理すること'
+            ]
+          },
+          {
+            name: 'ロール [Role] [ROLE]',
+            attributes: [
+              { name: 'ID [id] [ROLE_ID]', type: 'UUID' },
+              { name: 'ロール名 [name] [NAME]', type: 'STRING_50' },
+              { name: '表示名 [displayName] [DISPLAY_NAME]', type: 'STRING_100' },
+              { name: '説明 [description] [DESCRIPTION]', type: 'TEXT' },
+              { name: '権限 [permissions] [PERMISSIONS]', type: 'JSON' }
+            ],
+            businessRules: [
+              'システム定義ロールは削除・変更不可',
+              '権限の組み合わせは矛盾がないこと',
+              'ロール名は企業内で一意であること'
+            ]
+          },
+          {
+            name: 'セッション [Session] [SESSION]',
+            attributes: [
+              { name: 'ID [id] [SESSION_ID]', type: 'UUID' },
+              { name: 'ユーザーID [userId] [USER_ID]', type: 'UUID' },
+              { name: 'トークン [token] [TOKEN]', type: 'STRING_500' },
+              { name: 'IPアドレス [ipAddress] [IP_ADDRESS]', type: 'STRING_50' },
+              { name: 'ユーザーエージェント [userAgent] [USER_AGENT]', type: 'STRING_500' },
+              { name: '有効期限 [expiresAt] [EXPIRES_AT]', type: 'TIMESTAMP' },
+              { name: '作成日時 [createdAt] [CREATED_AT]', type: 'TIMESTAMP' }
+            ],
+            businessRules: [
+              'セッションは24時間で自動失効',
+              '同一ユーザーの同時セッション数は最大5',
+              'トークンはランダムに生成され予測不可能であること'
+            ]
+          },
+          {
+            name: '監査ログ [AuditLog] [AUDIT_LOG]',
+            attributes: [
+              { name: 'ID [id] [AUDIT_LOG_ID]', type: 'UUID' },
+              { name: 'ユーザーID [userId] [USER_ID]', type: 'UUID' },
+              { name: 'アクション [action] [ACTION]', type: 'STRING_100' },
+              { name: 'リソースタイプ [resourceType] [RESOURCE_TYPE]', type: 'STRING_50' },
+              { name: 'リソースID [resourceId] [RESOURCE_ID]', type: 'UUID' },
+              { name: '変更前 [before] [BEFORE]', type: 'JSON' },
+              { name: '変更後 [after] [AFTER]', type: 'JSON' },
+              { name: 'IPアドレス [ipAddress] [IP_ADDRESS]', type: 'STRING_50' },
+              { name: '実行日時 [performedAt] [PERFORMED_AT]', type: 'TIMESTAMP' }
+            ],
+            businessRules: [
+              '監査ログは一切変更・削除不可',
+              '最低7年間の保管が必須',
+              'すべてのデータ変更操作を記録すること'
+            ]
+          }
+        ],
+        valueObjects: [
+          {
+            name: 'メールアドレス [Email] [EMAIL]',
+            attributes: [{ name: '値 [value] [VALUE]', type: 'EMAIL' }],
+            businessRules: ['RFC5322に準拠したフォーマットであること']
+          },
+          {
+            name: 'パスワード [Password] [PASSWORD]',
+            attributes: [{ name: '値 [value] [VALUE]', type: 'STRING' }],
+            businessRules: [
+              '最低8文字以上',
+              '大文字、小文字、数字、記号をそれぞれ1文字以上含む',
+              '一般的な弱いパスワードを拒否'
+            ]
+          }
+        ],
+        domainServices: [
+          {
+            name: '認証サービス [AuthenticationService] [AUTHENTICATION_SERVICE]',
+            operations: [
+              'ユーザー認証の実行',
+              'セッションの発行・管理',
+              'パスワードリセット',
+              '多要素認証の実施'
+            ]
+          },
+          {
+            name: 'アクセス制御サービス [AccessControlService] [ACCESS_CONTROL_SERVICE]',
+            operations: [
+              '権限チェック',
+              'ロール割り当て',
+              'アクセスポリシー適用',
+              '権限の委譲'
+            ]
+          }
+        ]
+      }),
       apiSpecification: JSON.stringify({}),
       dbSchema: JSON.stringify({})
     }
@@ -55,10 +181,10 @@ export async function seedAuthServiceFullParasol() {
 ## ビジネスオペレーション群
 
 ### アイデンティティ管理グループ
-- ユーザーを登録・管理する [RegisterAndManageUsers] [REGISTER_AND_MANAGE_USERS]
+- ユーザーアイデンティティを確立する [EstablishUserIdentity] [ESTABLISH_USER_IDENTITY]
   - 目的: ユーザーアカウントのライフサイクル全体を管理
-- 組織構造を管理する [ManageOrganizationStructure] [MANAGE_ORGANIZATION_STRUCTURE]
-  - 目的: 組織階層、部門、チーム構造を維持管理
+- 組織構造を最適化する [OptimizeOrganizationStructure] [OPTIMIZE_ORGANIZATION_STRUCTURE]
+  - 目的: 組織階層、部門、チーム構造を最適化
 
 ### アクセス制御グループ
 - アクセス権限を制御する [ControlAccessPermissions] [CONTROL_ACCESS_PERMISSIONS]

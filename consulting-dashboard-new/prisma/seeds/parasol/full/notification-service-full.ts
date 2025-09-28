@@ -8,22 +8,159 @@ export async function seedNotificationServiceFullParasol() {
   
   // 既存のサービスをチェック
   const existingService = await parasolDb.service.findFirst({
-    where: { name: 'notification-service' }
+    where: { name: 'collaboration-facilitation' }
   })
   
   if (existingService) {
-    console.log('  通知・メッセージングサービス already exists, skipping...')
+    console.log('  コラボレーション促進サービス already exists, skipping...')
     return
   }
   
   // サービスを作成
   const service = await parasolDb.service.create({
     data: {
-      name: 'notification-service',
-      displayName: '通知・メッセージングサービス',
-      description: 'システム通知、メッセージ配信、コミュニケーションハブ',
+      name: 'collaboration-facilitation',
+      displayName: 'コラボレーション促進サービス',
+      description: 'チーム間のコミュニケーションと協働を促進し、生産性を向上',
 
-      domainLanguage: JSON.stringify({}),
+      domainLanguage: JSON.stringify({
+        entities: [
+          {
+            name: '通知 [Notification] [NOTIFICATION]',
+            attributes: [
+              { name: 'ID [id] [NOTIFICATION_ID]', type: 'UUID' },
+              { name: '受信者ID [recipientId] [RECIPIENT_ID]', type: 'UUID' },
+              { name: '通知タイプ [type] [TYPE]', type: 'ENUM' },
+              { name: 'タイトル [title] [TITLE]', type: 'STRING_200' },
+              { name: '本文 [body] [BODY]', type: 'TEXT' },
+              { name: '重要度 [priority] [PRIORITY]', type: 'ENUM' },
+              { name: 'リンクURL [linkUrl] [LINK_URL]', type: 'STRING_500' },
+              { name: '既読フラグ [isRead] [IS_READ]', type: 'BOOLEAN' },
+              { name: '既読日時 [readAt] [READ_AT]', type: 'TIMESTAMP' },
+              { name: '通知日時 [notifiedAt] [NOTIFIED_AT]', type: 'TIMESTAMP' },
+              { name: '有効期限 [expiresAt] [EXPIRES_AT]', type: 'TIMESTAMP' }
+            ],
+            businessRules: [
+              '重要通知は複数チャネルで配信',
+              '未読通知は30日でアーカイブ',
+              '通知タイプ別に配信設定を尊重'
+            ]
+          },
+          {
+            name: 'チャンネル [Channel] [CHANNEL]',
+            attributes: [
+              { name: 'ID [id] [CHANNEL_ID]', type: 'UUID' },
+              { name: 'チャンネル名 [name] [NAME]', type: 'STRING_100' },
+              { name: '説明 [description] [DESCRIPTION]', type: 'TEXT' },
+              { name: 'タイプ [type] [TYPE]', type: 'ENUM' },
+              { name: 'プロジェクトID [projectId] [PROJECT_ID]', type: 'UUID' },
+              { name: '作成者ID [createdBy] [CREATED_BY]', type: 'UUID' },
+              { name: 'プライベートフラグ [isPrivate] [IS_PRIVATE]', type: 'BOOLEAN' },
+              { name: 'アーカイブフラグ [isArchived] [IS_ARCHIVED]', type: 'BOOLEAN' }
+            ],
+            businessRules: [
+              'プロジェクト開始時に自動作成',
+              'アーカイブ後は読み取り専用',
+              'プライベートチャンネルは招待制'
+            ]
+          },
+          {
+            name: 'メッセージ [Message] [MESSAGE]',
+            attributes: [
+              { name: 'ID [id] [MESSAGE_ID]', type: 'UUID' },
+              { name: 'チャンネルID [channelId] [CHANNEL_ID]', type: 'UUID' },
+              { name: '送信者ID [senderId] [SENDER_ID]', type: 'UUID' },
+              { name: '本文 [content] [CONTENT]', type: 'TEXT' },
+              { name: 'スレッドID [threadId] [THREAD_ID]', type: 'UUID' },
+              { name: '添付ファイル [attachments] [ATTACHMENTS]', type: 'JSON' },
+              { name: '編集フラグ [isEdited] [IS_EDITED]', type: 'BOOLEAN' },
+              { name: '送信日時 [sentAt] [SENT_AT]', type: 'TIMESTAMP' }
+            ],
+            businessRules: [
+              'メッセージは24時間以内なら編集可',
+              'スレッドは3階層まで',
+              '添付ファイルは10MBまで'
+            ]
+          },
+          {
+            name: 'アラート [Alert] [ALERT]',
+            attributes: [
+              { name: 'ID [id] [ALERT_ID]', type: 'UUID' },
+              { name: 'アラート名 [name] [NAME]', type: 'STRING_200' },
+              { name: 'カテゴリ [category] [CATEGORY]', type: 'ENUM' },
+              { name: '緊急度 [urgency] [URGENCY]', type: 'ENUM' },
+              { name: '対象ID [targetId] [TARGET_ID]', type: 'UUID' },
+              { name: '対象タイプ [targetType] [TARGET_TYPE]', type: 'ENUM' },
+              { name: '闾値 [threshold] [THRESHOLD]', type: 'JSON' },
+              { name: '現在値 [currentValue] [CURRENT_VALUE]', type: 'JSON' },
+              { name: 'ステータス [status] [STATUS]', type: 'ENUM' },
+              { name: '発生日時 [triggeredAt] [TRIGGERED_AT]', type: 'TIMESTAMP' },
+              { name: '解決日時 [resolvedAt] [RESOLVED_AT]', type: 'TIMESTAMP' }
+            ],
+            businessRules: [
+              '緊急アラートは即座にエスカレーション',
+              '未対応アラートは段階的にエスカレーション',
+              '解決時は対応内容の記録必須'
+            ]
+          },
+          {
+            name: '通知設定 [NotificationPreference] [NOTIFICATION_PREFERENCE]',
+            attributes: [
+              { name: 'ID [id] [NOTIFICATION_PREFERENCE_ID]', type: 'UUID' },
+              { name: 'ユーザーID [userId] [USER_ID]', type: 'UUID' },
+              { name: 'チャンネル [channel] [CHANNEL]', type: 'ENUM' },
+              { name: '通知タイプ別設定 [typeSettings] [TYPE_SETTINGS]', type: 'JSON' },
+              { name: '通知時間帯 [activeHours] [ACTIVE_HOURS]', type: 'JSON' },
+              { name: 'ダイジェスト設定 [digestSettings] [DIGEST_SETTINGS]', type: 'JSON' }
+            ],
+            businessRules: [
+              'デフォルト設定からカスタマイズ',
+              '重要通知はオプトアウト不可',
+              '時間帯設定はタイムゾーン考慮'
+            ]
+          }
+        ],
+        valueObjects: [
+          {
+            name: '通知タイプ [NotificationType] [NOTIFICATION_TYPE]',
+            attributes: [{ name: '値 [value] [VALUE]', type: 'ENUM' }],
+            businessRules: [
+              'タスク、承認、コメント、リマインダー、アラート等',
+              'タイプ別にテンプレート定義',
+              'タイプ別に配信ルール設定'
+            ]
+          },
+          {
+            name: '緊急度 [Urgency] [URGENCY]',
+            attributes: [{ name: '値 [value] [VALUE]', type: 'ENUM' }],
+            businessRules: [
+              '緊急、高、中、低の4段階',
+              '緊急度により配信手段を変更',
+              'エスカレーションタイミングを決定'
+            ]
+          }
+        ],
+        domainServices: [
+          {
+            name: '通知配信サービス [NotificationDeliveryService] [NOTIFICATION_DELIVERY_SERVICE]',
+            operations: [
+              '通知の生成・送信',
+              '配信チャネルの選定',
+              '配信状態の追跡',
+              'リトライ処理'
+            ]
+          },
+          {
+            name: 'メッセージングサービス [MessagingService] [MESSAGING_SERVICE]',
+            operations: [
+              'メッセージの送受信',
+              'スレッド管理',
+              'ファイル共有',
+              'リアルタイム配信'
+            ]
+          }
+        ]
+      }),
       apiSpecification: JSON.stringify({}),
       dbSchema: JSON.stringify({})
     }

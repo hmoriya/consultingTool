@@ -8,22 +8,186 @@ export async function seedProjectServiceFullParasol() {
   
   // 既存のサービスをチェック
   const existingService = await parasolDb.service.findFirst({
-    where: { name: 'project-management' }
+    where: { name: 'project-success-support' }
   })
   
   if (existingService) {
-    console.log('  プロジェクト管理サービス already exists, skipping...')
+    console.log('  プロジェクト成功支援サービス already exists, skipping...')
     return
   }
   
   // サービスを作成
   const service = await parasolDb.service.create({
     data: {
-      name: 'project-management',
-      displayName: 'プロジェクト管理サービス',
-      description: 'プロジェクトの計画、実行、監視、成果物管理を統合的に支援',
+      name: 'project-success-support',
+      displayName: 'プロジェクト成功支援サービス',
+      description: 'プロジェクトを成功に導くための計画策定、実行支援、リスク管理、成果創出を統合的にサポート',
 
-      domainLanguage: JSON.stringify({}),
+      domainLanguage: JSON.stringify({
+        entities: [
+          {
+            name: 'プロジェクト [Project] [PROJECT]',
+            attributes: [
+              { name: 'ID [id] [PROJECT_ID]', type: 'UUID' },
+              { name: 'プロジェクトコード [code] [CODE]', type: 'STRING_20' },
+              { name: 'プロジェクト名 [name] [NAME]', type: 'STRING_200' },
+              { name: '説明 [description] [DESCRIPTION]', type: 'TEXT' },
+              { name: '開始日 [startDate] [START_DATE]', type: 'DATE' },
+              { name: '終了日 [endDate] [END_DATE]', type: 'DATE' },
+              { name: 'ステータス [status] [STATUS]', type: 'ENUM' },
+              { name: '予算 [budget] [BUDGET]', type: 'MONEY' },
+              { name: 'クライアントID [clientId] [CLIENT_ID]', type: 'UUID' },
+              { name: 'プロジェクトマネージャーID [pmId] [PM_ID]', type: 'UUID' },
+              { name: '進捗率 [progress] [PROGRESS]', type: 'PERCENTAGE' }
+            ],
+            businessRules: [
+              'プロジェクトコードは企業全体で一意',
+              '終了日は開始日以降であること',
+              'ステータス変更には正当な理由と承認が必要'
+            ]
+          },
+          {
+            name: 'タスク [Task] [TASK]',
+            attributes: [
+              { name: 'ID [id] [TASK_ID]', type: 'UUID' },
+              { name: 'タスク名 [name] [NAME]', type: 'STRING_200' },
+              { name: '説明 [description] [DESCRIPTION]', type: 'TEXT' },
+              { name: 'プロジェクトID [projectId] [PROJECT_ID]', type: 'UUID' },
+              { name: 'マイルストーンID [milestoneId] [MILESTONE_ID]', type: 'UUID' },
+              { name: '担当者ID [assigneeId] [ASSIGNEE_ID]', type: 'UUID' },
+              { name: '予定工数 [estimatedHours] [ESTIMATED_HOURS]', type: 'DECIMAL' },
+              { name: '実績工数 [actualHours] [ACTUAL_HOURS]', type: 'DECIMAL' },
+              { name: '期限 [dueDate] [DUE_DATE]', type: 'DATE' },
+              { name: 'ステータス [status] [STATUS]', type: 'ENUM' },
+              { name: '優先度 [priority] [PRIORITY]', type: 'ENUM' }
+            ],
+            businessRules: [
+              'タスクは必ず1つのプロジェクトに所属',
+              '完了には実績工数の記録が必須',
+              '期限延長にはPMの承認が必要'
+            ]
+          },
+          {
+            name: 'マイルストーン [Milestone] [MILESTONE]',
+            attributes: [
+              { name: 'ID [id] [MILESTONE_ID]', type: 'UUID' },
+              { name: 'マイルストーン名 [name] [NAME]', type: 'STRING_200' },
+              { name: '説明 [description] [DESCRIPTION]', type: 'TEXT' },
+              { name: 'プロジェクトID [projectId] [PROJECT_ID]', type: 'UUID' },
+              { name: '計画日 [plannedDate] [PLANNED_DATE]', type: 'DATE' },
+              { name: '実績日 [actualDate] [ACTUAL_DATE]', type: 'DATE' },
+              { name: 'ステータス [status] [STATUS]', type: 'ENUM' },
+              { name: '成果物 [deliverables] [DELIVERABLES]', type: 'JSON' }
+            ],
+            businessRules: [
+              'マイルストーンはプロジェクトの重要な節目を表す',
+              'マイルストーン達成には成果物の提出が必須',
+              '遅延時は影響分析と対策が必要'
+            ]
+          },
+          {
+            name: 'リスク [Risk] [RISK]',
+            attributes: [
+              { name: 'ID [id] [RISK_ID]', type: 'UUID' },
+              { name: 'リスク名 [name] [NAME]', type: 'STRING_200' },
+              { name: '説明 [description] [DESCRIPTION]', type: 'TEXT' },
+              { name: 'プロジェクトID [projectId] [PROJECT_ID]', type: 'UUID' },
+              { name: 'カテゴリ [category] [CATEGORY]', type: 'ENUM' },
+              { name: '発生確率 [probability] [PROBABILITY]', type: 'ENUM' },
+              { name: '影響度 [impact] [IMPACT]', type: 'ENUM' },
+              { name: 'リスクスコア [riskScore] [RISK_SCORE]', type: 'INTEGER' },
+              { name: '対応戦略 [strategy] [STRATEGY]', type: 'ENUM' },
+              { name: '対策 [mitigation] [MITIGATION]', type: 'TEXT' },
+              { name: 'ステータス [status] [STATUS]', type: 'ENUM' }
+            ],
+            businessRules: [
+              'リスクスコアは確率×影響度で自動算出',
+              '高リスク（スコア8以上）は必ず対策が必要',
+              'リスクの状況は週次でレビュー'
+            ]
+          },
+          {
+            name: 'イシュー [Issue] [ISSUE]',
+            attributes: [
+              { name: 'ID [id] [ISSUE_ID]', type: 'UUID' },
+              { name: 'イシュー名 [title] [TITLE]', type: 'STRING_200' },
+              { name: '説明 [description] [DESCRIPTION]', type: 'TEXT' },
+              { name: 'プロジェクトID [projectId] [PROJECT_ID]', type: 'UUID' },
+              { name: '報告者ID [reporterId] [REPORTER_ID]', type: 'UUID' },
+              { name: '担当者ID [assigneeId] [ASSIGNEE_ID]', type: 'UUID' },
+              { name: 'カテゴリ [category] [CATEGORY]', type: 'ENUM' },
+              { name: '重要度 [severity] [SEVERITY]', type: 'ENUM' },
+              { name: 'ステータス [status] [STATUS]', type: 'ENUM' },
+              { name: '解決日 [resolvedDate] [RESOLVED_DATE]', type: 'DATE' }
+            ],
+            businessRules: [
+              'イシューは24時間以内に初期対応が必須',
+              '重大イシューはエスカレーションフローが発動',
+              '解決時は根本原因の記録が必須'
+            ]
+          },
+          {
+            name: '成果物 [Deliverable] [DELIVERABLE]',
+            attributes: [
+              { name: 'ID [id] [DELIVERABLE_ID]', type: 'UUID' },
+              { name: '成果物名 [name] [NAME]', type: 'STRING_200' },
+              { name: '説明 [description] [DESCRIPTION]', type: 'TEXT' },
+              { name: 'プロジェクトID [projectId] [PROJECT_ID]', type: 'UUID' },
+              { name: 'タイプ [type] [TYPE]', type: 'ENUM' },
+              { name: 'バージョン [version] [VERSION]', type: 'STRING_20' },
+              { name: 'ファイルパス [filePath] [FILE_PATH]', type: 'STRING_500' },
+              { name: '作成者ID [createdBy] [CREATED_BY]', type: 'UUID' },
+              { name: 'ステータス [status] [STATUS]', type: 'ENUM' },
+              { name: 'レビューステータス [reviewStatus] [REVIEW_STATUS]', type: 'ENUM' }
+            ],
+            businessRules: [
+              '成果物はバージョン管理が必須',
+              'クライアント提出前に品質レビューが必須',
+              '最終版は承認記録を保持'
+            ]
+          }
+        ],
+        valueObjects: [
+          {
+            name: 'プロジェクトコード [ProjectCode] [PROJECT_CODE]',
+            attributes: [{ name: '値 [value] [VALUE]', type: 'STRING_20' }],
+            businessRules: [
+              'フォーマット: [PREFIX][YEAR][SEQUENCE]',
+              '例: PRJ2024001',
+              '一度発番されたコードは変更不可'
+            ]
+          },
+          {
+            name: '進捗率 [Progress] [PROGRESS]',
+            attributes: [{ name: '値 [value] [VALUE]', type: 'PERCENTAGE' }],
+            businessRules: [
+              '0から100の整数値',
+              'タスク完了率から自動算出',
+              '手動上書きはPM権限が必要'
+            ]
+          }
+        ],
+        domainServices: [
+          {
+            name: 'プロジェクト管理サービス [ProjectManagementService] [PROJECT_MANAGEMENT_SERVICE]',
+            operations: [
+              'プロジェクトの作成・初期化',
+              'プロジェクトステータスの変更',
+              'プロジェクト進捗の集計',
+              'プロジェクト完了処理'
+            ]
+          },
+          {
+            name: 'リスク管理サービス [RiskManagementService] [RISK_MANAGEMENT_SERVICE]',
+            operations: [
+              'リスクの評価・スコアリング',
+              'リスクマトリクスの更新',
+              'リスク対策の追跡',
+              'リスクレポートの生成'
+            ]
+          }
+        ]
+      }),
       apiSpecification: JSON.stringify({}),
       dbSchema: JSON.stringify({})
     }

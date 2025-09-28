@@ -4,7 +4,7 @@ import { seedAnticipateAndManageRisks } from './project-operations/02-anticipate
 import { seedVisualizeAndControlProgress } from './project-operations/04-visualize-control-progress'
 import { seedAssureQuality } from './project-operations/05-assure-quality'
 import { seedResolveIssuesQuickly } from './project-operations/06-resolve-issues-quickly'
-import { seedManageExpectationsAppropriately } from './project-operations/07-manage-expectations-appropriately'
+import { seedAlignExpectations } from './project-operations/07-align-expectations'
 // import { seedFacilitateCommunication } from './project-operations/08-facilitate-communication' // 通知サービスの責務のため除外
 import { seedDeliverDeliverablesReliably } from './project-operations/09-deliver-deliverables-reliably'
 
@@ -33,8 +33,8 @@ export async function seedProjectOperationsFull(service: any, capability: any) {
   const { operation: operation5 } = await seedResolveIssuesQuickly(service, capability)
   operations.push(operation5)
   
-  // 6. 期待値を適切に管理する
-  const { operation: operation6 } = await seedManageExpectationsAppropriately(service, capability)
+  // 6. 期待値をすり合わせる
+  const { operation: operation6 } = await seedAlignExpectations(service, capability)
   operations.push(operation6)
   
   // 7. コミュニケーションを円滑化する - 通知サービスへ移動

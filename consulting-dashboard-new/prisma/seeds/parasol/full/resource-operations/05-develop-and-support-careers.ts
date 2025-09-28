@@ -2,16 +2,16 @@ import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 
 const parasolDb = new ParasolPrismaClient()
 
-export async function seedManageCareers(service: any, capability: any) {
-  console.log('    Creating business operation: キャリアを管理する...')
+export async function seedDevelopAndSupportCareers(service: any, capability: any) {
+  console.log('    Creating business operation: キャリアを開発・支援する...')
   
   const operation = await parasolDb.businessOperation.create({
     data: {
       serviceId: service.id,
       capabilityId: capability.id,
-      name: 'ManageCareers',
-      displayName: 'キャリアを管理する',
-      design: `# ビジネスオペレーション: キャリアを管理する [ManageCareers] [MANAGE_CAREERS]
+      name: 'DevelopAndSupportCareers',
+      displayName: 'キャリアを開発・支援する',
+      design: `# ビジネスオペレーション: キャリアを開発・支援する [DevelopAndSupportCareers] [DEVELOP_AND_SUPPORT_CAREERS]
 
 ## オペレーション概要
 

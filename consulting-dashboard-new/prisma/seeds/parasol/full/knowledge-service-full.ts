@@ -8,22 +8,190 @@ export async function seedKnowledgeServiceFullParasol() {
   
   // 既存のサービスをチェック
   const existingService = await parasolDb.service.findFirst({
-    where: { name: 'knowledge-management' }
+    where: { name: 'knowledge-cocreation' }
   })
   
   if (existingService) {
-    console.log('  知識管理サービス already exists, skipping...')
+    console.log('  ナレッジ共創サービス already exists, skipping...')
     return
   }
   
   // サービスを作成
   const service = await parasolDb.service.create({
     data: {
-      name: 'knowledge-management',
-      displayName: '知識管理サービス',
-      description: 'ナレッジの蓄積、共有、活用を促進し組織学習を支援',
+      name: 'knowledge-cocreation',
+      displayName: 'ナレッジ共創サービス',
+      description: '知識を共有し、組織全体で新たな価値を創造する仕組みを提供',
 
-      domainLanguage: JSON.stringify({}),
+      domainLanguage: JSON.stringify({
+        entities: [
+          {
+            name: 'ナレッジ記事 [Article] [ARTICLE]',
+            attributes: [
+              { name: 'ID [id] [ARTICLE_ID]', type: 'UUID' },
+              { name: 'タイトル [title] [TITLE]', type: 'STRING_200' },
+              { name: '概要 [summary] [SUMMARY]', type: 'TEXT' },
+              { name: '本文 [content] [CONTENT]', type: 'TEXT' },
+              { name: 'カテゴリID [categoryId] [CATEGORY_ID]', type: 'UUID' },
+              { name: '作成者ID [authorId] [AUTHOR_ID]', type: 'UUID' },
+              { name: 'ステータス [status] [STATUS]', type: 'ENUM' },
+              { name: '公開レベル [visibility] [VISIBILITY]', type: 'ENUM' },
+              { name: 'タグ [tags] [TAGS]', type: 'JSON' },
+              { name: '評価スコア [rating] [RATING]', type: 'DECIMAL' },
+              { name: '閲覧数 [viewCount] [VIEW_COUNT]', type: 'INTEGER' },
+              { name: '最終更新日 [updatedAt] [UPDATED_AT]', type: 'TIMESTAMP' }
+            ],
+            businessRules: [
+              'タイトルと概要は必須',
+              'ドラフト状態から公開への変更は承認が必要',
+              '評価スコアは5段階評価の平均'
+            ]
+          },
+          {
+            name: 'ナレッジカテゴリ [Category] [CATEGORY]',
+            attributes: [
+              { name: 'ID [id] [CATEGORY_ID]', type: 'UUID' },
+              { name: 'カテゴリ名 [name] [NAME]', type: 'STRING_100' },
+              { name: '説明 [description] [DESCRIPTION]', type: 'TEXT' },
+              { name: '親カテゴリID [parentId] [PARENT_ID]', type: 'UUID' },
+              { name: '表示順 [displayOrder] [DISPLAY_ORDER]', type: 'INTEGER' },
+              { name: 'アクティブフラグ [isActive] [IS_ACTIVE]', type: 'BOOLEAN' }
+            ],
+            businessRules: [
+              '階層は最大3階層まで',
+              'カテゴリ名は階層内で一意',
+              '記事が存在するカテゴリは削除不可'
+            ]
+          },
+          {
+            name: 'テンプレート [Template] [TEMPLATE]',
+            attributes: [
+              { name: 'ID [id] [TEMPLATE_ID]', type: 'UUID' },
+              { name: 'テンプレート名 [name] [NAME]', type: 'STRING_200' },
+              { name: '説明 [description] [DESCRIPTION]', type: 'TEXT' },
+              { name: 'カテゴリID [categoryId] [CATEGORY_ID]', type: 'UUID' },
+              { name: 'テンプレート内容 [content] [CONTENT]', type: 'TEXT' },
+              { name: '変数定義 [variables] [VARIABLES]', type: 'JSON' },
+              { name: '利用回数 [useCount] [USE_COUNT]', type: 'INTEGER' }
+            ],
+            businessRules: [
+              'テンプレートは再利用可能な文書構造',
+              '変数は{{variable}}形式で定義',
+              'カテゴリ別にテンプレートを管理'
+            ]
+          },
+          {
+            name: 'FAQ [FAQ] [FAQ]',
+            attributes: [
+              { name: 'ID [id] [FAQ_ID]', type: 'UUID' },
+              { name: '質問 [question] [QUESTION]', type: 'TEXT' },
+              { name: '回答 [answer] [ANSWER]', type: 'TEXT' },
+              { name: 'カテゴリID [categoryId] [CATEGORY_ID]', type: 'UUID' },
+              { name: '関連記事ID [relatedArticles] [RELATED_ARTICLES]', type: 'JSON' },
+              { name: '有用性スコア [helpfulScore] [HELPFUL_SCORE]', type: 'INTEGER' },
+              { name: '表示回数 [displayCount] [DISPLAY_COUNT]', type: 'INTEGER' }
+            ],
+            businessRules: [
+              '質問と回答はペアで必須',
+              '有用性スコアはユーザー投票による',
+              '頻度の高いFAQは上位表示'
+            ]
+          },
+          {
+            name: 'エキスパート [Expert] [EXPERT]',
+            attributes: [
+              { name: 'ID [id] [EXPERT_ID]', type: 'UUID' },
+              { name: 'ユーザーID [userId] [USER_ID]', type: 'UUID' },
+              { name: '専門分野 [expertise] [EXPERTISE]', type: 'JSON' },
+              { name: '経歴 [biography] [BIOGRAPHY]', type: 'TEXT' },
+              { name: '貢献度 [contributionScore] [CONTRIBUTION_SCORE]', type: 'INTEGER' },
+              { name: '回答数 [answerCount] [ANSWER_COUNT]', type: 'INTEGER' },
+              { name: '評価スコア [rating] [RATING]', type: 'DECIMAL' }
+            ],
+            businessRules: [
+              'エキスパートは特定分野の専門家',
+              '貢献度は記事投稿と回答の質で評価',
+              '一定の貢献度でエキスパート認定'
+            ]
+          },
+          {
+            name: 'ナレッジリクエスト [KnowledgeRequest] [KNOWLEDGE_REQUEST]',
+            attributes: [
+              { name: 'ID [id] [KNOWLEDGE_REQUEST_ID]', type: 'UUID' },
+              { name: 'リクエスト者ID [requesterId] [REQUESTER_ID]', type: 'UUID' },
+              { name: 'タイトル [title] [TITLE]', type: 'STRING_200' },
+              { name: '説明 [description] [DESCRIPTION]', type: 'TEXT' },
+              { name: 'カテゴリID [categoryId] [CATEGORY_ID]', type: 'UUID' },
+              { name: 'ステータス [status] [STATUS]', type: 'ENUM' },
+              { name: '優先度 [priority] [PRIORITY]', type: 'ENUM' },
+              { name: '回答期限 [deadline] [DEADLINE]', type: 'DATE' }
+            ],
+            businessRules: [
+              'リクエストは知識ギャップを埋める要求',
+              '優先度は業務への影響度で決定',
+              '期限内に回答がない場合はエスカレーション'
+            ]
+          }
+        ],
+        valueObjects: [
+          {
+            name: 'タグ [Tag] [TAG]',
+            attributes: [{ name: '値 [value] [VALUE]', type: 'STRING_50' }],
+            businessRules: [
+              'タグは記事の分類に使用',
+              '最大10個まで付与可能',
+              '頻繁に使用されるタグは自動提案'
+            ]
+          },
+          {
+            name: '評価 [Rating] [RATING]',
+            attributes: [{ name: '値 [value] [VALUE]', type: 'DECIMAL' }],
+            businessRules: [
+              '1-5の5段階評価',
+              '小数点1位まで',
+              '3件以上の評価で表示'
+            ]
+          },
+          {
+            name: '公開レベル [Visibility] [VISIBILITY]',
+            attributes: [{ name: '値 [value] [VALUE]', type: 'ENUM' }],
+            businessRules: [
+              '全体公開、部門限定、プロジェクト限定、非公開',
+              'プロジェクト関連知識はプロジェクトメンバーのみ',
+              'セキュリティレベルに応じた制御'
+            ]
+          }
+        ],
+        domainServices: [
+          {
+            name: 'ナレッジ検索サービス [KnowledgeSearchService] [KNOWLEDGE_SEARCH_SERVICE]',
+            operations: [
+              '全文検索の実行',
+              '意味検索（AI活用）',
+              '関連記事の推薦',
+              '検索履歴の学習'
+            ]
+          },
+          {
+            name: 'ナレッジ評価サービス [KnowledgeEvaluationService] [KNOWLEDGE_EVALUATION_SERVICE]',
+            operations: [
+              '記事の品質評価',
+              '有用性スコアの算出',
+              'エキスパートの認定',
+              '改善提案の生成'
+            ]
+          },
+          {
+            name: 'テンプレート管理サービス [TemplateManagementService] [TEMPLATE_MANAGEMENT_SERVICE]',
+            operations: [
+              'テンプレートの作成・管理',
+              '変数の置換処理',
+              '利用統計の収集',
+              'テンプレートの推奨'
+            ]
+          }
+        ]
+      }),
       apiSpecification: JSON.stringify({}),
       dbSchema: JSON.stringify({})
     }

@@ -2,16 +2,16 @@ import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 
 const parasolDb = new ParasolPrismaClient()
 
-export async function seedManageExpectationsAppropriately(service: any, capability: any) {
-  console.log('    Creating business operation: 期待値を適切に管理する...')
+export async function seedAlignExpectations(service: any, capability: any) {
+  console.log('    Creating business operation: 期待値をすり合わせる...')
   
   const operation = await parasolDb.businessOperation.create({
     data: {
       serviceId: service.id,
       capabilityId: capability.id,
-      name: 'ManageExpectationsAppropriately',
-      displayName: '期待値を適切に管理する',
-      design: `# ビジネスオペレーション: 期待値を適切に管理する [ManageExpectationsAppropriately] [MANAGE_EXPECTATIONS_APPROPRIATELY]
+      name: 'AlignExpectations',
+      displayName: '期待値をすり合わせる',
+      design: `# ビジネスオペレーション: 期待値をすり合わせる [AlignExpectations] [ALIGN_EXPECTATIONS]
 
 ## オペレーション概要
 

@@ -9,7 +9,7 @@ interface Entity {
   }>;
   relationships?: Array<{
     target: string;
-    type: 'one-to-one' | 'one-to-many' | 'many-to-many';
+    type: 'one-to-one' | 'one-to-many' | 'many-to-many' | 'many-to-one' | 'value-object';
   }>;
 }
 
@@ -47,6 +47,20 @@ export class DiagramConverter {
       return placeholder;
     }
     
+    // 集約ルートエンティティにマークを付ける（エンティティ生成前に実行）
+    const processedAggregates = new Set<string>();
+    parseResult.aggregates.forEach(agg => {
+      const aggKey = `${agg.name}-${agg.root}`;
+      if (!processedAggregates.has(aggKey)) {
+        processedAggregates.add(aggKey);
+        const rootEntity = parseResult.entities.find(e => e.name === agg.root);
+        if (rootEntity && !rootEntity.isAggregate) {
+          rootEntity.isAggregate = true;
+          console.log(`Marked ${agg.root} as aggregate root`);
+        }
+      }
+    });
+    
     let mermaid = 'classDiagram\n';
     
     // エンティティ
@@ -58,7 +72,8 @@ export class DiagramConverter {
       }
       entity.attributes.forEach(attr => {
         // Mermaidの正しい属性構文: type name
-        mermaid += `    ${attr.type} ${attr.name}\n`;
+        const mermaidType = this.convertParasolTypeToMermaid(attr.type);
+        mermaid += `    ${mermaidType} ${attr.name}\n`;
       });
       mermaid += '  }\n';
       
@@ -68,8 +83,13 @@ export class DiagramConverter {
           mermaid += `  ${entity.name} "1" -- "1" ${rel.target}\n`;
         } else if (rel.type === 'one-to-many') {
           mermaid += `  ${entity.name} "1" -- "*" ${rel.target}\n`;
+        } else if (rel.type === 'many-to-one') {
+          mermaid += `  ${entity.name} "*" --> "1" ${rel.target}\n`;
         } else if (rel.type === 'many-to-many') {
           mermaid += `  ${entity.name} "*" -- "*" ${rel.target}\n`;
+        } else if ((rel.type as string) === 'value-object') {
+          // Value Objectとの関連は合成関係として表現（filled diamond）
+          mermaid += `  ${entity.name} *-- ${rel.target} : uses\n`;
         }
       });
     });
@@ -85,13 +105,23 @@ export class DiagramConverter {
     });
     
     // 集約の関係を追加
+    processedAggregates.clear();
     parseResult.aggregates.forEach(agg => {
-      agg.entities.forEach(entityName => {
-        if (entityName !== agg.root) {
-          // 集約内の関係を点線で表示
-          mermaid += `  ${agg.root} ..> ${entityName} : contains\n`;
-        }
-      });
+      const aggKey = `${agg.name}-${agg.root}`;
+      if (!processedAggregates.has(aggKey)) {
+        processedAggregates.add(aggKey);
+        console.log(`Adding aggregate relationships for: ${agg.name} (root: ${agg.root})`);
+        
+        agg.entities.forEach(entityName => {
+          if (entityName !== agg.root) {
+            // 集約内の関係を点線で表示
+            mermaid += `  ${agg.root} ..> ${entityName} : contains\n`;
+            console.log(`  Added relationship: ${agg.root} ..> ${entityName}`);
+          }
+        });
+      } else {
+        console.log(`Skipping duplicate aggregate: ${agg.name}`);
+      }
     });
     
     console.log('Generated mermaid code:', mermaid);
@@ -225,19 +255,25 @@ export class DiagramConverter {
     let currentAggregate: { name: string; root: string; entities: string[] } | null = null;
     let inTable = false;
     let tableHeaders: string[] = [];
+    let inAggregateRoot = false;
+    let inAggregateEntities = false;
     
     lines.forEach((line, index) => {
       const trimmed = line.trim();
       
       // セクション検出
-      if (trimmed === '## エンティティ') {
+      if (trimmed === '## エンティティ（Entities）' || trimmed === '## エンティティ') {
         currentSection = 'entities';
         return;
-      } else if (trimmed === '## 値オブジェクト') {
+      } else if (trimmed === '## 値オブジェクト（Value Objects）' || trimmed === '## 値オブジェクト') {
         currentSection = 'valueObjects';
         return;
-      } else if (trimmed === '## 集約') {
+      } else if (trimmed === '## ドメインサービス（Domain Services）' || trimmed === '## ドメインサービス') {
+        currentSection = 'domainServices';
+        return;
+      } else if (trimmed === '## 集約（Aggregates）' || trimmed === '## 集約') {
         currentSection = 'aggregates';
+        console.log('Found aggregates section at line', index);
         return;
       } else if (trimmed.startsWith('## ')) {
         currentSection = '';
@@ -247,19 +283,35 @@ export class DiagramConverter {
       // エンティティ解析
       if (currentSection === 'entities') {
         if (trimmed.startsWith('### ')) {
-          const match = trimmed.match(/^###\s+(.+?)(?:\s*[（(](.+?)[）)])?$/);
-          if (match) {
+          // 新フォーマット: ### ユーザー [User] [USER]
+          const nameMatch = trimmed.match(/^###\s+(.+?)\s*\[(.+?)\]\s*\[(.+?)\]$/);
+          if (nameMatch) {
+            const japaneseName = nameMatch[1].trim();
+            const englishName = nameMatch[2].trim();
+            const systemName = nameMatch[3].trim();
             currentEntity = {
-              name: this.sanitizeForMermaid(match[1].trim()),
+              name: englishName,  // 英語名をクラス名として使用
               attributes: [],
               relationships: []
             };
             result.entities.push(currentEntity);
             inTable = false;
+          } else {
+            // 旧フォーマットのフォールバック
+            const match = trimmed.match(/^###\s+(.+?)(?:\s*[（(](.+?)[）)])?$/);
+            if (match) {
+              currentEntity = {
+                name: this.sanitizeForMermaid(match[1].trim()),
+                attributes: [],
+                relationships: []
+              };
+              result.entities.push(currentEntity);
+              inTable = false;
+            }
           }
         } else if (currentEntity) {
-          // テーブル開始
-          if (trimmed.startsWith('|') && trimmed.includes('属性名')) {
+          // テーブル開始（新フォーマット）
+          if (trimmed.startsWith('|') && (trimmed.includes('日本語名') || trimmed.includes('属性名'))) {
             inTable = true;
             tableHeaders = trimmed.split('|').map(h => h.trim()).filter(h => h);
           } else if (trimmed.startsWith('|--')) {
@@ -267,14 +319,15 @@ export class DiagramConverter {
           } else if (inTable && trimmed.startsWith('|')) {
             // テーブル行
             const cells = trimmed.split('|').map(c => c.trim()).filter(c => c);
-            if (cells.length >= 2) {
-              const name = cells[0];
-              const type = cells[1];
-              if (name && type && !['属性名', '型'].includes(name)) {
+            // 新フォーマット: | 日本語名 | 英語名 | システム名 | 型 | 必須 | 説明 |
+            if (cells.length >= 4) {
+              const englishName = cells[1];  // 英語名を使用
+              const type = cells[3];  // 型は4番目
+              if (englishName && type && !['英語名', '型'].includes(englishName)) {
                 currentEntity.attributes.push({
-                  name: this.convertAttributeNameToEnglish(name),
-                  type: this.convertParasolTypeToMermaid(type),
-                  required: cells[2] === '○'
+                  name: englishName,
+                  type: type, // Keep original type to detect Value Objects
+                  required: cells[4] === '○'
                 });
               }
             }
@@ -289,17 +342,46 @@ export class DiagramConverter {
       // 値オブジェクト解析
       else if (currentSection === 'valueObjects') {
         if (trimmed.startsWith('### ')) {
-          const match = trimmed.match(/^###\s+(.+?)(?:\s*[（(](.+?)[）)])?$/);
-          if (match) {
+          // 新フォーマット: ### メールアドレス [Email] [EMAIL]
+          const nameMatch = trimmed.match(/^###\s+(.+?)\s*\[(.+?)\]\s*\[(.+?)\]$/);
+          if (nameMatch) {
+            const japaneseName = nameMatch[1].trim();
+            const englishName = nameMatch[2].trim();
+            const systemName = nameMatch[3].trim();
             currentValueObject = {
-              name: this.sanitizeForMermaid(match[1].trim()),
+              name: englishName,  // 英語名をクラス名として使用
               attributes: [],
               relationships: []
             };
             result.valueObjects.push(currentValueObject);
+          } else {
+            // 旧フォーマットのフォールバック
+            const match = trimmed.match(/^###\s+(.+?)(?:\s*[（(](.+?)[）)])?$/);
+            if (match) {
+              currentValueObject = {
+                name: this.sanitizeForMermaid(match[1].trim()),
+                attributes: [],
+                relationships: []
+              };
+              result.valueObjects.push(currentValueObject);
+            }
+          }
+        } else if (currentValueObject && trimmed.startsWith('- **')) {
+          // 新フォーマット: - **値** [value] [VALUE]: STRING_255
+          const attrMatch = trimmed.match(/^-\s*\*\*(.+?)\*\*\s*\[(.+?)\]\s*\[(.+?)\]:\s*(.+)/);
+          if (attrMatch) {
+            const japaneseName = attrMatch[1].trim();
+            const englishName = attrMatch[2].trim();
+            const systemName = attrMatch[3].trim();
+            const type = attrMatch[4].trim();
+            currentValueObject.attributes.push({
+              name: englishName,
+              type: this.convertParasolTypeToMermaid(type),
+              required: true
+            });
           }
         } else if (currentValueObject && trimmed.startsWith('- ') && trimmed.includes(':')) {
-          // 属性行
+          // 旧フォーマットのフォールバック
           const colonIndex = trimmed.indexOf(':');
           if (colonIndex > 0) {
             const name = trimmed.substring(2, colonIndex).trim();
@@ -319,33 +401,113 @@ export class DiagramConverter {
       // 集約解析
       else if (currentSection === 'aggregates') {
         if (trimmed.startsWith('### ')) {
-          const name = trimmed.substring(4).trim();
-          currentAggregate = { name: this.sanitizeForMermaid(name), root: '', entities: [] };
-          result.aggregates.push(currentAggregate);
+          // 新しい集約定義の開始: ### プロジェクト集約 [ProjectAggregate] [PROJECT_AGGREGATE]
+          const nameMatch = trimmed.match(/^###\s+(.+?)\s*\[(.+?)\]\s*\[(.+?)\]$/);
+          if (nameMatch) {
+            const japaneseName = nameMatch[1].trim();
+            const englishName = nameMatch[2].trim();
+            const systemName = nameMatch[3].trim();
+            currentAggregate = { name: englishName, root: '', entities: [] };
+            result.aggregates.push(currentAggregate);
+            console.log('Found aggregate:', englishName);
+          } else {
+            // フォールバック
+            const name = trimmed.substring(4).trim();
+            currentAggregate = { name: this.sanitizeForMermaid(name), root: '', entities: [] };
+            result.aggregates.push(currentAggregate);
+            console.log('Found aggregate (fallback):', name);
+          }
+          inAggregateRoot = false;
+          inAggregateEntities = false;
         } else if (currentAggregate) {
-          if (trimmed.startsWith('- **集約ルート**:')) {
-            currentAggregate.root = this.sanitizeForMermaid(trimmed.split(':')[1].trim());
-          } else if (trimmed.startsWith('- **含まれるエンティティ**:')) {
-            const entities = trimmed.split(':')[1].trim().split(',').map(e => this.sanitizeForMermaid(e.trim()));
-            currentAggregate.entities = entities;
+          if (trimmed === '#### 集約ルート') {
+            inAggregateRoot = true;
+            inAggregateEntities = false;
+            console.log('Found aggregate root section');
+          } else if (trimmed === '#### 含まれるエンティティ') {
+            inAggregateRoot = false;
+            inAggregateEntities = true;
+            console.log('Found aggregate entities section');
+          } else if (trimmed.startsWith('####')) {
+            // 他のサブセクション開始
+            inAggregateRoot = false;
+            inAggregateEntities = false;
+          } else if (trimmed.startsWith('- ')) {
+            const value = trimmed.substring(2).trim();
+            if (inAggregateRoot && value) {
+              currentAggregate.root = value;
+              console.log('Set aggregate root:', value);
+            } else if (inAggregateEntities && value) {
+              currentAggregate.entities.push(value);
+              console.log('Added aggregate entity:', value);
+            }
           }
         }
       }
     });
     
-    // リレーションシップの検出（簡易版）
+    // リレーションシップの検出（拡張版）
     result.entities.forEach(entity => {
       entity.attributes.forEach(attr => {
         // 外部キー的な属性から関係を推測
         if (attr.name.endsWith('Id') && attr.name !== 'id') {
-          const targetName = attr.name.substring(0, attr.name.length - 2);
+          // xxxId形式から対象エンティティ名を推測
+          let targetName = attr.name.substring(0, attr.name.length - 2);
+          
+          // 特殊なケースを処理
+          const nameMap: Record<string, string> = {
+            'organization': 'Organization',
+            'user': 'User',
+            'role': 'Role',
+            'session': 'Session',
+            'project': 'Project',
+            'task': 'Task',
+            'milestone': 'Milestone',
+            'risk': 'Risk',
+            'issue': 'Issue',
+            'deliverable': 'Deliverable'
+          };
+          
+          const mappedName = nameMap[targetName.toLowerCase()];
+          if (mappedName) {
+            targetName = mappedName;
+          }
+          
           const targetEntity = result.entities.find(e => 
             e.name.toLowerCase() === targetName.toLowerCase()
           );
+          
           if (targetEntity) {
+            // 重複チェック
+            const exists = entity.relationships?.some(r => 
+              r.target === targetEntity.name && r.type === 'many-to-one'
+            );
+            
+            if (!exists) {
+              entity.relationships?.push({
+                target: targetEntity.name,
+                type: 'many-to-one'
+              });
+            }
+          }
+        }
+        
+        // Value Object型の属性から関係を検出
+        const valueObject = result.valueObjects.find(vo => 
+          vo.name.toLowerCase() === attr.type.toLowerCase() ||
+          vo.name === attr.type
+        );
+        
+        if (valueObject) {
+          // 重複チェック
+          const exists = entity.relationships?.some(r => 
+            r.target === valueObject.name && r.type === 'value-object'
+          );
+          
+          if (!exists) {
             entity.relationships?.push({
-              target: targetEntity.name,
-              type: 'many-to-one'
+              target: valueObject.name,
+              type: 'value-object' as any
             });
           }
         }
@@ -516,9 +678,13 @@ export class DiagramConverter {
   private static convertParasolTypeToMermaid(parasolType: string): string {
     const typeMap: Record<string, string> = {
       'UUID': 'String',
+      'STRING': 'String',
       'STRING_20': 'String',
       'STRING_50': 'String',
       'STRING_100': 'String',
+      'STRING_200': 'String',
+      'STRING_255': 'String',
+      'STRING_500': 'String',
       'TEXT': 'String',
       'EMAIL': 'String',
       'PASSWORD_HASH': 'String',
@@ -529,10 +695,11 @@ export class DiagramConverter {
       'PERCENTAGE': 'Integer',
       'MONEY': 'Decimal',
       'BOOLEAN': 'Boolean',
-      'ENUM': 'String'
+      'ENUM': 'String',
+      'JSON': 'Object'
     };
     
-    return typeMap[parasolType] || parasolType;
+    return typeMap[parasolType] || 'String';
   }
 
   private static parseDBSchema(markdown: string): Table[] {

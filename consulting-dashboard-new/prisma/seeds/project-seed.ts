@@ -7,13 +7,6 @@ export async function seedProjects(users?: any[], organizations?: any) {
   console.log('🌱 Seeding Project Service...')
   
   try {
-    // 既存のプロジェクトをチェック
-    const existingProjects = await projectDb.project.count()
-    if (existingProjects > 0) {
-      console.log('⚠️  Project Service already has data. Returning existing projects.')
-      const projects = await projectDb.project.findMany()
-      return projects
-    }
     // ユーザーIDを取得
     const pmUser = users?.find(u => u.email === 'pm@example.com')
     const pm2User = users?.find(u => u.email === 'pm2@example.com')

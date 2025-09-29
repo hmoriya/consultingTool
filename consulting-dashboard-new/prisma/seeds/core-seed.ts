@@ -7,36 +7,6 @@ const authDb = new AuthPrismaClient()
 export async function seedCore() {
   console.log('🌱 Seeding Auth Service...')
 
-  // 既存データをチェック
-  const existingOrgs = await authDb.organization.count()
-  if (existingOrgs > 0) {
-    console.log('⚠️  Auth Service already has data. Skipping seed.')
-    const organizations = await authDb.organization.findMany({ where: { type: 'client' } })
-    const consultingFirm = await authDb.organization.findFirst({ where: { type: 'consultingFirm' } })
-    const users = await authDb.user.findMany()
-    const roles = await authDb.role.findMany()
-    
-    return {
-      organizations: {
-        consultingFirm,
-        clientOrg: organizations[0],
-        globalMfg: organizations.find(o => o.name === 'グローバル製造株式会社'),
-        financeCorp: organizations.find(o => o.name === '金融ソリューションズ株式会社'),
-        healthcare: organizations.find(o => o.name === 'ヘルスケアイノベーション株式会社'),
-        retail: organizations.find(o => o.name === 'リテールチェーン株式会社'),
-        energy: organizations.find(o => o.name === 'エネルギー開発株式会社')
-      },
-      roles: {
-        execRole: roles.find(r => r.name === USER_ROLES.EXECUTIVE),
-        pmRole: roles.find(r => r.name === USER_ROLES.PM),
-        consultantRole: roles.find(r => r.name === USER_ROLES.CONSULTANT),
-        clientRole: roles.find(r => r.name === USER_ROLES.CLIENT),
-        adminRole: roles.find(r => r.name === USER_ROLES.ADMIN)
-      },
-      users
-    }
-  }
-
   // 組織の作成
   const consultingFirm = await authDb.organization.create({
     data: {

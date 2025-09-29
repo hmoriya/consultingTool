@@ -127,7 +127,8 @@ function seedData() {
   console.log('\n🌱 シードデータを投入中...')
   
   try {
-    execSync('npx tsx prisma/seed-all.ts', {
+    // seed.tsを使用（seed-all.tsではなく）
+    execSync('npx tsx prisma/seed.ts', {
       stdio: 'inherit',
       cwd: path.resolve(__dirname, '..')
     })

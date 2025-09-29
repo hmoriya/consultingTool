@@ -6,11 +6,13 @@
  * 
  * 実行方法：
  * npx tsx prisma/seed-all.ts
+ * npx tsx prisma/seed-all.ts --clear  # データクリア付き
  */
 
 import { execSync } from 'child_process'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { clearAllData } from './seeds/utils/clear-data'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -34,7 +36,18 @@ function runSeed(scriptPath: string, serviceName: string) {
 
 async function main() {
   console.log('🌱 統合シード処理を開始します...\n')
-  console.log('⚠️  注意: 既存のデータは保持されます。重複エラーが発生する場合があります。')
+  
+  // クリアオプションのチェック
+  const shouldClear = process.argv.includes('--clear') || process.argv.includes('-c')
+  
+  if (shouldClear) {
+    console.log('🧹 既存データをクリアしています...')
+    await clearAllData()
+    console.log('')
+  } else {
+    console.log('⚠️  注意: 既存のデータは保持されます。重複エラーが発生する場合があります。')
+    console.log('   データをクリアしてから実行する場合は --clear オプションを使用してください。')
+  }
   
   try {
     // 1. 認証・組織管理サービス（他のサービスの基盤）

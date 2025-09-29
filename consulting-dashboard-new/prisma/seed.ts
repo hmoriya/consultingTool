@@ -5,6 +5,7 @@ import { seedTimesheets } from './seeds/timesheet-seed'
 import { seedNotifications } from './seeds/notification-seed'
 import { seedKnowledge } from './seeds/knowledge-seed'
 import { seedParasolFull } from './seeds/parasol-seed-full'
+import { clearAllData } from './seeds/utils/clear-data'
 
 // 各サービスの実行結果を追跡
 interface SeedResult {
@@ -41,6 +42,21 @@ async function seedService<T>(
 async function main() {
   console.log('🚀 Starting database seeding...')
   console.log('================================')
+  
+  // 環境変数またはコマンドライン引数でクリアオプションを制御
+  const shouldClear = process.env.SEED_CLEAR_DATA === 'true' || 
+                     process.argv.includes('--clear') ||
+                     process.argv.includes('-c')
+  
+  if (shouldClear) {
+    console.log('🧹 Clearing existing data before seeding...')
+    await clearAllData()
+    console.log('')
+  } else {
+    console.log('ℹ️  Seeding without clearing existing data.')
+    console.log('   Use --clear or set SEED_CLEAR_DATA=true to clear data first.')
+    console.log('')
+  }
   
   const results: SeedResult[] = []
   let coreData: any = null

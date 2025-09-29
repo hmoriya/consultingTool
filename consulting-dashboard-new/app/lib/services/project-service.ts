@@ -13,6 +13,13 @@ export class ProjectService {
     status?: string
     clientId?: string
   }): Promise<ProjectWithDetails[]> {
+    // デバッグ: includeオプションの確認
+    console.log('ProjectService.getProjectsWithDetails called with options:', {
+      includeMembers: options?.includeMembers,
+      includeTasks: options?.includeTasks,
+      includeMilestones: options?.includeMilestones
+    })
+    
     const projects = await projectDb.project.findMany({
       where: {
         ...(options?.status && { status: options.status }),
@@ -27,6 +34,12 @@ export class ProjectService {
         createdAt: 'desc',
       },
     })
+    
+    // デバッグ: Prismaから取得したデータの確認
+    console.log('Projects from Prisma:', projects.length)
+    if (projects.length > 0 && options?.includeMembers) {
+      console.log('First project members from DB:', projects[0].projectMembers)
+    }
 
     // クライアント情報を取得
     const clientIds = [...new Set(projects.map(p => p.clientId))]
@@ -39,9 +52,17 @@ export class ProjectService {
 
     // メンバー情報を取得（必要な場合）
     if (options?.includeMembers) {
+      // 問題の可能性: projectMembersが正しくincludeされていない場合
       const memberUserIds = [...new Set(
-        projects.flatMap(p => p.projectMembers.map(m => m.userId))
+        projects.flatMap(p => p.projectMembers?.map(m => m.userId) || [])
       )]
+      
+      console.log('Member user IDs to fetch:', memberUserIds)
+      
+      if (memberUserIds.length === 0) {
+        console.warn('Warning: No member IDs found despite includeMembers=true')
+      }
+      
       const users = await db.user.findMany({
         where: {
           id: { in: memberUserIds },
@@ -56,6 +77,10 @@ export class ProjectService {
 
       // プロジェクトメンバーにユーザー情報を追加
       projects.forEach(project => {
+        if (!project.projectMembers) {
+          console.warn(`Project ${project.id} has no projectMembers property`)
+          return
+        }
         project.projectMembers.forEach(member => {
           const memberWithUser = member as ProjectMemberWithUser
           memberWithUser.user = userMap.get(member.userId) || undefined
@@ -64,10 +89,17 @@ export class ProjectService {
     }
 
     // プロジェクトにクライアント情報を追加
-    return projects.map(project => ({
+    const result = projects.map(project => ({
       ...project,
       client: clientMap.get(project.clientId) || null,
+      // メンバー情報が含まれていることを確認
+      projectMembers: project.projectMembers || [],
     })) as ProjectWithDetails[]
+    
+    // デバッグ: 最終的な結果の確認
+    console.log('Final result - first project members:', result[0]?.projectMembers?.length || 0)
+    
+    return result
   }
 
   /**

@@ -139,58 +139,85 @@ npm run db:seed     # 初期データ投入
 npm run db:studio   # Prisma Studio起動
 ```
 
-## データベースファイル管理
+## データベース構成
 
-### データベースファイル配置
-開発用のサンプルデータベースはGitに含まれているため、新しいPCでclone後すぐに動作します。
+### サービス別データベース構成
+コンサルティングダッシュボードは、マイクロサービス指向の設計により、サービスごとに独立したデータベースを保持します。
 
+#### データベースファイル一覧（8サービス）
 ```
-dev.db                                    # 認証サービス用DB
-prisma/project-service/data/project.db   # プロジェクト管理DB
-prisma/resource-service/data/resource.db # リソース管理DB
-prisma/timesheet-service/data/timesheet.db # タイムシート管理DB
-prisma/notification-service/data/notification.db # 通知サービスDB
+prisma/auth-service/data/auth.db           # 認証サービス
+prisma/project-service/data/project.db     # プロジェクトサービス
+prisma/resource-service/data/resource.db   # リソースサービス
+prisma/timesheet-service/data/timesheet.db # タイムシートサービス
+prisma/notification-service/data/notification.db # 通知サービス
+prisma/knowledge-service/data/knowledge.db # ナレッジサービス
+prisma/finance-service/data/finance.db     # 財務サービス
+prisma/parasol-service/data/parasol.db     # パラソルサービス
 ```
 
-### 環境セットアップ手順
+#### 1. 認証サービスデータベース
+- **パス**: `prisma/auth-service/data/auth.db`
+- **環境変数**: `DATABASE_URL="file:./prisma/auth-service/data/auth.db"`
+- **管理エンティティ**: User, Organization, Role, AuditLog
+- **用途**: ユーザー認証、組織管理、ロール管理、監査ログ
+
+#### 2. プロジェクトサービスデータベース
+- **パス**: `prisma/project-service/data/project.db`
+- **環境変数**: `PROJECT_DATABASE_URL="file:./prisma/project-service/data/project.db"`
+- **管理エンティティ**: Project, Task, Milestone, ProjectMember, Risk, Deliverable
+- **用途**: プロジェクト管理全般、タスク管理、マイルストーン管理
+
+#### 3. リソースサービスデータベース
+- **パス**: `prisma/resource-service/data/resource.db`
+- **環境変数**: `RESOURCE_DATABASE_URL="file:./prisma/resource-service/data/resource.db"`
+- **管理エンティティ**: Team, TeamMember, Skill, UserSkill
+- **用途**: チーム管理、スキル管理、リソース配分
+
+#### 4. タイムシートサービスデータベース
+- **パス**: `prisma/timesheet-service/data/timesheet.db`
+- **環境変数**: `TIMESHEET_DATABASE_URL="file:./prisma/timesheet-service/data/timesheet.db"`
+- **管理エンティティ**: Timesheet, TimesheetEntry, TimesheetApproval
+- **用途**: 工数管理、タイムシート承認フロー
+
+#### 5. 通知サービスデータベース
+- **パス**: `prisma/notification-service/data/notification.db`
+- **環境変数**: `NOTIFICATION_DATABASE_URL="file:./prisma/notification-service/data/notification.db"`
+- **管理エンティティ**: Notification, Message
+- **用途**: 通知配信、メッセージ管理
+
+#### 6. ナレッジサービスデータベース
+- **パス**: `prisma/knowledge-service/data/knowledge.db`
+- **環境変数**: `KNOWLEDGE_DATABASE_URL="file:./prisma/knowledge-service/data/knowledge.db"`
+- **管理エンティティ**: KnowledgeArticle, Tag, Category
+- **用途**: ナレッジ記事管理、ベストプラクティス共有
+
+#### 7. 財務サービスデータベース
+- **パス**: `prisma/finance-service/data/finance.db`
+- **環境変数**: `FINANCE_DATABASE_URL="file:./prisma/finance-service/data/finance.db"`
+- **管理エンティティ**: Revenue, Cost, Budget, Invoice（将来実装）
+- **用途**: 収益管理、コスト管理、予算管理
+
+#### 8. パラソルサービスデータベース
+- **パス**: `prisma/parasol-service/data/parasol.db`
+- **環境変数**: `PARASOL_DATABASE_URL="file:./prisma/parasol-service/data/parasol.db"`
+- **管理エンティティ**: Service, BusinessCapability, BusinessOperation, UseCase, PageDefinition, TestDefinition
+- **用途**: パラソル設計ドキュメント管理、ドメイン言語定義
+
+### データベース初期化手順
 ```bash
-# 1. リポジトリをクローン
-git clone <repository-url>
-cd consulting-dashboard-new
+# すべてのサービスのデータベースを初期化
+npm run db:push
 
-# 2. 依存関係インストール
-npm install
-
-# 3. 環境変数設定（マシン固有の絶対パス生成）
-./setup-env.js
-
-# 4. アプリケーション起動（データベースは既に含まれているのでシード不要）
-npm run dev
-```
-
-### ⚠️ 重要：データベースの取り扱い
-
-**データベースファイルは既にGitに含まれているため、新規作成は不要です！**
-
-```bash
-# ❌ 以下のコマンドは実行しないでください（データベースを上書きしてしまいます）
-npx tsx prisma/seed.ts           # 実行不要
-npx prisma db push                # 実行不要
-npx prisma migrate reset          # 実行不要
-```
-
-### データベースの再初期化が必要な場合のみ（通常は不要）
-データベースが破損した場合や、スキーマが大幅に変更された場合のみ：
-```bash
-# ⚠️ 警告：既存データが削除されます
-npx tsx prisma/seed.ts
+# シードデータを投入
+npm run db:seed
 ```
 
 ### 重要な注意事項
-- **データベースファイルはGitに含まれています**（開発効率化のため）
-- **本番環境では別途データベースを構築してください**
-- **センシティブなデータは絶対に開発DBに入れないでください**
-- **`.env`ファイルは各マシンで`setup-env.js`により生成されるため、Gitには含まれません**
+- **メインデータベース（dev.db）は存在しません**
+- 全ての機能は8つのサービス別データベースに分割されています
+- 各データベースは`prisma/[service-name]/data/[service].db`の形式で配置
+- 不要な重複DBファイルが存在する場合は削除が必要
 
 ## マイクロサービス設計方針
 
@@ -326,38 +353,30 @@ export const projectDb = new ProjectPrismaClient({
 ##### 本番環境
 将来的に各サービスを個別のデータベースインスタンスへ移行可能
 
-### 現在のデータベースファイル構成
+### 重複DBファイルのクリーンアップ
 
-⚠️ **重要なルール**:
-- **禁止**: ルートディレクトリに`dev.db`や他のデータベースファイルを配置すること
-- **必須**: すべてのデータベースは各サービスの`prisma/[service-name]/data/`ディレクトリに配置
-- **理由**: マイクロサービスの独立性を保ち、将来の分散化に備えるため
+開発中に生成された重複DBファイルを削除する必要がある場合：
 
-以下の5つのSQLiteデータベースファイルが正常に配置されています：
+```bash
+# 重複ファイルの削除
+rm -f ./consulting-dashboard-new/prisma/parasol-service/data/parasol.db
+rm -f ./parasol.db
+rm -f ./prisma/auth-service/prisma/auth-service/data/auth.db
+rm -f ./prisma/auth-service/prisma/dev.db
+rm -f ./prisma/notification-service/prisma/notification-service/data/notification.db
+rm -f ./prisma/parasol-service/prisma/parasol-service/data/parasol.db
+rm -f ./prisma/prisma/auth-service/data/auth.db
+rm -f ./prisma/resource-service/prisma/resource-service/data/resource.db
+rm -f ./prisma/timesheet-service/prisma/timesheet-service/data/timesheet.db
 
+# 重複ディレクトリの削除
+rm -rf ./prisma/auth-service/prisma/
+rm -rf ./prisma/notification-service/prisma/
+rm -rf ./prisma/parasol-service/prisma/
+rm -rf ./prisma/prisma/
+rm -rf ./prisma/resource-service/prisma/
+rm -rf ./prisma/timesheet-service/prisma/
 ```
-prisma/
-├── auth-service/
-│   └── data/
-│       └── auth.db                 # 認証・ユーザー管理データ
-├── project-service/
-│   └── data/
-│       └── project.db              # プロジェクト管理データ
-├── resource-service/
-│   └── data/
-│       └── resource.db             # リソース・チーム管理データ
-├── timesheet-service/
-│   └── data/
-│       └── timesheet.db            # 工数管理データ
-└── notification-service/
-    └── data/
-        └── notification.db         # 通知・メッセージデータ
-```
-
-**重要**:
-- 上記5つのファイルのみが正規のデータベースファイルです
-- ルートディレクトリの`dev.db`は作成禁止
-- 他の場所にある.dbファイルは重複ファイルのため削除してください
 
 ### 移行戦略
 
@@ -903,6 +922,110 @@ stateDiagram-v2
 ### 10. イテレーション計画
 - **仕様**: `design/parasol/specifications/iteration-plan-spec.md`
 - **テンプレート**: `design/parasol/templates/iteration-plan-template.md`
+
+## シードデータ管理
+
+### シードデータの構成
+コンサルティングダッシュボードでは、開発・テスト環境のために包括的なシードデータセットを提供しています。
+
+#### シードファイルの構造
+```
+prisma/
+├── seed.ts                    # メインシードスクリプト（全サービス一括実行）
+├── reset-and-seed.ts         # DBリセット後にシード実行
+└── seeds/                    # サービス別シードファイル
+    ├── core-seed.ts         # 認証サービス（ユーザー、組織、ロール）
+    ├── project-seed.ts      # プロジェクトサービス（8プロジェクト）
+    ├── resource-seed.ts     # リソースサービス（チーム、スキル）
+    ├── timesheet-seed.ts    # タイムシートサービス（工数データ）
+    ├── notification-seed.ts # 通知サービス（通知、メッセージ）
+    ├── finance-seed.ts      # 財務サービス（収益、コスト）
+    ├── knowledge-seed.ts    # ナレッジサービス（記事、タグ）
+    ├── parasol-seed-full.ts # パラソルサービス（全7サービスの設計データ）
+    └── parasol/             # パラソル個別サービスシード
+        ├── secure-access-seed.ts
+        ├── project-success-seed.ts
+        ├── talent-optimization-seed.ts
+        ├── productivity-visualization-seed.ts
+        ├── knowledge-co-creation-seed.ts
+        ├── revenue-optimization-seed.ts
+        └── collaboration-promotion-seed.ts
+```
+
+#### 主要なテストデータ
+
+##### 1. テストユーザー
+```
+- exec@example.com / password123 (Executive - 経営層)
+- pm@example.com / password123 (PM - プロジェクトマネージャー)
+- consultant@example.com / password123 (Consultant - コンサルタント)
+- client@example.com / password123 (Client - クライアント)
+```
+
+##### 2. プロジェクトデータ
+- **合計8プロジェクト**（アクティブ4件、計画中2件、完了2件）
+- 各プロジェクトには以下が含まれます：
+  - プロジェクトメンバー（PM、コンサルタント）
+  - タスク（20-30件/プロジェクト）
+  - マイルストーン（3-4件/プロジェクト）
+
+##### 3. パラソル設計データ
+- **7サービス** × **3-4ケーパビリティ** × **2-3オペレーション** = **合計72オペレーション**
+- 各オペレーションには以下が含まれます：
+  - パラソルドメイン言語定義（エンティティ、値オブジェクト、集約）
+  - ユースケース（3-4件/オペレーション）
+  - ページ定義とテスト定義
+
+### シードデータの実行方法
+
+#### 初回セットアップ
+```bash
+# DBスキーマを作成
+npm run db:push
+
+# シードデータを投入
+npm run db:seed
+```
+
+#### データリセット（推奨）
+```bash
+# DBをクリアして新しいデータを投入
+npm run db:reset
+```
+
+#### 個別サービスのシード
+```bash
+# 認証サービスのみ
+npm run db:seed:auth
+
+# プロジェクトサービスのみ
+tsx prisma/seeds/project-seed.ts
+```
+
+### シードデータの特徴
+
+1. **リアルなビジネスシナリオ**
+   - 実際のコンサルティングプロジェクトを想定
+   - デジタルトランスフォーメーション、データ分析基盤構築など
+
+2. **ロール別の検証**
+   - 各ロール（Executive、PM、Consultant、Client）でのフィルタリング動作確認
+   - プロジェクトメンバー権限による表示制御
+
+3. **パラソル設計の実例**
+   - DDD（ドメイン駆動設計）に基づいたモデル定義
+   - 値オブジェクトとエンティティの関連表示
+   - Mermaidダイアグラムでの可視化
+
+### トラブルシューティング
+
+#### 古いデータとの競合
+**症状**: PMでログインしてもプロジェクトが表示されない
+**原因**: 古いProjectMemberデータが残存
+**解決策**: `npm run db:reset`でクリーンな状態から開始
+
+#### 今後の改善（Issue #100）
+シード実行時に自動的に既存データをクリアする機能を実装予定
 
 ## 現在のサービス・ケーパビリティ構成
 

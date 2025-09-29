@@ -41,16 +41,37 @@ export async function getProjects() {
 
   console.log('Total projects found:', projects.length)
   console.log('First project members:', projects[0]?.projectMembers)
+  
+  // デバッグ: プロジェクトメンバーの存在を詳細確認
+  if (projects.length > 0) {
+    console.log('Debug - First project details:', {
+      id: projects[0].id,
+      name: projects[0].name,
+      memberCount: projects[0].projectMembers?.length || 0,
+      members: projects[0].projectMembers?.map(m => ({
+        userId: m.userId,
+        role: m.role
+      }))
+    })
+  }
 
   // ユーザーの権限に基づいてフィルタリング
   const filteredProjects = user.role.name === USER_ROLES.EXECUTIVE
     ? projects
     : projects.filter(project => {
         // PMまたはメンバーとして参加しているプロジェクトを表示
+        // 問題: project.projectMembers が空配列または未定義の可能性
+        if (!project.projectMembers || project.projectMembers.length === 0) {
+          console.warn(`Warning: Project ${project.id} (${project.name}) has no members loaded`)
+          return false
+        }
+        
         const isMember = project.projectMembers.some(m => m.userId === user.id)
         if (isMember) {
           const memberRole = project.projectMembers.find(m => m.userId === user.id)?.role
           console.log(`User ${user.id} is ${memberRole} for project: ${project.name}`)
+        } else {
+          console.log(`User ${user.id} is NOT member of project: ${project.name}`)
         }
         return isMember
       })

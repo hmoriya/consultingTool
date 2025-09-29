@@ -144,22 +144,7 @@ export class DiagramConverter {
       });
       mermaid += '  }\n';
       
-      // 関連の定義
-      entity.relationships?.forEach(rel => {
-        const targetName = this.sanitizeNameForMermaid(rel.target);
-        if (rel.type === 'one-to-one') {
-          mermaid += `  ${sanitizedName} "1" -- "1" ${targetName}\n`;
-        } else if (rel.type === 'one-to-many') {
-          mermaid += `  ${sanitizedName} "1" -- "*" ${targetName}\n`;
-        } else if (rel.type === 'many-to-one') {
-          mermaid += `  ${sanitizedName} "*" --> "1" ${targetName}\n`;
-        } else if (rel.type === 'many-to-many') {
-          mermaid += `  ${sanitizedName} "*" -- "*" ${targetName}\n`;
-        } else if ((rel.type as string) === 'value-object') {
-          // Value Objectとの関連
-          mermaid += `  ${sanitizedName} --> ${targetName} : uses\n`;
-        }
-      });
+      // 関連の定義は後で処理する（全クラス定義後）
     });
     
     // 値オブジェクト（クラス定義のみ）
@@ -175,12 +160,54 @@ export class DiagramConverter {
       mermaid += '  }\n';
     });
 
+    // エンティティ間の関係（全クラス定義後に記述）
+    parseResult.entities.forEach(entity => {
+      const sanitizedName = this.sanitizeNameForMermaid(entity.name);
+      entity.relationships?.forEach(rel => {
+        const targetName = this.sanitizeNameForMermaid(rel.target);
+
+        // 関係先が定義済みかチェック
+        const targetExists = parseResult.entities.some(e =>
+          this.sanitizeNameForMermaid(e.name) === targetName
+        ) || parseResult.valueObjects.some(vo =>
+          this.sanitizeNameForMermaid(vo.name) === targetName
+        );
+
+        if (targetExists) {
+          if (rel.type === 'one-to-one') {
+            mermaid += `  ${sanitizedName} "1" -- "1" ${targetName}\n`;
+          } else if (rel.type === 'one-to-many') {
+            mermaid += `  ${sanitizedName} "1" -- "*" ${targetName}\n`;
+          } else if (rel.type === 'many-to-one') {
+            mermaid += `  ${sanitizedName} "*" --> "1" ${targetName}\n`;
+          } else if (rel.type === 'many-to-many') {
+            mermaid += `  ${sanitizedName} "*" -- "*" ${targetName}\n`;
+          } else if ((rel.type as string) === 'value-object') {
+            // Value Objectとの関連
+            mermaid += `  ${sanitizedName} --> ${targetName} : uses\n`;
+          }
+          console.log(`Added entity relationship: ${sanitizedName} -> ${targetName} (${rel.type})`);
+        } else {
+          console.log(`Skipping relationship: ${targetName} not found in entities or value objects`);
+        }
+      });
+    });
+
     // 値オブジェクトと集約ルートの関係（全クラス定義後に記述）
     parseResult.valueObjects.forEach(vo => {
       const sanitizedVOName = this.sanitizeNameForMermaid(vo.name);
       if (parseResult.aggregates.length > 0 && parseResult.aggregates[0].root) {
         const sanitizedRoot = this.sanitizeNameForMermaid(parseResult.aggregates[0].root);
-        mermaid += `  ${sanitizedRoot} --> ${sanitizedVOName} : contains\n`;
+        // 定義済みのエンティティにのみ関係を追加
+        const rootEntityExists = parseResult.entities.some(e =>
+          this.sanitizeNameForMermaid(e.name) === sanitizedRoot
+        );
+        if (rootEntityExists) {
+          mermaid += `  ${sanitizedRoot} --> ${sanitizedVOName} : contains\n`;
+          console.log(`Added VO relationship: ${sanitizedRoot} --> ${sanitizedVOName}`);
+        } else {
+          console.log(`Skipping VO relationship: ${sanitizedRoot} not found in entities`);
+        }
       }
     });
 

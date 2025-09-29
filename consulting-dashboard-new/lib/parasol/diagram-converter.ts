@@ -75,6 +75,16 @@ export class DiagramConverter {
     return 'entity';
   }
 
+  // Mermaid用に名前をサニタイズ（角括弧や特殊文字を除去）
+  private static sanitizeNameForMermaid(name: string): string {
+    // 角括弧内の内容を抽出し、最初の部分を使用
+    const match = name.match(/^([^[]+)/);
+    if (match) {
+      return match[1].trim().replace(/[^a-zA-Z0-9_]/g, '');
+    }
+    return name.replace(/[^a-zA-Z0-9_]/g, '');
+  }
+
   // ドメイン言語定義からMermaidクラス図を生成
   static domainToClassDiagram(markdown: string): string {
     console.log('=== DiagramConverter.domainToClassDiagram ===');
@@ -116,8 +126,9 @@ export class DiagramConverter {
     
     // エンティティ
     parseResult.entities.forEach(entity => {
-      // クラス定義
-      mermaid += `  class ${entity.name} {\n`;
+      // クラス定義（名前をサニタイズ）
+      const sanitizedName = this.sanitizeNameForMermaid(entity.name);
+      mermaid += `  class ${sanitizedName} {\n`;
       // ステレオタイプの追加
       if (entity.isAggregate) {
         mermaid += '    <<aggregate root>>\n';
@@ -134,24 +145,26 @@ export class DiagramConverter {
       
       // 関連の定義
       entity.relationships?.forEach(rel => {
+        const targetName = this.sanitizeNameForMermaid(rel.target);
         if (rel.type === 'one-to-one') {
-          mermaid += `  ${entity.name} "1" -- "1" ${rel.target}\n`;
+          mermaid += `  ${sanitizedName} "1" -- "1" ${targetName}\n`;
         } else if (rel.type === 'one-to-many') {
-          mermaid += `  ${entity.name} "1" -- "*" ${rel.target}\n`;
+          mermaid += `  ${sanitizedName} "1" -- "*" ${targetName}\n`;
         } else if (rel.type === 'many-to-one') {
-          mermaid += `  ${entity.name} "*" --> "1" ${rel.target}\n`;
+          mermaid += `  ${sanitizedName} "*" --> "1" ${targetName}\n`;
         } else if (rel.type === 'many-to-many') {
-          mermaid += `  ${entity.name} "*" -- "*" ${rel.target}\n`;
+          mermaid += `  ${sanitizedName} "*" -- "*" ${targetName}\n`;
         } else if ((rel.type as string) === 'value-object') {
-          // Value Objectとの関連は合成関係として表現（filled diamond）
-          mermaid += `  ${entity.name} *-- ${rel.target} : uses\n`;
+          // Value Objectとの関連は合成関係として表現
+          mermaid += `  ${sanitizedName} o-- ${targetName} : "uses"\n`;
         }
       });
     });
     
     // 値オブジェクト
     parseResult.valueObjects.forEach(vo => {
-      mermaid += `  class ${vo.name} {\n`;
+      const sanitizedVOName = this.sanitizeNameForMermaid(vo.name);
+      mermaid += `  class ${sanitizedVOName} {\n`;
       mermaid += '    <<value object>>\n';
       vo.attributes.forEach(attr => {
         mermaid += `    ${attr.type} ${attr.name}\n`;
@@ -160,7 +173,8 @@ export class DiagramConverter {
 
       // 値オブジェクトと集約ルートの関係（コンポジション）
       if (parseResult.aggregates.length > 0 && parseResult.aggregates[0].root) {
-        mermaid += `  ${parseResult.aggregates[0].root} *-- ${vo.name} : contains\n`;
+        const sanitizedRoot = this.sanitizeNameForMermaid(parseResult.aggregates[0].root);
+        mermaid += `  ${sanitizedRoot} *-- ${sanitizedVOName} : contains\n`;
       }
     });
     
@@ -175,7 +189,9 @@ export class DiagramConverter {
         agg.entities.forEach(entityName => {
           if (entityName !== agg.root) {
             // 集約内の関係を点線で表示
-            mermaid += `  ${agg.root} ..> ${entityName} : contains\n`;
+            const sanitizedRoot = this.sanitizeNameForMermaid(agg.root);
+            const sanitizedEntity = this.sanitizeNameForMermaid(entityName);
+            mermaid += `  ${sanitizedRoot} ..> ${sanitizedEntity} : contains\n`;
             console.log(`  Added relationship: ${agg.root} ..> ${entityName}`);
           }
         });

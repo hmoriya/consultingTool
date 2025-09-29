@@ -156,13 +156,13 @@ export class DiagramConverter {
         } else if (rel.type === 'many-to-many') {
           mermaid += `  ${sanitizedName} "*" -- "*" ${targetName}\n`;
         } else if ((rel.type as string) === 'value-object') {
-          // Value Objectとの関連は合成関係として表現
-          mermaid += `  ${sanitizedName} o-- ${targetName} : "uses"\n`;
+          // Value Objectとの関連
+          mermaid += `  ${sanitizedName} --> ${targetName} : uses\n`;
         }
       });
     });
     
-    // 値オブジェクト
+    // 値オブジェクト（クラス定義のみ）
     parseResult.valueObjects.forEach(vo => {
       const sanitizedVOName = this.sanitizeNameForMermaid(vo.name);
       mermaid += `  class ${sanitizedVOName} {\n`;
@@ -172,15 +172,18 @@ export class DiagramConverter {
         const sanitizedAttrName = this.sanitizeNameForMermaid(attr.name);
         mermaid += `    ${mermaidType} ${sanitizedAttrName}\n`;
       });
-      mermaid += '  }\n';
+      mermaid += '  }\n`;
+    });
 
-      // 値オブジェクトと集約ルートの関係（コンポジション）
+    // 値オブジェクトと集約ルートの関係（全クラス定義後に記述）
+    parseResult.valueObjects.forEach(vo => {
+      const sanitizedVOName = this.sanitizeNameForMermaid(vo.name);
       if (parseResult.aggregates.length > 0 && parseResult.aggregates[0].root) {
         const sanitizedRoot = this.sanitizeNameForMermaid(parseResult.aggregates[0].root);
-        mermaid += `  ${sanitizedRoot} o-- ${sanitizedVOName} : contains\n`;
+        mermaid += `  ${sanitizedRoot} --> ${sanitizedVOName} : contains\n`;
       }
     });
-    
+
     // 集約の関係を追加
     processedAggregates.clear();
     parseResult.aggregates.forEach(agg => {

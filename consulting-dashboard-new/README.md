@@ -66,23 +66,28 @@ cd consultingTool/consulting-dashboard-new
 # Install dependencies
 npm install
 
-# Setup environment variables
-npm run setup:env
-cd consultingTool/consulting-dashboard-new
-
-# Install dependencies
-npm install
-
 # Set up environment variables
 cp .env.example .env
 
+# Set up Git hooks (自動DBリセット機能を有効化)
+./scripts/setup-git-hooks.sh
+
 # Set up the database
-npm run db:push
-npm run db:seed
+npm run db:reset
 
 # Start the development server
 npm run dev
 ```
+
+### 自動DBリセット機能
+
+このプロジェクトでは、`git pull`や`git merge`を実行すると、自動的にサンプルデータベースが最新の状態にリセットされます。
+
+- **自動リセットを有効化**: `./scripts/setup-git-hooks.sh`
+- **手動でリセット**: `npm run db:reset`
+- **DBクリア付きシード**: `npm run db:seed:clear`
+
+詳細は[README-seed.md](./README-seed.md)を参照してください。
 
 The application will be available at [http://localhost:3000](http://localhost:3000)
 

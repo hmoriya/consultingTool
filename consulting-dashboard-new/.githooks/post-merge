@@ -1,0 +1,13 @@
+#!/bin/bash
+# Git pullやmerge後に自動実行されるフック
+# サンプルDBを最新の状態にリセットします
+
+# プロジェクトのルートディレクトリを取得
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+
+# post-pullスクリプトを実行
+if [ -f "$PROJECT_ROOT/scripts/post-pull.sh" ]; then
+    bash "$PROJECT_ROOT/scripts/post-pull.sh"
+else
+    echo "⚠️  post-pull.shが見つかりません"
+fi

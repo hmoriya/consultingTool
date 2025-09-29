@@ -139,7 +139,8 @@ export class DiagramConverter {
       entity.attributes.forEach(attr => {
         // Mermaidの正しい属性構文: type name
         const mermaidType = this.convertParasolTypeToMermaid(attr.type);
-        mermaid += `    ${mermaidType} ${attr.name}\n`;
+        const sanitizedAttrName = this.sanitizeNameForMermaid(attr.name);
+        mermaid += `    ${mermaidType} ${sanitizedAttrName}\n`;
       });
       mermaid += '  }\n';
       
@@ -167,14 +168,16 @@ export class DiagramConverter {
       mermaid += `  class ${sanitizedVOName} {\n`;
       mermaid += '    <<value object>>\n';
       vo.attributes.forEach(attr => {
-        mermaid += `    ${attr.type} ${attr.name}\n`;
+        const mermaidType = this.convertParasolTypeToMermaid(attr.type);
+        const sanitizedAttrName = this.sanitizeNameForMermaid(attr.name);
+        mermaid += `    ${mermaidType} ${sanitizedAttrName}\n`;
       });
       mermaid += '  }\n';
 
       // 値オブジェクトと集約ルートの関係（コンポジション）
       if (parseResult.aggregates.length > 0 && parseResult.aggregates[0].root) {
         const sanitizedRoot = this.sanitizeNameForMermaid(parseResult.aggregates[0].root);
-        mermaid += `  ${sanitizedRoot} *-- ${sanitizedVOName} : contains\n`;
+        mermaid += `  ${sanitizedRoot} o-- ${sanitizedVOName} : contains\n`;
       }
     });
     

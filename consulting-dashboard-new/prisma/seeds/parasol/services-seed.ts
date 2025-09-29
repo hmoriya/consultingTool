@@ -1,4 +1,6 @@
 import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
+import * as fs from 'fs'
+import * as path from 'path'
 
 const parasolDb = new ParasolPrismaClient()
 
@@ -24,23 +26,8 @@ export const serviceDefinitions = [
 - ロールベースアクセス制御
 - 組織・ユーザー情報管理`,
     
-    domainLanguageDefinition: `# パラソルドメイン言語: 認証ドメイン
-
-## 主要エンティティ
-
-### 組織 [Organization] [ORGANIZATION]
-コンサルティングファームまたはクライアント企業
-
-### ユーザー [User] [USER]
-システムを利用する人物
-
-### ロール [Role] [ROLE]
-ユーザーの役割と権限
-
-## ドメインルール
-- 1ユーザーは1つの組織に所属
-- 1ユーザーは複数のロールを持てる
-- パスワードは暗号化して保存`
+    domainLanguageDefinition: '', // 詳細版は別ファイルで管理
+    domainLanguageFile: 'domain-languages/secure-access-v2.md'
   },
   
   {
@@ -64,26 +51,8 @@ export const serviceDefinitions = [
 - 成果物管理
 - プロジェクトメンバー管理`,
     
-    domainLanguageDefinition: `# パラソルドメイン言語: プロジェクトドメイン
-
-## 主要エンティティ
-
-### プロジェクト [Project] [PROJECT]
-クライアントの課題解決のための活動単位
-
-### タスク [Task] [TASK]
-プロジェクトを構成する作業単位
-
-### マイルストーン [Milestone] [MILESTONE]
-プロジェクトの重要な節目
-
-### 成果物 [Deliverable] [DELIVERABLE]
-プロジェクトで作成される具体的な成果
-
-## ドメインルール
-- プロジェクトには1名以上のPMが必要
-- タスクは必ずプロジェクトに紐づく
-- 成果物はマイルストーンに関連付け`
+    domainLanguageDefinition: '', // 詳細版は別ファイルで管理
+    domainLanguageFile: 'domain-languages/project-success-v2.md'
   },
   
   {
@@ -145,20 +114,8 @@ export const serviceDefinitions = [
 - 工数集計・分析
 - 請求可能時間の管理`,
     
-    domainLanguageDefinition: `# パラソルドメイン言語: 工数ドメイン
-
-## 主要エンティティ
-
-### 工数エントリ [TimeEntry] [TIME_ENTRY]
-日次の作業時間記録
-
-### 承認ワークフロー [ApprovalWorkflow] [APPROVAL_WORKFLOW]
-工数承認のプロセス
-
-## ドメインルール
-- 1日の工数は0-24時間
-- 承認されていない工数は請求不可
-- 月次で工数を締める`
+    domainLanguageDefinition: '', // 詳細版は別ファイルで管理
+    domainLanguageFile: 'domain-languages/productivity-visualization-v2.md'
   },
   
   {
@@ -285,13 +242,25 @@ export async function createServices() {
   
   const services = []
   for (const serviceDef of serviceDefinitions) {
+    // ドメイン言語定義をファイルから読み込む
+    let domainLanguageDefinition = serviceDef.domainLanguageDefinition
+    if (serviceDef.domainLanguageFile) {
+      const filePath = path.join(__dirname, serviceDef.domainLanguageFile)
+      if (fs.existsSync(filePath)) {
+        domainLanguageDefinition = fs.readFileSync(filePath, 'utf-8')
+        console.log(`    Loaded domain language for ${serviceDef.name} from ${serviceDef.domainLanguageFile}`)
+      } else {
+        console.warn(`    Warning: Domain language file not found: ${serviceDef.domainLanguageFile}`)
+      }
+    }
+    
     const service = await parasolDb.service.create({
       data: {
         name: serviceDef.name,
         displayName: serviceDef.displayName,
         description: serviceDef.description,
         serviceDescription: serviceDef.serviceDescription,
-        domainLanguageDefinition: serviceDef.domainLanguageDefinition,
+        domainLanguageDefinition: domainLanguageDefinition,
         apiSpecificationDefinition: '# API仕様\n\n実装時に定義',
         databaseDesignDefinition: '# DB設計\n\n既存スキーマ参照',
         // 旧形式（後方互換性のため）

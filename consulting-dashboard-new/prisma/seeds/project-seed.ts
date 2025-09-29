@@ -22,15 +22,26 @@ export async function seedProjects(users?: any[], organizations?: any) {
     const consultant3User = users?.find(u => u.email === 'consultant3@example.com')
     const consultant4User = users?.find(u => u.email === 'consultant4@example.com')
     
-    const pmUserId = pmUser?.id || 'pm-user-id'
+    // ユーザーIDが見つからない場合はエラーをthrow
+    if (!pmUser?.id) {
+      throw new Error('PM user not found. Please run auth service seed first.')
+    }
+    if (!consultantUser?.id) {
+      throw new Error('Consultant user not found. Please run auth service seed first.')
+    }
+    if (!organizations?.clientOrg?.id) {
+      throw new Error('Client organization not found. Please run auth service seed first.')
+    }
+    
+    const pmUserId = pmUser.id
     const pm2UserId = pm2User?.id
-    const consultantUserId = consultantUser?.id || 'consultant-user-id'
+    const consultantUserId = consultantUser.id
     const consultant2UserId = consultant2User?.id
     const consultant3UserId = consultant3User?.id
     const consultant4UserId = consultant4User?.id
     
     // クライアント組織IDを取得
-    const clientOrgId = organizations?.clientOrg?.id || 'client-org-id'
+    const clientOrgId = organizations.clientOrg.id
     const globalMfgId = organizations?.globalMfg?.id
     const financeCorpId = organizations?.financeCorp?.id
     const healthcareId = organizations?.healthcare?.id

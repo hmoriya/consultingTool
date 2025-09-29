@@ -4,7 +4,7 @@ import { seedResources } from './seeds/resource-seed'
 import { seedTimesheets } from './seeds/timesheet-seed'
 import { seedNotifications } from './seeds/notification-seed'
 import { seedKnowledge } from './seeds/knowledge-seed'
-import { seedParasolService } from './seeds/parasol-seed-new'
+import { seedParasolFull } from './seeds/parasol-seed-full'
 
 // 各サービスの実行結果を追跡
 interface SeedResult {
@@ -115,7 +115,7 @@ async function main() {
     // 7. パラソルサービス（オプショナル）
     const parasolResult = await seedService(
       'Parasol Service',
-      () => seedParasolService(),
+      () => seedParasolFull(),
       false
     )
     results.push(parasolResult)

@@ -46,9 +46,11 @@ interface ParasolSettingsPageProps {
 
 export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPageProps) {
   const [services, setServices] = useState<Service[]>(initialServices);
-  
+  const [mounted, setMounted] = useState(false);
+
   // デバッグログ
   useEffect(() => {
+    setMounted(true);
     console.log('ParasolSettingsPage2: Initial services loaded');
     initialServices.forEach(service => {
       if (service.name === 'knowledge-service' || service.name === 'finance-service' || service.name === 'notification-service') {
@@ -705,8 +707,9 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
         </div>
       </div>
 
-      <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg border">
-        <ResizablePanel defaultSize={20} minSize={15} maxSize={40}>
+      {mounted ? (
+        <ResizablePanelGroup direction="horizontal" className="h-full rounded-lg border">
+          <ResizablePanel defaultSize={20} minSize={15} maxSize={40}>
           <div className="h-full flex flex-col">
             {/* サービス検索 */}
             <div className="p-4 border-b">
@@ -796,6 +799,11 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
+      ) : (
+        <div className="h-full rounded-lg border flex items-center justify-center">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      )}
 
       {/* サービス作成/編集フォーム */}
       {(showServiceForm || editingService) && (

@@ -2,6 +2,7 @@
 
 interface Entity {
   name: string;
+  stereotype?: 'entity' | 'value-object' | 'aggregate' | 'service' | 'repository' | 'factory' | 'event' | 'specification';
   attributes: Array<{
     name: string;
     type: string;
@@ -24,6 +25,56 @@ interface Table {
 }
 
 export class DiagramConverter {
+  // ステレオタイプを自動判定
+  private static detectStereotype(name: string, section: string): Entity['stereotype'] {
+    const lowerName = name.toLowerCase();
+
+    // Repository パターン
+    if (lowerName.includes('repository') || lowerName.endsWith('repo')) {
+      return 'repository';
+    }
+
+    // Service パターン
+    if (lowerName.includes('service') || lowerName.includes('facilitator')) {
+      return 'service';
+    }
+
+    // Factory パターン
+    if (lowerName.includes('factory')) {
+      return 'factory';
+    }
+
+    // Event パターン
+    if (lowerName.includes('event') || lowerName.includes('occurred') || lowerName.includes('happened')) {
+      return 'event';
+    }
+
+    // Specification パターン
+    if (lowerName.includes('specification') || lowerName.includes('spec')) {
+      return 'specification';
+    }
+
+    // Value Object パターン
+    if (section === 'valueObjects' ||
+        lowerName.includes('value') ||
+        lowerName.includes('address') ||
+        lowerName.includes('email') ||
+        lowerName.includes('phone') ||
+        lowerName.includes('money') ||
+        lowerName.includes('period') ||
+        lowerName.includes('range')) {
+      return 'value-object';
+    }
+
+    // Aggregate Root パターン（後で集約定義から判定）
+    if (lowerName.includes('aggregate')) {
+      return 'aggregate';
+    }
+
+    // デフォルトはEntity
+    return 'entity';
+  }
+
   // ドメイン言語定義からMermaidクラス図を生成
   static domainToClassDiagram(markdown: string): string {
     console.log('=== DiagramConverter.domainToClassDiagram ===');
@@ -67,8 +118,12 @@ export class DiagramConverter {
     parseResult.entities.forEach(entity => {
       // クラス定義
       mermaid += `  class ${entity.name} {\n`;
+      // ステレオタイプの追加
       if (entity.isAggregate) {
-        mermaid += '    <<aggregate>>\n';
+        mermaid += '    <<aggregate root>>\n';
+      } else if (entity.stereotype) {
+        const stereotypeLabel = entity.stereotype === 'value-object' ? 'value object' : entity.stereotype;
+        mermaid += `    <<${stereotypeLabel}>>\n`;
       }
       entity.attributes.forEach(attr => {
         // Mermaidの正しい属性構文: type name
@@ -102,6 +157,11 @@ export class DiagramConverter {
         mermaid += `    ${attr.type} ${attr.name}\n`;
       });
       mermaid += '  }\n';
+
+      // 値オブジェクトと集約ルートの関係（コンポジション）
+      if (parseResult.aggregates.length > 0 && parseResult.aggregates[0].root) {
+        mermaid += `  ${parseResult.aggregates[0].root} *-- ${vo.name} : contains\n`;
+      }
     });
     
     // 集約の関係を追加
@@ -167,18 +227,18 @@ export class DiagramConverter {
   // ビジネスオペレーションからBPMNフロー図を生成（Mermaid）
   static operationToFlowDiagram(markdown: string): string {
     const steps = this.parseOperationSteps(markdown);
-    
+
     let mermaid = 'flowchart TB\n';
-    
+
     steps.forEach((step, index) => {
       const nodeId = `step${index + 1}`;
-      const nextId = index < steps.length - 1 ? `step${index + 2}` : 'end';
-      
+      const nextId = index < steps.length - 1 ? `step${index + 2}` : 'endNode';
+
       if (step.type === 'start') {
-        mermaid += `  start((開始))\n`;
-        mermaid += `  start --> ${nodeId}\n`;
+        mermaid += `  startNode((開始))\n`;
+        mermaid += `  startNode --> ${nodeId}\n`;
       }
-      
+
       if (step.type === 'decision') {
         mermaid += `  ${nodeId}{${step.label}}\n`;
       } else if (step.type === 'process') {
@@ -186,14 +246,14 @@ export class DiagramConverter {
       } else if (step.type === 'subprocess') {
         mermaid += `  ${nodeId}[[${step.label}]]\n`;
       }
-      
+
       if (index === steps.length - 1) {
-        mermaid += `  ${nodeId} --> end((終了))\n`;
+        mermaid += `  ${nodeId} --> endNode((終了))\n`;
       } else {
         mermaid += `  ${nodeId} --> ${nextId}\n`;
       }
     });
-    
+
     return mermaid;
   }
 
@@ -261,79 +321,109 @@ export class DiagramConverter {
     lines.forEach((line, index) => {
       const trimmed = line.trim();
       
-      // セクション検出
-      if (trimmed === '## エンティティ（Entities）' || trimmed === '## エンティティ') {
+      // セクション検出 - 様々な形式に対応
+      if (trimmed === '## エンティティ（Entities）' ||
+          trimmed === '## エンティティ' ||
+          trimmed === '## 2. エンティティ定義' ||
+          trimmed === '### エンティティ定義') {
         currentSection = 'entities';
+        console.log('Found entities section at line', index, ':', trimmed);
         return;
-      } else if (trimmed === '## 値オブジェクト（Value Objects）' || trimmed === '## 値オブジェクト') {
+      } else if (trimmed === '### コアエンティティ' && currentSection === 'entities') {
+        // コアエンティティサブセクションは継続
+        return;
+      } else if (trimmed === '## 値オブジェクト（Value Objects）' ||
+                 trimmed === '## 値オブジェクト' ||
+                 trimmed === '## 3. 値オブジェクト定義' ||
+                 trimmed === '## 値オブジェクト定義' ||
+                 trimmed === '### 値オブジェクト定義') {
         currentSection = 'valueObjects';
         return;
-      } else if (trimmed === '## ドメインサービス（Domain Services）' || trimmed === '## ドメインサービス') {
+      } else if (trimmed === '## ドメインサービス（Domain Services）' ||
+                 trimmed === '## ドメインサービス' ||
+                 trimmed === '## 5. ドメインサービス' ||
+                 trimmed === '### ドメインサービス') {
         currentSection = 'domainServices';
         return;
-      } else if (trimmed === '## 集約（Aggregates）' || trimmed === '## 集約') {
+      } else if (trimmed === '## 集約（Aggregates）' ||
+                 trimmed === '## 集約' ||
+                 trimmed === '## 4. 集約定義' ||
+                 trimmed === '## 集約定義' ||
+                 trimmed === '### 集約定義') {
         currentSection = 'aggregates';
         console.log('Found aggregates section at line', index);
         return;
-      } else if (trimmed.startsWith('## ')) {
+      } else if (trimmed.startsWith('## ') && !trimmed.includes('エンティティ') && !trimmed.includes('値オブジェクト')) {
+        // 他のセクションが始まったら現在のセクションをリセット
         currentSection = '';
         return;
       }
       
       // エンティティ解析
       if (currentSection === 'entities') {
-        if (trimmed.startsWith('### ')) {
-          // 新フォーマット: ### ユーザー [User] [USER]
-          const nameMatch = trimmed.match(/^###\s+(.+?)\s*\[(.+?)\]\s*\[(.+?)\]$/);
-          if (nameMatch) {
-            const japaneseName = nameMatch[1].trim();
-            const englishName = nameMatch[2].trim();
-            const systemName = nameMatch[3].trim();
+        // エンティティ名の検出 - 4つのハッシュ(####)または3つのハッシュ(###)に対応
+        if (trimmed.startsWith('#### ') || (trimmed.startsWith('### ') && !trimmed.includes('コアエンティティ'))) {
+          // 新フォーマット例: #### Message（メッセージ）
+          const entityMatch = trimmed.match(/^#{3,4}\s+([A-Za-z]+)[（(](.+?)[）)]/);
+          if (entityMatch) {
+            const englishName = entityMatch[1].trim();
+            const japaneseName = entityMatch[2].trim();
             currentEntity = {
               name: englishName,  // 英語名をクラス名として使用
+              stereotype: this.detectStereotype(englishName, currentSection),
               attributes: [],
               relationships: []
             };
             result.entities.push(currentEntity);
             inTable = false;
+            console.log('Found entity:', englishName);
           } else {
-            // 旧フォーマットのフォールバック
-            const match = trimmed.match(/^###\s+(.+?)(?:\s*[（(](.+?)[）)])?$/);
-            if (match) {
+            // フォールバック: #### エンティティ名 形式
+            const simpleName = trimmed.replace(/^#{3,4}\s+/, '').trim();
+            if (simpleName && simpleName !== 'コアエンティティ') {
               currentEntity = {
-                name: this.sanitizeForMermaid(match[1].trim()),
+                name: this.sanitizeForMermaid(simpleName),
+                stereotype: this.detectStereotype(simpleName, currentSection),
                 attributes: [],
                 relationships: []
               };
               result.entities.push(currentEntity);
               inTable = false;
+              console.log('Found entity (fallback):', simpleName);
             }
           }
         } else if (currentEntity) {
-          // テーブル開始（新フォーマット）
-          if (trimmed.startsWith('|') && (trimmed.includes('日本語名') || trimmed.includes('属性名'))) {
+          // テーブル開始の検出
+          if (trimmed.startsWith('|') && trimmed.includes('属性名')) {
             inTable = true;
             tableHeaders = trimmed.split('|').map(h => h.trim()).filter(h => h);
-          } else if (trimmed.startsWith('|--')) {
-            // テーブルヘッダー区切り線
+            console.log('Table headers found:', tableHeaders);
+          } else if (trimmed.startsWith('|--') || trimmed.startsWith('|-')) {
+            // テーブルヘッダー区切り線 - スキップ
           } else if (inTable && trimmed.startsWith('|')) {
-            // テーブル行
+            // テーブル行のパース
             const cells = trimmed.split('|').map(c => c.trim()).filter(c => c);
-            // 新フォーマット: | 日本語名 | 英語名 | システム名 | 型 | 必須 | 説明 |
-            if (cells.length >= 4) {
-              const englishName = cells[1];  // 英語名を使用
-              const type = cells[3];  // 型は4番目
-              if (englishName && type && !['英語名', '型'].includes(englishName)) {
+            // フォーマット: | 属性名 | 型 | 必須 | 説明 |
+            if (cells.length >= 3) {
+              const attrName = cells[0];
+              const attrType = cells[1];
+              const required = cells[2] === '○';
+
+              // ヘッダー行をスキップ
+              if (attrName && attrType && attrName !== '属性名' && attrType !== '型') {
                 currentEntity.attributes.push({
-                  name: englishName,
-                  type: type, // Keep original type to detect Value Objects
-                  required: cells[4] === '○'
+                  name: attrName,
+                  type: attrType, // Keep original type for relationship detection
+                  required: required
                 });
+                console.log(`Added attribute to ${currentEntity.name}: ${attrName} (${attrType})`);
               }
             }
+          } else if (trimmed.startsWith('**識別性**') || trimmed.startsWith('**ライフサイクル**')) {
+            // エンティティの説明行 - スキップ
           } else if (trimmed.startsWith('#### 集約ルート')) {
             currentEntity.isAggregate = true;
-          } else if (!trimmed.startsWith('|')) {
+          } else if (!trimmed.startsWith('|') && !trimmed.startsWith('**')) {
             inTable = false;
           }
         }
@@ -420,11 +510,19 @@ export class DiagramConverter {
           inAggregateRoot = false;
           inAggregateEntities = false;
         } else if (currentAggregate) {
-          if (trimmed === '#### 集約ルート') {
+          if (trimmed.includes('集約ルート') || trimmed.startsWith('**集約ルート**')) {
+            // 集約ルートの抽出
+            const rootMatch = trimmed.match(/[:：]\s*(.+)/);
+            if (rootMatch) {
+              currentAggregate.root = rootMatch[1].trim();
+              console.log('Set aggregate root from inline:', currentAggregate.root);
+            }
             inAggregateRoot = true;
             inAggregateEntities = false;
             console.log('Found aggregate root section');
-          } else if (trimmed === '#### 含まれるエンティティ') {
+          } else if (trimmed === '#### 含まれるエンティティ' ||
+                     trimmed.includes('包含エンティティ') ||
+                     trimmed.startsWith('**包含エンティティ**')) {
             inAggregateRoot = false;
             inAggregateEntities = true;
             console.log('Found aggregate entities section');
@@ -434,9 +532,9 @@ export class DiagramConverter {
             inAggregateEntities = false;
           } else if (trimmed.startsWith('- ')) {
             const value = trimmed.substring(2).trim();
-            if (inAggregateRoot && value) {
+            if (inAggregateRoot && value && !currentAggregate.root) {
               currentAggregate.root = value;
-              console.log('Set aggregate root:', value);
+              console.log('Set aggregate root from list:', value);
             } else if (inAggregateEntities && value) {
               currentAggregate.entities.push(value);
               console.log('Added aggregate entity:', value);

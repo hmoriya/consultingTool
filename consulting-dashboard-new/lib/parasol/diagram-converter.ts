@@ -172,7 +172,7 @@ export class DiagramConverter {
         const sanitizedAttrName = this.sanitizeNameForMermaid(attr.name);
         mermaid += `    ${mermaidType} ${sanitizedAttrName}\n`;
       });
-      mermaid += '  }\n`;
+      mermaid += '  }\n';
     });
 
     // 値オブジェクトと集約ルートの関係（全クラス定義後に記述）

@@ -31,9 +31,16 @@ model Service {
   
   capabilities          BusinessCapability[]    // ビジネスケーパビリティ
   businessOperations    BusinessOperation[]     // ビジネスオペレーション
+
+  // 新しいドキュメント管理（リレーション）
+  domainLanguageDoc     DomainLanguage?         // ドメイン言語ドキュメント
+  apiSpecificationDoc   ApiSpecification?       // API仕様ドキュメント
+  databaseDesignDoc     DatabaseDesign?         // DB設計ドキュメント
+  integrationSpecDoc    IntegrationSpecification? // 統合仕様ドキュメント
+
   createdAt             DateTime                @default(now())
   updatedAt             DateTime                @updatedAt
-  
+
   @@map("services")
 }
 
@@ -157,7 +164,7 @@ model UseCase {
   operationId     String              // 所属ビジネスオペレーション
   operation       BusinessOperation   @relation(fields: [operationId], references: [id], onDelete: Cascade)
   order           Int                 @default(0) // 表示順序
-  
+
   // ユースケース詳細（JSON形式、後で廃止予定）
   actors          String?             // アクター（JSON: {primary: string, secondary: string[]})
   preconditions   String?             // 事前条件（JSON配列）
@@ -165,16 +172,38 @@ model UseCase {
   basicFlow       String?             // 基本フロー（JSON配列）
   alternativeFlow String?             // 代替フロー（JSON配列）
   exceptionFlow   String?             // 例外フロー（JSON配列）
-  
+
   // 関連定義
+  robustnessDiagram RobustnessDiagram? // ロバストネス図（1対1、NEW）
   pageDefinitions PageDefinition[]    // ページ定義
   testDefinitions TestDefinition[]    // テスト定義
-  
+
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
-  
+
   @@unique([operationId, name])
   @@map("use_cases")
+}
+
+// ロバストネス図定義（NEW - Issue #116）
+model RobustnessDiagram {
+  id                String   @id @default(cuid())
+  useCaseId         String   @unique              // 所属ユースケース（1対1）
+  useCase           UseCase  @relation(fields: [useCaseId], references: [id], onDelete: Cascade)
+
+  content           String                        // MD形式の全文（robustness.md）
+
+  // パース済みデータ（JSON形式）
+  boundaryObjects   String?                       // Boundary Objects（JSON配列）
+  controlObjects    String?                       // Control Objects（JSON配列）
+  entityObjects     String?                       // Entity Objects（JSON配列）
+  diagram           String?                       // Mermaidダイアグラムコード
+  interactions      String?                       // 相互作用シーケンス（JSON配列）
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("robustness_diagrams")
 }
 
 // ページ定義
@@ -217,6 +246,98 @@ model TestDefinition {
   
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
-  
+
   @@map("test_definitions")
+}
+
+// ============================================================
+// ドキュメント管理モデル（Issue #103）
+// ============================================================
+
+// パラソルドメイン言語ドキュメント
+model DomainLanguage {
+  id              String   @id @default(cuid())
+  serviceId       String   @unique                  // 所属サービス（1対1）
+  service         Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  version         String                             // バージョン（例: v1.0.0）
+  content         String                             // MD形式の全文
+
+  // パース済みデータ（JSON形式）
+  entities        String?                            // パース済みエンティティ
+  valueObjects    String?                            // パース済み値オブジェクト
+  aggregates      String?                            // パース済み集約
+  domainServices  String?                            // パース済みドメインサービス
+  domainEvents    String?                            // パース済みドメインイベント
+  businessRules   String?                            // パース済みビジネスルール
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("domain_languages")
+}
+
+// API仕様ドキュメント
+model ApiSpecification {
+  id              String   @id @default(cuid())
+  serviceId       String   @unique                  // 所属サービス（1対1）
+  service         Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  version         String                             // バージョン（例: v1.0.0）
+  baseUrl         String                             // ベースURL
+  authMethod      String                             // 認証方式（JWT/OAuth2/APIKey）
+  content         String                             // MD形式の全文
+
+  // パース済みデータ（JSON形式）
+  endpoints       String?                            // パース済みエンドポイント
+  errorCodes      String?                            // パース済みエラーコード
+  rateLimits      String?                            // パース済みレート制限
+  securitySchemes String?                            // パース済みセキュリティスキーム
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("api_specifications")
+}
+
+// データベース設計ドキュメント
+model DatabaseDesign {
+  id              String   @id @default(cuid())
+  serviceId       String   @unique                  // 所属サービス（1対1）
+  service         Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  dbms            String                             // DBMS（PostgreSQL/MySQL/SQLite）
+  content         String                             // MD形式の全文
+
+  // パース済みデータ（JSON形式）
+  tables          String?                            // パース済みテーブル定義
+  erDiagram       String?                            // Mermaid ERD
+  indexes         String?                            // パース済みインデックス定義
+  constraints     String?                            // パース済み制約定義
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("database_designs")
+}
+
+// 統合仕様ドキュメント
+model IntegrationSpecification {
+  id              String   @id @default(cuid())
+  serviceId       String   @unique                  // 所属サービス（1対1）
+  service         Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  content         String                             // MD形式の全文
+
+  // パース済みデータ（JSON形式）
+  dependencies    String?                            // 依存サービス
+  providedEvents  String?                            // 提供するドメインイベント
+  consumedEvents  String?                            // 購読するドメインイベント
+  syncApis        String?                            // 同期API呼び出し
+  asyncPatterns   String?                            // 非同期パターン
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("integration_specifications")
 }

@@ -1,9 +1,11 @@
-# セキュアアクセスサービス - パラソルドメイン言語定義
+# パラソルドメイン言語: セキュアアクセスサービス
 
-## 1. ドメイン概要
+**バージョン**: 1.2.0
+**更新日**: 2024-12-30
 
-### サービスの目的
-組織のセキュリティを確保しながら、適切なアクセス制御と認証・認可を実現する。データ保護とコンプライアンス要件を満たし、セキュアなビジネス環境を提供する。
+## パラソルドメイン概要
+
+組織のセキュリティを確保しながら、適切なアクセス制御と認証・認可を実現するドメインモデル。DDD原則に基づき、明確な集約境界とステレオタイプマーキングにより、組織、ユーザー、ロール、セッション、監査ログの関係を体系的に定義。ゼロトラストセキュリティ、多要素認証、きめ細かなアクセス制御、監査証跡の完全性確保を通じて、セキュアなビジネス環境を提供する。すべてのエンティティは適切な集約に所属し、ID参照による疎結合を実現。
 
 ### 主要な価値提供
 - ゼロトラストセキュリティの実現
@@ -12,17 +14,64 @@
 - 監査証跡の完全性確保
 - コンプライアンス要件の充足
 
-## 2. エンティティ定義
+## ユビキタス言語定義
 
-### コアエンティティ
+### 基本型定義
+```
+UUID: 一意識別子（36文字）
+STRING_20: 最大20文字の文字列
+STRING_50: 最大50文字の文字列
+STRING_100: 最大100文字の文字列
+STRING_255: 最大255文字の文字列
+STRING_500: 最大500文字の文字列
+TEXT: 長文テキスト（制限なし）
+EMAIL: メールアドレス形式
+PASSWORD_HASH: ハッシュ化されたパスワード
+DATE: 日付（YYYY-MM-DD形式）
+TIMESTAMP: 日時（ISO8601形式）
+DECIMAL: 小数点数値
+INTEGER: 整数
+BOOLEAN: 真偽値
+ENUM: 列挙型
+JSON: JSON形式データ
+IP: IPアドレス形式
+```
 
-#### User（ユーザー）
-**識別性**: ユーザーIDによって一意に識別される
-**ライフサイクル**: 作成から非活性化まで（物理削除は行わない）
+### エンティティ定義
+
+#### Organization（組織）<<entity>><<aggregate root>>
+**概要**: 企業・部門・チームなどの組織単位の集約ルート
+**識別性**: organizationIdによって一意に識別される
+**ライフサイクル**: 作成→稼働→拡大→縮小→非活性化（物理削除は行わない）
+**集約所属**: OrganizationAggregate（集約ルート）
+**ステレオタイプ**: entity, aggregate root
+
+| 属性名 | 型 | 必須 | 説明 |
+|--------|----|----|------|
+| id | UUID | ○ | 組織ID |
+| name | STRING_100 | ○ | 組織名 |
+| code | STRING_50 | ○ | 組織コード（ユニーク） |
+| description | TEXT | - | 説明 |
+| type | ENUM | ○ | 組織タイプ（company/department/team） |
+| parentId | UUID | - | 親組織ID（階層構造用） |
+| status | ENUM | ○ | ステータス（active/inactive） |
+| settings | JSON | ○ | 組織設定 |
+| metadata | JSON | - | メタデータ |
+| createdAt | TIMESTAMP | ○ | 作成日時 |
+| updatedAt | TIMESTAMP | ○ | 更新日時 |
+| deletedAt | TIMESTAMP | - | 削除日時（論理削除） |
+
+#### User（ユーザー）<<entity>><<aggregate root>>
+**概要**: システム利用者の認証情報とプロフィールの集約ルート
+**識別性**: userIdによって一意に識別される
+**ライフサイクル**: 作成→認証設定→稼働→ロック→非活性化（物理削除は行わない）
+**集約所属**: UserAggregate（集約ルート）
+**ステレオタイプ**: entity, aggregate root
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
 | id | UUID | ○ | ユーザーID |
+| organizationId | UUID | ○ | 組織ID（参照のみ） |
 | email | EMAIL | ○ | メールアドレス（ユニーク） |
 | username | STRING_50 | ○ | ユーザー名（ユニーク） |
 | passwordHash | STRING_255 | ○ | パスワードハッシュ |
@@ -42,9 +91,12 @@
 | updatedAt | TIMESTAMP | ○ | 更新日時 |
 | deletedAt | TIMESTAMP | - | 削除日時（論理削除） |
 
-#### Role（ロール）
-**識別性**: ロールIDによって一意に識別される
-**ライフサイクル**: 作成から削除まで
+#### Role（ロール）<<entity>><<aggregate root>>
+**概要**: ユーザーに割り当てる権限セットの集約ルート
+**識別性**: roleIdによって一意に識別される
+**ライフサイクル**: 定義→承認→稼働→更新→廃止
+**集約所属**: RoleAggregate（集約ルート）
+**ステレオタイプ**: entity, aggregate root
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -60,9 +112,12 @@
 | createdAt | TIMESTAMP | ○ | 作成日時 |
 | updatedAt | TIMESTAMP | ○ | 更新日時 |
 
-#### Permission（権限）
-**識別性**: 権限IDによって一意に識別される
-**ライフサイクル**: システム定義は不変、カスタム権限は作成から削除まで
+#### Permission（権限）<<entity>><<aggregate root>>
+**概要**: リソースへのアクセス権限の集約ルート
+**識別性**: permissionIdによって一意に識別される
+**ライフサイクル**: システム定義は不変、カスタム権限は作成→承認→稼働→廃止
+**集約所属**: PermissionAggregate（集約ルート）
+**ステレオタイプ**: entity, aggregate root
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -75,9 +130,12 @@
 | isSystem | BOOLEAN | ○ | システム権限フラグ |
 | createdAt | TIMESTAMP | ○ | 作成日時 |
 
-#### Session（セッション）
-**識別性**: セッションIDによって一意に識別される
-**ライフサイクル**: 作成から期限切れまで
+#### Session（セッション）<<entity>><<aggregate root>>
+**概要**: ユーザーの認証済みセッション情報の集約ルート
+**識別性**: sessionIdによって一意に識別される
+**ライフサイクル**: 作成→稼働→アイドル→期限切れ/終了
+**集約所属**: SessionAggregate（集約ルート）
+**ステレオタイプ**: entity, aggregate root
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -95,9 +153,12 @@
 | createdAt | TIMESTAMP | ○ | 作成日時 |
 | terminatedAt | TIMESTAMP | - | 終了日時 |
 
-#### AuditLog（監査ログ）
-**識別性**: ログIDによって一意に識別される
-**ライフサイクル**: 作成のみ（変更・削除不可）
+#### AuditLog（監査ログ）<<entity>><<aggregate root>>
+**概要**: システム操作の監査証跡の集約ルート
+**識別性**: auditLogIdによって一意に識別される
+**ライフサイクル**: 作成のみ（変更・削除不可、イミュータブル）
+**集約所属**: AuditLogAggregate（集約ルート）
+**ステレオタイプ**: entity, aggregate root
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -118,8 +179,12 @@
 
 ### サポートエンティティ
 
-#### Policy（ポリシー）
-**識別性**: ポリシーIDによって一意に識別される
+#### Policy（ポリシー）<<entity>><<aggregate root>>
+**概要**: セキュリティポリシーのルールセットの集約ルート
+**識別性**: policyIdによって一意に識別される
+**ライフサイクル**: 定義→承認→施行→更新→廃止
+**集約所属**: PolicyAggregate（集約ルート）
+**ステレオタイプ**: entity, aggregate root
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -134,8 +199,12 @@
 | createdAt | TIMESTAMP | ○ | 作成日時 |
 | updatedAt | TIMESTAMP | ○ | 更新日時 |
 
-#### ApiKey（APIキー）
-**識別性**: キーIDによって一意に識別される
+#### ApiKey（APIキー）<<entity>><<aggregate root>>
+**概要**: プログラムからのAPI認証用キーの集約ルート
+**識別性**: apiKeyIdによって一意に識別される
+**ライフサイクル**: 生成→稼働→更新→無効化
+**集約所属**: ApiKeyAggregate（集約ルート）
+**ステレオタイプ**: entity, aggregate root
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -153,9 +222,14 @@
 | createdAt | TIMESTAMP | ○ | 作成日時 |
 | revokedAt | TIMESTAMP | - | 無効化日時 |
 
-## 3. 値オブジェクト定義
+### 値オブジェクト定義
 
-### AuthenticationContext（認証コンテキスト）
+#### AuthenticationContext（認証コンテキスト）<<value object>>
+**概要**: 認証方法と認証強度を表現する不変値オブジェクト
+**不変性**: 一度作成されたら変更不可
+**等価性**: すべての属性値が同じ場合に等しい
+**ステレオタイプ**: value object
+
 ```typescript
 interface AuthenticationContext {
   method: 'password' | 'oauth' | 'saml' | 'mfa' | 'apikey';
@@ -167,7 +241,12 @@ interface AuthenticationContext {
 }
 ```
 
-### AccessRequest（アクセスリクエスト）
+#### AccessRequest（アクセスリクエスト）<<value object>>
+**概要**: リソースへのアクセス要求情報を表現する不変値オブジェクト
+**不変性**: 一度作成されたら変更不可
+**等価性**: すべての属性値が同じ場合に等しい
+**ステレオタイプ**: value object
+
 ```typescript
 interface AccessRequest {
   userId: UUID;
@@ -184,7 +263,12 @@ interface AccessRequest {
 }
 ```
 
-### SecurityEvent（セキュリティイベント）
+#### SecurityEvent（セキュリティイベント）<<value object>>
+**概要**: セキュリティ関連イベント情報を表現する不変値オブジェクト
+**不変性**: 一度作成されたら変更不可
+**等価性**: すべての属性値が同じ場合に等しい
+**ステレオタイプ**: value object
+
 ```typescript
 interface SecurityEvent {
   type: 'login' | 'logout' | 'permission_change' | 'suspicious_activity' | 'breach_attempt';
@@ -197,7 +281,12 @@ interface SecurityEvent {
 }
 ```
 
-### PasswordPolicy（パスワードポリシー）
+#### PasswordPolicy（パスワードポリシー）<<value object>>
+**概要**: パスワード要件ルールを表現する不変値オブジェクト
+**不変性**: 一度作成されたら変更不可
+**等価性**: すべての属性値が同じ場合に等しい
+**ステレオタイプ**: value object
+
 ```typescript
 interface PasswordPolicy {
   minLength: number;
@@ -214,7 +303,12 @@ interface PasswordPolicy {
 }
 ```
 
-### SessionPolicy（セッションポリシー）
+#### SessionPolicy（セッションポリシー）<<value object>>
+**概要**: セッション管理ルールを表現する不変値オブジェクト
+**不変性**: 一度作成されたら変更不可
+**等価性**: すべての属性値が同じ場合に等しい
+**ステレオタイプ**: value object
+
 ```typescript
 interface SessionPolicy {
   maxDuration: number;      // minutes
@@ -227,114 +321,251 @@ interface SessionPolicy {
 }
 ```
 
-## 4. 集約定義
+### 集約定義
 
-### UserAggregate（ユーザー集約）
-**集約ルート**: User
-**包含エンティティ**: 
-- UserRole
-- UserSession
-- UserDevice
-- UserPreference
+#### OrganizationAggregate（組織集約）<<aggregate>>
+**集約ルート**: Organization（組織）
+**集約境界**: Organization（組織）
+
+**包含エンティティ**:
+- Organization（集約ルート・1対1）
+
+**不変条件**:
+- 組織コードは全体でユニーク
+- 親組織の削除時は子組織も非活性化
+- 組織階層の循環参照禁止
+- 非活性組織には新規ユーザー追加不可
+
+**他集約との関係**:
+- User集約とはorganizationIdのみで参照（IDのみ参照）
+- Organization集約間はparentIdのみで参照（階層構造）
+
+**責務**:
+- 組織構造の一貫性保証
+- 組織階層の整合性維持
+- 組織設定の一元管理
+
+#### UserAggregate（ユーザー集約）<<aggregate>>
+**集約ルート**: User（ユーザー）
+**集約境界**: User（ユーザー）
+
+**包含エンティティ**:
+- User（集約ルート・1対1）
 
 **不変条件**:
 - メールアドレスは組織内でユニーク
-- パスワードはポリシーに準拠
+- パスワードはポリシーに準拠（最小8文字、複雑性要件）
 - MFA有効時はシークレット必須
-- ロックアウト中はログイン不可
+- ロックアウト中はログイン不可（5回失敗で30分ロック）
+- ユーザーは必ず組織に所属（organizationIdを持つ）
+- パスワード変更は90日ごとに必須
 
-### RoleAggregate（ロール集約）
-**集約ルート**: Role
+**他集約との関係**:
+- Organization集約とはorganizationIdのみで参照（IDのみ参照）
+- Role集約とはroleIdのみで参照（多対多、中間テーブル経由）
+- Session集約とはuserIdのみで参照（1対多）
+
+**責務**:
+- ユーザー認証情報の一貫性保証
+- セキュリティポリシーの適用
+- アカウントライフサイクル管理
+
+#### RoleAggregate（ロール集約）<<aggregate>>
+**集約ルート**: Role（ロール）
+**集約境界**: Role（ロール）
+
 **包含エンティティ**:
-- RolePermission
-- RoleHierarchy
+- Role（集約ルート・1対1）
 
 **不変条件**:
-- システムロールは変更不可
+- システムロールは変更・削除不可
 - 権限の循環参照禁止
 - 親ロールの権限を継承
-- レベルは親より低い
+- 子ロールのレベルは親より低い
+- 権限レベルは1-100の範囲内
 
-### SessionAggregate（セッション集約）
-**集約ルート**: Session
+**他集約との関係**:
+- Permission集約とはpermissionIdのみで参照（多対多）
+- User集約とはuserIdのみで参照（多対多）
+- Role集約間はparentIdのみで参照（階層構造）
+
+**責務**:
+- ロール階層の一貫性保証
+- 権限セットの整合性維持
+- 継承ルールの適用
+
+#### PermissionAggregate（権限集約）<<aggregate>>
+**集約ルート**: Permission（権限）
+**集約境界**: Permission（権限）
+
 **包含エンティティ**:
-- SessionActivity
-- SessionToken
+- Permission（集約ルート・1対1）
 
 **不変条件**:
-- 有効期限切れセッションは無効
-- 同一ユーザーの同時セッション数制限
-- 異常な活動パターンで自動終了
+- システム権限は変更・削除不可
+- リソースとアクションの組み合わせは一意
+- スコープはown/team/organization/allのいずれか
 
-## 5. ドメインサービス
+**他集約との関係**:
+- Role集約経由でUser集約と間接的に関連
 
-### AuthenticationService
+**責務**:
+- 権限定義の一貫性保証
+- アクセス制御ルールの明確化
+- リソース保護の実現
+
+#### SessionAggregate（セッション集約）<<aggregate>>
+**集約ルート**: Session（セッション）
+**集約境界**: Session（セッション）
+
+**包含エンティティ**:
+- Session（集約ルート・1対1）
+
+**不変条件**:
+- 有効期限切れセッションは無効（デフォルト8時間）
+- 同一ユーザーの同時セッション数は最大3つ
+- アイドルタイムアウトは30分
+- 異常な活動パターン（位置変更、異常リクエスト）で自動終了
+- トークンは暗号化して保存
+
+**他集約との関係**:
+- User集約とはuserIdのみで参照（IDのみ参照）
+- AuditLog集約とはsessionIdのみで参照（1対多）
+
+**責務**:
+- セッション有効性の保証
+- セキュリティポリシーの適用
+- 異常検知と自動対応
+
+#### AuditLogAggregate（監査ログ集約）<<aggregate>>
+**集約ルート**: AuditLog（監査ログ）
+**集約境界**: AuditLog（監査ログ）
+
+**包含エンティティ**:
+- AuditLog（集約ルート・1対1）
+
+**不変条件**:
+- 一度作成されたログは変更・削除不可（イミュータブル）
+- すべての操作は監査ログに記録
+- ログ保持期間は最低1年間
+
+**他集約との関係**:
+- User集約とはuserIdのみで参照（IDのみ参照）
+- Session集約とはsessionIdのみで参照（IDのみ参照）
+
+**責務**:
+- 監査証跡の完全性保証
+- タンパリング防止
+- コンプライアンス要件の充足
+
+### ドメインサービス
+
+#### OrganizationService<<service>>
+**概要**: 複数の組織集約に跨る組織管理操作
+**責務**: 組織階層管理、組織間移動、ユーザーと組織の関連管理
+**ステレオタイプ**: service
+
+```typescript
+interface OrganizationService {
+  // 組織管理
+  createOrganization(params: CreateOrganizationParams): Promise<Result<Organization>>
+  updateOrganization(orgId: UUID, updates: OrganizationUpdates): Promise<Result<Organization>>
+  deactivateOrganization(orgId: UUID): Promise<Result<void>>
+
+  // ユーザーと組織の関連（集約をまたぐ操作）
+  getUsersByOrganization(orgId: UUID): Promise<Result<User[]>>
+  assignUserToOrganization(userId: UUID, orgId: UUID): Promise<Result<void>>
+  removeUserFromOrganization(userId: UUID): Promise<Result<void>>
+
+  // 組織階層
+  getChildOrganizations(parentId: UUID): Promise<Result<Organization[]>>
+  moveOrganization(orgId: UUID, newParentId: UUID): Promise<Result<void>>
+}
+```
+
+#### AuthenticationService<<service>>
+**概要**: ユーザー認証とパスワード管理、MFA設定
+**責務**: 認証処理、パスワード管理、多要素認証設定
+**ステレオタイプ**: service
+
 ```typescript
 interface AuthenticationService {
   // 認証
-  authenticate(credentials: Credentials): Result<AuthToken>;
-  verifyMfa(userId: UUID, code: string): Result<void>;
-  refreshToken(refreshToken: string): Result<AuthToken>;
-  
+  authenticate(credentials: Credentials): Promise<Result<AuthToken>>
+  verifyMfa(userId: UUID, code: string): Promise<Result<void>>
+  refreshToken(refreshToken: string): Promise<Result<AuthToken>>
+
   // パスワード管理
-  changePassword(userId: UUID, oldPassword: string, newPassword: string): Result<void>;
-  resetPassword(email: string): Result<void>;
-  validatePasswordStrength(password: string): PasswordStrength;
-  
+  changePassword(userId: UUID, oldPassword: string, newPassword: string): Promise<Result<void>>
+  resetPassword(email: string): Promise<Result<void>>
+  validatePasswordStrength(password: string): Promise<PasswordStrength>
+
   // MFA管理
-  enableMfa(userId: UUID): Result<MfaSecret>;
-  disableMfa(userId: UUID, code: string): Result<void>;
-  generateBackupCodes(userId: UUID): Result<string[]>;
+  enableMfa(userId: UUID): Promise<Result<MfaSecret>>
+  disableMfa(userId: UUID, code: string): Promise<Result<void>>
+  generateBackupCodes(userId: UUID): Promise<Result<string[]>>
 }
 ```
 
-### AuthorizationService
+#### AuthorizationService<<service>>
+**概要**: アクセス制御とロール管理、ポリシー評価
+**責務**: 権限チェック、ロール割り当て、ポリシー適用
+**ステレオタイプ**: service
+
 ```typescript
 interface AuthorizationService {
   // アクセス制御
-  authorize(request: AccessRequest): Result<AccessDecision>;
-  checkPermission(userId: UUID, resource: string, action: string): boolean;
-  getUserPermissions(userId: UUID): Permission[];
-  
+  authorize(request: AccessRequest): Promise<Result<AccessDecision>>
+  checkPermission(userId: UUID, resource: string, action: string): Promise<boolean>
+  getUserPermissions(userId: UUID): Promise<Permission[]>
+
   // ロール管理
-  assignRole(userId: UUID, roleId: UUID): Result<void>;
-  removeRole(userId: UUID, roleId: UUID): Result<void>;
-  createCustomRole(role: RoleDefinition): Result<Role>;
-  
+  assignRole(userId: UUID, roleId: UUID): Promise<Result<void>>
+  removeRole(userId: UUID, roleId: UUID): Promise<Result<void>>
+  createCustomRole(role: RoleDefinition): Promise<Result<Role>>
+
   // ポリシー評価
-  evaluatePolicy(policy: Policy, context: Context): PolicyDecision;
-  enforcePolicy(policyId: UUID, target: any): Result<void>;
+  evaluatePolicy(policy: Policy, context: Context): Promise<PolicyDecision>
+  enforcePolicy(policyId: UUID, target: any): Promise<Result<void>>
 }
 ```
 
-### SessionManagementService
+#### SessionManagementService<<service>>
+**概要**: セッションのライフサイクル管理と監視
+**責務**: セッション作成・検証・終了、異常検知
+**ステレオタイプ**: service
+
 ```typescript
 interface SessionManagementService {
   // セッション管理
-  createSession(userId: UUID, context: SessionContext): Result<Session>;
-  validateSession(sessionId: UUID): Result<Session>;
-  terminateSession(sessionId: UUID): Result<void>;
-  terminateUserSessions(userId: UUID): Result<void>;
-  
+  createSession(userId: UUID, context: SessionContext): Promise<Result<Session>>
+  validateSession(sessionId: UUID): Promise<Result<Session>>
+  terminateSession(sessionId: UUID): Promise<Result<void>>
+  terminateUserSessions(userId: UUID): Promise<Result<void>>
+
   // セッション監視
-  detectAnomalies(sessionId: UUID): AnomalyReport;
-  enforceSessionPolicy(session: Session): Result<void>;
-  cleanupExpiredSessions(): Result<number>;
+  detectAnomalies(sessionId: UUID): Promise<AnomalyReport>
+  enforceSessionPolicy(session: Session): Promise<Result<void>>
+  cleanupExpiredSessions(): Promise<Result<number>>
 }
 ```
 
-### AuditService
+#### AuditService<<service>>
+**概要**: 監査ログの記録とコンプライアンスレポート生成
+**責務**: 監査証跡記録、異常検知、レポート生成
+**ステレオタイプ**: service
+
 ```typescript
 interface AuditService {
   // 監査ログ
-  logSecurityEvent(event: SecurityEvent): Result<void>;
-  logAccessAttempt(attempt: AccessAttempt): Result<void>;
-  logDataAccess(access: DataAccess): Result<void>;
-  
+  logSecurityEvent(event: SecurityEvent): Promise<Result<void>>
+  logAccessAttempt(attempt: AccessAttempt): Promise<Result<void>>
+  logDataAccess(access: DataAccess): Promise<Result<void>>
+
   // 監査レポート
-  generateComplianceReport(period: DateRange): ComplianceReport;
-  detectSuspiciousActivity(userId: UUID): SuspiciousActivity[];
-  exportAuditLogs(filter: AuditFilter): AuditExport;
+  generateComplianceReport(period: DateRange): Promise<ComplianceReport>
+  detectSuspiciousActivity(userId: UUID): Promise<SuspiciousActivity[]>
+  exportAuditLogs(filter: AuditFilter): Promise<AuditExport>
 }
 ```
 

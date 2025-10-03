@@ -71,6 +71,7 @@ export function buildTreeFromParasolData(
               parentId: operation.id,
               children: [],
               metadata: {
+                definition: useCase.definition,
                 description: useCase.description,
                 actors: useCase.actors,
                 preconditions: useCase.preconditions,
@@ -78,6 +79,7 @@ export function buildTreeFromParasolData(
                 basicFlow: useCase.basicFlow,
                 alternativeFlow: useCase.alternativeFlow,
                 exceptionFlow: useCase.exceptionFlow,
+                robustnessDiagram: useCase.robustnessDiagram,
               },
             };
             

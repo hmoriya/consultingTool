@@ -30,7 +30,8 @@ interface DiagramViewProps {
 }
 
 export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
-  const [svgContent, setSvgContent] = useState<string>('');
+  const [originalSvgContent, setOriginalSvgContent] = useState<string>('');
+  const [displaySvgContent, setDisplaySvgContent] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [zoom, setZoom] = useState<number>(100);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
@@ -45,6 +46,11 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
     specification: true
   });
   const { toast } = useToast();
+
+  // コンポーネントマウント時にズームをリセット
+  useEffect(() => {
+    setZoom(100);
+  }, []); // 空の依存配列で初回マウント時のみ実行
 
   // Mermaid初期化
   useEffect(() => {
@@ -100,7 +106,8 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
           try {
             const { svg } = await mermaid.render(id, code);
             console.log('DiagramView: Mermaid render successful, SVG length:', svg.length);
-            setSvgContent(svg);
+            setOriginalSvgContent(svg);
+            setDisplaySvgContent(svg);
             console.log('DiagramView: SVG content set in React state');
           } catch (mermaidErr) {
             console.error('DiagramView: Mermaid render error:', mermaidErr);
@@ -116,7 +123,8 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
           if (!response.ok) throw new Error('PlantUMLサーバーエラー');
 
           const svg = await response.text();
-          setSvgContent(svg);
+          setOriginalSvgContent(svg);
+          setDisplaySvgContent(svg);
           console.log('DiagramView: PlantUML SVG content set in React state');
         }
       } catch (err) {
@@ -137,9 +145,9 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
 
   // ズームとフィルター適用のための別のuseEffect
   useEffect(() => {
-    if (svgContent) {
+    if (originalSvgContent) {
       const parser = new DOMParser();
-      const doc = parser.parseFromString(svgContent, 'image/svg+xml');
+      const doc = parser.parseFromString(originalSvgContent, 'image/svg+xml');
       const svgElement = doc.querySelector('svg');
       if (svgElement) {
         // ズーム適用
@@ -149,55 +157,115 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
         }
 
         // ステレオタイプフィルター適用
-        const allGroups = doc.querySelectorAll('g');
-        allGroups.forEach((group) => {
-          const textElements = group.querySelectorAll('text');
+        // デバッグ用：フィルターの状態をログ出力
+        console.log('DiagramView: Applying filters', stereotypeFilters);
+
+        // MermaidのクラスダイアグラムのSVG構造を探索
+        // パターン1: g.nodes内の各ノード
+        let allNodes = doc.querySelectorAll('g.nodes g.node');
+        if (allNodes.length === 0) {
+          // パターン2: g[id*="entity"]のような直接的なノード
+          allNodes = doc.querySelectorAll('g[id*="entity"], g[id*="aggregate"], g[id*="value"], g[id*="service"], g[id*="repository"]');
+        }
+        if (allNodes.length === 0) {
+          // パターン3: クラス名を持つg要素
+          allNodes = doc.querySelectorAll('g[class*="classGroup"]');
+        }
+        if (allNodes.length === 0) {
+          // パターン4: 全てのg要素から絞り込み
+          allNodes = doc.querySelectorAll('g');
+        }
+
+        console.log(`DiagramView: Found ${allNodes.length} potential nodes`);
+
+        allNodes.forEach((node, index) => {
+          const nodeElement = node as SVGGElement;
+
+          // idやclassからノードタイプを推測
+          const nodeId = nodeElement.getAttribute('id') || '';
+          const nodeClass = nodeElement.getAttribute('class') || '';
+
+          // ノード内のすべてのテキストを取得
+          const textElements = nodeElement.querySelectorAll('text, tspan');
+          let nodeText = '';
+          textElements.forEach(text => {
+            nodeText += (text.textContent || '') + ' ';
+          });
+          nodeText = nodeText.toLowerCase().trim();
+
+          // デバッグ：最初の5ノードの情報を出力
+          if (index < 5) {
+            console.log(`Node ${index}: id="${nodeId}", class="${nodeClass}", text="${nodeText.substring(0, 50)}..."`);
+          }
+
+          // ステレオタイプの判定
           let shouldHide = false;
 
-          textElements.forEach((text) => {
-            const content = text.textContent || '';
-            // ステレオタイプのパターンマッチング
-            if (content.includes('<<entity>>') && !stereotypeFilters.entity) {
-              shouldHide = true;
-            } else if (content.includes('<<value object>>') && !stereotypeFilters['value-object']) {
-              shouldHide = true;
-            } else if (content.includes('<<aggregate root>>') && !stereotypeFilters.aggregate) {
-              shouldHide = true;
-            } else if (content.includes('<<service>>') && !stereotypeFilters.service) {
-              shouldHide = true;
-            } else if (content.includes('<<repository>>') && !stereotypeFilters.repository) {
-              shouldHide = true;
-            } else if (content.includes('<<factory>>') && !stereotypeFilters.factory) {
-              shouldHide = true;
-            } else if (content.includes('<<event>>') && !stereotypeFilters.event) {
-              shouldHide = true;
-            } else if (content.includes('<<specification>>') && !stereotypeFilters.specification) {
-              shouldHide = true;
-            }
-          });
+          // エンティティクラスの名前からステレオタイプを判定
+          if ((nodeId.includes('entity') || nodeId.includes('Entity') ||
+               nodeText.includes('<<entity>>') || nodeText.includes('entity') ||
+               nodeClass.includes('entity')) && !stereotypeFilters.entity) {
+            shouldHide = true;
+            console.log(`Hiding Entity node: ${nodeId}`);
+          } else if ((nodeId.includes('value') || nodeId.includes('Value') ||
+                     nodeText.includes('<<value') || nodeText.includes('value object') ||
+                     nodeClass.includes('value')) && !stereotypeFilters['value-object']) {
+            shouldHide = true;
+            console.log(`Hiding Value Object node: ${nodeId}`);
+          } else if ((nodeId.includes('aggregate') || nodeId.includes('Aggregate') ||
+                     nodeText.includes('<<aggregate') || nodeText.includes('aggregate') ||
+                     nodeClass.includes('aggregate')) && !stereotypeFilters.aggregate) {
+            shouldHide = true;
+            console.log(`Hiding Aggregate node: ${nodeId}`);
+          } else if ((nodeId.includes('service') || nodeId.includes('Service') ||
+                     nodeText.includes('<<service>>') || nodeText.includes('service') ||
+                     nodeClass.includes('service')) && !stereotypeFilters.service) {
+            shouldHide = true;
+            console.log(`Hiding Service node: ${nodeId}`);
+          } else if ((nodeId.includes('repository') || nodeId.includes('Repository') ||
+                     nodeText.includes('<<repository>>') || nodeText.includes('repository') ||
+                     nodeClass.includes('repository')) && !stereotypeFilters.repository) {
+            shouldHide = true;
+            console.log(`Hiding Repository node: ${nodeId}`);
+          } else if ((nodeId.includes('factory') || nodeId.includes('Factory') ||
+                     nodeText.includes('<<factory>>') || nodeText.includes('factory') ||
+                     nodeClass.includes('factory')) && !stereotypeFilters.factory) {
+            shouldHide = true;
+            console.log(`Hiding Factory node: ${nodeId}`);
+          } else if ((nodeId.includes('event') || nodeId.includes('Event') ||
+                     nodeText.includes('<<event>>') || nodeText.includes('event') ||
+                     nodeClass.includes('event')) && !stereotypeFilters.event) {
+            shouldHide = true;
+            console.log(`Hiding Event node: ${nodeId}`);
+          } else if ((nodeId.includes('specification') || nodeId.includes('Specification') ||
+                     nodeText.includes('<<specification>>') || nodeText.includes('specification') ||
+                     nodeClass.includes('specification')) && !stereotypeFilters.specification) {
+            shouldHide = true;
+            console.log(`Hiding Specification node: ${nodeId}`);
+          }
 
-          // グループの表示/非表示を設定
+          // ノードの表示/非表示を設定
           if (shouldHide) {
-            (group as SVGGElement).style.opacity = '0.2';
-            (group as SVGGElement).style.pointerEvents = 'none';
+            nodeElement.style.opacity = '0.2';
+            nodeElement.style.pointerEvents = 'none';
           } else {
-            (group as SVGGElement).style.opacity = '1';
-            (group as SVGGElement).style.pointerEvents = 'auto';
+            nodeElement.style.opacity = '1';
+            nodeElement.style.pointerEvents = 'auto';
           }
         });
 
         const updatedSvg = new XMLSerializer().serializeToString(doc);
-        setSvgContent(updatedSvg);
+        setDisplaySvgContent(updatedSvg);
         console.log('DiagramView: Zoom and filters applied to SVG content', { zoom, stereotypeFilters });
       }
     }
-  }, [zoom, stereotypeFilters]);
+  }, [originalSvgContent, zoom, stereotypeFilters]);
 
   // SVGダウンロード
   const handleDownload = () => {
-    if (!svgContent) return;
+    if (!displaySvgContent) return;
 
-    const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+    const blob = new Blob([displaySvgContent], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -290,7 +358,7 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
             size="sm"
             variant="outline"
             onClick={handleDownload}
-            disabled={!svgContent}
+            disabled={!displaySvgContent}
             title="SVGダウンロード"
           >
             <Download className="h-4 w-4" />
@@ -448,7 +516,7 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
               minHeight: '400px',
               maxHeight: isFullscreen ? 'calc(80vh - 100px)' : '600px'
             }}
-            dangerouslySetInnerHTML={{ __html: svgContent || '' }}
+            dangerouslySetInnerHTML={{ __html: displaySvgContent || '' }}
           />
         </CardContent>
       </Card>

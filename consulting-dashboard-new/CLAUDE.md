@@ -2243,3 +2243,151 @@ tsx prisma/seeds/project-seed.ts
 2. **サービス名の価値表現**（Issue #94）
    - 「管理」を削除し、価値を表現する名前に変更
    - 上記の新サービス名への移行を実施中
+
+## GitHub Issue駆動開発ワークフロー
+
+プロジェクトではGitHub Issueを起点とした標準的な開発フローを採用しています。以下の手順に従って開発を進めてください。
+
+### 1. Issue作成
+
+```bash
+gh issue create --title "機能名/問題の概要" --body "詳細な説明"
+```
+
+**Issueテンプレート**（適切なテンプレートを選択）：
+- **bug_report.md**: バグ報告用
+- **feature_request.md**: 機能追加要望用
+- **enhancement.md**: 既存機能の改善提案用
+- **documentation.md**: ドキュメント関連
+- **question.md**: 質問用
+
+### 2. Issue番号ベースのブランチ作成
+
+```bash
+git checkout -b feature/{issue番号}-{短い説明}
+```
+
+**ブランチ命名規則**：
+- `feature/{issue番号}-{機能名}` - 新機能
+- `bugfix/{issue番号}-{バグ名}` - バグ修正
+- `hotfix/{issue番号}-{緊急修正名}` - 緊急修正
+- `docs/{issue番号}-{ドキュメント名}` - ドキュメント
+
+**例**：
+```bash
+git checkout -b feature/121-add-dashboard-filter
+git checkout -b bugfix/122-login-error-fix
+```
+
+### 3. 開発作業
+
+- ファイルの作成・編集
+- 機能実装
+- テスト作成・実行
+- 設計ドキュメントの更新
+
+### 4. Issue番号を含むコミット
+
+```bash
+git commit -m "type: 説明 (#issue番号)"
+```
+
+**コミットタイプ**：
+- `feat`: 新機能の追加
+- `fix`: バグ修正
+- `docs`: ドキュメントのみの変更
+- `style`: コードの意味に影響しない変更（フォーマット等）
+- `refactor`: バグ修正でも機能追加でもないコード変更
+- `perf`: パフォーマンス改善
+- `test`: テストの追加・修正
+- `chore`: ビルドプロセスやツールの変更
+
+**例**：
+```bash
+git commit -m "feat: ダッシュボードフィルター機能を追加 (#121)"
+git commit -m "fix: ログイン時のバリデーションエラーを修正 (#122)"
+```
+
+### 5. プッシュ
+
+```bash
+git push origin feature/{issue番号}-{機能名}
+```
+
+### 6. プルリクエスト作成
+
+```bash
+gh pr create --title "type: 説明 (#issue番号)" --body "$(cat <<'EOF'
+## 概要
+Issue #XXXの対応です。
+
+## 変更内容
+- 変更1
+- 変更2
+- 変更3
+
+## テスト方法
+- [ ] テスト手順1
+- [ ] テスト手順2
+
+## 関連Issue
+Closes #XXX
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+EOF
+)"
+```
+
+**自動Issue クローズのキーワード**：
+- `Closes #XXX`
+- `Fixes #XXX`
+- `Resolves #XXX`
+
+### 7. プルリクエストのマージ
+
+```bash
+gh pr merge {PR番号} --squash --delete-branch
+```
+
+マージ時にIssueが自動的にクローズされ、ブランチも削除されます。
+
+### 開発フローの例
+
+```bash
+# 1. Issue作成
+gh issue create --title "新機能: ユーザーダッシュボードフィルター" --body "..."
+
+# 2. ブランチ作成（Issue #123が作成されたとする）
+git checkout -b feature/123-user-dashboard-filter
+
+# 3. 開発作業
+# ファイル編集...
+
+# 4. コミット
+git add .
+git commit -m "feat: ユーザーダッシュボードフィルター機能を追加 (#123)"
+
+# 5. プッシュ
+git push origin feature/123-user-dashboard-filter
+
+# 6. PR作成
+gh pr create --title "feat: ユーザーダッシュボードフィルター機能を追加 (#123)" --body "Closes #123"
+
+# 7. マージ
+gh pr merge 124 --squash --delete-branch
+```
+
+### ベストプラクティス
+
+1. **Issue → ブランチ → コミット → PR → マージ** の完全なトレーサビリティを維持
+2. **必ず Issue番号をコミットメッセージに含める**：`(#123)`
+3. **PRで自動Issue クローズ**：`Closes #123`を本文に記載
+4. **ブランチは作業完了後すぐに削除**：`--delete-branch`オプション使用
+5. **コミットメッセージは conventional commits形式**を推奨
+
+### 注意事項
+
+- Issue番号の付け忘れに注意（自動関連付けができなくなる）
+- ブランチ名にIssue番号を含めることで作業内容を明確化
+- PRマージ時のIssue自動クローズを活用
+- 大きな変更は複数のIssueに分割して管理

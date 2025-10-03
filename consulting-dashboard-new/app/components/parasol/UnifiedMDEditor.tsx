@@ -24,7 +24,7 @@ import { useToast } from '@/app/hooks/use-toast';
 import { DiagramView } from './DiagramView';
 import { DiagramConverter } from '../../../lib/parasol/diagram-converter';
 
-export type MDEditorType = 
+export type MDEditorType =
   | 'service-description'
   | 'domain-language'
   | 'api-specification'
@@ -32,6 +32,7 @@ export type MDEditorType =
   | 'capability-definition'
   | 'operation-design'
   | 'usecase-definition'
+  | 'robustness-diagram'
   | 'page-definition'
   | 'test-definition';
 
@@ -506,8 +507,14 @@ export function UnifiedMDEditor({
           code = DiagramConverter.operationToFlowDiagram(markdown);
           break;
         case 'usecase-definition':
-          code = DiagramConverter.useCaseToRobustnessDiagram(markdown);
-          diagType = 'plantuml';
+          // ユースケース定義MDファイルからMermaidコードを抽出
+          code = DiagramConverter.extractMermaidFromUseCase(markdown);
+          diagType = 'mermaid';
+          break;
+        case 'robustness-diagram':
+          // ロバストネス図MDファイルからMermaidコードを抽出
+          code = DiagramConverter.extractMermaidFromRobustness(markdown);
+          diagType = 'mermaid';
           break;
         default:
           code = '';

@@ -1,349 +1,535 @@
-# API仕様: セキュアアクセスサービス
+# セキュアアクセスサービス API仕様書
 
-## API概要
-**目的**: 認証・認可・監査機能を提供し、システムへの安全なアクセスを実現
 **バージョン**: v1.0.0
-**ベースURL**: `https://api.example.com/v1/auth`
+**最終更新日**: 2025-01-15
 
-## 認証
-**認証方式**: JWT Bearer Token
-**ヘッダー**: `Authorization: Bearer {jwt_token}`
+---
 
-## 共通仕様
+## 1. 概要
 
-### リクエストヘッダー
-```http
-Content-Type: application/json
-Authorization: Bearer {jwt_token}
-Accept: application/json
-X-Request-ID: {uuid}
+### サービス概要
+セキュアアクセスサービスは、認証・認可・アクセス制御を担うコアサービスです。
+
+### ベースURL
+`http://localhost:3000/api/auth`
+
+### 認証方式
+JWT Bearer Token認証
+
+**認証ヘッダー形式**:
+```
+Authorization: Bearer <JWT_TOKEN>
 ```
 
-### レスポンス形式
-```json
-{
-  "success": boolean,
-  "data": object | array,
-  "message": string,
-  "timestamp": "2024-01-01T00:00:00Z",
-  "requestId": "uuid"
-}
-```
+**トークン有効期限**:
+- アクセストークン: 1時間
+- リフレッシュトークン: 7日間
 
-### エラーレスポンス
-```json
-{
-  "success": false,
-  "error": {
-    "code": "ERROR_CODE",
-    "message": "エラーメッセージ",
-    "field": "該当フィールド",
-    "details": "詳細情報"
-  },
-  "timestamp": "2024-01-01T00:00:00Z",
-  "requestId": "uuid"
-}
-```
+---
 
-## エンドポイント定義
+## 2. エンドポイント一覧
 
-### 認証 API
+### 2.1 認証関連
 
-#### POST /auth/login
-**概要**: ユーザーの認証を行い、アクセストークンを発行
+#### POST /register
 
-**リクエスト**:
-- **Method**: POST
-- **URL**: `/auth/login`
-- **Body**:
+**概要**: 新規ユーザー登録
+
+**認証**: 不要
+
+**リクエストボディ**:
 ```json
 {
   "email": "user@example.com",
-  "password": "password123",
-  "mfaCode": "123456"  // オプション: MFA有効時は必須
+  "password": "SecurePass123!",
+  "displayName": "山田太郎",
+  "organizationId": "org_123"
 }
 ```
 
-**レスポンス**:
+**レスポンス（201 Created）**:
 ```json
 {
-  "success": true,
-  "data": {
-    "accessToken": "eyJhbGciOiJIUzI1NiIs...",
-    "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
-    "expiresIn": 3600,
-    "tokenType": "Bearer",
-    "user": {
-      "id": "uuid",
-      "email": "user@example.com",
-      "name": "ユーザー名",
-      "role": "Consultant",
-      "permissions": ["read", "write"]
-    }
+  "userId": "user_abc123",
+  "email": "user@example.com",
+  "displayName": "山田太郎",
+  "createdAt": "2025-01-15T10:00:00Z"
+}
+```
+
+**エラーレスポンス**:
+- `400 Bad Request`: バリデーションエラー
+- `409 Conflict`: メールアドレス重複
+
+---
+
+#### POST /login
+
+**概要**: ログイン（JWT発行）
+
+**認証**: 不要
+
+**リクエストボディ**:
+```json
+{
+  "email": "user@example.com",
+  "password": "SecurePass123!"
+}
+```
+
+**レスポンス（200 OK）**:
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+  "refreshToken": "refresh_token_xyz",
+  "expiresIn": 3600,
+  "user": {
+    "id": "user_abc123",
+    "email": "user@example.com",
+    "displayName": "山田太郎",
+    "roles": ["consultant"]
   }
 }
 ```
 
-#### POST /auth/logout
-**概要**: 現在のセッションを終了し、トークンを無効化
+**エラーレスポンス**:
+- `401 Unauthorized`: 認証情報が無効
+- `429 Too Many Requests`: ログイン試行回数超過
 
-**リクエスト**:
-- **Method**: POST
-- **URL**: `/auth/logout`
-- **Headers**: 認証必須
+---
 
-**レスポンス**:
+#### POST /logout
+
+**概要**: ログアウト（トークン無効化）
+
+**認証**: 必須
+
+**権限**: 全ロール
+
+**レスポンス（204 No Content）**
+
+---
+
+#### POST /refresh
+
+**概要**: アクセストークン再発行
+
+**認証**: 不要（リフレッシュトークンを使用）
+
+**リクエストボディ**:
 ```json
 {
-  "success": true,
-  "message": "ログアウトしました"
+  "refreshToken": "refresh_token_xyz"
 }
 ```
 
-#### POST /auth/refresh
-**概要**: リフレッシュトークンを使用して新しいアクセストークンを取得
-
-**リクエスト**:
-- **Method**: POST
-- **URL**: `/auth/refresh`
-- **Body**:
+**レスポンス（200 OK）**:
 ```json
 {
-  "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
+  "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+  "expiresIn": 3600
 }
 ```
 
-### ユーザー管理 API
+**エラーレスポンス**:
+- `401 Unauthorized`: リフレッシュトークンが無効または期限切れ
 
-#### GET /users
-**概要**: ユーザー一覧を取得（管理者権限必須）
+---
 
-**リクエスト**:
-- **Method**: GET
-- **URL**: `/users`
-- **Parameters**:
-  - `page` (query, optional): ページ番号 (default: 1)
-  - `limit` (query, optional): 件数 (default: 20, max: 100)
-  - `role` (query, optional): ロールでフィルター
-  - `status` (query, optional): active/inactive
-  - `search` (query, optional): 名前またはメールで検索
+#### POST /mfa/enable
 
-**レスポンス**:
+**概要**: MFA（多要素認証）を有効化
+
+**認証**: 必須
+
+**権限**: 全ロール
+
+**レスポンス（200 OK）**:
 ```json
 {
-  "success": true,
-  "data": {
-    "items": [
-      {
-        "id": "uuid",
-        "email": "user@example.com",
-        "name": "ユーザー名",
-        "role": "Consultant",
-        "isActive": true,
-        "lastLoginAt": "2024-01-01T00:00:00Z",
-        "createdAt": "2024-01-01T00:00:00Z"
-      }
-    ],
-    "pagination": {
-      "page": 1,
-      "limit": 20,
-      "total": 100,
-      "pages": 5
-    }
-  }
-}
-```
-
-#### POST /users
-**概要**: 新規ユーザーを作成（管理者権限必須）
-
-**リクエスト**:
-- **Method**: POST
-- **URL**: `/users`
-- **Body**:
-```json
-{
-  "email": "newuser@example.com",
-  "name": "新規ユーザー",
-  "password": "securePassword123",
-  "role": "Consultant",
-  "organizationId": "uuid"
-}
-```
-
-#### GET /users/{userId}
-**概要**: 特定ユーザーの詳細情報を取得
-
-#### PUT /users/{userId}
-**概要**: ユーザー情報を更新
-
-#### DELETE /users/{userId}
-**概要**: ユーザーを削除（論理削除）
-
-### 権限管理 API
-
-#### GET /permissions
-**概要**: 権限一覧を取得
-
-**リクエスト**:
-- **Method**: GET
-- **URL**: `/permissions`
-- **Parameters**:
-  - `role` (query, optional): ロールでフィルター
-
-**レスポンス**:
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "uuid",
-      "resource": "projects",
-      "action": "read",
-      "role": "Consultant",
-      "description": "プロジェクト読み取り権限"
-    }
+  "qrCodeUrl": "data:image/png;base64,...",
+  "secret": "JBSWY3DPEHPK3PXP",
+  "backupCodes": [
+    "12345678",
+    "87654321"
   ]
 }
 ```
 
-#### POST /permissions/assign
-**概要**: ユーザーに権限を付与
-
-**リクエスト**:
-- **Method**: POST
-- **URL**: `/permissions/assign`
-- **Body**:
-```json
-{
-  "userId": "uuid",
-  "permissions": [
-    {
-      "resource": "projects",
-      "actions": ["read", "write", "delete"]
-    }
-  ]
-}
-```
-
-#### POST /permissions/revoke
-**概要**: ユーザーから権限を取消
-
-### 監査ログ API
-
-#### GET /audit-logs
-**概要**: 監査ログを取得（管理者権限必須）
-
-**リクエスト**:
-- **Method**: GET
-- **URL**: `/audit-logs`
-- **Parameters**:
-  - `userId` (query, optional): ユーザーIDでフィルター
-  - `action` (query, optional): アクションでフィルター
-  - `dateFrom` (query, optional): 開始日時
-  - `dateTo` (query, optional): 終了日時
-  - `page` (query, optional): ページ番号
-  - `limit` (query, optional): 件数
-
-**レスポンス**:
-```json
-{
-  "success": true,
-  "data": {
-    "items": [
-      {
-        "id": "uuid",
-        "userId": "uuid",
-        "action": "LOGIN_SUCCESS",
-        "resource": "auth",
-        "ipAddress": "192.168.1.1",
-        "userAgent": "Mozilla/5.0...",
-        "details": {
-          "method": "password",
-          "mfaUsed": true
-        },
-        "timestamp": "2024-01-01T00:00:00Z"
-      }
-    ],
-    "pagination": {
-      "page": 1,
-      "limit": 20,
-      "total": 1000,
-      "pages": 50
-    }
-  }
-}
-```
-
-### MFA（多要素認証）API
-
-#### POST /mfa/setup
-**概要**: MFAを設定
-
-**リクエスト**:
-- **Method**: POST
-- **URL**: `/mfa/setup`
-- **Body**:
-```json
-{
-  "type": "totp" // totp, sms, email
-}
-```
-
-**レスポンス**:
-```json
-{
-  "success": true,
-  "data": {
-    "secret": "JBSWY3DPEHPK3PXP",
-    "qrCode": "data:image/png;base64,...",
-    "backupCodes": [
-      "XXXX-XXXX",
-      "YYYY-YYYY"
-    ]
-  }
-}
-```
+---
 
 #### POST /mfa/verify
-**概要**: MFAコードを検証
 
-#### POST /mfa/disable
-**概要**: MFAを無効化
+**概要**: MFA検証コード確認
 
-## エラーコード
+**認証**: 必須
 
-| コード | HTTPステータス | 説明 |
-|--------|---------------|------|
-| AUTH_FAILED | 401 | 認証失敗 |
-| INVALID_CREDENTIALS | 401 | メールまたはパスワードが不正 |
-| ACCOUNT_LOCKED | 403 | アカウントがロックされている |
-| PERMISSION_DENIED | 403 | アクセス権限なし |
-| USER_NOT_FOUND | 404 | ユーザーが見つからない |
-| VALIDATION_ERROR | 422 | 入力値が不正 |
-| MFA_REQUIRED | 428 | 多要素認証が必要 |
-| TOO_MANY_ATTEMPTS | 429 | ログイン試行回数超過 |
-| INTERNAL_ERROR | 500 | サーバー内部エラー |
+**リクエストボディ**:
+```json
+{
+  "code": "123456"
+}
+```
 
-## レート制限
-- **認証エンドポイント**: 5リクエスト/分
-- **一般API**: 100リクエスト/分
-- **管理API**: 50リクエスト/分
-- **制限時のレスポンス**: 429 Too Many Requests
-- **制限情報ヘッダー**:
-  - `X-RateLimit-Limit`: 制限数
-  - `X-RateLimit-Remaining`: 残り回数
-  - `X-RateLimit-Reset`: リセット時刻
+**レスポンス（200 OK）**:
+```json
+{
+  "verified": true
+}
+```
 
-## Webhook
-**イベント通知**: 重要なセキュリティイベント発生時にWebhookで通知
-- ログイン成功/失敗
-- 権限変更
-- アカウントロック
-- 不審なアクティビティ検出
+**エラーレスポンス**:
+- `401 Unauthorized`: 検証コードが無効
 
-## バージョン管理
-- **現在**: v1.0.0
-- **サポート**: v1.x系を2年間サポート
-- **廃止予定**: なし
-- **バージョンヘッダー**: `X-API-Version: 1.0.0`
+---
+
+### 2.2 ユーザー管理
+
+#### GET /users
+
+**概要**: ユーザー一覧取得
+
+**認証**: 必須
+
+**権限**: `user:read`
+
+**クエリパラメータ**:
+
+| パラメータ | 型 | 必須 | 説明 |
+|-----------|-----|------|------|
+| page | number | ○ | ページ番号（1から開始） |
+| limit | number | - | 1ページあたりの件数（デフォルト: 20） |
+| organizationId | string | - | 組織IDでフィルタ |
+| role | string | - | ロールでフィルタ |
+| status | string | - | ステータスでフィルタ（active/suspended） |
+
+**レスポンス（200 OK）**:
+```json
+{
+  "users": [
+    {
+      "id": "user_abc123",
+      "email": "user@example.com",
+      "displayName": "山田太郎",
+      "organizationId": "org_123",
+      "roles": ["consultant"],
+      "status": "active",
+      "createdAt": "2025-01-15T10:00:00Z"
+    }
+  ],
+  "pagination": {
+    "total": 100,
+    "page": 1,
+    "limit": 20,
+    "totalPages": 5
+  }
+}
+```
+
+---
+
+#### GET /users/:userId
+
+**概要**: ユーザー詳細取得
+
+**認証**: 必須
+
+**権限**: `user:read`
+
+**パスパラメータ**:
+- `userId`: ユーザーID
+
+**レスポンス（200 OK）**:
+```json
+{
+  "id": "user_abc123",
+  "email": "user@example.com",
+  "displayName": "山田太郎",
+  "organizationId": "org_123",
+  "roles": ["consultant"],
+  "permissions": ["project:read", "task:write"],
+  "mfaEnabled": true,
+  "status": "active",
+  "lastLoginAt": "2025-01-15T09:00:00Z",
+  "createdAt": "2025-01-10T10:00:00Z",
+  "updatedAt": "2025-01-15T10:00:00Z"
+}
+```
+
+**エラーレスポンス**:
+- `404 Not Found`: ユーザーが存在しない
+
+---
+
+#### PATCH /users/:userId
+
+**概要**: ユーザー情報更新
+
+**認証**: 必須
+
+**権限**: `user:write`
+
+**リクエストボディ**:
+```json
+{
+  "displayName": "山田次郎",
+  "status": "suspended"
+}
+```
+
+**レスポンス（200 OK）**:
+```json
+{
+  "id": "user_abc123",
+  "email": "user@example.com",
+  "displayName": "山田次郎",
+  "status": "suspended",
+  "updatedAt": "2025-01-15T11:00:00Z"
+}
+```
+
+---
+
+#### DELETE /users/:userId
+
+**概要**: ユーザー削除（論理削除）
+
+**認証**: 必須
+
+**権限**: `user:delete`
+
+**レスポンス（204 No Content）**
+
+---
+
+### 2.3 ロール・権限管理
+
+#### GET /roles
+
+**概要**: ロール一覧取得
+
+**認証**: 必須
+
+**権限**: `role:read`
+
+**レスポンス（200 OK）**:
+```json
+{
+  "roles": [
+    {
+      "id": "role_exec",
+      "name": "executive",
+      "displayName": "エグゼクティブ",
+      "permissions": ["*"],
+      "createdAt": "2025-01-10T10:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+#### POST /users/:userId/roles
+
+**概要**: ユーザーにロール付与
+
+**認証**: 必須
+
+**権限**: `role:assign`
+
+**リクエストボディ**:
+```json
+{
+  "roleId": "role_pm"
+}
+```
+
+**レスポンス（200 OK）**:
+```json
+{
+  "userId": "user_abc123",
+  "roles": ["consultant", "pm"]
+}
+```
+
+---
+
+#### DELETE /users/:userId/roles/:roleId
+
+**概要**: ユーザーからロール削除
+
+**認証**: 必須
+
+**権限**: `role:assign`
+
+**レスポンス（204 No Content）**
+
+---
+
+### 2.4 組織管理
+
+#### GET /organizations
+
+**概要**: 組織一覧取得
+
+**認証**: 必須
+
+**権限**: `org:read`
+
+**レスポンス（200 OK）**:
+```json
+{
+  "organizations": [
+    {
+      "id": "org_123",
+      "name": "株式会社サンプル",
+      "parentId": null,
+      "type": "client",
+      "createdAt": "2025-01-10T10:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+#### GET /organizations/:orgId
+
+**概要**: 組織詳細取得
+
+**認証**: 必須
+
+**権限**: `org:read`
+
+**レスポンス（200 OK）**:
+```json
+{
+  "id": "org_123",
+  "name": "株式会社サンプル",
+  "parentId": null,
+  "type": "client",
+  "memberCount": 25,
+  "createdAt": "2025-01-10T10:00:00Z"
+}
+```
+
+---
+
+### 2.5 監査ログ
+
+#### GET /audit-logs
+
+**概要**: 監査ログ取得
+
+**認証**: 必須
+
+**権限**: `audit:read`
+
+**クエリパラメータ**:
+
+| パラメータ | 型 | 必須 | 説明 |
+|-----------|-----|------|------|
+| userId | string | - | ユーザーIDでフィルタ |
+| action | string | - | アクション種別でフィルタ |
+| startDate | string | - | 開始日時（ISO 8601形式） |
+| endDate | string | - | 終了日時（ISO 8601形式） |
+
+**レスポンス（200 OK）**:
+```json
+{
+  "logs": [
+    {
+      "id": "log_xyz",
+      "userId": "user_abc123",
+      "action": "user.login",
+      "resource": "auth",
+      "ipAddress": "192.168.1.100",
+      "userAgent": "Mozilla/5.0...",
+      "timestamp": "2025-01-15T09:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+## 3. エラーコード一覧
+
+| コード | HTTPステータス | メッセージ | 説明 |
+|--------|---------------|-----------|------|
+| `AUTH_001` | 401 | Invalid credentials | 認証情報が無効 |
+| `AUTH_002` | 401 | Token expired | トークン期限切れ |
+| `AUTH_003` | 401 | Invalid token | トークンが無効 |
+| `AUTH_004` | 403 | Insufficient permissions | 権限不足 |
+| `AUTH_005` | 429 | Too many login attempts | ログイン試行回数超過 |
+| `USER_001` | 409 | Email already exists | メールアドレス重複 |
+| `USER_002` | 404 | User not found | ユーザーが存在しない |
+| `USER_003` | 400 | Invalid password format | パスワード形式が無効 |
+| `MFA_001` | 401 | Invalid MFA code | MFA検証コードが無効 |
+| `MFA_002` | 400 | MFA already enabled | MFAは既に有効 |
+
+---
+
+## 4. レート制限
+
+### 制限値
+
+**認証エンドポイント**:
+- 10リクエスト/分（IPアドレス単位）
+- 5ログイン失敗/時間（ユーザー単位）
+
+**一般エンドポイント**:
+- 100リクエスト/分（ユーザー単位）
+- 1000リクエスト/時間（ユーザー単位）
+
+### レスポンスヘッダー
+
+```
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1642251600
+```
+
+### 制限超過時のレスポンス
+
+**ステータスコード**: 429 Too Many Requests
+
+```json
+{
+  "error": {
+    "code": "RATE_LIMIT_EXCEEDED",
+    "message": "レート制限を超過しました",
+    "retryAfter": 60
+  }
+}
+```
+
+---
+
+## 5. セキュリティ
+
+### パスワードポリシー
+
+- 最小長: 8文字
+- 必須要素: 大文字、小文字、数字、特殊文字
+- 過去3世代のパスワード再利用禁止
+
+### トークン管理
+
+- JWT署名アルゴリズム: HS256
+- リフレッシュトークンのローテーション: 有効
+- トークン無効化: ログアウト時、パスワード変更時
+
+### 監査ログ記録対象
+
+- ログイン/ログアウト
+- ロール・権限変更
+- ユーザー作成/更新/削除
+- MFA有効化/無効化
+
+---
+
+**ドキュメント管理**:
+- 作成日: 2025-01-15
+- 作成者: System
+- レビュー状態: Draft

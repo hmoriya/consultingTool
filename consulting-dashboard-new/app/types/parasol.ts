@@ -5,7 +5,7 @@ export interface TreeNode {
   id: string;
   name: string;
   displayName: string;
-  type: 'service' | 'capability' | 'operation' | 'useCase' | 'page';
+  type: 'service' | 'capability' | 'operation' | 'useCase' | 'robustness' | 'page' | 'pageDefinition' | 'testDefinition';
   parentId?: string;
   children?: TreeNode[];
   isExpanded?: boolean;

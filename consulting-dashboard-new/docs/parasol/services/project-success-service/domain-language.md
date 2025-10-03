@@ -1,10 +1,10 @@
 # パラソルドメイン言語: プロジェクト成功支援サービス
 
-**バージョン**: 1.0.0
-**更新日**: 2024-01-20
+**バージョン**: 1.2.0
+**更新日**: 2024-12-30
 
 ## パラソルドメイン概要
-プロジェクトの立ち上げから完了まで、全ライフサイクルを通じて成功を支援するドメインモデル。プロジェクト、タスク、マイルストーン、リスク、成果物、ステークホルダーの関係を定義。
+プロジェクトの立ち上げから完了まで、全ライフサイクルを通じて成功を支援するドメインモデル。DDD原則に基づき、明確な集約境界とステレオタイプマーキングにより、プロジェクト、タスク、マイルストーン、リスク、成果物、ステークホルダーの関係を体系的に定義。すべてのエンティティは適切な集約に所属し、ID参照による疎結合を実現。
 
 ## ユビキタス言語定義
 
@@ -31,9 +31,12 @@ JSON: JSON形式データ
 
 ### エンティティ定義
 
-#### Project（プロジェクト）
-**概要**: 特定の目標を達成するための時限的な取り組み
-**識別子**: projectId
+#### Project（プロジェクト）<<entity>><<aggregate root>>
+**概要**: 特定の目標を達成するための時限的な取り組みの集約ルート
+**識別性**: projectIdによって一意に識別される
+**ライフサイクル**: 計画→実行→監視→完了→評価
+**集約所属**: ProjectAggregate（集約ルート）
+**ステレオタイプ**: entity, aggregate root
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -60,9 +63,12 @@ JSON: JSON形式データ
 - ステータス遷移は定義されたフローに従う
 - 予算超過時はアラート発生
 
-#### Task（タスク）
-**概要**: プロジェクト内の実行可能な最小作業単位
-**識別子**: taskId
+#### Task（タスク）<<entity>><<aggregate root>>
+**概要**: プロジェクト内の実行可能な最小作業単位の集約ルート
+**識別性**: taskIdによって一意に識別される
+**ライフサイクル**: 計画→アサイン→実行→レビュー→完了
+**集約所属**: TaskAggregate（集約ルート）
+**ステレオタイプ**: entity, aggregate root
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -90,9 +96,12 @@ JSON: JSON形式データ
 - 依存タスクが完了するまで開始不可
 - 期限超過時は自動的にアラート
 
-#### Milestone（マイルストーン）
-**概要**: プロジェクトの重要な節目や成果物の完成時点
-**識別子**: milestoneId
+#### Milestone（マイルストーン）<<entity>>
+**概要**: プロジェクトの重要な節目や成果物の完成時点エンティティ
+**識別性**: milestoneIdによって一意に識別される
+**ライフサイクル**: 計画→設定→監視→達成/未達
+**集約所属**: ProjectAggregate
+**ステレオタイプ**: entity
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -109,9 +118,12 @@ JSON: JSON形式データ
 | createdAt | TIMESTAMP | ○ | 作成日時 |
 | updatedAt | TIMESTAMP | ○ | 更新日時 |
 
-#### Risk（リスク）
-**概要**: プロジェクトの成功を脅かす可能性のある事象
-**識別子**: riskId
+#### Risk（リスク）<<entity>><<aggregate root>>
+**概要**: プロジェクトの成功を脅かす可能性のある事象の集約ルート
+**識別性**: riskIdによって一意に識別される
+**ライフサイクル**: 特定→分析→軽減→監視→終結
+**集約所属**: RiskAggregate（集約ルート）
+**ステレオタイプ**: entity, aggregate root
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -134,9 +146,12 @@ JSON: JSON形式データ
 | createdAt | TIMESTAMP | ○ | 作成日時 |
 | updatedAt | TIMESTAMP | ○ | 更新日時 |
 
-#### Deliverable（成果物）
-**概要**: プロジェクトで作成・納品される具体的な成果
-**識別子**: deliverableId
+#### Deliverable（成果物）<<entity>><<aggregate root>>
+**概要**: プロジェクトで作成・納品される具体的な成果の集約ルート
+**識別性**: deliverableIdによって一意に識別される
+**ライフサイクル**: 計画→作成→レビュー→承認→納品
+**集約所属**: DeliverableAggregate（集約ルート）
+**ステレオタイプ**: entity, aggregate root
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -158,9 +173,12 @@ JSON: JSON形式データ
 | createdAt | TIMESTAMP | ○ | 作成日時 |
 | updatedAt | TIMESTAMP | ○ | 更新日時 |
 
-#### ProjectMember（プロジェクトメンバー）
-**概要**: プロジェクトに参画するメンバーと役割
-**識別子**: projectMemberId
+#### ProjectMember（プロジェクトメンバー）<<entity>>
+**概要**: プロジェクトに参画するメンバーと役割エンティティ
+**識別性**: projectMemberIdによって一意に識別される
+**ライフサイクル**: アサイン→稼働→評価→終了
+**集約所属**: ProjectAggregate
+**ステレオタイプ**: entity
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -179,8 +197,11 @@ JSON: JSON形式データ
 
 ### 値オブジェクト定義
 
-#### ProjectStatus（プロジェクトステータス）
-**概要**: プロジェクトの現在の状態を表現
+#### ProjectStatus（プロジェクトステータス）<<value object>>
+**概要**: プロジェクトの現在の状態を表現する値オブジェクト
+**不変性**: 作成後は変更不可
+**等価性**: 全属性の値で判定
+**ステレオタイプ**: value object
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -193,8 +214,11 @@ JSON: JSON形式データ
 - ステータス遷移は定義されたルールに従う
 - Cancelledからの復帰は不可
 
-#### RiskMatrix（リスクマトリックス）
-**概要**: リスクの確率と影響度から優先度を算出
+#### RiskMatrix（リスクマトリックス）<<value object>>
+**概要**: リスクの確率と影響度から優先度を算出する値オブジェクト
+**不変性**: 作成後は変更不可
+**等価性**: 全属性の値で判定
+**ステレオタイプ**: value object
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -205,55 +229,158 @@ JSON: JSON形式データ
 
 ### 集約定義
 
-#### ProjectAggregate
-**集約ルート**: Project
-**境界**: Project, Task, Milestone, Risk, Deliverable, ProjectMember
+#### ProjectAggregate（プロジェクト集約）<<aggregate>>
+**集約ルート**: Project（プロジェクト）
+**集約境界**: Project（プロジェクト）、Milestone（マイルストーン）、ProjectMember（プロジェクトメンバー）
+**ステレオタイプ**: aggregate
+
+**包含エンティティ**:
+- Project（集約ルート・1対1）
+- Milestone（1対多・プロジェクトの主要節目）
+- ProjectMember（1対多・プロジェクト参画メンバー）
+
+**包含値オブジェクト**:
+- ProjectStatus（プロジェクト状態）
+
+**集約境界の理由**:
+- プロジェクトとマイルストーン、メンバーは密接に関連し、トランザクション整合性が必要
+- プロジェクト計画変更時にマイルストーンとメンバー配置を同時に調整する必要がある
+- プロジェクトのステータスとメンバーのアサイン状態の整合性を保つ必要がある
 
 **不変条件**:
 - プロジェクトの予算はタスクの合計コストを下回らない
 - すべてのタスクが完了するまでプロジェクトは完了できない
 - マイルストーンの日付はプロジェクト期間内
 - プロジェクトメンバーのアサイン率合計は各人100%を超えない
+- 同一プロジェクト内でプロジェクトコードは一意
 
-#### TaskAggregate
-**集約ルート**: Task
-**境界**: Task, TaskAssignment, TaskDependency
+**他集約との関係**:
+- User集約とはuserIdのみで参照（IDのみ参照）
+- Client集約とはclientIdのみで参照（IDのみ参照）
+- Task集約とはprojectIdのみで参照（IDのみ参照）
+- Risk集約とはprojectIdのみで参照（IDのみ参照）
+- Deliverable集約とはprojectIdのみで参照（IDのみ参照）
+
+#### TaskAggregate（タスク集約）<<aggregate>>
+**集約ルート**: Task（タスク）
+**集約境界**: Task（タスク）、TaskDependency（タスク依存関係）、TaskAssignment（タスク割り当て）
+**ステレオタイプ**: aggregate
+
+**包含エンティティ**:
+- Task（集約ルート・1対1）
+- TaskDependency（1対多・タスク間の依存関係）
+- TaskAssignment（1対多・タスクへのアサイン情報）
+
+**集約境界の理由**:
+- タスクとその依存関係、割り当ては密接に関連し、トランザクション整合性が必要
+- タスクステータス変更時に依存関係と割り当てを検証する必要がある
+- タスク階層構造の整合性を保つ必要がある
 
 **不変条件**:
 - 親タスクの進捗は子タスクの加重平均
 - 循環依存は作成不可
 - タスクの工数は子タスクの合計以上
+- 依存タスクが完了するまで後続タスクは開始不可
+- タスクの期間はプロジェクト期間内
+
+**他集約との関係**:
+- Project集約とはprojectIdのみで参照（IDのみ参照）
+- User集約とはassigneeIdのみで参照（IDのみ参照）
+
+#### RiskAggregate（リスク集約）<<aggregate>>
+**集約ルート**: Risk（リスク）
+**集約境界**: Risk（リスク）、MitigationAction（軽減アクション）
+**ステレオタイプ**: aggregate
+
+**包含エンティティ**:
+- Risk（集約ルート・1対1）
+- MitigationAction（1対多・リスク軽減策）
+
+**包含値オブジェクト**:
+- RiskMatrix（リスクマトリックス）
+
+**集約境界の理由**:
+- リスクとその軽減策は密接に関連し、同時に管理される
+- リスク評価変更時に軽減策の妥当性を再検証する必要がある
+
+**不変条件**:
+- リスクスコア = 発生確率 × 影響度
+- リスクステータスは定義されたフローに従う
+- 軽減策の実施期限はリスクの解決目標日以前
+- Critical/Highリスクは必ず軽減策を持つ
+
+**他集約との関係**:
+- Project集約とはprojectIdのみで参照（IDのみ参照）
+- User集約とはownerIdのみで参照（IDのみ参照）
+
+#### DeliverableAggregate（成果物集約）<<aggregate>>
+**集約ルート**: Deliverable（成果物）
+**集約境界**: Deliverable（成果物）、DeliverableVersion（成果物バージョン）、DeliverableApproval（成果物承認）
+**ステレオタイプ**: aggregate
+
+**包含エンティティ**:
+- Deliverable（集約ルート・1対1）
+- DeliverableVersion（1対多・成果物のバージョン履歴）
+- DeliverableApproval（1対多・成果物の承認記録）
+
+**集約境界の理由**:
+- 成果物とそのバージョン、承認は密接に関連し、トランザクション整合性が必要
+- バージョン管理と承認フローの整合性を保つ必要がある
+
+**不変条件**:
+- バージョンは昇順で管理される
+- 承認済み成果物の直接編集は不可（新バージョン作成）
+- Deliveredステータスは承認後のみ可能
+- 納品日は承認日以降
+
+**他集約との関係**:
+- Project集約とはprojectIdのみで参照（IDのみ参照）
+- Milestone集約とはmilestoneIdのみで参照（IDのみ参照）
+- User集約とはapprovedByのみで参照（IDのみ参照）
 
 ### ドメインサービス
 
-#### ProjectSchedulingService
-**概要**: プロジェクトスケジュールの計算と最適化
-**操作**:
-- `calculateCriticalPath(projectId) -> Task[]`: クリティカルパスの算出
-- `optimizeSchedule(projectId) -> Schedule`: スケジュール最適化
-- `calculateProjectCompletion(projectId) -> Date`: 完了予定日計算
-- `identifyBottlenecks(projectId) -> Task[]`: ボトルネック特定
+#### ProjectSchedulingService <<service>>
+**概要**: Project集約とTask集約をまたぐスケジュール計算と最適化サービス
+**責務**: プロジェクト全体のスケジュール調整、クリティカルパス計算
+**ステレオタイプ**: service
 
-#### RiskAssessmentService
-**概要**: リスクの評価と対策立案
 **操作**:
-- `assessRisk(risk) -> RiskScore`: リスク評価
-- `prioritizeRisks(projectId) -> Risk[]`: リスク優先順位付け
-- `suggestMitigation(risk) -> MitigationPlan`: 軽減策提案
-- `calculateProjectRiskScore(projectId) -> Integer`: プロジェクト全体リスクスコア
+- `calculateCriticalPath(projectId: UUID) -> Task[]`: クリティカルパスの算出と可視化
+- `optimizeSchedule(projectId: UUID) -> Schedule`: リソース制約を考慮したスケジュール最適化
+- `calculateProjectCompletion(projectId: UUID) -> DATE`: 現在進捗に基づく完了予定日計算
+- `identifyBottlenecks(projectId: UUID) -> Task[]`: スケジュールボトルネックの特定と改善提案
+- `adjustSchedule(projectId: UUID, adjustments: ScheduleChange[]) -> Schedule`: スケジュール調整と影響分析
 
-#### ResourceAllocationService
-**概要**: リソースの最適配分
+#### RiskAssessmentService <<service>>
+**概要**: Risk集約とProject集約をまたぐリスク評価と対策立案サービス
+**責務**: プロジェクトリスクの総合評価、軽減策の提案
+**ステレオタイプ**: service
+
 **操作**:
-- `allocateResources(projectId, members) -> Allocation[]`: リソース配分
-- `checkOverallocation(userId) -> Boolean`: 過剰配分チェック
-- `suggestReallocation(projectId) -> Suggestion[]`: 再配分提案
-- `calculateUtilization(userId, period) -> Percentage`: 稼働率計算
+- `assessRisk(risk: Risk) -> RiskScore`: 発生確率と影響度からリスクスコア評価
+- `prioritizeRisks(projectId: UUID) -> Risk[]`: プロジェクト全体のリスク優先順位付け
+- `suggestMitigation(risk: Risk) -> MitigationPlan`: AIベースの軽減策提案
+- `calculateProjectRiskScore(projectId: UUID) -> INTEGER`: プロジェクト全体リスクスコアの計算
+- `monitorRiskTrends(projectId: UUID, period: DateRange) -> RiskTrend[]`: リスク傾向の監視と予測
+
+#### ResourceAllocationService <<service>>
+**概要**: Project集約、Task集約、User集約をまたぐリソース最適配分サービス
+**責務**: メンバーの最適なアサイン、稼働率管理、再配分提案
+**ステレオタイプ**: service
+
+**操作**:
+- `allocateResources(projectId: UUID, members: ProjectMember[]) -> Allocation[]`: スキルとキャパシティに基づくリソース配分
+- `checkOverallocation(userId: UUID) -> BOOLEAN`: 複数プロジェクトをまたいだ過剰配分チェック
+- `suggestReallocation(projectId: UUID) -> Suggestion[]`: 現状分析に基づく再配分提案
+- `calculateUtilization(userId: UUID, period: DateRange) -> PERCENTAGE`: 期間別稼働率計算
+- `optimizeTeamComposition(projectId: UUID) -> TeamSuggestion`: プロジェクト成功に向けた最適チーム編成提案
 
 ### ドメインイベント
 
-#### ProjectCreated
+#### ProjectCreated <<event>>
 **発生条件**: 新規プロジェクトが作成された時
+**ステレオタイプ**: event
 **ペイロード**:
 ```json
 {
@@ -270,8 +397,9 @@ JSON: JSON形式データ
 }
 ```
 
-#### TaskCompleted
+#### TaskCompleted <<event>>
 **発生条件**: タスクが完了した時
+**ステレオタイプ**: event
 **ペイロード**:
 ```json
 {
@@ -285,8 +413,9 @@ JSON: JSON形式データ
 }
 ```
 
-#### MilestoneAchieved
+#### MilestoneAchieved <<event>>
 **発生条件**: マイルストーンが達成された時
+**ステレオタイプ**: event
 **ペイロード**:
 ```json
 {
@@ -299,8 +428,9 @@ JSON: JSON形式データ
 }
 ```
 
-#### RiskIdentified
+#### RiskIdentified <<event>>
 **発生条件**: 新しいリスクが特定された時
+**ステレオタイプ**: event
 **ペイロード**:
 ```json
 {
@@ -313,8 +443,9 @@ JSON: JSON形式データ
 }
 ```
 
-#### ProjectStatusChanged
+#### ProjectStatusChanged <<event>>
 **発生条件**: プロジェクトステータスが変更された時
+**ステレオタイプ**: event
 **ペイロード**:
 ```json
 {
@@ -330,41 +461,104 @@ JSON: JSON形式データ
 
 ### リポジトリインターフェース
 
-#### ProjectRepository
-```
+#### ProjectRepository <<repository>>
+**責務**: Project集約の永続化層抽象化
+**ステレオタイプ**: repository
+
+```typescript
 interface ProjectRepository {
-  findById(id: UUID): Project | null
-  findByCode(code: STRING): Project | null
-  findByClientId(clientId: UUID): Project[]
-  findByStatus(status: ENUM): Project[]
-  findByDateRange(startDate: DATE, endDate: DATE): Project[]
-  save(project: Project): void
-  delete(id: UUID): void
+  // 基本操作
+  findById(id: UUID): Promise<Project | null>
+  findByCode(code: STRING_20): Promise<Project | null>
+  findAll(limit?: number, offset?: number): Promise<Project[]>
+  save(project: Project): Promise<void>
+  delete(id: UUID): Promise<void>
+
+  // ドメイン固有の検索
+  findByClientId(clientId: UUID): Promise<Project[]>
+  findByStatus(status: ENUM): Promise<Project[]>
+  findByDateRange(startDate: DATE, endDate: DATE): Promise<Project[]>
+  findByProjectManager(pmId: UUID): Promise<Project[]>
+  findActiveProjects(): Promise<Project[]>
+
+  // 集約全体の保存
+  saveWithMilestones(project: Project, milestones: Milestone[]): Promise<void>
+  saveWithMembers(project: Project, members: ProjectMember[]): Promise<void>
 }
 ```
 
-#### TaskRepository
-```
+#### TaskRepository <<repository>>
+**責務**: Task集約の永続化層抽象化
+**ステレオタイプ**: repository
+
+```typescript
 interface TaskRepository {
-  findById(id: UUID): Task | null
-  findByProjectId(projectId: UUID): Task[]
-  findByAssigneeId(userId: UUID): Task[]
-  findOverdueTasks(): Task[]
-  findCriticalPath(projectId: UUID): Task[]
-  save(task: Task): void
-  delete(id: UUID): void
+  // 基本操作
+  findById(id: UUID): Promise<Task | null>
+  findAll(limit?: number, offset?: number): Promise<Task[]>
+  save(task: Task): Promise<void>
+  delete(id: UUID): Promise<void>
+
+  // ドメイン固有の検索
+  findByProjectId(projectId: UUID): Promise<Task[]>
+  findByAssigneeId(userId: UUID): Promise<Task[]>
+  findOverdueTasks(): Promise<Task[]>
+  findCriticalPath(projectId: UUID): Promise<Task[]>
+  findByStatus(status: ENUM): Promise<Task[]>
+  findBlockedTasks(projectId: UUID): Promise<Task[]>
+
+  // 集約全体の保存
+  saveWithDependencies(task: Task, dependencies: TaskDependency[]): Promise<void>
+  saveWithAssignments(task: Task, assignments: TaskAssignment[]): Promise<void>
 }
 ```
 
-#### RiskRepository
-```
+#### RiskRepository <<repository>>
+**責務**: Risk集約の永続化層抽象化
+**ステレオタイプ**: repository
+
+```typescript
 interface RiskRepository {
-  findById(id: UUID): Risk | null
-  findByProjectId(projectId: UUID): Risk[]
-  findHighPriorityRisks(threshold: INTEGER): Risk[]
-  findByStatus(status: ENUM): Risk[]
-  save(risk: Risk): void
-  delete(id: UUID): void
+  // 基本操作
+  findById(id: UUID): Promise<Risk | null>
+  findAll(limit?: number, offset?: number): Promise<Risk[]>
+  save(risk: Risk): Promise<void>
+  delete(id: UUID): Promise<void>
+
+  // ドメイン固有の検索
+  findByProjectId(projectId: UUID): Promise<Risk[]>
+  findHighPriorityRisks(threshold: INTEGER): Promise<Risk[]>
+  findByStatus(status: ENUM): Promise<Risk[]>
+  findByOwner(ownerId: UUID): Promise<Risk[]>
+  findActiveRisks(projectId: UUID): Promise<Risk[]>
+
+  // 集約全体の保存
+  saveWithMitigations(risk: Risk, mitigations: MitigationAction[]): Promise<void>
+}
+```
+
+#### DeliverableRepository <<repository>>
+**責務**: Deliverable集約の永続化層抽象化
+**ステレオタイプ**: repository
+
+```typescript
+interface DeliverableRepository {
+  // 基本操作
+  findById(id: UUID): Promise<Deliverable | null>
+  findAll(limit?: number, offset?: number): Promise<Deliverable[]>
+  save(deliverable: Deliverable): Promise<void>
+  delete(id: UUID): Promise<void>
+
+  // ドメイン固有の検索
+  findByProjectId(projectId: UUID): Promise<Deliverable[]>
+  findByMilestoneId(milestoneId: UUID): Promise<Deliverable[]>
+  findByStatus(status: ENUM): Promise<Deliverable[]>
+  findOverdueDeliverables(): Promise<Deliverable[]>
+  findPendingApproval(): Promise<Deliverable[]>
+
+  // 集約全体の保存
+  saveWithVersions(deliverable: Deliverable, versions: DeliverableVersion[]): Promise<void>
+  saveWithApprovals(deliverable: Deliverable, approvals: DeliverableApproval[]): Promise<void>
 }
 ```
 

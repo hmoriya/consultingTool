@@ -1,7 +1,7 @@
 'use server'
 
-import { db } from '@/lib/db'
-import { projectDb } from '@/lib/db/project-db'
+import { authDb } from '@/app/lib/db/auth-db'
+import { projectDb } from '@/app/lib/db/project-db'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
 import { USER_ROLES } from '@/constants/roles'
@@ -51,7 +51,7 @@ export async function getClients() {
   // コンサルタントも含めてクライアント一覧を表示可能
   // (作成・編集・削除は別途制限)
 
-  const clients = await db.organization.findMany({
+  const clients = await authDb.organization.findMany({
     where: {
       type: 'client'
     },
@@ -131,7 +131,7 @@ export async function createClient(data: {
   }
 
   // 同名のクライアント組織が既に存在しないかチェック
-  const existingClient = await db.organization.findFirst({
+  const existingClient = await authDb.organization.findFirst({
     where: {
       name: data.name,
       type: 'client'
@@ -142,7 +142,7 @@ export async function createClient(data: {
     throw new Error('同名のクライアントが既に存在します')
   }
 
-  const client = await db.organization.create({
+  const client = await authDb.organization.create({
     data: {
       name: data.name,
       type: 'client',
@@ -158,7 +158,7 @@ export async function createClient(data: {
   })
 
   // 監査ログ
-  await db.auditLog.create({
+  await authDb.auditLog.create({
     data: {
       userId: user.id,
       action: 'CREATE',
@@ -187,7 +187,7 @@ export async function updateClient(clientId: string, data: {
     throw new Error('権限がありません')
   }
 
-  const client = await db.organization.findFirst({
+  const client = await authDb.organization.findFirst({
     where: {
       id: clientId,
       type: 'client'
@@ -199,7 +199,7 @@ export async function updateClient(clientId: string, data: {
   }
 
   // 同名のクライアント組織が既に存在しないかチェック（自分自身を除く）
-  const existingClient = await db.organization.findFirst({
+  const existingClient = await authDb.organization.findFirst({
     where: {
       name: data.name,
       type: 'client',
@@ -211,7 +211,7 @@ export async function updateClient(clientId: string, data: {
     throw new Error('同名のクライアントが既に存在します')
   }
 
-  const updatedClient = await db.organization.update({
+  const updatedClient = await authDb.organization.update({
     where: { id: clientId },
     data: {
       name: data.name,
@@ -227,7 +227,7 @@ export async function updateClient(clientId: string, data: {
   })
 
   // 監査ログ
-  await db.auditLog.create({
+  await authDb.auditLog.create({
     data: {
       userId: user.id,
       action: 'UPDATE',
@@ -246,7 +246,7 @@ export async function deleteClient(clientId: string) {
     throw new Error('権限がありません（エグゼクティブのみ削除可能）')
   }
 
-  const client = await db.organization.findFirst({
+  const client = await authDb.organization.findFirst({
     where: {
       id: clientId,
       type: 'client'
@@ -268,12 +268,12 @@ export async function deleteClient(clientId: string) {
     throw new Error(`このクライアントには${projectCount}件のプロジェクトが存在します。削除できません。`)
   }
 
-  await db.organization.delete({
+  await authDb.organization.delete({
     where: { id: clientId }
   })
 
   // 監査ログ
-  await db.auditLog.create({
+  await authDb.auditLog.create({
     data: {
       userId: user.id,
       action: 'DELETE',
@@ -295,7 +295,7 @@ export async function searchClients(query: string) {
   // コンサルタントも含めてクライアント検索可能
   // (作成・編集・削除は別途制限)
 
-  const clients = await db.organization.findMany({
+  const clients = await authDb.organization.findMany({
     where: {
       type: 'client',
       name: {

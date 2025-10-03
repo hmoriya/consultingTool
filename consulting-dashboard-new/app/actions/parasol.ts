@@ -38,6 +38,31 @@ const BusinessOperationSchema = z.object({
   robustnessModel: z.string().optional(),
 });
 
+const UseCaseSchema = z.object({
+  operationId: z.string(),
+  name: z.string().min(1, '名前は必須です'),
+  displayName: z.string().min(1, '表示名は必須です'),
+  description: z.string().optional(),
+  definition: z.string().optional(),
+  order: z.number().default(0),
+  actors: z.string().optional(),
+  preconditions: z.string().optional(),
+  postconditions: z.string().optional(),
+  basicFlow: z.string().optional(),
+  alternativeFlow: z.string().optional(),
+  exceptionFlow: z.string().optional(),
+});
+
+const RobustnessDiagramSchema = z.object({
+  useCaseId: z.string(),
+  content: z.string(),
+  boundaryObjects: z.string().optional(),
+  controlObjects: z.string().optional(),
+  entityObjects: z.string().optional(),
+  diagram: z.string().optional(),
+  interactions: z.string().optional(),
+});
+
 // サービス関連のアクション
 export async function createService(data: {
   name: string;
@@ -90,6 +115,7 @@ export async function getServices() {
               include: {
                 useCaseModels: {
                   include: {
+                    robustnessDiagram: true,
                     pageDefinitions: true,
                     testDefinitions: true
                   },
@@ -105,6 +131,7 @@ export async function getServices() {
           include: {
             useCaseModels: {
               include: {
+                robustnessDiagram: true,
                 pageDefinitions: true,
                 testDefinitions: true
               },
@@ -114,6 +141,10 @@ export async function getServices() {
             }
           }
         },
+        domainLanguageDoc: true,
+        apiSpecificationDoc: true,
+        databaseDesignDoc: true,
+        integrationSpecDoc: true,
       },
       orderBy: {
         displayName: 'asc',
@@ -126,6 +157,7 @@ export async function getServices() {
     services.forEach(service => {
       console.log(`Service: ${service.name}`);
       console.log(`  Capabilities: ${service.capabilities.length}`);
+      console.log(`  domainLanguageDefinition length: ${service.domainLanguageDefinition?.length || 0}`);
       service.capabilities.forEach(cap => {
         console.log(`    ${cap.name}: ${cap.businessOperations.length} operations`);
       });
@@ -137,6 +169,10 @@ export async function getServices() {
       domainLanguage: JSON.parse(service.domainLanguage),
       apiSpecification: JSON.parse(service.apiSpecification),
       dbSchema: JSON.parse(service.dbSchema),
+      // 設計ドキュメント (MD形式)
+      apiSpecificationDefinition: service.apiSpecificationDoc?.content || '',
+      databaseDesignDefinition: service.databaseDesignDoc?.content || '',
+      integrationSpecificationDefinition: service.integrationSpecDoc?.content || '',
       capabilities: service.capabilities.map(cap => ({
         ...cap,
         businessOperations: cap.businessOperations.map(op => ({
@@ -609,11 +645,236 @@ export async function deleteBusinessCapability(id: string) {
     await parasolDb.businessCapability.delete({
       where: { id },
     });
-    
+
     revalidatePath('/settings/parasol');
     return { success: true };
   } catch (error) {
     console.error('Failed to delete business capability:', error);
     return { success: false, error: 'ビジネスケーパビリティの削除に失敗しました' };
+  }
+}
+
+// ========================
+// UseCase CRUD Operations
+// ========================
+
+export async function createUseCase(data: {
+  operationId: string;
+  name: string;
+  displayName: string;
+  description?: string;
+  definition?: string;
+  order?: number;
+  actors?: any;
+  preconditions?: any;
+  postconditions?: any;
+  basicFlow?: any;
+  alternativeFlow?: any;
+  exceptionFlow?: any;
+}) {
+  try {
+    const result = UseCaseSchema.parse({
+      ...data,
+      actors: data.actors ? JSON.stringify(data.actors) : undefined,
+      preconditions: data.preconditions ? JSON.stringify(data.preconditions) : undefined,
+      postconditions: data.postconditions ? JSON.stringify(data.postconditions) : undefined,
+      basicFlow: data.basicFlow ? JSON.stringify(data.basicFlow) : undefined,
+      alternativeFlow: data.alternativeFlow ? JSON.stringify(data.alternativeFlow) : undefined,
+      exceptionFlow: data.exceptionFlow ? JSON.stringify(data.exceptionFlow) : undefined,
+    });
+
+    const useCase = await parasolDb.useCase.create({
+      data: result,
+      include: {
+        robustnessDiagram: true,
+        pageDefinitions: true,
+        testDefinitions: true
+      }
+    });
+
+    revalidatePath('/settings/parasol');
+    return {
+      success: true,
+      data: {
+        ...useCase,
+        actors: useCase.actors ? JSON.parse(useCase.actors) : null,
+        preconditions: useCase.preconditions ? JSON.parse(useCase.preconditions) : null,
+        postconditions: useCase.postconditions ? JSON.parse(useCase.postconditions) : null,
+        basicFlow: useCase.basicFlow ? JSON.parse(useCase.basicFlow) : null,
+        alternativeFlow: useCase.alternativeFlow ? JSON.parse(useCase.alternativeFlow) : null,
+        exceptionFlow: useCase.exceptionFlow ? JSON.parse(useCase.exceptionFlow) : null,
+      }
+    };
+  } catch (error) {
+    console.error('Failed to create useCase:', error);
+    return { success: false, error: 'ユースケースの作成に失敗しました' };
+  }
+}
+
+export async function updateUseCase(id: string, data: {
+  name?: string;
+  displayName?: string;
+  description?: string;
+  definition?: string;
+  order?: number;
+  actors?: any;
+  preconditions?: any;
+  postconditions?: any;
+  basicFlow?: any;
+  alternativeFlow?: any;
+  exceptionFlow?: any;
+}) {
+  try {
+    const updateData: any = {};
+
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.displayName !== undefined) updateData.displayName = data.displayName;
+    if (data.description !== undefined) updateData.description = data.description;
+    if (data.definition !== undefined) updateData.definition = data.definition;
+    if (data.order !== undefined) updateData.order = data.order;
+    if (data.actors !== undefined) updateData.actors = JSON.stringify(data.actors);
+    if (data.preconditions !== undefined) updateData.preconditions = JSON.stringify(data.preconditions);
+    if (data.postconditions !== undefined) updateData.postconditions = JSON.stringify(data.postconditions);
+    if (data.basicFlow !== undefined) updateData.basicFlow = JSON.stringify(data.basicFlow);
+    if (data.alternativeFlow !== undefined) updateData.alternativeFlow = JSON.stringify(data.alternativeFlow);
+    if (data.exceptionFlow !== undefined) updateData.exceptionFlow = JSON.stringify(data.exceptionFlow);
+
+    const useCase = await parasolDb.useCase.update({
+      where: { id },
+      data: updateData,
+      include: {
+        robustnessDiagram: true,
+        pageDefinitions: true,
+        testDefinitions: true
+      }
+    });
+
+    revalidatePath('/settings/parasol');
+    return {
+      success: true,
+      data: {
+        ...useCase,
+        actors: useCase.actors ? JSON.parse(useCase.actors) : null,
+        preconditions: useCase.preconditions ? JSON.parse(useCase.preconditions) : null,
+        postconditions: useCase.postconditions ? JSON.parse(useCase.postconditions) : null,
+        basicFlow: useCase.basicFlow ? JSON.parse(useCase.basicFlow) : null,
+        alternativeFlow: useCase.alternativeFlow ? JSON.parse(useCase.alternativeFlow) : null,
+        exceptionFlow: useCase.exceptionFlow ? JSON.parse(useCase.exceptionFlow) : null,
+      }
+    };
+  } catch (error) {
+    console.error('Failed to update useCase:', error);
+    return { success: false, error: 'ユースケースの更新に失敗しました' };
+  }
+}
+
+export async function deleteUseCase(id: string) {
+  try {
+    await parasolDb.useCase.delete({
+      where: { id },
+    });
+
+    revalidatePath('/settings/parasol');
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to delete useCase:', error);
+    return { success: false, error: 'ユースケースの削除に失敗しました' };
+  }
+}
+
+// ==============================
+// RobustnessDiagram CRUD Operations
+// ==============================
+
+export async function createRobustnessDiagram(data: {
+  useCaseId: string;
+  content: string;
+  boundaryObjects?: any;
+  controlObjects?: any;
+  entityObjects?: any;
+  diagram?: string;
+  interactions?: any;
+}) {
+  try {
+    const result = RobustnessDiagramSchema.parse({
+      ...data,
+      boundaryObjects: data.boundaryObjects ? JSON.stringify(data.boundaryObjects) : undefined,
+      controlObjects: data.controlObjects ? JSON.stringify(data.controlObjects) : undefined,
+      entityObjects: data.entityObjects ? JSON.stringify(data.entityObjects) : undefined,
+      interactions: data.interactions ? JSON.stringify(data.interactions) : undefined,
+    });
+
+    const robustnessDiagram = await parasolDb.robustnessDiagram.create({
+      data: result,
+    });
+
+    revalidatePath('/settings/parasol');
+    return {
+      success: true,
+      data: {
+        ...robustnessDiagram,
+        boundaryObjects: robustnessDiagram.boundaryObjects ? JSON.parse(robustnessDiagram.boundaryObjects) : null,
+        controlObjects: robustnessDiagram.controlObjects ? JSON.parse(robustnessDiagram.controlObjects) : null,
+        entityObjects: robustnessDiagram.entityObjects ? JSON.parse(robustnessDiagram.entityObjects) : null,
+        interactions: robustnessDiagram.interactions ? JSON.parse(robustnessDiagram.interactions) : null,
+      }
+    };
+  } catch (error) {
+    console.error('Failed to create robustness diagram:', error);
+    return { success: false, error: 'ロバストネス図の作成に失敗しました' };
+  }
+}
+
+export async function updateRobustnessDiagram(id: string, data: {
+  content?: string;
+  boundaryObjects?: any;
+  controlObjects?: any;
+  entityObjects?: any;
+  diagram?: string;
+  interactions?: any;
+}) {
+  try {
+    const updateData: any = {};
+
+    if (data.content !== undefined) updateData.content = data.content;
+    if (data.diagram !== undefined) updateData.diagram = data.diagram;
+    if (data.boundaryObjects !== undefined) updateData.boundaryObjects = JSON.stringify(data.boundaryObjects);
+    if (data.controlObjects !== undefined) updateData.controlObjects = JSON.stringify(data.controlObjects);
+    if (data.entityObjects !== undefined) updateData.entityObjects = JSON.stringify(data.entityObjects);
+    if (data.interactions !== undefined) updateData.interactions = JSON.stringify(data.interactions);
+
+    const robustnessDiagram = await parasolDb.robustnessDiagram.update({
+      where: { id },
+      data: updateData,
+    });
+
+    revalidatePath('/settings/parasol');
+    return {
+      success: true,
+      data: {
+        ...robustnessDiagram,
+        boundaryObjects: robustnessDiagram.boundaryObjects ? JSON.parse(robustnessDiagram.boundaryObjects) : null,
+        controlObjects: robustnessDiagram.controlObjects ? JSON.parse(robustnessDiagram.controlObjects) : null,
+        entityObjects: robustnessDiagram.entityObjects ? JSON.parse(robustnessDiagram.entityObjects) : null,
+        interactions: robustnessDiagram.interactions ? JSON.parse(robustnessDiagram.interactions) : null,
+      }
+    };
+  } catch (error) {
+    console.error('Failed to update robustness diagram:', error);
+    return { success: false, error: 'ロバストネス図の更新に失敗しました' };
+  }
+}
+
+export async function deleteRobustnessDiagram(id: string) {
+  try {
+    await parasolDb.robustnessDiagram.delete({
+      where: { id },
+    });
+
+    revalidatePath('/settings/parasol');
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to delete robustness diagram:', error);
+    return { success: false, error: 'ロバストネス図の削除に失敗しました' };
   }
 }

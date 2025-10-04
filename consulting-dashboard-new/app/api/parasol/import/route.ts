@@ -246,7 +246,10 @@ async function importToDatabase(services: any[]) {
 
   // トランザクション内で処理
   await parasolDb.$transaction(async (tx) => {
-    // 既存データをクリア
+    // 既存データをクリア（外部キー制約の順序に注意）
+    await tx.testDefinition.deleteMany()
+    await tx.pageDefinition.deleteMany()
+    await tx.useCase.deleteMany()
     await tx.businessOperation.deleteMany()
     await tx.businessCapability.deleteMany()
     await tx.service.deleteMany()
@@ -400,8 +403,59 @@ async function importToDatabase(services: any[]) {
           })
           importedOperations++
 
-          // ページ定義とテスト定義は現時点でスキップ（スキーマの調整が必要）
-          // TODO: UseCaseモデルを作成した後で、ページ定義とテスト定義を関連付ける
+          // ユースケースを個別レコードとして保存
+          for (const usecaseData of operationData.usecases || []) {
+            const useCase = await tx.useCase.create({
+              data: {
+                operationId: operation.id,
+                name: usecaseData.name,
+                displayName: usecaseData.displayName || usecaseData.name.replace(/-/g, ' '), // スクリプトから送信された日本語表示名を使用
+                definition: usecaseData.content,
+                description: `${usecaseData.name}のユースケース`,
+                actors: JSON.stringify({ primary: 'User', secondary: [] }),
+                preconditions: '[]',
+                postconditions: '[]',
+                basicFlow: '[]',
+                alternativeFlow: '[]',
+                exceptionFlow: '[]'
+              }
+            })
+
+            // 各ユースケースに関連するページ定義を保存
+            for (const pageData of operationData.pages || []) {
+              await tx.pageDefinition.create({
+                data: {
+                  useCaseId: useCase.id,
+                  name: pageData.name,
+                  displayName: pageData.displayName || pageData.name.replace(/-/g, ' '), // スクリプトから送信された日本語表示名を使用
+                  description: `${pageData.name}のページ定義`,
+                  url: `/${pageData.name}`,
+                  layout: '{}',
+                  components: '[]',
+                  stateManagement: '{}',
+                  validations: '[]'
+                }
+              })
+              importedPages++
+            }
+
+            // 各ユースケースに関連するテスト定義を保存
+            for (const testData of operationData.tests || []) {
+              await tx.testDefinition.create({
+                data: {
+                  useCaseId: useCase.id,
+                  name: testData.name,
+                  displayName: testData.displayName || testData.name.replace(/-/g, ' '), // スクリプトから送信された日本語表示名を使用
+                  description: `${testData.name}のテスト定義`,
+                  testType: 'integration',
+                  testCases: '[]',
+                  expectedResults: '{}',
+                  testData: '{}'
+                }
+              })
+              importedTests++
+            }
+          }
         }
       }
     }
@@ -412,15 +466,27 @@ async function importToDatabase(services: any[]) {
 
 export async function POST(request: Request) {
   try {
-    // プロジェクトのルートパスを取得
-    const rootPath = process.cwd()
+    console.log('🚀 APIインポート開始 - リクエストボディを取得中');
+    // POSTリクエストボディを取得
+    const body = await request.json()
+    console.log('📨 リクエストボディ取得完了:', body ? 'データあり' : 'データなし');
 
-    // MDファイルをスキャン
-    const services = await scanParasolDocs(rootPath)
+    let services;
+
+    // リクエストボディにサービス情報がある場合は、それを使用
+    if (body && Array.isArray(body)) {
+      services = body;
+      console.log(`📥 POSTデータから${services.length}件のサービスを取得`);
+    } else {
+      // リクエストボディがない場合は、従来通りMDファイルをスキャン
+      const rootPath = process.cwd()
+      services = await scanParasolDocs(rootPath)
+      console.log(`📁 ファイルスキャンから${services.length}件のサービスを取得`);
+    }
 
     if (services.length === 0) {
       return NextResponse.json(
-        { error: 'MDファイルが見つかりませんでした' },
+        { error: 'サービスデータが見つかりませんでした' },
         { status: 404 }
       )
     }

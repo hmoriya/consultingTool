@@ -878,3 +878,26 @@ export async function deleteRobustnessDiagram(id: string) {
     return { success: false, error: 'ロバストネス図の削除に失敗しました' };
   }
 }
+
+// Get UseCases for a specific Business Operation
+export async function getUseCasesForOperation(operationId: string) {
+  try {
+    const useCases = await parasolDb.useCase.findMany({
+      where: { operationId },
+      orderBy: { order: 'asc' },
+      include: {
+        pageDefinitions: {
+          orderBy: { name: 'asc' },
+        },
+        testDefinitions: {
+          orderBy: { name: 'asc' },
+        },
+      },
+    });
+
+    return { success: true, data: useCases };
+  } catch (error) {
+    console.error('Failed to get usecases for operation:', error);
+    return { success: false, error: 'ユースケースの取得に失敗しました' };
+  }
+}

@@ -14,6 +14,7 @@ import { UnifiedMDEditor, MDEditorType } from './UnifiedMDEditor';
 import { ServiceForm } from './ServiceForm';
 import { BusinessCapabilityEditor } from './BusinessCapabilityEditor';
 import { BusinessOperationEditor } from './BusinessOperationEditor';
+import { UseCaseDialog } from './UseCaseDialog';
 import { CodeGenerationPanel } from './CodeGenerationPanel';
 import { DomainLanguageDefinition, APISpecification, DBSchema } from '@/types/parasol';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -119,6 +120,9 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
   const [operationModalOpen, setOperationModalOpen] = useState(false);
   const [editingOperation, setEditingOperation] = useState<any>(null);
   const [editingCapability, setEditingCapability] = useState<any>(null);
+  const [showUseCaseDialog, setShowUseCaseDialog] = useState(false);
+  const [currentOperationForUseCase, setCurrentOperationForUseCase] = useState<string | null>(null);
+  const [editingUseCase, setEditingUseCase] = useState<any>(null);
   
   // ドメイン言語生成関数
   const handleGenerateDomainLanguageFromCapability = () => {
@@ -562,9 +566,22 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
 
         return (
           <Card className="h-full">
-            <CardHeader>
-              <CardTitle>{selectedNode.displayName}</CardTitle>
-              <CardDescription>ビジネスオペレーション設計</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+              <div className="space-y-1">
+                <CardTitle>{selectedNode.displayName}</CardTitle>
+                <CardDescription>ビジネスオペレーション設計</CardDescription>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => {
+                  setCurrentOperationForUseCase(operation.id);
+                  setEditingUseCase(null);
+                  setShowUseCaseDialog(true);
+                }}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                UseCase追加
+              </Button>
             </CardHeader>
             <CardContent className="overflow-auto">
               <UnifiedMDEditor
@@ -620,21 +637,82 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
           <Card className="h-full">
             <CardHeader>
               <CardTitle>{selectedNode.displayName}</CardTitle>
-              <CardDescription>ユースケース定義</CardDescription>
+              <CardDescription>ユースケース詳細</CardDescription>
             </CardHeader>
             <CardContent className="overflow-auto">
-              <UnifiedMDEditor
-                type="usecase-definition"
-                value={useCaseData?.definition || ''}
-                onChange={(value) => {
-                  // ユースケース変更処理
-                  // TODO: ユースケースの更新ロジックを実装
-                  setHasChanges(true);
-                }}
-                onSave={handleSave}
-                title="ユースケース定義"
-                description="アクター、事前/事後条件、基本フローをMarkdownで記述します"
-              />
+              <Tabs defaultValue="definition" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="definition">ユースケース定義</TabsTrigger>
+                  <TabsTrigger value="robustness">ロバストネス図</TabsTrigger>
+                  <TabsTrigger value="tests">テスト定義</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="definition" className="mt-4">
+                  <UnifiedMDEditor
+                    type="usecase-definition"
+                    value={useCaseData?.definition || ''}
+                    onChange={(value) => {
+                      // ユースケース変更処理
+                      // TODO: ユースケースの更新ロジックを実装
+                      setHasChanges(true);
+                    }}
+                    onSave={handleSave}
+                    title="ユースケース定義"
+                    description="アクター、事前/事後条件、基本フローをMarkdownで記述します"
+                  />
+                </TabsContent>
+
+                <TabsContent value="robustness" className="mt-4">
+                  <UnifiedMDEditor
+                    type="robustness-diagram"
+                    value={useCaseData?.robustnessDiagram?.content || ''}
+                    onChange={(value) => {
+                      // ロバストネス図変更処理
+                      // TODO: ロバストネス図の更新ロジックを実装
+                      setHasChanges(true);
+                    }}
+                    onSave={handleSave}
+                    title="ロバストネス図"
+                    description="Boundary-Control-Entity パターンでユースケースを分析します"
+                  />
+                </TabsContent>
+
+                <TabsContent value="tests" className="mt-4">
+                  <div className="space-y-4">
+                    {useCaseData?.testDefinitions && useCaseData.testDefinitions.length > 0 ? (
+                      useCaseData.testDefinitions.map((test: any, index: number) => (
+                        <Card key={test.id || index}>
+                          <CardHeader>
+                            <CardTitle className="text-base">{test.displayName || test.name}</CardTitle>
+                            <CardDescription>{test.testType || 'テスト'}</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <UnifiedMDEditor
+                              type="test-definition"
+                              value={test.description || ''}
+                              onChange={(value) => {
+                                // テスト定義変更処理
+                                // TODO: テスト定義の更新ロジックを実装
+                                setHasChanges(true);
+                              }}
+                              onSave={handleSave}
+                              title={test.displayName || test.name}
+                              description="テストケース、期待結果をMarkdownで記述します"
+                            />
+                          </CardContent>
+                        </Card>
+                      ))
+                    ) : (
+                      <Alert>
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertDescription>
+                          このユースケースにはまだテスト定義がありません。
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
         );
@@ -826,6 +904,20 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
             }
             setShowServiceForm(false);
             setEditingService(null);
+          }}
+        />
+      )}
+
+      {/* UseCase作成/編集ダイアログ */}
+      {showUseCaseDialog && currentOperationForUseCase && (
+        <UseCaseDialog
+          operationId={currentOperationForUseCase}
+          useCase={editingUseCase}
+          isOpen={showUseCaseDialog}
+          onClose={() => {
+            setShowUseCaseDialog(false);
+            setCurrentOperationForUseCase(null);
+            setEditingUseCase(null);
           }}
         />
       )}

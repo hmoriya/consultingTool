@@ -14,72 +14,177 @@
 - **バリデーション**: Zod (スキーマベースバリデーション)
 - **フォーム管理**: React Hook Form (Zod連携)
 
+## プロジェクトディレクトリ構造
+
+### ⚠️ 重要: 二重ディレクトリの絶対禁止
+
+**プロジェクトルートは1つのみです:**
+```
+/Users/hmoriya/Develop/github/github.com/hmoriya/consultingTool/consulting-dashboard-new/
+```
+
+**絶対に作成してはいけない二重ディレクトリ:**
+```
+❌ consulting-dashboard-new/consulting-dashboard-new/
+❌ consulting-dashboard-new/consulting-dashboard-new/lib/
+❌ consulting-dashboard-new/consulting-dashboard-new/docs/
+```
+
+### 正しいディレクトリ構造
+
+```
+consulting-dashboard-new/
+├── app/                      # Next.js App Router
+│   ├── api/                 # APIルート
+│   │   └── parasol/        # パラソル関連API
+│   ├── components/         # コンポーネント
+│   └── ...
+├── lib/                     # ライブラリ・ユーティリティ
+│   └── parasol/
+│       └── parsers/        # パラソルパーサー（4つ）
+│           ├── domain-language-parser.ts
+│           ├── api-specification-parser.ts
+│           ├── database-design-parser.ts
+│           └── integration-specification-parser.ts
+├── docs/                    # ドキュメント
+│   └── parasol/
+│       ├── templates/      # ドキュメントテンプレート
+│       └── services/       # サービス別ドキュメント
+│           └── secure-access-service/
+│               ├── service.md
+│               ├── domain-language.md
+│               ├── api-specification.md
+│               ├── database-design.md
+│               ├── integration-specification.md
+│               └── capabilities/
+├── prisma/                  # Prismaスキーマとデータベース
+│   ├── auth-service/
+│   ├── project-service/
+│   ├── parasol-service/
+│   └── ...
+└── ...
+```
+
+### ファイル作成時の注意事項
+
+**新しいファイルを作成する際は、必ず以下を確認してください:**
+
+1. **現在のディレクトリを確認**: `pwd`で現在地を確認
+2. **正しい場所を指定**: プロジェクトルートからの相対パスを使用
+3. **二重作成の防止**: `consulting-dashboard-new/consulting-dashboard-new/`とならないよう注意
+
+**例（正しい作成方法）:**
+```bash
+# 現在地確認
+pwd
+# => /Users/.../consulting-dashboard-new
+
+# ファイル作成（プロジェクトルートから）
+touch lib/parasol/parsers/new-parser.ts
+touch docs/parasol/services/new-service/api-specification.md
+```
+
+**例（間違った作成方法）:**
+```bash
+# ❌ 二重ディレクトリを作ってしまう例
+touch consulting-dashboard-new/lib/parasol/parsers/new-parser.ts
+# これは /consulting-dashboard-new/consulting-dashboard-new/lib/... になる
+```
+
 ## データベース構成
 
 ### 重要: DBファイルの配置ルール
 
+**⚠️ 警告: 重複は絶対に許可されません！**
+
 **正式なDBファイルの配置場所（これ以外の場所にDBファイルを作成しないでください）:**
 
-1. **メインデータベース**
-   - **正式パス**: `consulting-dashboard-new/prisma/dev.db`
-   - **環境変数**: `DATABASE_URL="file:./dev.db"`
-   - **用途**: ユーザー認証、ロール管理、組織情報、基本的なメトリクス
+以下の**8つのデータベースのみ**が存在を許可されています：
 
-2. **コアサービスデータベース**
-   - **正式パス**: `consulting-dashboard-new/prisma/core-service/data/core.db`
-   - **環境変数**: `CORE_DATABASE_URL="file:./prisma/core-service/data/core.db"`
-   - **用途**: ユーザー認証、組織管理
+1. **認証サービスデータベース**
+   - **正式パス**: `prisma/auth-service/data/auth.db`
+   - **環境変数**: `AUTH_DATABASE_URL="file:./prisma/auth-service/data/auth.db"`
+   - **用途**: ユーザー認証、ロール管理、組織情報、監査ログ
 
-3. **プロジェクトサービスデータベース**
-   - **正式パス**: `consulting-dashboard-new/prisma/project-service/data/project.db`
+2. **プロジェクトサービスデータベース**
+   - **正式パス**: `prisma/project-service/data/project.db`
    - **環境変数**: `PROJECT_DATABASE_URL="file:./prisma/project-service/data/project.db"`
    - **用途**: プロジェクト、タスク、マイルストーン、プロジェクトメンバー、リスク管理
-   - **シードデータ**:
-     - デジタルトランスフォーメーション推進 (DX001)
-     - ビジネスプロセス最適化 (BPO001)
-     - データ分析基盤構築 (DAP001)
 
-4. **リソースサービスデータベース**
-   - **正式パス**: `consulting-dashboard-new/prisma/resource-service/data/resource.db`
+3. **リソースサービスデータベース**
+   - **正式パス**: `prisma/resource-service/data/resource.db`
    - **環境変数**: `RESOURCE_DATABASE_URL="file:./prisma/resource-service/data/resource.db"`
    - **用途**: チーム管理、スキル管理、リソース配分
 
-5. **タイムシートサービスデータベース**
-   - **正式パス**: `consulting-dashboard-new/prisma/timesheet-service/data/timesheet.db`
+4. **タイムシートサービスデータベース**
+   - **正式パス**: `prisma/timesheet-service/data/timesheet.db`
    - **環境変数**: `TIMESHEET_DATABASE_URL="file:./prisma/timesheet-service/data/timesheet.db"`
    - **用途**: 工数管理、承認フロー
 
-6. **通知サービスデータベース**
-   - **正式パス**: `consulting-dashboard-new/prisma/notification-service/data/notification.db`
+5. **通知サービスデータベース**
+   - **正式パス**: `prisma/notification-service/data/notification.db`
    - **環境変数**: `NOTIFICATION_DATABASE_URL="file:./prisma/notification-service/data/notification.db"`
    - **用途**: 通知、メッセージ、アラート
 
-### 重複DBファイルの削除手順
+6. **ナレッジサービスデータベース**
+   - **正式パス**: `prisma/knowledge-service/data/knowledge.db`
+   - **環境変数**: `KNOWLEDGE_DATABASE_URL="file:./prisma/knowledge-service/data/knowledge.db"`
+   - **用途**: ナレッジ記事、タグ、カテゴリ
 
-現在、以下の重複ファイルが存在しており、削除が必要です:
+7. **財務サービスデータベース**
+   - **正式パス**: `prisma/finance-service/data/finance.db`
+   - **環境変数**: `FINANCE_DATABASE_URL="file:./prisma/finance-service/data/finance.db"`
+   - **用途**: 収益管理、コスト管理、予算管理
+
+8. **パラソルサービスデータベース**
+   - **正式パス**: `prisma/parasol-service/data/parasol.db`
+   - **環境変数**: `PARASOL_DATABASE_URL="file:./prisma/parasol-service/data/parasol.db"`
+   - **用途**: パラソル設計ドキュメント管理、ドメイン言語定義
+
+### 重複チェックコマンド
+
+定期的に以下のコマンドで重複がないことを確認してください：
 
 ```bash
-# 削除すべき重複ファイル:
-rm -f ./prisma/core-service/prisma/core-service/data/core.db
-rm -f ./prisma/prisma/core-service/data/core.db
-rm -f ./prisma/project-service/data/prisma/project-service/data/project.db
-rm -f ./prisma/project-service/prisma/project-service/data/project.db
-rm -f ./prisma/resource-service/prisma/resource-service/data/resource.db
-rm -f ./prisma/timesheet-service/prisma/timesheet-service/data/timesheet.db
+# データベースファイル一覧を表示（8つのみであることを確認）
+find prisma -name "*.db" -type f | grep -v node_modules | sort
 
-# 重複ディレクトリの削除:
-rm -rf ./prisma/core-service/prisma/
-rm -rf ./prisma/prisma/
-rm -rf ./prisma/project-service/prisma/
-rm -rf ./prisma/resource-service/prisma/
-rm -rf ./prisma/timesheet-service/prisma/
+# 期待される出力（8行のみ）:
+# prisma/auth-service/data/auth.db
+# prisma/finance-service/data/finance.db
+# prisma/knowledge-service/data/knowledge.db
+# prisma/notification-service/data/notification.db
+# prisma/parasol-service/data/parasol.db
+# prisma/project-service/data/project.db
+# prisma/resource-service/data/resource.db
+# prisma/timesheet-service/data/timesheet.db
 ```
 
-### DBファイル作成時の注意事項
+### 重複が見つかった場合の削除手順
 
-- Prismaのmigrationやdb pushを実行する際は、必ず正しいディレクトリから実行してください
-- 新しいサービスを追加する場合は、`prisma/[service-name]/data/[service].db`の形式でDBファイルを配置してください
-- 環境変数は相対パスで設定し、プロジェクトルートからの相対位置を維持してください
+もし重複ディレクトリ（`prisma/*/prisma/`パターン）が見つかった場合は即座に削除：
+
+```bash
+# 重複ディレクトリの検出
+find prisma -type d -name "prisma" | grep -v node_modules
+
+# 重複ディレクトリの削除（見つかった場合のみ）
+rm -rf prisma/*/prisma/
+```
+
+### DBファイル作成時の厳格なルール
+
+- ✅ **許可**: `prisma/[service-name]/data/[service].db` の形式のみ
+- ❌ **禁止**: `prisma/[service-name]/prisma/` のようなネストされた構造
+- ❌ **禁止**: `prisma/dev.db` のようなルート直下のDB
+- ❌ **禁止**: 上記8つ以外のデータベースファイル
+
+### 重複防止のベストプラクティス
+
+1. Prismaのmigrationやdb pushは**必ず正しいディレクトリから実行**
+2. 環境変数は**絶対に相対パスで設定**（例: `file:./prisma/auth-service/data/auth.db`）
+3. 新サービス追加時は**この8つのリストを更新**
+4. **週次で重複チェックコマンドを実行**
 
 ## 環境変数の設定
 
@@ -424,7 +529,45 @@ git config --global commit.template ~/.gitmessage
 2. **ビジネスケーパビリティ** (Business Capability) - 「XXXする能力」
 3. **ビジネスオペレーション** (Business Operation) - ハイレベルユースケース
 4. **ユースケース** (Use Case) - 詳細ユースケース
-5. **ページ定義** (Page Definition) - UI/UX定義
+5. **ロバストネス図** (Robustness Diagram) - BCE要素の定義 (**NEW**)
+6. **ページ定義** (Page Definition) - UI/UX定義
+7. **テスト定義** (Test Definition) - テストケース定義
+
+### 完全な階層構造図
+```
+サービス
+└── ビジネスケーパビリティ（複数）
+    └── ビジネスオペレーション群（ケーパビリティに関連）
+        └── ユースケース群（オペレーションを実現）
+            ├── ロバストネス図（ユースケース毎に1対1）
+            ├── ページ定義群
+            └── テスト定義群
+```
+
+### ディレクトリ構造
+```
+docs/parasol/services/[service-name]/
+└── capabilities/
+    └── [capability-name]/
+        └── operations/
+            └── [operation-name]/
+                ├── operation.md                    # ビジネスオペレーション定義
+                ├── usecases/                       # ユースケース群
+                │   ├── [usecase-1-name]/
+                │   │   ├── usecase.md             # ユースケース定義
+                │   │   ├── robustness.md          # ロバストネス図（NEW）
+                │   │   └── pages/                 # ページ定義群
+                │   │       ├── [page-1-name].md
+                │   │       └── [page-2-name].md
+                │   └── [usecase-2-name]/
+                │       ├── usecase.md
+                │       ├── robustness.md          # ロバストネス図（NEW）
+                │       └── pages/
+                │           └── [page-3-name].md
+                └── tests/                          # テスト定義群（オプション）
+                    ├── [test-1-name].md
+                    └── [test-2-name].md
+```
 
 ### ビジネスオペレーション（ハイレベルユースケース）
 
@@ -452,7 +595,97 @@ git config --global commit.template ~/.gitmessage
 - **特定のアクターの視点**で記述
 - **システムとの相互作用**を詳細に定義
 - **前提条件と事後条件**が明確
-- **代替フロー・例外フロー**を含む
+- **基本フロー・代替フロー・例外フロー**を含む
+- **各フローをMermaid図で可視化**（重要）
+
+#### フロー定義の仕様
+
+ユースケースのフローは、テキストによる説明とMermaid図の両方で表現します。
+
+##### 1. 基本フロー
+正常系のシナリオをステップバイステップで記述し、Mermaid図で可視化します。
+
+**Markdown形式**:
+```markdown
+### 基本フロー
+
+\`\`\`mermaid
+graph TD
+    A[開始] --> B[ステップ1]
+    B --> C[ステップ2]
+    C --> D[ステップ3]
+    D --> E[完了]
+\`\`\`
+
+1. [アクター]が[アクション]を実行する
+2. システムが[処理]を行う
+3. システムが[結果]を表示する
+```
+
+##### 2. 代替フロー
+条件分岐による別シナリオを記述し、分岐ロジックをMermaid図で可視化します。
+
+**Markdown形式**:
+```markdown
+### 代替フロー1: [条件の説明]
+
+\`\`\`mermaid
+graph TD
+    A[分岐点] --> B{条件判定}
+    B -->|条件A| C[代替処理]
+    B -->|条件B| D[基本フロー続行]
+    C --> E[基本フローに復帰]
+\`\`\`
+
+- **分岐点**: 基本フロー ステップX
+- **条件**: [分岐条件の詳細]
+
+1. システムが[条件]を検知する
+2. システムが[代替処理]を実行する
+3. 基本フロー ステップYに進む
+```
+
+##### 3. 例外フロー
+エラーや例外処理のシナリオを記述し、エラーハンドリングをMermaid図で可視化します。
+
+**Markdown形式**:
+```markdown
+### 例外フロー1: [エラー条件の説明]
+
+\`\`\`mermaid
+graph TD
+    A[エラー発生点] --> B{エラー種別}
+    B -->|回復可能| C[エラーメッセージ表示]
+    B -->|回復不可| D[システムエラー]
+    C --> E[再試行]
+    D --> F[ユースケース終了]
+\`\`\`
+
+- **発生点**: 基本フロー ステップX
+- **条件**: [エラー発生条件]
+
+1. システムが[エラー]を検知する
+2. システムが[エラーメッセージ]を表示する
+3. [対処方法]
+```
+
+#### フロー記述のベストプラクティス
+
+1. **各フローに対応するMermaid図を必ず作成**
+   - 基本フロー、代替フロー、例外フローのそれぞれに図を用意
+   - 図とテキストの内容が一致していること
+
+2. **Mermaid図は簡潔に**
+   - 主要なステップのみを図示（詳細はテキストで補足）
+   - 複雑な場合は複数の図に分割
+
+3. **条件分岐は明確に**
+   - 菱形（`{}`）を使用して判定ポイントを表現
+   - 分岐の条件をラベルで明記
+
+4. **テキストとの対応**
+   - Mermaid図のノード名とテキストのステップを対応させる
+   - 「ステップX」として参照できるようにする
 
 #### 例：「顧客オンボーディング」を分解すると
 
@@ -461,16 +694,19 @@ git config --global commit.template ~/.gitmessage
    - 前提条件：メールアドレスを持っている
    - 基本フロー：情報入力→検証→アカウント生成
    - 代替フロー：既存アカウントの場合の処理
+   - Mermaid図：基本フロー、代替フロー（既存アカウント）、例外フロー（検証エラー）
 
 2. **本人確認実施** (ユースケース)
    - アクター：新規顧客、コンプライアンス担当
    - 前提条件：アカウントが作成済み
    - 基本フロー：書類アップロード→審査→承認/却下
+   - Mermaid図：基本フロー、代替フロー（書類不備）、例外フロー（審査タイムアウト）
 
 3. **初期設定支援** (ユースケース)
    - アクター：新規顧客、カスタマーサポート
    - 前提条件：本人確認完了
    - 基本フロー：設定ガイド表示→設定実行→完了確認
+   - Mermaid図：基本フロー、代替フロー（カスタマイズ設定）
 
 ### 判断基準
 
@@ -606,3 +842,304 @@ git config --global commit.template ~/.gitmessage
    - 回避策を探さない
    - 代替手段を実行しない
    - エラーメッセージをそのまま伝える
+
+## パラソル開発手法
+
+### パラソル設計の基本原則
+
+パラソル開発では、**設計MDを生成し、API経由でパラソルサービスにポストする**ことで、設計内容をデータベースに登録します。
+
+### 設計MDの種類
+
+パラソル設計では、以下の4種類のMarkdownドキュメントを管理します：
+
+1. **ドメイン言語定義** (`domain-language.md`)
+   - エンティティ、値オブジェクト、集約の定義
+   - ドメインモデルのクラス図を自動生成
+
+2. **API仕様** (`api-specification.md`)
+   - RESTful APIエンドポイントの定義
+   - リクエスト/レスポンス形式
+
+3. **DB設計** (`database-design.md`)
+   - データベーステーブル定義
+   - ER図の自動生成（Mermaid形式）
+
+4. **統合仕様** (`integration-specification.md`)
+   - 外部サービスとの連携仕様
+   - イベント駆動アーキテクチャの定義
+
+### 設計MDの作成手順
+
+#### 1. 設計MDファイルの作成
+
+設計MDは以下のディレクトリ構造で配置します：
+
+```
+docs/parasol/services/{service-slug}/
+├── domain-language.md
+├── api-specification.md
+├── database-design.md
+└── integration-specification.md
+```
+
+**例**: セキュアアクセスサービスの場合
+```
+docs/parasol/services/secure-access-service/
+├── domain-language.md
+├── api-specification.md
+├── database-design.md
+└── integration-specification.md
+```
+
+#### 2. 設計MDテンプレートの使用
+
+新しいサービスの設計MDを作成する際は、既存のテンプレートを参考にします：
+
+```bash
+# テンプレートディレクトリ
+consulting-dashboard-new/templates/parasol-*.md
+```
+
+利用可能なテンプレート：
+- `parasol-domain-language-v2.md` - ドメイン言語定義のテンプレート
+- その他のテンプレートは今後追加予定
+
+#### 3. API経由での設計MDポスト
+
+設計MDを作成したら、以下のAPIエンドポイントにPUTリクエストを送信します：
+
+##### ドメイン言語定義の更新
+
+```bash
+# エンドポイント
+PUT /api/parasol/services/{serviceId}/domain-language
+
+# リクエストボディ
+{
+  "content": "<domain-language.mdの内容>"
+}
+```
+
+**curlコマンド例**:
+```bash
+curl -X PUT http://localhost:3000/api/parasol/services/secure-access-service/domain-language \
+  -H "Content-Type: application/json" \
+  -d @- << 'EOF'
+{
+  "content": "# セキュアアクセスサービス ドメイン言語定義\n\n..."
+}
+EOF
+```
+
+##### DB設計の更新
+
+```bash
+# エンドポイント
+PUT /api/parasol/services/{serviceId}/database-design
+
+# リクエストボディ
+{
+  "content": "<database-design.mdの内容>"
+}
+```
+
+**curlコマンド例**:
+```bash
+curl -X PUT http://localhost:3000/api/parasol/services/secure-access-service/database-design \
+  -H "Content-Type: application/json" \
+  -d @- << 'EOF'
+{
+  "content": "# セキュアアクセスサービス データベース設計書\n\n..."
+}
+EOF
+```
+
+##### API仕様の更新
+
+```bash
+# エンドポイント
+PUT /api/parasol/services/{serviceId}/api-specification
+
+# リクエストボディ
+{
+  "content": "<api-specification.mdの内容>"
+}
+```
+
+##### 統合仕様の更新
+
+```bash
+# エンドポイント
+PUT /api/parasol/services/{serviceId}/integration-specification
+
+# リクエストボディ
+{
+  "content": "<integration-specification.mdの内容>"
+}
+```
+
+#### 4. Node.jsスクリプトでの一括更新
+
+複数の設計MDを一度に更新する場合は、Node.jsスクリプトを使用します：
+
+```javascript
+const fs = require('fs');
+const http = require('http');
+
+function updateDesign(serviceSlug, type, filePath) {
+  const content = fs.readFileSync(filePath, 'utf-8');
+
+  const data = JSON.stringify({ content });
+
+  const options = {
+    hostname: 'localhost',
+    port: 3000,
+    path: `/api/parasol/services/${serviceSlug}/${type}`,
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(data)
+    }
+  };
+
+  const req = http.request(options, (res) => {
+    let responseData = '';
+    res.on('data', (chunk) => { responseData += chunk; });
+    res.on('end', () => {
+      console.log(`✅ ${type} updated:`, res.statusCode);
+    });
+  });
+
+  req.on('error', (e) => {
+    console.error(`❌ ${type} error:`, e.message);
+  });
+
+  req.write(data);
+  req.end();
+}
+
+// 使用例
+updateDesign(
+  'secure-access-service',
+  'database-design',
+  'docs/parasol/services/secure-access-service/database-design.md'
+);
+```
+
+### 設計MDフォーマットの重要なルール
+
+#### DB設計における既存Mermaid ER図の扱い
+
+**重要**: DB設計ドキュメントに既にMermaid ER図が存在する場合、**絶対に再変換しない**でください。
+
+理由：
+1. リレーションシップラベルが失われる
+2. カーディナリティが不正確になる
+3. 手動で調整した内容が消失する
+
+**正しいアプローチ**:
+```markdown
+## 2. ER図
+
+```mermaid
+erDiagram
+    User {
+        string id PK
+        string email UK
+    }
+
+    Organization {
+        string id PK
+        string name UK
+    }
+
+    User }o--|| Organization : "belongs to"
+```
+```
+
+この場合、パーサーは既存のMermaid ER図をそのまま抽出して使用します。
+
+**避けるべきアプローチ**:
+- Mermaid ER図を削除してMarkdownテーブルのみにする
+- Mermaid ER図を手動で変換する
+
+詳細は `docs/parasol/mermaid-conversion-spec.md` を参照してください。
+
+### 動作確認手順
+
+設計MDをAPIでポストした後は、必ず以下の手順で動作確認を行います：
+
+1. **ブラウザでパラソルページを開く**
+   ```
+   http://localhost:3000/parasol
+   ```
+
+2. **対象サービスを選択**
+   - サービス一覧から更新したサービス（例: セキュアアクセスサービス）を選択
+
+3. **各タブで表示を確認**
+   - **ドメイン言語タブ**: クラス図が正しく表示されるか
+   - **DB設計タブ**: ER図が正しく表示されるか
+   - **API仕様タブ**: API定義が正しく表示されるか
+
+4. **Mermaid描画エラーの確認**
+   - ブラウザのコンソールを開き、Mermaidエラーがないか確認
+   - エラーがある場合は、設計MDのフォーマットを修正
+
+5. **再度APIでポスト**
+   - 修正した設計MDを再度APIでポスト
+   - ブラウザをリロードして確認
+
+### トラブルシューティング
+
+#### Mermaid描画エラーが発生する場合
+
+1. **既存Mermaidブロックの確認**
+   - Markdownに既にMermaid ER図が存在するか確認
+   - 存在する場合は、そのフォーマットが正しいか確認
+
+2. **型名の確認**
+   - Mermaid ER図では型名は小文字（例: `string`, `uuid`）
+   - 大文字（`STRING`, `UUID`）はエラーの原因になる
+
+3. **リレーションシップの構文確認**
+   - 正: `User }o--|| Organization : "belongs to"`
+   - 誤: `User ||--o{ Organization : "has many" ||--o{ User : "references"`（連続したリレーション）
+
+#### APIリクエストが失敗する場合
+
+1. **サーバーが起動しているか確認**
+   ```bash
+   npm run dev
+   ```
+
+2. **serviceIdが正しいか確認**
+   - データベース内のサービスslugと一致しているか
+   - 例: `secure-access-service`（ハイフン区切り）
+
+3. **JSONフォーマットの確認**
+   - `content`フィールドに正しくMarkdownが格納されているか
+   - 改行コードが適切にエスケープされているか
+
+### パラソル開発のベストプラクティス
+
+1. **設計MD優先**
+   - コードを書く前に、必ず設計MDを作成・更新する
+   - 設計MDをAPIでポストして、ダイアグラムが正しく表示されることを確認
+
+2. **テンプレートの活用**
+   - 新しいサービスを作成する際は、テンプレートから開始する
+   - 既存サービスの設計MDも参考にする
+
+3. **頻繁な動作確認**
+   - 設計MDを更新するたびに、APIでポストして表示を確認
+   - エラーは早期に発見・修正する
+
+4. **Mermaid変換仕様の遵守**
+   - 既存Mermaid図がある場合は再変換しない
+   - 新規作成の場合は、適切なフォーマットを使用する
+
+5. **バージョン管理**
+   - 設計MDはGitで管理する
+   - 変更履歴を明確にする

@@ -2,6 +2,23 @@ import { NextResponse } from 'next/server'
 import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 import fs from 'fs/promises'
 import path from 'path'
+// TODO: Issue #103 - パーサーファイルの実装待ち
+// import {
+//   parseDomainLanguage,
+//   stringifyParsedData as stringifyDomainLanguage
+// } from '@/lib/parasol/parsers/domain-language-parser'
+// import {
+//   parseApiSpecification,
+//   stringifyParsedData as stringifyApiSpec
+// } from '@/lib/parasol/parsers/api-specification-parser'
+// import {
+//   parseDatabaseDesign,
+//   stringifyParsedData as stringifyDbDesign
+// } from '@/lib/parasol/parsers/database-design-parser'
+// import {
+//   parseIntegrationSpecification,
+//   stringifyParsedData as stringifyIntegrationSpec
+// } from '@/lib/parasol/parsers/integration-specification-parser'
 
 const parasolDb = new ParasolPrismaClient()
 
@@ -64,11 +81,20 @@ async function scanParasolDocs(basePath: string) {
       try {
         // サービスMDファイルを読み込み
         const serviceContent = await fs.readFile(serviceFilePath, 'utf-8')
-        const serviceMetadata = extractMetadata(serviceContent, 'service')
+        const cleanServiceContent = serviceContent.replace(/\x1b\[[0-9;]*m/g, '')
+        const serviceMetadata = extractMetadata(cleanServiceContent, 'service')
 
-        // API仕様とDB設計を読み込み
+        // ドメイン言語、API仕様、DB設計、統合仕様を読み込み
+        let domainLanguageContent = ''
         let apiSpec = ''
         let dbDesign = ''
+        let integrationSpec = ''
+
+        try {
+          domainLanguageContent = await fs.readFile(path.join(servicePath, 'domain-language.md'), 'utf-8')
+        } catch (error) {
+          console.log(`ドメイン言語なし: ${serviceDir}`)
+        }
 
         try {
           apiSpec = await fs.readFile(path.join(servicePath, 'api-specification.md'), 'utf-8')
@@ -82,13 +108,21 @@ async function scanParasolDocs(basePath: string) {
           console.log(`DB設計なし: ${serviceDir}`)
         }
 
+        try {
+          integrationSpec = await fs.readFile(path.join(servicePath, 'integration-specification.md'), 'utf-8')
+        } catch (error) {
+          console.log(`統合仕様なし: ${serviceDir}`)
+        }
+
         const service = {
           name: serviceMetadata.name || serviceDir,
           displayName: serviceMetadata.displayName || serviceDir,
           description: serviceMetadata.description || '',
-          content: serviceContent,
+          content: cleanServiceContent, // クリーンなコンテンツを使用
+          domainLanguage: domainLanguageContent,
           apiSpecification: apiSpec,
           databaseDesign: dbDesign,
+          integrationSpecification: integrationSpec,
           capabilities: [] as any[]
         }
 
@@ -123,7 +157,9 @@ async function scanParasolDocs(basePath: string) {
 
                   try {
                     const operationContent = await fs.readFile(operationFilePath, 'utf-8')
-                    const operationMetadata = extractMetadata(operationContent, 'operation')
+                    // ANSIエスケープシーケンスを除去（bat/catコマンドの装飾を除去）
+                    const cleanContent = operationContent.replace(/\x1b\[[0-9;]*m/g, '')
+                    const operationMetadata = extractMetadata(cleanContent, 'operation')
 
                     // ページ定義とテスト定義を読み込み
                     const pages = []
@@ -167,7 +203,7 @@ async function scanParasolDocs(basePath: string) {
                       name: operationDir,
                       displayName: operationMetadata.displayName || operationDir,
                       pattern: operationMetadata.pattern || 'Workflow',
-                      content: operationContent,
+                      content: cleanContent, // クリーンなコンテンツを使用
                       pages: pages,
                       tests: tests
                     })
@@ -225,12 +261,108 @@ async function importToDatabase(services: any[]) {
           domainLanguage: JSON.stringify({ content: serviceData.content }),
           apiSpecification: serviceData.apiSpecification ? JSON.stringify({ content: serviceData.apiSpecification }) : JSON.stringify({ endpoints: [] }),
           dbSchema: serviceData.databaseDesign ? JSON.stringify({ content: serviceData.databaseDesign }) : JSON.stringify({ tables: [] }),
-          domainLanguageDefinition: serviceData.content,
+          serviceDescription: serviceData.content,  // service.mdの全内容をserviceDescriptionに保存
+          domainLanguageDefinition: serviceData.domainLanguage || '',  // domain-language.mdをdomainLanguageDefinitionに保存
           apiSpecificationDefinition: serviceData.apiSpecification || '',
           databaseDesignDefinition: serviceData.databaseDesign || ''
         }
       })
       importedServices++
+
+      // TODO: Issue #103 - パーサーファイルの実装後に有効化
+      // 新しいドキュメントモデルを作成（Issue #103対応）
+      /*
+      // 1. ドメイン言語ドキュメント
+      if (serviceData.domainLanguage) {
+        try {
+          const parsed = parseDomainLanguage(serviceData.domainLanguage)
+          const stringified = stringifyDomainLanguage(parsed)
+
+          await tx.domainLanguage.create({
+            data: {
+              serviceId: service.id,
+              version: parsed.version,
+              content: serviceData.domainLanguage,
+              entities: stringified.entities,
+              valueObjects: stringified.valueObjects,
+              aggregates: stringified.aggregates,
+              domainServices: stringified.domainServices,
+              domainEvents: stringified.domainEvents,
+              businessRules: stringified.businessRules
+            }
+          })
+        } catch (error) {
+          console.error(`ドメイン言語パースエラー (${serviceData.name}):`, error)
+        }
+      }
+
+      // 2. API仕様ドキュメント
+      if (serviceData.apiSpecification) {
+        try {
+          const parsed = parseApiSpecification(serviceData.apiSpecification)
+          const stringified = stringifyApiSpec(parsed)
+
+          await tx.apiSpecification.create({
+            data: {
+              serviceId: service.id,
+              version: parsed.version,
+              baseUrl: parsed.baseUrl,
+              authMethod: parsed.authMethod,
+              content: serviceData.apiSpecification,
+              endpoints: stringified.endpoints,
+              errorCodes: stringified.errorCodes,
+              rateLimits: stringified.rateLimits
+            }
+          })
+        } catch (error) {
+          console.error(`API仕様パースエラー (${serviceData.name}):`, error)
+        }
+      }
+
+      // 3. データベース設計ドキュメント
+      if (serviceData.databaseDesign) {
+        try {
+          const parsed = parseDatabaseDesign(serviceData.databaseDesign)
+          const stringified = stringifyDbDesign(parsed)
+
+          await tx.databaseDesign.create({
+            data: {
+              serviceId: service.id,
+              dbms: parsed.dbms,
+              content: serviceData.databaseDesign,
+              tables: stringified.tables,
+              erDiagram: stringified.erDiagram || null,
+              indexes: stringified.indexes,
+              constraints: stringified.constraints
+            }
+          })
+        } catch (error) {
+          console.error(`DB設計パースエラー (${serviceData.name}):`, error)
+        }
+      }
+
+      // 4. 統合仕様ドキュメント
+      if (serviceData.integrationSpecification) {
+        try {
+          const parsed = parseIntegrationSpecification(serviceData.integrationSpecification)
+          const stringified = stringifyIntegrationSpec(parsed)
+
+          await tx.integrationSpecification.create({
+            data: {
+              serviceId: service.id,
+              content: serviceData.integrationSpecification,
+              dependencies: stringified.dependencies,
+              providedEvents: stringified.providedEvents,
+              consumedEvents: stringified.consumedEvents,
+              syncApis: stringified.syncApis,
+              asyncPatterns: stringified.asyncPatterns
+            }
+          })
+        } catch (error) {
+          console.error(`統合仕様パースエラー (${serviceData.name}):`, error)
+        }
+      }
+      */
 
       // ケーパビリティを作成
       for (const capabilityData of serviceData.capabilities) {

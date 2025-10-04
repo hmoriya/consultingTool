@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { ChevronRight, ChevronDown, Folder, Package, Code, FileText, Layout, FileCheck, Maximize2, Minimize2 } from 'lucide-react';
+import { ChevronRight, ChevronDown, Folder, Package, Code, FileText, Layout, FileCheck, Maximize2, Minimize2, GitBranch } from 'lucide-react';
 import { TreeNode, ParasolService, BusinessCapability, BusinessOperation } from '@/types/parasol';
 import { buildUnifiedTreeFromServices, searchNodes, flattenTree } from '@/lib/parasol/tree-utils';
 import { cn } from '@/lib/utils';
@@ -27,6 +27,7 @@ const nodeIcons = {
   capability: Package,
   operation: Code,
   useCase: FileText,
+  robustness: GitBranch,
   page: Layout,
   pageDefinition: Layout,
   testDefinition: FileCheck,
@@ -37,6 +38,7 @@ const nodeColors = {
   capability: 'text-green-600',
   operation: 'text-purple-600',
   useCase: 'text-orange-600',
+  robustness: 'text-amber-600',
   page: 'text-pink-600',
   pageDefinition: 'text-pink-600',
   testDefinition: 'text-teal-600',

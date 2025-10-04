@@ -1,10 +1,10 @@
 # パラソルドメイン言語: ナレッジ共創サービス
 
-**バージョン**: 1.0.0
-**更新日**: 2024-01-20
+**バージョン**: 1.2.0
+**更新日**: 2024-12-30
 
 ## パラソルドメイン概要
-組織の知識を蓄積・共有・活用し、新たな価値を創造するためのドメインモデル。ナレッジ、ドキュメント、ベストプラクティス、エキスパート、学習の関係を定義。
+組織の知識を蓄積・共有・活用し、新たな価値を創造するためのドメインモデル。DDD原則に基づき、明確な集約境界とステレオタイプマーキングにより、ナレッジ、エキスパート、学習、Q&Aの関係を体系的に定義。すべてのエンティティは適切な集約に所属し、ID参照による疎結合を実現。
 
 ## ユビキタス言語定義
 
@@ -31,9 +31,12 @@ FILE: ファイルバイナリ
 
 ### エンティティ定義
 
-#### Knowledge（ナレッジ）
-**概要**: 組織で共有すべき知識・ノウハウ
-**識別子**: knowledgeId
+#### Knowledge（ナレッジ）<<entity>><<aggregate root>>
+**概要**: 組織で共有すべき知識・ノウハウの集約ルート
+**識別性**: knowledgeIdによって一意に識別される
+**ライフサイクル**: 作成→レビュー→公開→アーカイブ
+**集約所属**: KnowledgeAggregate（集約ルート）
+**ステレオタイプ**: entity, aggregate root
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -63,9 +66,12 @@ FILE: ファイルバイナリ
 - ステータス遷移はDraft→Review→Published
 - 有効期限切れは自動アーカイブ
 
-#### Document（ドキュメント）
+#### Document（ドキュメント）<<entity>>
 **概要**: ナレッジに関連する文書やファイル
-**識別子**: documentId
+**識別性**: documentIdによって一意に識別される
+**ライフサイクル**: アップロード→検証→公開→アクセス管理
+**集約所属**: KnowledgeAggregate
+**ステレオタイプ**: entity
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -85,9 +91,12 @@ FILE: ファイルバイナリ
 | createdAt | TIMESTAMP | ○ | 作成日時 |
 | updatedAt | TIMESTAMP | ○ | 更新日時 |
 
-#### BestPractice（ベストプラクティス）
-**概要**: 実証された最良の実践方法
-**識別子**: bestPracticeId
+#### BestPractice（ベストプラクティス）<<entity>><<aggregate root>>
+**概要**: 実証された最良の実践方法の集約ルート
+**識別性**: bestPracticeIdによって一意に識別される
+**ライフサイクル**: 作成→検証→承認→公開→更新
+**集約所属**: BestPracticeAggregate（集約ルート）
+**ステレオタイプ**: entity, aggregate root
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -112,9 +121,12 @@ FILE: ファイルバイナリ
 | createdAt | TIMESTAMP | ○ | 作成日時 |
 | updatedAt | TIMESTAMP | ○ | 更新日時 |
 
-#### Expert（エキスパート）
-**概要**: 特定分野の専門知識を持つ人材
-**識別子**: expertId
+#### Expert（エキスパート）<<entity>><<aggregate root>>
+**概要**: 特定分野の専門知識を持つ人材の集約ルート
+**識別性**: expertIdによって一意に識別される
+**ライフサイクル**: 登録→認定→活動→評価→更新
+**集約所属**: ExpertAggregate（集約ルート）
+**ステレオタイプ**: entity, aggregate root
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -135,9 +147,12 @@ FILE: ファイルバイナリ
 | createdAt | TIMESTAMP | ○ | 作成日時 |
 | updatedAt | TIMESTAMP | ○ | 更新日時 |
 
-#### Question（質問）
-**概要**: メンバーからの質問と回答
-**識別子**: questionId
+#### Question（質問）<<entity>><<aggregate root>>
+**概要**: メンバーからの質問と回答管理の集約ルート
+**識別性**: questionIdによって一意に識別される
+**ライフサイクル**: 投稿→回答募集→回答→解決→クローズ
+**集約所属**: QuestionAggregate（集約ルート）
+**ステレオタイプ**: entity, aggregate root
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -156,9 +171,12 @@ FILE: ファイルバイナリ
 | createdAt | TIMESTAMP | ○ | 作成日時 |
 | updatedAt | TIMESTAMP | ○ | 更新日時 |
 
-#### Answer（回答）
-**概要**: 質問に対する回答
-**識別子**: answerId
+#### Answer（回答）<<entity>>
+**概要**: 質問に対する回答エンティティ
+**識別性**: answerIdによって一意に識別される
+**ライフサイクル**: 投稿→評価→採用/非採用
+**集約所属**: QuestionAggregate
+**ステレオタイプ**: entity
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -172,9 +190,12 @@ FILE: ファイルバイナリ
 | createdAt | TIMESTAMP | ○ | 作成日時 |
 | updatedAt | TIMESTAMP | ○ | 更新日時 |
 
-#### LearningPath（学習パス）
-**概要**: スキル習得のための体系的な学習経路
-**識別子**: learningPathId
+#### LearningPath（学習パス）<<entity>><<aggregate root>>
+**概要**: スキル習得のための体系的な学習経路の集約ルート
+**識別性**: learningPathIdによって一意に識別される
+**ライフサイクル**: 作成→承認→公開→実行→評価→改善
+**集約所属**: LearningAggregate（集約ルート）
+**ステレオタイプ**: entity, aggregate root
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -195,9 +216,12 @@ FILE: ファイルバイナリ
 | createdAt | TIMESTAMP | ○ | 作成日時 |
 | updatedAt | TIMESTAMP | ○ | 更新日時 |
 
-#### KnowledgeShare（知識共有セッション）
+#### KnowledgeShare（知識共有セッション）<<entity>>
 **概要**: 知識共有のための会議やワークショップ
-**識別子**: knowledgeShareId
+**識別性**: knowledgeShareIdによって一意に識別される
+**ライフサイクル**: 企画→募集→開催→記録→フォローアップ
+**集約所属**: LearningAggregate
+**ステレオタイプ**: entity
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -222,8 +246,11 @@ FILE: ファイルバイナリ
 
 ### 値オブジェクト定義
 
-#### KnowledgeRating（ナレッジ評価）
-**概要**: ナレッジの有用性評価
+#### KnowledgeRating（ナレッジ評価）<<value object>>
+**概要**: ナレッジの有用性評価の値オブジェクト
+**不変性**: 作成後は変更不可
+**等価性**: 全属性の値で判定
+**ステレオタイプ**: value object
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -232,8 +259,11 @@ FILE: ファイルバイナリ
 | clarity | DECIMAL | ○ | 明確性（1-5） |
 | overall | DECIMAL | ○ | 総合評価 |
 
-#### SearchQuery（検索クエリ）
-**概要**: ナレッジ検索の条件
+#### SearchQuery（検索クエリ）<<value object>>
+**概要**: ナレッジ検索の条件を表す値オブジェクト
+**不変性**: 作成後は変更不可
+**等価性**: 全属性の値で判定
+**ステレオタイプ**: value object
 
 | 属性名 | 型 | 必須 | 説明 |
 |--------|----|----|------|
@@ -245,53 +275,160 @@ FILE: ファイルバイナリ
 
 ### 集約定義
 
-#### KnowledgeAggregate
-**集約ルート**: Knowledge
-**境界**: Knowledge, Document, KnowledgeRating
+#### KnowledgeAggregate（ナレッジ集約）<<aggregate>>
+**集約ルート**: Knowledge（ナレッジ）
+**集約境界**: Knowledge（ナレッジ）、Document（ドキュメント）、KnowledgeRating（ナレッジ評価）
+**ステレオタイプ**: aggregate
+
+**包含エンティティ**:
+- Knowledge（集約ルート・1対1）
+- Document（1対多・ナレッジに関連する文書）
+
+**包含値オブジェクト**:
+- KnowledgeRating（評価情報）
+
+**集約境界の理由**:
+- ナレッジとその関連文書は密接に関連し、トランザクション整合性が必要
+- ナレッジの評価は同じ集約内で管理される必要がある
 
 **不変条件**:
 - 公開済みナレッジの削除は論理削除のみ
 - バージョン管理により過去版も保持
 - 評価は1ユーザー1回まで
+- 機密文書のアクセス制御は厳格に管理
 
-#### ExpertiseAggregate
-**集約ルート**: Expert
-**境界**: Expert, ExpertiseArea, Consultation
+**他集約との関係**:
+- Expert集約とはexpertIdのみで参照（IDのみ参照）
+- Project集約とはprojectIdのみで参照（IDのみ参照）
+
+#### BestPracticeAggregate（ベストプラクティス集約）<<aggregate>>
+**集約ルート**: BestPractice（ベストプラクティス）
+**集約境界**: BestPractice（ベストプラクティス）
+**ステレオタイプ**: aggregate
+
+**包含エンティティ**:
+- BestPractice（集約ルート・1対1）
+
+**集約境界の理由**:
+- ベストプラクティスは独立したライフサイクルを持つ
+- 検証と承認プロセスが必要で、単独での整合性管理が必要
+
+**不変条件**:
+- 検証済みのベストプラクティスのみが公開可能
+- 有効性スコアは実証に基づいて設定
+- 適用コンテキストと前提条件が明確に定義される
+
+**他集約との関係**:
+- Expert集約とはvalidatedByのみで参照（IDのみ参照）
+- Project集約とはprojectIdsのみで参照（IDのみ参照）
+
+#### ExpertAggregate（エキスパート集約）<<aggregate>>
+**集約ルート**: Expert（エキスパート）
+**集約境界**: Expert（エキスパート）
+**ステレオタイプ**: aggregate
+
+**包含エンティティ**:
+- Expert（集約ルート・1対1）
+
+**集約境界の理由**:
+- エキスパート情報は独立した管理が必要
+- 認定と評価プロセスは他のエンティティと独立している
 
 **不変条件**:
 - エキスパート認定には一定の基準を満たす
 - 評価は実際のコンサルテーション後のみ
+- 専門分野は実績に基づいて認定される
+
+**他集約との関係**:
+- User集約とはuserIdのみで参照（IDのみ参照）
+
+#### QuestionAggregate（質問回答集約）<<aggregate>>
+**集約ルート**: Question（質問）
+**集約境界**: Question（質問）、Answer（回答）
+**ステレオタイプ**: aggregate
+
+**包含エンティティ**:
+- Question（集約ルート・1対1）
+- Answer（1対多・質問に対する回答）
+
+**集約境界の理由**:
+- 質問と回答は密接に関連し、トランザクション整合性が必要
+- 回答の採用決定は質問コンテキスト内で行われる
+
+**不変条件**:
+- 採用回答は質問ごとに1つまで
+- 回答は質問のオープン状態でのみ可能
+- 質問者のみが回答を採用可能
+
+**他集約との関係**:
+- User集約とはaskedBy、answeredByのみで参照（IDのみ参照）
+- Knowledge集約とはrelatedKnowledgeIdsのみで参照（IDのみ参照）
+
+#### LearningAggregate（学習集約）<<aggregate>>
+**集約ルート**: LearningPath（学習パス）
+**集約境界**: LearningPath（学習パス）、KnowledgeShare（知識共有セッション）
+**ステレオタイプ**: aggregate
+
+**包含エンティティ**:
+- LearningPath（集約ルート・1対1）
+- KnowledgeShare（1対多・学習パスに関連する共有セッション）
+
+**集約境界の理由**:
+- 学習パスと知識共有セッションは学習体験の提供という共通目的を持つ
+- 学習進捗と成果管理は統合された管理が必要
+
+**不変条件**:
+- 学習パスの前提条件は明確に定義される
+- 知識共有セッションは適切な準備と記録が必要
+- 学習成果の評価は客観的基準に基づく
+
+**他集約との関係**:
+- User集約とはcreatedBy、presenterIdのみで参照（IDのみ参照）
+- Expert集約とはendorsedByのみで参照（IDのみ参照）
 
 ### ドメインサービス
 
-#### KnowledgeSearchService
-**概要**: ナレッジの検索と推薦
-**操作**:
-- `search(query) -> Knowledge[]`: キーワード検索
-- `recommendRelated(knowledgeId) -> Knowledge[]`: 関連ナレッジ推薦
-- `findByExpert(expertId) -> Knowledge[]`: エキスパート別検索
-- `getTrending() -> Knowledge[]`: トレンドナレッジ取得
+#### KnowledgeSearchService <<service>>
+**概要**: 複数集約をまたぐナレッジ検索と推薦サービス
+**責務**: Knowledge集約、Expert集約、BestPractice集約をまたいだ検索・推薦処理
+**ステレオタイプ**: service
 
-#### KnowledgeSharingService
-**概要**: 知識共有の促進
 **操作**:
-- `shareKnowledge(knowledge, targetAudience) -> ShareResult`: 知識共有
-- `organizeSession(session) -> KnowledgeShare`: セッション企画
-- `connectWithExpert(questionId, expertId) -> Connection`: エキスパート接続
-- `generateInsights(projectId) -> Insights`: プロジェクト知見生成
+- `searchKnowledge(query: SearchQuery) -> Knowledge[]`: 複合条件でのナレッジ検索
+- `recommendRelatedKnowledge(knowledgeId: UUID) -> Knowledge[]`: 関連ナレッジ推薦
+- `findKnowledgeByExpert(expertId: UUID) -> Knowledge[]`: エキスパート作成ナレッジ検索
+- `getTrendingKnowledge() -> Knowledge[]`: アクセス数・評価によるトレンド抽出
+- `searchBestPractices(context: string) -> BestPractice[]`: コンテキスト別ベストプラクティス検索
 
-#### LearningManagementService
-**概要**: 学習管理と進捗追跡
+#### KnowledgeSharingCoordinator <<service>>
+**概要**: 知識共有プロセスの調整を行うドメインサービス
+**責務**: Knowledge集約、Expert集約、Learning集約間の知識共有調整
+**ステレオタイプ**: service
+
 **操作**:
-- `createLearningPath(requirements) -> LearningPath`: 学習パス生成
-- `trackProgress(userId, pathId) -> Progress`: 進捗追跡
-- `assessCompetency(userId, skillId) -> Assessment`: コンピテンシー評価
-- `recommendLearning(userId) -> Recommendation[]`: 学習推奨
+- `facilitateKnowledgeSharing(knowledgeId: UUID, targetAudience: string[]) -> ShareResult`: 知識共有の促進
+- `organizeKnowledgeSession(sessionRequest: SessionRequest) -> KnowledgeShare`: セッション企画・調整
+- `connectExpertWithQuestion(questionId: UUID, expertId: UUID) -> Connection`: エキスパートと質問者の接続
+- `generateProjectInsights(projectId: UUID) -> Insights`: プロジェクト横断的な知見生成
+- `validateBestPractice(practiceId: UUID, expertId: UUID) -> ValidationResult`: ベストプラクティス検証
+
+#### LearningProgressService <<service>>
+**概要**: 学習進捗と能力評価を管理するドメインサービス
+**責務**: Learning集約、Expert集約、Knowledge集約をまたいだ学習管理
+**ステレオタイプ**: service
+
+**操作**:
+- `createPersonalizedLearningPath(userId: UUID, requirements: LearningRequirements) -> LearningPath`: 個人化学習パス生成
+- `trackLearningProgress(userId: UUID, pathId: UUID) -> LearningProgress`: 学習進捗追跡・更新
+- `assessCompetencyLevel(userId: UUID, skillId: UUID) -> CompetencyAssessment`: コンピテンシーレベル評価
+- `recommendNextLearning(userId: UUID) -> Recommendation[]`: 次の学習コンテンツ推薦
+- `evaluateKnowledgeApplication(userId: UUID, knowledgeId: UUID) -> ApplicationResult`: 知識適用度評価
 
 ### ドメインイベント
 
-#### KnowledgePublished
+#### KnowledgePublished <<event>>
 **発生条件**: ナレッジが公開された時
+**ステレオタイプ**: event
 **ペイロード**:
 ```json
 {
@@ -305,8 +442,9 @@ FILE: ファイルバイナリ
 }
 ```
 
-#### QuestionAsked
+#### QuestionAsked <<event>>
 **発生条件**: 新しい質問が投稿された時
+**ステレオタイプ**: event
 **ペイロード**:
 ```json
 {
@@ -319,8 +457,9 @@ FILE: ファイルバイナリ
 }
 ```
 
-#### ExpertIdentified
+#### ExpertIdentified <<event>>
 **発生条件**: 新しいエキスパートが認定された時
+**ステレオタイプ**: event
 **ペイロード**:
 ```json
 {
@@ -332,8 +471,9 @@ FILE: ファイルバイナリ
 }
 ```
 
-#### KnowledgeShareScheduled
+#### KnowledgeShareScheduled <<event>>
 **発生条件**: 知識共有セッションが予定された時
+**ステレオタイプ**: event
 **ペイロード**:
 ```json
 {
@@ -348,36 +488,113 @@ FILE: ファイルバイナリ
 
 ### リポジトリインターフェース
 
-#### KnowledgeRepository
-```
+#### KnowledgeRepository <<repository>>
+**責務**: Knowledge集約の永続化層抽象化
+**ステレオタイプ**: repository
+
+```typescript
 interface KnowledgeRepository {
-  findById(id: UUID): Knowledge | null
-  findByCategory(category: ENUM): Knowledge[]
-  findByTags(tags: STRING[]): Knowledge[]
-  findByAuthor(authorId: UUID): Knowledge[]
-  search(query: SearchQuery): Knowledge[]
-  save(knowledge: Knowledge): void
-  delete(id: UUID): void
+  // 基本操作
+  findById(id: UUID): Promise<Knowledge | null>
+  findAll(limit?: number, offset?: number): Promise<Knowledge[]>
+  save(knowledge: Knowledge): Promise<void>
+  delete(id: UUID): Promise<void>
+
+  // ドメイン固有の検索
+  findByCategory(category: ENUM): Promise<Knowledge[]>
+  findByTags(tags: STRING[]): Promise<Knowledge[]>
+  findByAuthor(authorId: UUID): Promise<Knowledge[]>
+  findByStatus(status: ENUM): Promise<Knowledge[]>
+  search(query: SearchQuery): Promise<Knowledge[]>
+
+  // 集約全体の保存
+  saveWithDocuments(knowledge: Knowledge, documents: Document[]): Promise<void>
 }
 ```
 
-#### ExpertRepository
-```
+#### ExpertRepository <<repository>>
+**責務**: Expert集約の永続化層抽象化
+**ステレオタイプ**: repository
+
+```typescript
 interface ExpertRepository {
-  findById(id: UUID): Expert | null
-  findByExpertiseArea(area: STRING): Expert[]
-  findAvailable(): Expert[]
-  save(expert: Expert): void
+  // 基本操作
+  findById(id: UUID): Promise<Expert | null>
+  findAll(limit?: number, offset?: number): Promise<Expert[]>
+  save(expert: Expert): Promise<void>
+  delete(id: UUID): Promise<void>
+
+  // ドメイン固有の検索
+  findByExpertiseArea(area: STRING): Promise<Expert[]>
+  findByUserId(userId: UUID): Promise<Expert | null>
+  findAvailable(): Promise<Expert[]>
+  findByRating(minRating: DECIMAL): Promise<Expert[]>
 }
 ```
 
-#### QuestionRepository
-```
+#### QuestionRepository <<repository>>
+**責務**: Question集約の永続化層抽象化
+**ステレオタイプ**: repository
+
+```typescript
 interface QuestionRepository {
-  findById(id: UUID): Question | null
-  findUnanswered(): Question[]
-  findByCategory(category: ENUM): Question[]
-  save(question: Question): void
+  // 基本操作
+  findById(id: UUID): Promise<Question | null>
+  findAll(limit?: number, offset?: number): Promise<Question[]>
+  save(question: Question): Promise<void>
+  delete(id: UUID): Promise<void>
+
+  // ドメイン固有の検索
+  findUnanswered(): Promise<Question[]>
+  findByCategory(category: ENUM): Promise<Question[]>
+  findByAsker(askerId: UUID): Promise<Question[]>
+  findByStatus(status: ENUM): Promise<Question[]>
+
+  // 集約全体の保存
+  saveWithAnswers(question: Question, answers: Answer[]): Promise<void>
+}
+```
+
+#### BestPracticeRepository <<repository>>
+**責務**: BestPractice集約の永続化層抽象化
+**ステレオタイプ**: repository
+
+```typescript
+interface BestPracticeRepository {
+  // 基本操作
+  findById(id: UUID): Promise<BestPractice | null>
+  findAll(limit?: number, offset?: number): Promise<BestPractice[]>
+  save(bestPractice: BestPractice): Promise<void>
+  delete(id: UUID): Promise<void>
+
+  // ドメイン固有の検索
+  findByCategory(category: ENUM): Promise<BestPractice[]>
+  findByContext(context: STRING): Promise<BestPractice[]>
+  findValidated(): Promise<BestPractice[]>
+  findByEffectivenessScore(minScore: DECIMAL): Promise<BestPractice[]>
+}
+```
+
+#### LearningPathRepository <<repository>>
+**責務**: LearningPath集約の永続化層抽象化
+**ステレオタイプ**: repository
+
+```typescript
+interface LearningPathRepository {
+  // 基本操作
+  findById(id: UUID): Promise<LearningPath | null>
+  findAll(limit?: number, offset?: number): Promise<LearningPath[]>
+  save(learningPath: LearningPath): Promise<void>
+  delete(id: UUID): Promise<void>
+
+  // ドメイン固有の検索
+  findByTargetRole(role: STRING): Promise<LearningPath[]>
+  findByTargetLevel(level: ENUM): Promise<LearningPath[]>
+  findByCreator(creatorId: UUID): Promise<LearningPath[]>
+  findPopular(): Promise<LearningPath[]>
+
+  // 集約全体の保存
+  saveWithSessions(learningPath: LearningPath, sessions: KnowledgeShare[]): Promise<void>
 }
 ```
 

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { Search, Plus, Save, FolderTree } from 'lucide-react';
-import { saveServiceData, createBusinessOperation, createBusinessCapability, updateBusinessOperation, deleteBusinessOperation } from '@/app/actions/parasol';
+import { saveServiceData, createBusinessOperation, createBusinessCapability, updateBusinessOperation, deleteBusinessOperation, getUseCasesForOperation } from '@/app/actions/parasol';
 import { ParasolTreeView } from './ParasolTreeView';
 import { UnifiedTreeView } from './UnifiedTreeView';
 import { TreeNode, ParasolService } from '@/types/parasol';
@@ -15,6 +15,7 @@ import { ServiceForm } from './ServiceForm';
 import { BusinessCapabilityEditor } from './BusinessCapabilityEditor';
 import { BusinessOperationEditor } from './BusinessOperationEditor';
 import { UseCaseDialog } from './UseCaseDialog';
+import { UseCaseListView } from './UseCaseListView';
 import { CodeGenerationPanel } from './CodeGenerationPanel';
 import { DomainLanguageDefinition, APISpecification, DBSchema } from '@/types/parasol';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -49,67 +50,36 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
   const [services, setServices] = useState<Service[]>(initialServices);
   const [mounted, setMounted] = useState(false);
 
-  // デバッグログ
   useEffect(() => {
     setMounted(true);
-    console.log('ParasolSettingsPage2: Initial services loaded');
-    initialServices.forEach(service => {
-      if (service.name === 'knowledge-service' || service.name === 'finance-service' || service.name === 'notification-service') {
-        console.log(`Service: ${service.name}`);
-        console.log(`  Capabilities: ${service.capabilities?.length || 0}`);
-        service.capabilities?.forEach((cap: any) => {
-          console.log(`    ${cap.name}: ${cap.businessOperations?.length || 0} operations`);
-        });
-      }
-    });
-  }, [initialServices]);
+  }, []);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedNode, setSelectedNode] = useState<TreeNode | null>(null);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
-  
-  // 初期表示時にすべてのノードを展開
+
+  // Load usecases when a business operation is selected
   useEffect(() => {
-    if (services.length > 0 && expandedNodes.size === 0) {
-      const allNodeIds = new Set<string>();
-      
-      // すべてのノードIDを収集
-      services.forEach(service => {
-        allNodeIds.add(service.id);
-        
-        // ケーパビリティのIDを追加
-        if (service.capabilities) {
-          service.capabilities.forEach(capability => {
-            allNodeIds.add(capability.id);
-            
-            // オペレーションのIDを追加
-            const operations = service.businessOperations?.filter(op => op.capabilityId === capability.id) || [];
-            operations.forEach(operation => {
-              allNodeIds.add(operation.id);
-              // ユースケースのIDも追加
-              if (operation.useCaseModels) {
-                operation.useCaseModels.forEach((uc: any) => {
-                  allNodeIds.add(uc.id);
-                });
-              }
-            });
-          });
-        }
-        
-        // ケーパビリティに属さないオペレーションも処理
-        const uncategorizedOps = service.businessOperations?.filter(op => !op.capabilityId) || [];
-        uncategorizedOps.forEach(operation => {
-          allNodeIds.add(operation.id);
-          if (operation.useCaseModels) {
-            operation.useCaseModels.forEach((uc: any) => {
-              allNodeIds.add(uc.id);
-            });
+    const loadUseCases = async () => {
+      if (selectedNode?.type === 'operation') {
+        try {
+          const result = await getUseCasesForOperation(selectedNode.id);
+          if (result.success) {
+            setOperationUseCases(result.data || []);
+          } else {
+            console.error('Failed to load usecases:', result.error);
+            setOperationUseCases([]);
           }
-        });
-      });
-      
-      setExpandedNodes(allNodeIds);
-    }
-  }, [services.length]); // services.lengthの変更時にのみ実行
+        } catch (error) {
+          console.error('Error loading usecases:', error);
+          setOperationUseCases([]);
+        }
+      } else {
+        setOperationUseCases([]);
+      }
+    };
+
+    loadUseCases();
+  }, [selectedNode?.id, selectedNode?.type]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showServiceForm, setShowServiceForm] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
@@ -123,7 +93,93 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
   const [showUseCaseDialog, setShowUseCaseDialog] = useState(false);
   const [currentOperationForUseCase, setCurrentOperationForUseCase] = useState<string | null>(null);
   const [editingUseCase, setEditingUseCase] = useState<any>(null);
-  
+  const [operationUseCases, setOperationUseCases] = useState<any[]>([]);
+  const [servicesWithUseCases, setServicesWithUseCases] = useState<any[]>([]);
+
+  // 初期表示時にすべてのノードを展開（ユースケースデータ読み込み後）
+  useEffect(() => {
+    if (servicesWithUseCases.length > 0 && expandedNodes.size === 0) {
+      const allNodeIds = new Set<string>();
+
+      // すべてのノードIDを収集
+      servicesWithUseCases.forEach(service => {
+        allNodeIds.add(service.id);
+
+        // ケーパビリティのIDを追加
+        if (service.capabilities) {
+          service.capabilities.forEach(capability => {
+            allNodeIds.add(capability.id);
+
+            // オペレーションのIDを追加
+            const operations = service.businessOperations?.filter(op => op.capabilityId === capability.id) || [];
+            operations.forEach(operation => {
+              allNodeIds.add(operation.id);
+              // ユースケースのIDも追加
+              if (operation.useCaseModels) {
+                operation.useCaseModels.forEach((uc: any) => {
+                  allNodeIds.add(uc.id);
+                });
+              }
+            });
+          });
+        }
+
+        // ケーパビリティに属さないオペレーションも処理
+        const uncategorizedOps = service.businessOperations?.filter(op => !op.capabilityId) || [];
+        uncategorizedOps.forEach(operation => {
+          allNodeIds.add(operation.id);
+          if (operation.useCaseModels) {
+            operation.useCaseModels.forEach((uc: any) => {
+              allNodeIds.add(uc.id);
+            });
+          }
+        });
+      });
+
+      setExpandedNodes(allNodeIds);
+    }
+  }, [servicesWithUseCases.length]); // servicesWithUseCases.lengthの変更時にのみ実行
+
+  // 全サービスのユースケースを取得する
+  useEffect(() => {
+    const loadAllUseCases = async () => {
+      const updatedServices = await Promise.all(
+        services.map(async (service) => {
+          const updatedOperations = await Promise.all(
+            (service.businessOperations || []).map(async (operation) => {
+              try {
+                const result = await getUseCasesForOperation(operation.id);
+                if (result.success) {
+                  const operationWithUseCases = {
+                    ...operation,
+                    useCaseModels: result.data || []
+                  };
+                  return operationWithUseCases;
+                }
+              } catch (error) {
+                console.error(`Error loading usecases for operation ${operation.id}:`, error);
+              }
+              return {
+                ...operation,
+                useCaseModels: []
+              };
+            })
+          );
+
+          return {
+            ...service,
+            businessOperations: updatedOperations
+          };
+        })
+      );
+      setServicesWithUseCases(updatedServices);
+    };
+
+    if (services.length > 0) {
+      loadAllUseCases();
+    }
+  }, [services]);
+
   // ドメイン言語生成関数
   const handleGenerateDomainLanguageFromCapability = () => {
     if (!selectedService.capabilities || selectedService.capabilities.length === 0) {
@@ -584,48 +640,97 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
               </Button>
             </CardHeader>
             <CardContent className="overflow-auto">
-              <UnifiedMDEditor
-                type="operation-design"
-                value={operation.design || ''}
-                onChange={(value) => {
-                  // オペレーション変更処理
-                  const updatedOperation = { ...operation, design: value };
-                  
-                  // オペレーションがサービス直下にある場合
-                  if (selectedService.businessOperations?.some(o => o.id === operation.id)) {
-                    const updatedOperations = selectedService.businessOperations.map(o => 
-                      o.id === operation.id ? updatedOperation : o
-                    );
-                    setSelectedService({
-                      ...selectedService,
-                      businessOperations: updatedOperations
-                    });
-                  } 
-                  // オペレーションがケーパビリティ配下にある場合
-                  else if (selectedService.capabilities) {
-                    const updatedCapabilities = selectedService.capabilities.map(cap => {
-                      if (cap.businessOperations?.some(o => o.id === operation.id)) {
-                        return {
-                          ...cap,
-                          businessOperations: cap.businessOperations.map(o =>
-                            o.id === operation.id ? updatedOperation : o
-                          )
-                        };
+              <Tabs defaultValue="design" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="design">オペレーション設計</TabsTrigger>
+                  <TabsTrigger value="usecases">ユースケース ({operationUseCases.length})</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="design">
+                  <UnifiedMDEditor
+                    type="operation-design"
+                    value={operation.design || ''}
+                    onChange={(value) => {
+                      // オペレーション変更処理
+                      const updatedOperation = { ...operation, design: value };
+
+                      // オペレーションがサービス直下にある場合
+                      if (selectedService.businessOperations?.some(o => o.id === operation.id)) {
+                        const updatedOperations = selectedService.businessOperations.map(o =>
+                          o.id === operation.id ? updatedOperation : o
+                        );
+                        setSelectedService({
+                          ...selectedService,
+                          businessOperations: updatedOperations
+                        });
                       }
-                      return cap;
-                    });
-                    setSelectedService({
-                      ...selectedService,
-                      capabilities: updatedCapabilities
-                    });
-                  }
-                  
-                  setHasChanges(true);
-                }}
-                onSave={handleSave}
-                title="ビジネスオペレーション設計"
-                description="このオペレーションの処理フローと入出力をMarkdownで記述します"
-              />
+                      // オペレーションがケーパビリティ配下にある場合
+                      else if (selectedService.capabilities) {
+                        const updatedCapabilities = selectedService.capabilities.map(cap => {
+                          if (cap.businessOperations?.some(o => o.id === operation.id)) {
+                            return {
+                              ...cap,
+                              businessOperations: cap.businessOperations.map(o =>
+                                o.id === operation.id ? updatedOperation : o
+                              )
+                            };
+                          }
+                          return cap;
+                        });
+                        setSelectedService({
+                          ...selectedService,
+                          capabilities: updatedCapabilities
+                        });
+                      }
+
+                      setHasChanges(true);
+                    }}
+                    onSave={handleSave}
+                    title="ビジネスオペレーション設計"
+                    description="このオペレーションの処理フローと入出力をMarkdownで記述します"
+                  />
+                </TabsContent>
+
+                <TabsContent value="usecases">
+                  <UseCaseListView
+                    operationId={operation.id}
+                    useCases={operationUseCases.map(uc => ({
+                      id: uc.id,
+                      name: uc.name,
+                      displayName: uc.displayName,
+                      description: uc.description,
+                      definition: uc.definition,
+                      actors: uc.actors,
+                      preconditions: uc.preconditions,
+                      postconditions: uc.postconditions,
+                      basicFlow: uc.basicFlow,
+                      alternativeFlow: uc.alternativeFlow,
+                      exceptionFlow: uc.exceptionFlow,
+                      order: uc.order,
+                    }))}
+                    pageDefinitions={operationUseCases.flatMap(uc => uc.pageDefinitions || [])}
+                    testDefinitions={operationUseCases.flatMap(uc => uc.testDefinitions || [])}
+                    onAddUseCase={() => {
+                      setCurrentOperationForUseCase(operation.id);
+                      setEditingUseCase(null);
+                      setShowUseCaseDialog(true);
+                    }}
+                    onEditUseCase={(useCase) => {
+                      setCurrentOperationForUseCase(operation.id);
+                      setEditingUseCase(useCase);
+                      setShowUseCaseDialog(true);
+                    }}
+                    onDeleteUseCase={async (useCaseId) => {
+                      // Delete usecase logic can be added here
+                      console.log('Delete usecase:', useCaseId);
+                    }}
+                    onViewUseCase={(useCase) => {
+                      // View usecase details logic can be added here
+                      console.log('View usecase:', useCase);
+                    }}
+                  />
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
         );
@@ -815,11 +920,24 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                 </CardHeader>
                 <CardContent className="p-0">
                   <UnifiedTreeView
-                    services={filteredServices.map(service => ({
-                      service: service as ParasolService,
-                      capabilities: service.capabilities || [],
-                      operations: service.businessOperations || []
-                    }))}
+                    services={servicesWithUseCases.length > 0
+                      ? servicesWithUseCases
+                          .filter(service =>
+                            searchTerm === '' ||
+                            service.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            service.name?.toLowerCase().includes(searchTerm.toLowerCase())
+                          )
+                          .map(service => ({
+                            service: service as ParasolService,
+                            capabilities: service.capabilities || [],
+                            operations: service.businessOperations || []
+                          }))
+                      : filteredServices.map(service => ({
+                          service: service as ParasolService,
+                          capabilities: service.capabilities || [],
+                          operations: service.businessOperations || []
+                        }))
+                    }
                     selectedNodeId={selectedNode?.id}
                     onNodeSelect={handleNodeSelect}
                     expandedNodes={expandedNodes}
@@ -828,7 +946,8 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                         if (nodeId === '__EXPAND_ALL__') {
                           // すべて展開
                           const allNodeIds = new Set<string>();
-                          filteredServices.forEach(service => {
+                          const servicesToUse = servicesWithUseCases.length > 0 ? servicesWithUseCases : filteredServices;
+                          servicesToUse.forEach(service => {
                             allNodeIds.add(service.id);
                             if (service.capabilities) {
                               service.capabilities.forEach(capability => {
@@ -914,10 +1033,22 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
           operationId={currentOperationForUseCase}
           useCase={editingUseCase}
           isOpen={showUseCaseDialog}
-          onClose={() => {
+          onClose={async () => {
             setShowUseCaseDialog(false);
             setCurrentOperationForUseCase(null);
             setEditingUseCase(null);
+
+            // Refresh usecases list if we're still on the same operation
+            if (selectedNode?.type === 'operation' && currentOperationForUseCase === selectedNode.id) {
+              try {
+                const result = await getUseCasesForOperation(selectedNode.id);
+                if (result.success) {
+                  setOperationUseCases(result.data || []);
+                }
+              } catch (error) {
+                console.error('Error refreshing usecases:', error);
+              }
+            }
           }}
         />
       )}

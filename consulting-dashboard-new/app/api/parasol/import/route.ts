@@ -41,14 +41,25 @@ interface OperationMetadata {
 }
 
 // MDファイルからメタデータを抽出
-function extractMetadata(content: string, type: 'service' | 'capability' | 'operation') {
+function extractMetadata(content: string, type: 'service' | 'capability' | 'operation' | 'page' | 'usecase' | 'test') {
   const lines = content.split('\n')
   const metadata: any = {}
 
   // タイトルを抽出（最初の#行）
   const titleLine = lines.find(line => line.startsWith('# '))
   if (titleLine) {
-    metadata.displayName = titleLine.replace('# ', '').trim()
+    let title = titleLine.replace('# ', '').trim()
+
+    // パラソル設計MDファイルの形式に対応
+    if (type === 'page' && title.includes('ページ定義：')) {
+      title = title.replace('ページ定義：', '').trim()
+    } else if (type === 'usecase' && title.includes('ユースケース：')) {
+      title = title.replace('ユースケース：', '').trim()
+    } else if (type === 'test' && title.includes('テスト定義：')) {
+      title = title.replace('テスト定義：', '').trim()
+    }
+
+    metadata.displayName = title
   }
 
   // メタデータセクションを探す
@@ -161,9 +172,29 @@ async function scanParasolDocs(basePath: string) {
                     const cleanContent = operationContent.replace(/\x1b\[[0-9;]*m/g, '')
                     const operationMetadata = extractMetadata(cleanContent, 'operation')
 
-                    // ページ定義とテスト定義を読み込み
+                    // ユースケース、ページ定義、テスト定義を読み込み
+                    const usecases = []
                     const pages = []
                     const tests = []
+
+                    // usecases ディレクトリ内のMDファイルを読み込み
+                    const usecasesPath = path.join(operationPath, 'usecases')
+                    try {
+                      const usecaseFiles = await fs.readdir(usecasesPath)
+                      for (const usecaseFile of usecaseFiles) {
+                        if (usecaseFile.endsWith('.md')) {
+                          const usecaseContent = await fs.readFile(path.join(usecasesPath, usecaseFile), 'utf-8')
+                          const usecaseMetadata = extractMetadata(usecaseContent, 'usecase')
+                          usecases.push({
+                            name: usecaseFile.replace('.md', ''),
+                            displayName: usecaseMetadata.displayName,
+                            content: usecaseContent
+                          })
+                        }
+                      }
+                    } catch (error) {
+                      // ユースケースディレクトリがない場合は無視
+                    }
 
                     // pages ディレクトリ内のMDファイルを読み込み
                     const pagesPath = path.join(operationPath, 'pages')
@@ -172,8 +203,10 @@ async function scanParasolDocs(basePath: string) {
                       for (const pageFile of pageFiles) {
                         if (pageFile.endsWith('.md')) {
                           const pageContent = await fs.readFile(path.join(pagesPath, pageFile), 'utf-8')
+                          const pageMetadata = extractMetadata(pageContent, 'page')
                           pages.push({
                             name: pageFile.replace('.md', ''),
+                            displayName: pageMetadata.displayName,
                             content: pageContent
                           })
                         }
@@ -189,8 +222,10 @@ async function scanParasolDocs(basePath: string) {
                       for (const testFile of testFiles) {
                         if (testFile.endsWith('.md')) {
                           const testContent = await fs.readFile(path.join(testsPath, testFile), 'utf-8')
+                          const testMetadata = extractMetadata(testContent, 'test')
                           tests.push({
                             name: testFile.replace('.md', ''),
+                            displayName: testMetadata.displayName,
                             content: testContent
                           })
                         }
@@ -204,6 +239,7 @@ async function scanParasolDocs(basePath: string) {
                       displayName: operationMetadata.displayName || operationDir,
                       pattern: operationMetadata.pattern || 'Workflow',
                       content: cleanContent, // クリーンなコンテンツを使用
+                      usecases: usecases,
                       pages: pages,
                       tests: tests
                     })

@@ -49,13 +49,29 @@ interface ParasolSettingsPageProps {
 export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPageProps) {
   const [services, setServices] = useState<Service[]>(initialServices);
   const [mounted, setMounted] = useState(false);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [selectedNode, setSelectedNode] = useState<TreeNode | null>(null);
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showServiceForm, setShowServiceForm] = useState(false);
+  const [editingService, setEditingService] = useState<Service | null>(null);
+  const [hasChanges, setHasChanges] = useState(false);
+
+  // オペレーション編集モーダルの状態
+  const [operationModalOpen, setOperationModalOpen] = useState(false);
+  const [editingOperation, setEditingOperation] = useState<any>(null);
+  const [editingCapability, setEditingCapability] = useState<any>(null);
+  const [showUseCaseDialog, setShowUseCaseDialog] = useState(false);
+  const [currentOperationForUseCase, setCurrentOperationForUseCase] = useState<string | null>(null);
+  const [editingUseCase, setEditingUseCase] = useState<any>(null);
+  const [operationUseCases, setOperationUseCases] = useState<any[]>([]);
+  const [servicesWithUseCases, setServicesWithUseCases] = useState<any[]>([]);
+
+  const { toast } = useToast();
 
   useEffect(() => {
     setMounted(true);
   }, []);
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [selectedNode, setSelectedNode] = useState<TreeNode | null>(null);
-  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
   // Load usecases when a business operation is selected
   useEffect(() => {
@@ -80,21 +96,6 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
 
     loadUseCases();
   }, [selectedNode?.id, selectedNode?.type]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showServiceForm, setShowServiceForm] = useState(false);
-  const [editingService, setEditingService] = useState<Service | null>(null);
-  const [hasChanges, setHasChanges] = useState(false);
-  const { toast } = useToast();
-  
-  // オペレーション編集モーダルの状態
-  const [operationModalOpen, setOperationModalOpen] = useState(false);
-  const [editingOperation, setEditingOperation] = useState<any>(null);
-  const [editingCapability, setEditingCapability] = useState<any>(null);
-  const [showUseCaseDialog, setShowUseCaseDialog] = useState(false);
-  const [currentOperationForUseCase, setCurrentOperationForUseCase] = useState<string | null>(null);
-  const [editingUseCase, setEditingUseCase] = useState<any>(null);
-  const [operationUseCases, setOperationUseCases] = useState<any[]>([]);
-  const [servicesWithUseCases, setServicesWithUseCases] = useState<any[]>([]);
 
   // 初期表示時にすべてのノードを展開（ユースケースデータ読み込み後）
   useEffect(() => {

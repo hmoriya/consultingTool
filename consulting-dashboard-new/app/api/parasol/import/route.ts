@@ -405,13 +405,18 @@ async function importToDatabase(services: any[]) {
 
           // ユースケースを個別レコードとして保存
           for (const usecaseData of operationData.usecases || []) {
+            // displayNameの安全な設定
+            const useCaseDisplayName = usecaseData.displayName && typeof usecaseData.displayName === 'string' && usecaseData.displayName.trim()
+              ? usecaseData.displayName.trim()
+              : (usecaseData.name || 'ユースケース').replace(/-/g, ' ')
+
             const useCase = await tx.useCase.create({
               data: {
                 operationId: operation.id,
-                name: usecaseData.name,
-                displayName: usecaseData.displayName || usecaseData.name.replace(/-/g, ' '), // スクリプトから送信された日本語表示名を使用
+                name: usecaseData.name || 'usecase',
+                displayName: useCaseDisplayName,
                 definition: usecaseData.content,
-                description: `${usecaseData.name}のユースケース`,
+                description: `${usecaseData.name || 'ユースケース'}のユースケース`,
                 actors: JSON.stringify({ primary: 'User', secondary: [] }),
                 preconditions: '[]',
                 postconditions: '[]',
@@ -423,13 +428,18 @@ async function importToDatabase(services: any[]) {
 
             // 各ユースケースに関連するページ定義を保存
             for (const pageData of operationData.pages || []) {
+              // displayNameの安全な設定
+              const displayName = pageData.displayName && typeof pageData.displayName === 'string' && pageData.displayName.trim()
+                ? pageData.displayName.trim()
+                : (pageData.name || 'ページ').replace(/-/g, ' ')
+
               await tx.pageDefinition.create({
                 data: {
                   useCaseId: useCase.id,
-                  name: pageData.name,
-                  displayName: pageData.displayName || pageData.name.replace(/-/g, ' '), // スクリプトから送信された日本語表示名を使用
-                  description: `${pageData.name}のページ定義`,
-                  url: `/${pageData.name}`,
+                  name: pageData.name || 'page',
+                  displayName: displayName,
+                  description: `${pageData.name || 'ページ'}のページ定義`,
+                  url: `/${pageData.name || 'page'}`,
                   layout: '{}',
                   components: '[]',
                   stateManagement: '{}',
@@ -441,12 +451,17 @@ async function importToDatabase(services: any[]) {
 
             // 各ユースケースに関連するテスト定義を保存
             for (const testData of operationData.tests || []) {
+              // displayNameの安全な設定
+              const testDisplayName = testData.displayName && typeof testData.displayName === 'string' && testData.displayName.trim()
+                ? testData.displayName.trim()
+                : (testData.name || 'テスト').replace(/-/g, ' ')
+
               await tx.testDefinition.create({
                 data: {
                   useCaseId: useCase.id,
-                  name: testData.name,
-                  displayName: testData.displayName || testData.name.replace(/-/g, ' '), // スクリプトから送信された日本語表示名を使用
-                  description: `${testData.name}のテスト定義`,
+                  name: testData.name || 'test',
+                  displayName: testDisplayName,
+                  description: `${testData.name || 'テスト'}のテスト定義`,
                   testType: 'integration',
                   testCases: '[]',
                   expectedResults: '{}',

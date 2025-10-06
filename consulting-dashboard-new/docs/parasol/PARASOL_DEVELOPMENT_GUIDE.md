@@ -14,6 +14,7 @@
 6. [DXテンプレート・仕様書](#6-dxテンプレート仕様書)
 7. [DX実装ガイド](#7-dx実装ガイド)
 8. [DX品質管理](#8-dx品質管理)
+9. [MD形式統一による品質保証](#9-md形式統一による品質保証)
 
 ---
 
@@ -41,6 +42,7 @@
 3. **ユビキタス言語**: ビジネスとテクノロジーの橋渡しとなる共通語彙
 4. **生成可能**: ドメイン定義から実装コード（DB、API）を自動生成
 5. **価値創造指向**: 「管理」ではなく「価値創造」にフォーカス
+6. **MD形式統一**: すべての設計ドキュメントをMarkdown形式で記述し、実装非依存性を徹底
 
 ### DXを促進する価値創造メトリクス
 
@@ -548,6 +550,124 @@ templates/
 - [パラソル階層構造詳細](./parasol-hierarchy-details.md)
 - [DX成熟度評価モデル](./dx-maturity-model.md)
 - [価値創造メトリクス設計](./value-creation-metrics.md)
+
+## 9. MD形式統一による品質保証
+
+### 9.1 パラソル設計の核心原則
+
+#### MD形式の絶対性
+
+パラソル開発では、**すべての設計ドキュメントをMarkdown形式で記述**することが基本原則です。これは単なる表記法の選択ではなく、**実装非依存性を保証する**ための戦略的決定です。
+
+```markdown
+✅ パラソル準拠（MD形式）
+# API仕様: ユーザー認証サービス
+システムがユーザーの身元を確認し、安全なアクセスを提供する
+
+❌ 実装依存（JSON/Code形式）
+{
+  "endpoint": "/api/auth",
+  "method": "POST",
+  "schema": {...}
+}
+```
+
+### 9.2 データ消失問題の根本解決
+
+#### 問題の本質
+
+API仕様・DB設計が「消える」現象の根本原因は、**JSON形式とMD形式の混在**です：
+
+```typescript
+// ❌ データ消失の原因パターン
+apiSpecificationDefinition: service.apiSpecificationDoc?.content || '',
+//                                   ↑ 存在しないリレーション
+
+// ✅ 正しいMD形式参照
+apiSpecificationDefinition: service.apiSpecificationDefinition || '',
+//                                   ↑ 直接フィールド参照
+```
+
+#### データベース構造の純化
+
+```sql
+-- ❌ 廃止対象（実装依存のJSON形式）
+domainLanguage TEXT NOT NULL,       -- JSON: パラソル思想に反する
+apiSpecification TEXT NOT NULL,     -- JSON: 実装詳細を含む
+dbSchema TEXT NOT NULL,            -- JSON: 技術仕様に依存
+
+-- ✅ 推奨（実装非依存のMD形式）
+domainLanguageDefinition TEXT,      -- MD: 自然言語設計
+apiSpecificationDefinition TEXT,    -- MD: ビジネス観点の仕様
+databaseDesignDefinition TEXT,      -- MD: 概念レベルの設計
+```
+
+### 9.3 開発ベストプラクティス
+
+#### 1. 新規開発時の鉄則
+
+```markdown
+✅ DO: MD形式のみを使用
+- 自然言語でビジネス価値を記述
+- 実装技術の詳細は記載しない
+- ステークホルダー全員が理解可能な表現
+
+❌ DON'T: JSON/Code形式の混入
+- 技術的な実装詳細の記述
+- プログラミング言語依存の表現
+- データベース固有の構文使用
+```
+
+#### 2. 品質チェック項目
+
+```bash
+# MD形式データの存在確認
+sqlite3 parasol.db "SELECT name,
+  CASE WHEN apiSpecificationDefinition IS NULL OR apiSpecificationDefinition = ''
+       THEN 'NG' ELSE 'OK' END as status
+  FROM services;"
+
+# 実装非依存性チェック
+grep -i "CREATE TABLE\|SELECT\|POST\|GET" *.md && echo "❌ 実装詳細検出"
+```
+
+### 9.4 移行戦略とロードマップ
+
+#### フェーズ1: 現状把握と修正（完了）
+- [x] データ表示問題の修正
+- [x] MD形式フィールドへの正しい参照
+- [x] UI表示の正常化確認
+
+#### フェーズ2: コード品質向上
+- [ ] JSON.parse()処理の段階的削除
+- [ ] TypeScript型定義の統一
+- [ ] エラーハンドリングの強化
+
+#### フェーズ3: データ構造の純化
+- [ ] JSON形式フィールドの廃止
+- [ ] スキーマの簡素化
+- [ ] マイグレーション実行
+
+#### フェーズ4: 品質保証体制
+- [ ] 自動検証ツールの導入
+- [ ] CI/CDでのMD形式チェック
+- [ ] 開発者教育の実施
+
+### 9.5 期待効果
+
+#### 技術的価値
+- **データ消失問題の根絶**: 表示不具合の完全解消
+- **保守性向上**: 統一された理解しやすいコード
+- **品質向上**: 一貫したデータ処理ロジック
+
+#### ビジネス価値
+- **パラソル思想の実現**: 真の実装非依存設計
+- **コミュニケーション改善**: 全員が理解可能な設計書
+- **DX促進**: 技術的負債の解消による開発加速
+
+---
+
+**⚠️ 重要**: MD形式統一は、パラソル開発の成功を左右する**最重要原則**です。この原則を守ることで、真の価値創造型開発が実現されます。
 
 ---
 

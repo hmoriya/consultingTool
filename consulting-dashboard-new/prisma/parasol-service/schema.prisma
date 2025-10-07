@@ -23,6 +23,7 @@ model Service {
   domainLanguageDefinition String?              // MD形式のドメイン言語定義
   apiSpecificationDefinition String?            // MD形式のAPI仕様
   databaseDesignDefinition String?              // MD形式のDB設計
+  integrationSpecificationDefinition String?   // MD形式の統合仕様
   
   // JSON形式の定義（旧方式、後で廃止予定）
   domainLanguage        String                  // パラソルドメイン言語定義（JSON）
@@ -214,17 +215,20 @@ model PageDefinition {
   description     String?             // 説明
   useCaseId       String              // 所属ユースケース
   useCase         UseCase             @relation(fields: [useCaseId], references: [id], onDelete: Cascade)
-  
-  // ページ詳細
+
+  // MD形式のページ定義内容（NEW - Issue #131）
+  content         String?             // MD形式の全文（page.md）
+
+  // ページ詳細（旧方式、後で廃止予定）
   url             String              // URL
   layout          String?             // レイアウト定義（JSON）
   components      String?             // コンポーネント構成（JSON）
   stateManagement String?             // 状態管理（JSON）
   validations     String?             // バリデーション（JSON）
-  
+
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
-  
+
   @@unique([useCaseId, name])
   @@map("page_definitions")
 }
@@ -237,13 +241,16 @@ model TestDefinition {
   description     String?             // 説明
   useCaseId       String              // 所属ユースケース
   useCase         UseCase             @relation(fields: [useCaseId], references: [id], onDelete: Cascade)
-  
-  // テスト詳細
+
+  // MD形式のテスト定義内容（NEW - Issue #131）
+  content         String?             // MD形式の全文（test.md）
+
+  // テスト詳細（旧方式、後で廃止予定）
   testType        String              // テストタイプ（unit, integration, e2e）
   testCases       String?             // テストケース（JSON配列）
   expectedResults String?             // 期待結果（JSON）
   testData        String?             // テストデータ（JSON）
-  
+
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
 

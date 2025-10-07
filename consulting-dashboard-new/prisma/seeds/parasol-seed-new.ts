@@ -4,7 +4,6 @@ import { createBusinessCapabilities } from './parasol/business-capabilities-seed
 import { createBusinessOperations } from './parasol/business-operations-seed'
 import { createUseCases } from './parasol/use-cases-seed'
 import { createPageDefinitions } from './parasol/page-definitions-seed'
-import { createTestDefinitions } from './parasol/test-definitions-seed'
 
 const parasolDb = new ParasolPrismaClient()
 
@@ -152,7 +151,6 @@ export async function seedParasolService() {
   try {
     // 既存データをクリア
     console.log('  Clearing existing data...')
-    await parasolDb.testDefinition.deleteMany({})
     await parasolDb.pageDefinition.deleteMany({})
     await parasolDb.useCase.deleteMany({})
     await parasolDb.businessOperation.deleteMany({})
@@ -195,9 +193,6 @@ export async function seedParasolService() {
     const pageDefinitions = await createPageDefinitions(useCases)
     console.log(`  Created ${pageDefinitions.length} page definitions`)
 
-    // テスト定義を作成
-    const testDefinitions = await createTestDefinitions(useCases)
-    console.log(`  Created ${testDefinitions.length} test definitions`)
 
     // ドメインエンティティを作成
     console.log('  Creating domain entities...')

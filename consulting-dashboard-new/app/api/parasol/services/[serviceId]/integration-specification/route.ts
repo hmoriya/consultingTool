@@ -10,9 +10,17 @@ export async function GET(
   try {
     const { serviceId: serviceName } = await params // パラメータ名はserviceIdだがservice名が入る
 
-    // service nameからserviceIdを取得
+    // service nameからserviceを取得（MD形式フィールドを含む）
     const service = await parasolDb.service.findUnique({
-      where: { name: serviceName }
+      where: { name: serviceName },
+      select: {
+        id: true,
+        name: true,
+        displayName: true,
+        integrationSpecificationDefinition: true,
+        createdAt: true,
+        updatedAt: true
+      }
     })
 
     if (!service) {
@@ -22,33 +30,24 @@ export async function GET(
       )
     }
 
-    const integrationSpec = await parasolDb.integrationSpecification.findUnique({
-      where: { serviceId: service.id }
-    })
-
-    if (!integrationSpec) {
+    if (!service.integrationSpecificationDefinition) {
       return NextResponse.json(
         { error: '統合仕様ドキュメントが見つかりません' },
         { status: 404 }
       )
     }
 
-    // MD形式のコンテンツとパース済みJSONの両方を返す
+    // MD形式のコンテンツを返す
     return NextResponse.json({
       success: true,
       data: {
-        id: integrationSpec.id,
-        serviceId: integrationSpec.serviceId,
-        content: integrationSpec.content, // MD形式の全文
-        parsed: {
-          dependencies: integrationSpec.dependencies ? JSON.parse(integrationSpec.dependencies) : [],
-          providedEvents: integrationSpec.providedEvents ? JSON.parse(integrationSpec.providedEvents) : [],
-          consumedEvents: integrationSpec.consumedEvents ? JSON.parse(integrationSpec.consumedEvents) : [],
-          syncApis: integrationSpec.syncApis ? JSON.parse(integrationSpec.syncApis) : [],
-          asyncPatterns: integrationSpec.asyncPatterns ? JSON.parse(integrationSpec.asyncPatterns) : []
-        },
-        createdAt: integrationSpec.createdAt,
-        updatedAt: integrationSpec.updatedAt
+        id: service.id,
+        serviceId: service.id,
+        serviceName: service.name,
+        displayName: service.displayName,
+        content: service.integrationSpecificationDefinition, // MD形式の全文
+        createdAt: service.createdAt,
+        updatedAt: service.updatedAt
       }
     })
   } catch (error) {
@@ -78,7 +77,7 @@ export async function PUT(
       )
     }
 
-    // service nameからserviceIdを取得
+    // service nameからserviceを取得・更新
     const service = await parasolDb.service.findUnique({
       where: { name: serviceName }
     })
@@ -90,25 +89,22 @@ export async function PUT(
       )
     }
 
-    // Upsert: 存在すれば更新、なければ作成
-    const integrationSpec = await parasolDb.integrationSpecification.upsert({
-      where: { serviceId: service.id },
-      update: {
-        content,
+    // Serviceテーブルの統合仕様フィールドを直接更新
+    const updatedService = await parasolDb.service.update({
+      where: { name: serviceName },
+      data: {
+        integrationSpecificationDefinition: content,
         updatedAt: new Date()
-      },
-      create: {
-        serviceId: service.id,
-        content
       }
     })
 
     return NextResponse.json({
       success: true,
       data: {
-        id: integrationSpec.id,
-        serviceId: integrationSpec.serviceId,
-        updatedAt: integrationSpec.updatedAt
+        id: updatedService.id,
+        serviceId: updatedService.id,
+        serviceName: updatedService.name,
+        updatedAt: updatedService.updatedAt
       }
     })
   } catch (error) {

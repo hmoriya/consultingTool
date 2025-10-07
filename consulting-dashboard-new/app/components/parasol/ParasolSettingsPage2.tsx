@@ -311,8 +311,8 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
       if (service) {
         setSelectedService(service);
       }
-    } else if (node.type === 'capability' || node.type === 'operation' || node.type === 'useCase') {
-      // ケーパビリティ、オペレーション、ユースケースノードが選択された場合
+    } else if (node.type === 'capability' || node.type === 'operation' || node.type === 'useCase' || node.type === 'pageDefinition' || node.type === 'testDefinition') {
+      // ケーパビリティ、オペレーション、ユースケース、ページ定義、テスト定義ノードが選択された場合
       // 親のサービスを見つける
       const findServiceForNode = (nodeId: string): Service | null => {
         for (const service of services) {
@@ -328,6 +328,15 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
           for (const op of service.businessOperations || []) {
             if (op.useCaseModels?.some((uc: any) => uc.id === nodeId)) {
               return service;
+            }
+            // ページ定義とテスト定義をチェック（ユースケース内）
+            for (const uc of op.useCaseModels || []) {
+              if (uc.pageDefinitions?.some((pd: any) => pd.id === nodeId)) {
+                return service;
+              }
+              if (uc.testDefinitions?.some((td: any) => td.id === nodeId)) {
+                return service;
+              }
             }
           }
         }
@@ -795,7 +804,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                           <CardContent>
                             <UnifiedMDEditor
                               type="test-definition"
-                              value={test.description || ''}
+                              value={test.content || ''}
                               onChange={(value) => {
                                 // テスト定義変更処理
                                 // TODO: テスト定義の更新ロジックを実装
@@ -835,7 +844,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
             <CardContent className="overflow-auto">
               <UnifiedMDEditor
                 type="page-definition"
-                value={pageDef?.description || ''}
+                value={pageDef?.content || ''}
                 onChange={(value) => {
                   // ページ定義変更処理
                   // TODO: ページ定義の更新ロジックを実装
@@ -861,7 +870,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
             <CardContent className="overflow-auto">
               <UnifiedMDEditor
                 type="test-definition"
-                value={testDef?.description || ''}
+                value={testDef?.content || ''}
                 onChange={(value) => {
                   // テスト定義変更処理
                   // TODO: テスト定義の更新ロジックを実装

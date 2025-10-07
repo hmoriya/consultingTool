@@ -97,29 +97,10 @@ export function buildTreeFromParasolData(
                     description: pageDef.description,
                     url: pageDef.url,
                     layout: pageDef.layout,
+                    content: pageDef.content, // MD形式のページ定義内容を追加
                   },
                 };
                 useCaseNode.children?.push(pageDefNode);
-              });
-            }
-            
-            // テスト定義を追加
-            if (useCase.testDefinitions && Array.isArray(useCase.testDefinitions)) {
-              useCase.testDefinitions.forEach((testDef: any) => {
-                const testDefNode: TreeNode = {
-                  id: testDef.id,
-                  name: testDef.name,
-                  displayName: testDef.displayName,
-                  type: 'testDefinition',
-                  parentId: useCase.id,
-                  children: [],
-                  metadata: {
-                    description: testDef.description,
-                    testType: testDef.testType,
-                    testCases: testDef.testCases,
-                  },
-                };
-                useCaseNode.children?.push(testDefNode);
               });
             }
             

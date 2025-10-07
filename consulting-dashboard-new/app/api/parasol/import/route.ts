@@ -475,6 +475,7 @@ async function importToDatabase(services: any[]) {
                   name: pageData.name || 'page',
                   displayName: displayName,
                   description: `${pageData.name || 'ページ'}のページ定義`,
+                  content: pageData.content || null, // MD形式の内容を保存 (Issue #131)
                   url: `/${pageData.name || 'page'}`,
                   layout: '{}',
                   components: '[]',
@@ -498,6 +499,7 @@ async function importToDatabase(services: any[]) {
                   name: testData.name || 'test',
                   displayName: testDisplayName,
                   description: `${testData.name || 'テスト'}のテスト定義`,
+                  content: testData.content || null, // MD形式の内容を保存 (Issue #131)
                   testType: 'integration',
                   testCases: '[]',
                   expectedResults: '{}',

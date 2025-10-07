@@ -117,7 +117,6 @@ export async function getServices() {
                   include: {
                     robustnessDiagram: true,
                     pageDefinitions: true,
-                    testDefinitions: true
                   },
                   orderBy: {
                     order: 'asc'
@@ -133,7 +132,6 @@ export async function getServices() {
               include: {
                 robustnessDiagram: true,
                 pageDefinitions: true,
-                testDefinitions: true
               },
               orderBy: {
                 order: 'asc'
@@ -141,10 +139,6 @@ export async function getServices() {
             }
           }
         },
-        domainLanguageDoc: true,
-        apiSpecificationDoc: true,
-        databaseDesignDoc: true,
-        integrationSpecDoc: true,
       },
       orderBy: {
         displayName: 'asc',
@@ -170,9 +164,9 @@ export async function getServices() {
       apiSpecification: JSON.parse(service.apiSpecification),
       dbSchema: JSON.parse(service.dbSchema),
       // 設計ドキュメント (MD形式)
-      apiSpecificationDefinition: service.apiSpecificationDoc?.content || '',
-      databaseDesignDefinition: service.databaseDesignDoc?.content || '',
-      integrationSpecificationDefinition: service.integrationSpecDoc?.content || '',
+      apiSpecificationDefinition: service.apiSpecificationDefinition || '',
+      databaseDesignDefinition: service.databaseDesignDefinition || '',
+      integrationSpecificationDefinition: service.integrationSpecificationDefinition || '',
       capabilities: service.capabilities.map(cap => ({
         ...cap,
         businessOperations: cap.businessOperations.map(op => ({
@@ -193,7 +187,6 @@ export async function getServices() {
             alternativeFlow: uc.alternativeFlow ? JSON.parse(uc.alternativeFlow) : null,
             exceptionFlow: uc.exceptionFlow ? JSON.parse(uc.exceptionFlow) : null,
             pageDefinitions: uc.pageDefinitions || [],
-            testDefinitions: uc.testDefinitions || [],
           }))
         }))
       })),
@@ -215,7 +208,6 @@ export async function getServices() {
           alternativeFlow: uc.alternativeFlow ? JSON.parse(uc.alternativeFlow) : null,
           exceptionFlow: uc.exceptionFlow ? JSON.parse(uc.exceptionFlow) : null,
           pageDefinitions: uc.pageDefinitions || [],
-          testDefinitions: uc.testDefinitions || [],
         }))
       }))
     }));
@@ -688,7 +680,6 @@ export async function createUseCase(data: {
       include: {
         robustnessDiagram: true,
         pageDefinitions: true,
-        testDefinitions: true
       }
     });
 
@@ -745,7 +736,6 @@ export async function updateUseCase(id: string, data: {
       include: {
         robustnessDiagram: true,
         pageDefinitions: true,
-        testDefinitions: true
       }
     });
 
@@ -888,9 +878,20 @@ export async function getUseCasesForOperation(operationId: string) {
       include: {
         pageDefinitions: {
           orderBy: { name: 'asc' },
-        },
-        testDefinitions: {
-          orderBy: { name: 'asc' },
+          select: {
+            id: true,
+            name: true,
+            displayName: true,
+            description: true,
+            content: true, // MD形式の内容を含める
+            url: true,
+            layout: true,
+            components: true,
+            stateManagement: true,
+            validations: true,
+            createdAt: true,
+            updatedAt: true,
+          },
         },
       },
     });

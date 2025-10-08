@@ -46,17 +46,20 @@ function extractMetadata(content: string, type: 'service' | 'capability' | 'oper
   const metadata: any = {}
 
   // タイトルを抽出（最初の#行）
-  const titleLine = lines.find(line => line.startsWith('# '))
+  const titleLine = lines.find(line => line.startsWith('# ') || line.includes('# '))
   if (titleLine) {
     let title = titleLine.replace('# ', '').trim()
 
-    // パラソル設計MDファイルの形式に対応
-    if (type === 'page' && title.includes('ページ定義：')) {
-      title = title.replace('ページ定義：', '').trim()
-    } else if (type === 'usecase' && title.includes('ユースケース：')) {
-      title = title.replace('ユースケース：', '').trim()
-    } else if (type === 'test' && title.includes('テスト定義：')) {
-      title = title.replace('テスト定義：', '').trim()
+    // ANSIエスケープシーケンスを除去
+    title = title.replace(/\x1b\[[0-9;]*m/g, '').replace(/\x1b./g, '').trim()
+
+    // パラソル設計MDファイルの形式に対応（通常コロンと全角コロン両方対応）
+    if (type === 'page' && (title.includes('ページ定義：') || title.includes('ページ定義:'))) {
+      title = title.replace(/ページ定義[：:]/, '').trim()
+    } else if (type === 'usecase' && (title.includes('ユースケース：') || title.includes('ユースケース:'))) {
+      title = title.replace(/ユースケース[：:]/, '').trim()
+    } else if (type === 'test' && (title.includes('テスト定義：') || title.includes('テスト定義:'))) {
+      title = title.replace(/テスト定義[：:]/, '').trim()
     }
 
     metadata.displayName = title
@@ -439,74 +442,119 @@ async function importToDatabase(services: any[]) {
           })
           importedOperations++
 
-          // ユースケースを個別レコードとして保存
-          for (const usecaseData of operationData.usecases || []) {
-            // displayNameの安全な設定
-            const useCaseDisplayName = usecaseData.displayName && typeof usecaseData.displayName === 'string' && usecaseData.displayName.trim()
-              ? usecaseData.displayName.trim()
-              : (usecaseData.name || 'ユースケース').replace(/-/g, ' ')
+          // ユースケースが存在する場合とそうでない場合を分けて処理
+          if (operationData.usecases && operationData.usecases.length > 0) {
+            // ユースケースを個別レコードとして保存
+            for (const usecaseData of operationData.usecases) {
+              // displayNameの安全な設定
+              const useCaseDisplayName = usecaseData.displayName && typeof usecaseData.displayName === 'string' && usecaseData.displayName.trim()
+                ? usecaseData.displayName.trim()
+                : (usecaseData.name || 'ユースケース').replace(/-/g, ' ')
 
-            const useCase = await tx.useCase.create({
-              data: {
-                operationId: operation.id,
-                name: usecaseData.name || 'usecase',
-                displayName: useCaseDisplayName,
-                definition: usecaseData.content,
-                description: `${usecaseData.name || 'ユースケース'}のユースケース`,
-                actors: JSON.stringify({ primary: 'User', secondary: [] }),
-                preconditions: '[]',
-                postconditions: '[]',
-                basicFlow: '[]',
-                alternativeFlow: '[]',
-                exceptionFlow: '[]'
+              const useCase = await tx.useCase.create({
+                data: {
+                  operationId: operation.id,
+                  name: usecaseData.name || 'usecase',
+                  displayName: useCaseDisplayName,
+                  definition: usecaseData.content,
+                  description: `${usecaseData.name || 'ユースケース'}のユースケース`,
+                  actors: JSON.stringify({ primary: 'User', secondary: [] }),
+                  preconditions: '[]',
+                  postconditions: '[]',
+                  basicFlow: '[]',
+                  alternativeFlow: '[]',
+                  exceptionFlow: '[]'
+                }
+              })
+
+              // 各ユースケースに関連するページ定義を保存
+              for (const pageData of operationData.pages || []) {
+                // displayNameの安全な設定
+                const displayName = pageData.displayName && typeof pageData.displayName === 'string' && pageData.displayName.trim()
+                  ? pageData.displayName.trim()
+                  : (pageData.name || 'ページ').replace(/-/g, ' ')
+
+                await tx.pageDefinition.create({
+                  data: {
+                    useCaseId: useCase.id,
+                    name: pageData.name || 'page',
+                    displayName: displayName,
+                    description: `${pageData.name || 'ページ'}のページ定義`,
+                    content: pageData.content || null, // MD形式の内容を保存 (Issue #131)
+                    url: `/${pageData.name || 'page'}`,
+                    layout: '{}',
+                    components: '[]',
+                    stateManagement: '{}',
+                    validations: '[]'
+                  }
+                })
+                importedPages++
               }
-            })
 
-            // 各ユースケースに関連するページ定義を保存
-            for (const pageData of operationData.pages || []) {
-              // displayNameの安全な設定
-              const displayName = pageData.displayName && typeof pageData.displayName === 'string' && pageData.displayName.trim()
-                ? pageData.displayName.trim()
-                : (pageData.name || 'ページ').replace(/-/g, ' ')
+              // 各ユースケースに関連するテスト定義を保存
+              for (const testData of operationData.tests || []) {
+                // displayNameの安全な設定
+                const testDisplayName = testData.displayName && typeof testData.displayName === 'string' && testData.displayName.trim()
+                  ? testData.displayName.trim()
+                  : (testData.name || 'テスト').replace(/-/g, ' ')
 
-              await tx.pageDefinition.create({
-                data: {
-                  useCaseId: useCase.id,
-                  name: pageData.name || 'page',
-                  displayName: displayName,
-                  description: `${pageData.name || 'ページ'}のページ定義`,
-                  content: pageData.content || null, // MD形式の内容を保存 (Issue #131)
-                  url: `/${pageData.name || 'page'}`,
-                  layout: '{}',
-                  components: '[]',
-                  stateManagement: '{}',
-                  validations: '[]'
-                }
-              })
-              importedPages++
+                await tx.testDefinition.create({
+                  data: {
+                    useCaseId: useCase.id,
+                    name: testData.name || 'test',
+                    displayName: testDisplayName,
+                    description: `${testData.name || 'テスト'}のテスト定義`,
+                    content: testData.content || null, // MD形式の内容を保存 (Issue #131)
+                    testType: 'integration',
+                    testCases: '[]',
+                    expectedResults: '{}',
+                    testData: '{}'
+                  }
+                })
+                importedTests++
+              }
             }
-
-            // 各ユースケースに関連するテスト定義を保存
-            for (const testData of operationData.tests || []) {
-              // displayNameの安全な設定
-              const testDisplayName = testData.displayName && typeof testData.displayName === 'string' && testData.displayName.trim()
-                ? testData.displayName.trim()
-                : (testData.name || 'テスト').replace(/-/g, ' ')
-
-              await tx.testDefinition.create({
+          } else {
+            // ユースケースがない場合：デフォルトのユースケースを作成してページ定義を関連付け
+            if (operationData.pages && operationData.pages.length > 0) {
+              const defaultUseCase = await tx.useCase.create({
                 data: {
-                  useCaseId: useCase.id,
-                  name: testData.name || 'test',
-                  displayName: testDisplayName,
-                  description: `${testData.name || 'テスト'}のテスト定義`,
-                  content: testData.content || null, // MD形式の内容を保存 (Issue #131)
-                  testType: 'integration',
-                  testCases: '[]',
-                  expectedResults: '{}',
-                  testData: '{}'
+                  operationId: operation.id,
+                  name: 'default-usecase',
+                  displayName: `${operationData.displayName}のユースケース`,
+                  definition: operationData.content,
+                  description: `${operationData.displayName}のデフォルトユースケース`,
+                  actors: JSON.stringify({ primary: 'User', secondary: [] }),
+                  preconditions: '[]',
+                  postconditions: '[]',
+                  basicFlow: '[]',
+                  alternativeFlow: '[]',
+                  exceptionFlow: '[]'
                 }
               })
-              importedTests++
+
+              // ページ定義を保存
+              for (const pageData of operationData.pages) {
+                const displayName = pageData.displayName && typeof pageData.displayName === 'string' && pageData.displayName.trim()
+                  ? pageData.displayName.trim()
+                  : (pageData.name || 'ページ').replace(/-/g, ' ')
+
+                await tx.pageDefinition.create({
+                  data: {
+                    useCaseId: defaultUseCase.id,
+                    name: pageData.name || 'page',
+                    displayName: displayName,
+                    description: `${pageData.name || 'ページ'}のページ定義`,
+                    content: pageData.content || null,
+                    url: `/${pageData.name || 'page'}`,
+                    layout: '{}',
+                    components: '[]',
+                    stateManagement: '{}',
+                    validations: '[]'
+                  }
+                })
+                importedPages++
+              }
             }
           }
         }

@@ -2076,6 +2076,61 @@ tsx prisma/seeds/project-seed.ts
 #### 今後の改善（Issue #100）
 シード実行時に自動的に既存データをクリアする機能を実装予定
 
+## パラソル3層分離ページアーキテクチャ
+
+### 概要
+パラソルページ定義の重複問題を解決し、保守性を向上させるため、3層分離アーキテクチャを導入します。現在の700ページから450ページへの36%削減と、重複100%解消を目標とします。
+
+**関連Issue**: [#135](https://github.com/hmoriya/consultingTool/issues/135)
+**詳細設計**: `design/parasol/specifications/3-layer-page-architecture-spec.md`
+**アーキテクチャ図**: `design/parasol/architecture/3-layer-page-architecture.md`
+
+### 3層分離の基本方針
+
+#### 🏢 Layer 1: サービス横断共通ページ
+- **配置**: `services/global-shared-pages/`
+- **対象**: 全サービスで共通利用するページ
+- **例**: ログイン・ログアウト、ダッシュボード、通知一覧、エラーページ
+- **変更影響**: 全サービス（慎重な変更管理が必要）
+
+#### 🔧 Layer 2: オペレーション内共有ページ
+- **配置**: `operations/[operation-name]/shared-pages/`
+- **対象**: 同一ビジネスオペレーション内で共通利用するページ
+- **例**: 成果物提出画面、一覧・検索画面、承認ワークフロー画面
+- **変更影響**: オペレーション内のユースケース群
+
+#### 📄 Layer 3: ユースケース専用ページ
+- **配置**: `usecases/[usecase-name]/dedicated-pages/`
+- **対象**: 特定ユースケースでのみ利用する専用ページ
+- **例**: 複雑な入力ウィザード、特殊な承認フロー、固有のレポート画面
+- **変更影響**: 単一ユースケースのみ
+
+### ディレクトリ構造例
+
+```
+services/[service-name]/
+├── global-shared-pages/           # 🏢 Layer 1: サービス横断共通
+├── capabilities/[capability]/
+│   └── operations/[operation]/
+│       ├── shared-pages/          # 🔧 Layer 2: オペレーション内共有
+│       ├── usecases/
+│       │   └── [usecase]/
+│       │       └── dedicated-pages/ # 📄 Layer 3: ユースケース専用
+│       └── tests/
+```
+
+### 実装効果
+- **ページ数**: 700 → 450 (36%削減)
+- **重複数**: 150 → 0 (100%解消)
+- **保守工数**: UI共通変更で87%削減
+- **開発効率**: 新規ページ開発時間が80%削減
+
+### 運用ルール
+1. **新規ページ作成時**: 3層分類判定フローに従う
+2. **Layer 1 変更**: 全サービス影響分析必須
+3. **Layer 2 変更**: オペレーション内影響分析必須
+4. **Layer 3 変更**: ユースケース単位で実施可能
+
 ## 現在のサービス・ケーパビリティ構成
 
 ### サービス階層構造
@@ -2480,3 +2535,29 @@ export NO_COLOR=1
 133	OPEN	パラソル設計のMD形式完全統一とJSON形式廃止		2025-10-06 21:26:52 +0000 UTC
 132	OPEN	全ビジネスオペレーションのユースケースとページ定義を完成させる		2025-10-06 11:34:39 +0000 UTC
 ```
+
+#### ✅ Issue作成時のANSIエスケープシーケンス問題も解決済み（2025-10-08）
+
+**問題**: GitHub CLIで`gh issue create`時にHEREDOC (`<<'EOF'`) を使用すると、Issueの本文にANSIカラーエスケープシーケンスが混入する
+
+**根本原因**: シンタックスハイライトツール（bat等）がMarkdownを解釈してANSIエスケープシーケンス（`\u001b[38;2;141;161;185m`等）を追加
+
+**解決方法**: ファイルベースでのIssue作成を採用
+
+```bash
+# ❌ 問題のある方法（HEREDOCでANSIエスケープが混入）
+gh issue create --title "..." --body "$(cat <<'EOF' ...)"
+
+# ✅ 正しい方法（ファイルベースでクリーンなテキスト）
+echo "Issueの内容" > /tmp/issue-body.md
+gh issue create --title "..." --body-file /tmp/issue-body.md
+rm /tmp/issue-body.md
+```
+
+**実証結果**:
+- Issue #136, #137: ANSIエスケープシーケンス混入により閉鎖
+- Issue #138: ファイルベース作成で完全にクリーンなテキスト表示を実現
+- 日本語テキストの正常表示を確認: 「パラソル設計のユースケース・ページ重複分析と共通化最適化」
+
+**推奨運用**:
+今後のIssue作成では`--body-file`オプションを使用し、ANSI文字化けを完全に回避

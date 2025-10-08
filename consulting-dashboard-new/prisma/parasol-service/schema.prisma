@@ -216,6 +216,7 @@ model PageDefinition {
   useCaseId       String              // 所属ユースケース
   useCase         UseCase             @relation(fields: [useCaseId], references: [id], onDelete: Cascade)
 
+
   // MD形式のページ定義内容（NEW - Issue #131）
   content         String?             // MD形式の全文（page.md）
 
@@ -232,6 +233,7 @@ model PageDefinition {
   @@unique([useCaseId, name])
   @@map("page_definitions")
 }
+
 
 // テスト定義
 model TestDefinition {

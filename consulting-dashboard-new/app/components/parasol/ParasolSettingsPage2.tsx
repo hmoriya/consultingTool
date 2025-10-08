@@ -25,6 +25,9 @@ import { cn } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 import { generateInitialDomainLanguageFromCapabilities, refineDomainLanguageFromOperations } from '@/lib/parasol/domain-language-generator';
+import DuplicationAnalysisDashboard from './DuplicationAnalysisDashboard';
+import DesignQualityDashboard from './DesignQualityDashboard';
+import DesignRestructureDashboard from './DesignRestructureDashboard';
 
 interface Service {
   id: string;
@@ -434,13 +437,16 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
           </CardHeader>
           <CardContent className="overflow-auto">
             <Tabs defaultValue="service-description" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-6">
+              <TabsList className="grid w-full grid-cols-9">
                 <TabsTrigger value="service-description">サービス説明</TabsTrigger>
                 <TabsTrigger value="domain-language">ドメイン言語</TabsTrigger>
                 <TabsTrigger value="api-spec">API仕様</TabsTrigger>
                 <TabsTrigger value="db-design">DB設計</TabsTrigger>
                 <TabsTrigger value="capability">ケーパビリティ</TabsTrigger>
                 <TabsTrigger value="generation">生成</TabsTrigger>
+                <TabsTrigger value="duplication-analysis">重複分析</TabsTrigger>
+                <TabsTrigger value="design-quality">設計品質</TabsTrigger>
+                <TabsTrigger value="design-restructure">設計再構築</TabsTrigger>
               </TabsList>
 
               <TabsContent value="service-description">
@@ -573,6 +579,18 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                   capabilities={selectedService.capabilities || []}
                   operations={selectedService.businessOperations || []}
                 />
+              </TabsContent>
+
+              <TabsContent value="duplication-analysis">
+                <DuplicationAnalysisDashboard />
+              </TabsContent>
+
+              <TabsContent value="design-quality">
+                <DesignQualityDashboard />
+              </TabsContent>
+
+              <TabsContent value="design-restructure">
+                <DesignRestructureDashboard />
               </TabsContent>
             </Tabs>
           </CardContent>

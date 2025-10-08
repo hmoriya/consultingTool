@@ -478,6 +478,12 @@ export async function POST(request: Request) {
       return NextResponse.json(result)
     }
 
+    if (action === 'delete_database_duplicates') {
+      // データベースレベルの重複削除を実行
+      const result = await deleteDatabaseDuplicates()
+      return NextResponse.json(result)
+    }
+
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
 
   } catch (error) {
@@ -609,5 +615,179 @@ async function deleteDuplicateMDFiles(): Promise<any> {
     errorCount,
     results,
     message: `${successCount}件の重複ファイルを削除、${errorCount}件のエラーが発生しました`
+  }
+}
+
+// データベースレベルの重複削除専用の関数
+async function deleteDatabaseDuplicates(): Promise<any> {
+  try {
+    const results = []
+    let totalDeletedRecords = 0
+    let totalProcessedGroups = 0
+
+    // 1. 重複するページ定義を取得
+    const duplicateGroupsRaw = await parasolDb.$queryRaw<Array<{displayName: string, count: bigint}>>`
+      SELECT displayName, COUNT(*) as count
+      FROM page_definitions
+      GROUP BY displayName
+      HAVING COUNT(*) > 1
+      ORDER BY count DESC
+    `
+
+    // BigIntをnumberに変換
+    const duplicateGroups = duplicateGroupsRaw.map(group => ({
+      displayName: group.displayName,
+      count: Number(group.count)
+    }))
+
+    console.log(`データベース重複グループ数: ${duplicateGroups.length}`)
+
+    // 2. 各重複グループについて、最新以外を削除
+    for (const group of duplicateGroups) {
+      try {
+        totalProcessedGroups++
+
+        // 同じdisplayNameのページ定義を取得（作成日時の降順）
+        const duplicatePages = await parasolDb.pageDefinition.findMany({
+          where: {
+            displayName: group.displayName
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        })
+
+        // 最新の1件を除いて削除対象を特定
+        const pagesToDelete = duplicatePages.slice(1) // 最初（最新）以外は削除
+
+        if (pagesToDelete.length > 0) {
+          // 削除対象のIDを取得
+          const idsToDelete = pagesToDelete.map(page => page.id)
+
+          // 削除実行
+          const deleteResult = await parasolDb.pageDefinition.deleteMany({
+            where: {
+              id: {
+                in: idsToDelete
+              }
+            }
+          })
+
+          totalDeletedRecords += deleteResult.count
+
+          results.push({
+            displayName: group.displayName,
+            totalCount: group.count,
+            deletedCount: deleteResult.count,
+            keptPageId: duplicatePages[0].id,
+            status: 'success',
+            message: `${deleteResult.count}件の重複レコードを削除し、最新の1件を保持しました`
+          })
+
+          console.log(`✅ ${group.displayName}: ${deleteResult.count}件削除、1件保持`)
+        }
+
+      } catch (error) {
+        console.error(`重複グループ処理エラー (${group.displayName}):`, error)
+        results.push({
+          displayName: group.displayName,
+          totalCount: group.count,
+          deletedCount: 0,
+          status: 'error',
+          message: error instanceof Error ? error.message : 'Unknown error'
+        })
+      }
+    }
+
+    // 3. ユースケース定義の重複も処理
+    const duplicateUseCaseGroupsRaw = await parasolDb.$queryRaw<Array<{displayName: string, count: bigint}>>`
+      SELECT displayName, COUNT(*) as count
+      FROM use_cases
+      GROUP BY displayName
+      HAVING COUNT(*) > 1
+      ORDER BY count DESC
+    `
+
+    // BigIntをnumberに変換
+    const duplicateUseCaseGroups = duplicateUseCaseGroupsRaw.map(group => ({
+      displayName: group.displayName,
+      count: Number(group.count)
+    }))
+
+    console.log(`ユースケース重複グループ数: ${duplicateUseCaseGroups.length}`)
+
+    for (const group of duplicateUseCaseGroups) {
+      try {
+        totalProcessedGroups++
+
+        const duplicateUseCases = await parasolDb.useCase.findMany({
+          where: {
+            displayName: group.displayName
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        })
+
+        const useCasesToDelete = duplicateUseCases.slice(1)
+
+        if (useCasesToDelete.length > 0) {
+          const idsToDelete = useCasesToDelete.map(uc => uc.id)
+
+          const deleteResult = await parasolDb.useCase.deleteMany({
+            where: {
+              id: {
+                in: idsToDelete
+              }
+            }
+          })
+
+          totalDeletedRecords += deleteResult.count
+
+          results.push({
+            displayName: group.displayName,
+            totalCount: group.count,
+            deletedCount: deleteResult.count,
+            keptUseCaseId: duplicateUseCases[0].id,
+            status: 'success',
+            type: 'usecase',
+            message: `${deleteResult.count}件の重複ユースケースを削除し、最新の1件を保持しました`
+          })
+
+          console.log(`✅ ユースケース ${group.displayName}: ${deleteResult.count}件削除、1件保持`)
+        }
+
+      } catch (error) {
+        console.error(`ユースケース重複グループ処理エラー (${group.displayName}):`, error)
+        results.push({
+          displayName: group.displayName,
+          totalCount: group.count,
+          deletedCount: 0,
+          status: 'error',
+          type: 'usecase',
+          message: error instanceof Error ? error.message : 'Unknown error'
+        })
+      }
+    }
+
+    return {
+      success: true,
+      processedGroups: totalProcessedGroups,
+      deletedRecords: totalDeletedRecords,
+      pageGroups: duplicateGroups.length,
+      useCaseGroups: duplicateUseCaseGroups.length,
+      results,
+      message: `${totalProcessedGroups}グループを処理し、${totalDeletedRecords}件の重複レコードを削除しました`
+    }
+
+  } catch (error) {
+    console.error('データベース重複削除エラー:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      message: 'データベース重複削除中にエラーが発生しました'
+    }
+  } finally {
+    await parasolDb.$disconnect()
   }
 }

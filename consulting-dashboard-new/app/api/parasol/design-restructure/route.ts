@@ -196,43 +196,139 @@ class DesignRestructureAnalyzer {
   }
 
   private generateProposedMappings(useCases: UseCaseFile[], pages: PageFile[]): ProposedMapping[] {
-    const mappings: ProposedMapping[] = []
+    // ビジネスオペレーション名をファイルパスから抽出
+    const operationName = useCases[0] ? this.extractOperationName(useCases[0].filePath) : ''
+
+    // 理想的な1対1関係を推論
+    const idealStructure = this.inferIdealStructureFromOperation(operationName, useCases, pages)
+
+    // 既存ファイルとのマッピング
+    return this.mapExistingFilesToIdealStructure(idealStructure, useCases, pages)
+  }
+
+  private extractOperationName(filePath: string): string {
+    // パスから operations/[operation-name] の [operation-name] 部分を抽出
+    // 例: "docs/parasol/services/.../operations/facilitate-communication/usecases/..."
+    const operationMatch = filePath.match(/\/operations\/([^\/]+)\//)
+    return operationMatch ? operationMatch[1] : ''
+  }
+
+  private inferIdealStructureFromOperation(operationName: string, useCases: UseCaseFile[], pages: PageFile[]): Array<{useCaseName: string, pageName: string, confidence: number}> {
+    // ビジネスオペレーション名から理想的なユースケース・ページペアを推論
+    const operationPatterns = {
+      'facilitate-communication': [
+        { useCase: 'create-communication-channel', page: 'communication-channel-creation-page', confidence: 0.95 },
+        { useCase: 'manage-communication-channel', page: 'communication-channel-management-page', confidence: 0.95 },
+        { useCase: 'send-message', page: 'message-send-page', confidence: 0.90 },
+        { useCase: 'moderate-communication', page: 'communication-moderation-page', confidence: 0.85 }
+      ],
+      'register-and-manage-members': [
+        { useCase: 'register-member', page: 'member-registration-page', confidence: 0.95 },
+        { useCase: 'manage-member-profile', page: 'member-profile-management-page', confidence: 0.95 },
+        { useCase: 'search-members', page: 'member-search-page', confidence: 0.90 },
+        { useCase: 'delete-member', page: 'member-deletion-page', confidence: 0.85 }
+      ],
+      'manage-projects': [
+        { useCase: 'create-project', page: 'project-creation-page', confidence: 0.95 },
+        { useCase: 'update-project', page: 'project-update-page', confidence: 0.95 },
+        { useCase: 'monitor-project-progress', page: 'project-monitoring-page', confidence: 0.90 },
+        { useCase: 'complete-project', page: 'project-completion-page', confidence: 0.85 }
+      ]
+    }
+
+    // パターンマッチングによる推論
+    if (operationPatterns[operationName]) {
+      return operationPatterns[operationName].map(pattern => ({
+        useCaseName: pattern.useCase,
+        pageName: pattern.page,
+        confidence: pattern.confidence
+      }))
+    }
+
+    // パターンがない場合は、既存ファイル名から推論
+    return this.inferFromExistingFiles(useCases, pages)
+  }
+
+  private inferFromExistingFiles(useCases: UseCaseFile[], pages: PageFile[]): Array<{useCaseName: string, pageName: string, confidence: number}> {
+    const inferred: Array<{useCaseName: string, pageName: string, confidence: number}> = []
 
     for (const useCase of useCases) {
-      let bestMatch: PageFile | null = null
-      let bestScore = 0
+      // ファイル名から機能を推論
+      const baseName = useCase.fileName.replace('.md', '')
+      const expectedPageName = `${baseName}-page.md`
 
-      for (const page of pages) {
-        const score = this.calculateSimilarity(useCase, page)
-        if (score > bestScore) {
-          bestScore = score
-          bestMatch = page
-        }
-      }
+      // 対応するページが存在するかチェック
+      const matchingPage = pages.find(page =>
+        page.fileName === expectedPageName ||
+        this.calculateNameSimilarity(baseName, page.fileName.replace('-page.md', '').replace('.md', '')) > 0.7
+      )
 
-      if (bestMatch) {
-        const action = bestScore > 0.8 ? 'merge' : bestScore > 0.5 ? 'rename' : 'create'
+      inferred.push({
+        useCaseName: baseName,
+        pageName: matchingPage ? matchingPage.fileName.replace('.md', '') : `${baseName}-page`,
+        confidence: matchingPage ? 0.8 : 0.6 // 既存ページがあれば高信頼度
+      })
+    }
 
+    return inferred
+  }
+
+  private calculateNameSimilarity(name1: string, name2: string): number {
+    return this.stringLikeness(name1.toLowerCase(), name2.toLowerCase())
+  }
+
+  private mapExistingFilesToIdealStructure(idealStructure: Array<{useCaseName: string, pageName: string, confidence: number}>, useCases: UseCaseFile[], pages: PageFile[]): ProposedMapping[] {
+    const mappings: ProposedMapping[] = []
+
+    for (const ideal of idealStructure) {
+      // 理想的なユースケース名に最も近い既存ファイルを検索
+      const bestUseCaseMatch = this.findBestFileMatch(ideal.useCaseName, useCases.map(uc => uc.fileName))
+      const bestPageMatch = this.findBestFileMatch(ideal.pageName, pages.map(p => p.fileName))
+
+      const actualUseCase = useCases.find(uc => uc.fileName === bestUseCaseMatch)
+      const actualPage = pages.find(p => p.fileName === bestPageMatch)
+
+      if (actualUseCase) {
         mappings.push({
-          useCaseFile: useCase.fileName,
-          suggestedPageFile: bestMatch.fileName,
-          confidence: bestScore,
-          reason: this.generateMappingReason(useCase, bestMatch, bestScore),
-          action
-        })
-      } else {
-        // ページが見つからない場合は新規作成を提案
-        mappings.push({
-          useCaseFile: useCase.fileName,
-          suggestedPageFile: useCase.fileName.replace('.md', '-page.md'),
-          confidence: 1.0,
-          reason: '対応するページが存在しないため、新規作成を提案',
-          action: 'create'
+          useCaseFile: actualUseCase.fileName,
+          suggestedPageFile: actualPage ? actualPage.fileName : `${ideal.pageName}.md`,
+          confidence: ideal.confidence,
+          reason: this.generateStructureBasedReason(ideal.confidence, actualPage !== undefined),
+          action: actualPage ? 'merge' : 'create'
         })
       }
     }
 
     return mappings
+  }
+
+  private findBestFileMatch(idealName: string, actualFiles: string[]): string | null {
+    let bestMatch: string | null = null
+    let bestScore = 0
+
+    for (const file of actualFiles) {
+      const fileName = file.replace('.md', '').replace('-page', '')
+      const score = this.calculateNameSimilarity(idealName, fileName)
+
+      if (score > bestScore) {
+        bestScore = score
+        bestMatch = file
+      }
+    }
+
+    return bestScore > 0.3 ? bestMatch : null // 最低30%の類似度が必要
+  }
+
+  private generateStructureBasedReason(confidence: number, pageExists: boolean): string {
+    if (confidence > 0.9) {
+      return `ビジネスオペレーションから推論された強い1対1関係 (${Math.round(confidence * 100)}%)`
+    } else if (confidence > 0.7) {
+      return `ビジネスロジックに基づく適切な対応関係 (${Math.round(confidence * 100)}%)`
+    } else if (pageExists) {
+      return `既存ファイルの名前パターンから推論 (${Math.round(confidence * 100)}%)`
+    } else {
+      return `新規ページ作成が必要 (${Math.round(confidence * 100)}%)`
+    }
   }
 
   private calculateSimilarity(useCase: UseCaseFile, page: PageFile): number {
@@ -285,13 +381,71 @@ class DesignRestructureAnalyzer {
   }
 
   private calculateContentSimilarity(content1: string, content2: string): number {
-    const words1 = new Set(content1.toLowerCase().match(/\w+/g) || [])
-    const words2 = new Set(content2.toLowerCase().match(/\w+/g) || [])
+    // 冗長表現の正規化
+    const normalized1 = this.normalizeRedundantText(content1)
+    const normalized2 = this.normalizeRedundantText(content2)
 
-    const intersection = new Set([...words1].filter(x => words2.has(x)))
-    const union = new Set([...words1, ...words2])
+    // 機能的キーワードの抽出
+    const functionalWords1 = this.extractFunctionalKeywords(normalized1)
+    const functionalWords2 = this.extractFunctionalKeywords(normalized2)
 
-    return union.size > 0 ? intersection.size / union.size : 0
+    // 通常の単語集合
+    const words1 = new Set(normalized1.toLowerCase().match(/\w+/g) || [])
+    const words2 = new Set(normalized2.toLowerCase().match(/\w+/g) || [])
+
+    // 機能的キーワードの類似度（重み3倍）
+    const functionalIntersection = new Set([...functionalWords1].filter(x => functionalWords2.has(x)))
+    const functionalUnion = new Set([...functionalWords1, ...functionalWords2])
+    const functionalSimilarity = functionalUnion.size > 0 ? functionalIntersection.size / functionalUnion.size : 0
+
+    // 通常の単語類似度
+    const wordIntersection = new Set([...words1].filter(x => words2.has(x)))
+    const wordUnion = new Set([...words1, ...words2])
+    const wordSimilarity = wordUnion.size > 0 ? wordIntersection.size / wordUnion.size : 0
+
+    // 重み付き平均（機能的キーワード70%、通常単語30%）
+    return functionalSimilarity * 0.7 + wordSimilarity * 0.3
+  }
+
+  private normalizeRedundantText(content: string): string {
+    return content
+      // 「・」で区切られた冗長な修飾語列を簡素化
+      .replace(/([・・]+[^・\s]+){5,}/g, ' ')
+      // 繰り返し修飾語パターンを除去
+      .replace(/(効率|品質|価値|競争力|成功|満足|最適化)[・・]+/g, '')
+      // 過度な修飾語を簡略化
+      .replace(/継続的・効率的・安全に/g, '継続的に')
+      .replace(/円滑・効果的・生産的な/g, '効果的な')
+      .replace(/適切・最適・効果的/g, '適切')
+      // 複数の中点を単一スペースに
+      .replace(/[・・]+/g, ' ')
+      // 多重スペースを単一スペースに
+      .replace(/\s+/g, ' ')
+      .trim()
+  }
+
+  private extractFunctionalKeywords(content: string): Set<string> {
+    const functionalKeywords = [
+      // 基本動作
+      '作成', '管理', '設定', '変更', '削除', '追加', '編集', '更新',
+      // コミュニケーション関連
+      'チャネル', 'メッセージ', '通知', 'コミュニケーション', '情報共有',
+      'ディスカッション', '会議', 'チャット', '送信', '受信',
+      // メンバー・権限関連
+      'メンバー', 'ユーザー', '権限', 'ロール', 'アクセス', '招待',
+      'グループ', 'チーム', 'プロジェクト', '組織', '承認',
+      // システム機能
+      'ログイン', 'ログアウト', '認証', 'セキュリティ', '監査',
+      'バックアップ', '復旧', '同期', '統合', '連携',
+      // UI要素
+      'ページ', '画面', 'フォーム', 'ボタン', 'メニュー', 'ダッシュボード',
+      'リスト', 'テーブル', 'カード', 'アイコン', 'プレビュー'
+    ]
+
+    const words = content.toLowerCase().match(/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\w]+/g) || []
+    return new Set(words.filter(word =>
+      functionalKeywords.some(keyword => word.includes(keyword) || keyword.includes(word))
+    ))
   }
 
   private generateMappingReason(useCase: UseCaseFile, page: PageFile, score: number): string {

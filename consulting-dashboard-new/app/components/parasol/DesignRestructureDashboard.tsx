@@ -199,6 +199,38 @@ export default function DesignRestructureDashboard() {
     }
   }
 
+  const handleDeleteDatabaseDuplicates = async () => {
+    const confirmDelete = confirm('データベース内の重複レコードを削除します。同一名のページ・ユースケースで最新以外が削除されます。続行しますか？')
+
+    if (!confirmDelete) return
+
+    try {
+      setIsLoading(true)
+      const response = await fetch('/api/parasol/design-restructure', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'delete_database_duplicates'
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        alert(`データベース重複削除が完了しました: ${result.message}\n削除されたレコード: ${result.deletedRecords}件\nページグループ: ${result.pageGroups}件\nユースケースグループ: ${result.useCaseGroups}件`)
+        await fetchAnalysis() // データを再取得
+      } else {
+        alert(`データベース重複削除に失敗しました: ${result.message}`)
+      }
+
+    } catch (error) {
+      console.error('データベース重複削除エラー:', error)
+      alert('データベース重複削除の処理中にエラーが発生しました')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const getConfidenceLevel = (confidence: number) => {
     if (confidence >= CONFIDENCE_LEVELS.high.min) return CONFIDENCE_LEVELS.high
     if (confidence >= CONFIDENCE_LEVELS.medium.min) return CONFIDENCE_LEVELS.medium
@@ -286,6 +318,10 @@ export default function DesignRestructureDashboard() {
           <Button variant="destructive" onClick={handleDeleteDuplicates} disabled={isLoading}>
             <Trash2 className="h-4 w-4 mr-2" />
             重複ファイル削除
+          </Button>
+          <Button variant="destructive" onClick={handleDeleteDatabaseDuplicates} disabled={isLoading}>
+            <Zap className="h-4 w-4 mr-2" />
+            DB重複削除
           </Button>
         </div>
       </div>

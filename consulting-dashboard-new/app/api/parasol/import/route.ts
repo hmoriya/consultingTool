@@ -180,16 +180,52 @@ async function scanParasolDocs(basePath: string) {
                     const pages = []
                     const tests = []
 
-                    // usecases ディレクトリ内のMDファイルを読み込み
+                    // usecases ディレクトリ内の1対1構造（v2.0）またはフラット構造（v1.0）を読み込み
                     const usecasesPath = path.join(operationPath, 'usecases')
                     try {
-                      const usecaseFiles = await fs.readdir(usecasesPath)
-                      for (const usecaseFile of usecaseFiles) {
-                        if (usecaseFile.endsWith('.md')) {
-                          const usecaseContent = await fs.readFile(path.join(usecasesPath, usecaseFile), 'utf-8')
+                      const usecaseEntries = await fs.readdir(usecasesPath, { withFileTypes: true })
+
+                      for (const entry of usecaseEntries) {
+                        if (entry.isDirectory()) {
+                          // v2.0構造: usecases/[usecase-name]/usecase.md + page.md
+                          const usecaseDirPath = path.join(usecasesPath, entry.name)
+                          const usecaseFilePath = path.join(usecaseDirPath, 'usecase.md')
+                          const pageFilePath = path.join(usecaseDirPath, 'page.md')
+
+                          try {
+                            // ユースケースファイル読み込み
+                            const usecaseContent = await fs.readFile(usecaseFilePath, 'utf-8')
+                            const usecaseMetadata = extractMetadata(usecaseContent, 'usecase')
+
+                            const usecaseData = {
+                              name: entry.name,
+                              displayName: usecaseMetadata.displayName || entry.name,
+                              content: usecaseContent
+                            }
+                            usecases.push(usecaseData)
+
+                            // 対応するページファイル読み込み
+                            try {
+                              const pageContent = await fs.readFile(pageFilePath, 'utf-8')
+                              const pageMetadata = extractMetadata(pageContent, 'page')
+                              pages.push({
+                                name: entry.name + '-page',
+                                displayName: pageMetadata.displayName || (entry.name + 'ページ'),
+                                content: pageContent,
+                                usecaseName: entry.name // 1対1関係を明示
+                              })
+                            } catch (pageError) {
+                              console.log(`対応ページなし: ${pageFilePath}`)
+                            }
+                          } catch (usecaseError) {
+                            console.log(`ユースケースファイルなし: ${usecaseFilePath}`)
+                          }
+                        } else if (entry.name.endsWith('.md')) {
+                          // v1.0構造: usecases/*.md （フラット構造）
+                          const usecaseContent = await fs.readFile(path.join(usecasesPath, entry.name), 'utf-8')
                           const usecaseMetadata = extractMetadata(usecaseContent, 'usecase')
                           usecases.push({
-                            name: usecaseFile.replace('.md', ''),
+                            name: entry.name.replace('.md', ''),
                             displayName: usecaseMetadata.displayName,
                             content: usecaseContent
                           })
@@ -199,19 +235,25 @@ async function scanParasolDocs(basePath: string) {
                       // ユースケースディレクトリがない場合は無視
                     }
 
-                    // pages ディレクトリ内のMDファイルを読み込み
+                    // pages ディレクトリ内のMDファイルを読み込み（v1.0互換性のため）
+                    // v2.0では上記でユースケースディレクトリ内のpage.mdが読み込まれる
                     const pagesPath = path.join(operationPath, 'pages')
                     try {
                       const pageFiles = await fs.readdir(pagesPath)
                       for (const pageFile of pageFiles) {
                         if (pageFile.endsWith('.md')) {
-                          const pageContent = await fs.readFile(path.join(pagesPath, pageFile), 'utf-8')
-                          const pageMetadata = extractMetadata(pageContent, 'page')
-                          pages.push({
-                            name: pageFile.replace('.md', ''),
-                            displayName: pageMetadata.displayName,
-                            content: pageContent
-                          })
+                          // v2.0で既に読み込み済みでないことを確認
+                          const pageAlreadyLoaded = pages.some(p => p.name === pageFile.replace('.md', '') + '-page')
+                          if (!pageAlreadyLoaded) {
+                            const pageContent = await fs.readFile(path.join(pagesPath, pageFile), 'utf-8')
+                            const pageMetadata = extractMetadata(pageContent, 'page')
+                            pages.push({
+                              name: pageFile.replace('.md', ''),
+                              displayName: pageMetadata.displayName,
+                              content: pageContent,
+                              usecaseName: null // v1.0形式は1対1関係なし
+                            })
+                          }
                         }
                       }
                     } catch (error) {
@@ -443,9 +485,17 @@ async function importToDatabase(services: any[]) {
           importedOperations++
 
           // ユースケースが存在する場合とそうでない場合を分けて処理
-          if (operationData.usecases && operationData.usecases.length > 0) {
+          // 注意: operations.stepsはユースケースではなくビジネスプロセスのステップなので除外
+          const actualUseCases = operationData.usecases && Array.isArray(operationData.usecases)
+            ? operationData.usecases.filter((uc: any) => {
+                // stepsプロパティを持つオブジェクトはビジネスプロセスステップなのでユースケースから除外
+                return uc && typeof uc === 'object' && !('steps' in uc) && uc.name && uc.displayName;
+              })
+            : [];
+
+          if (actualUseCases && actualUseCases.length > 0) {
             // ユースケースを個別レコードとして保存
-            for (const usecaseData of operationData.usecases) {
+            for (const usecaseData of actualUseCases) {
               // displayNameの安全な設定
               const useCaseDisplayName = usecaseData.displayName && typeof usecaseData.displayName === 'string' && usecaseData.displayName.trim()
                 ? usecaseData.displayName.trim()
@@ -467,9 +517,33 @@ async function importToDatabase(services: any[]) {
                 }
               })
 
-              // 各ユースケースに関連するページ定義を保存
-              for (const pageData of operationData.pages || []) {
-                // displayNameの安全な設定
+              // v2.0: 1対1関係のページを保存
+              const relatedPage = operationData.pages?.find(page => page.usecaseName === usecaseData.name)
+              if (relatedPage) {
+                const displayName = relatedPage.displayName && typeof relatedPage.displayName === 'string' && relatedPage.displayName.trim()
+                  ? relatedPage.displayName.trim()
+                  : (relatedPage.name || 'ページ').replace(/-/g, ' ')
+
+                await tx.pageDefinition.create({
+                  data: {
+                    useCaseId: useCase.id,
+                    name: relatedPage.name || 'page',
+                    displayName: displayName,
+                    description: `${usecaseData.name}に対応するページ定義`,
+                    content: relatedPage.content || null, // MD形式の内容を保存 (Issue #131)
+                    url: `/${relatedPage.name || 'page'}`,
+                    layout: '{}',
+                    components: '[]',
+                    stateManagement: '{}',
+                    validations: '[]'
+                  }
+                })
+                importedPages++
+              }
+
+              // v1.0互換: usecaseNameがnullのページも関連付け（複数ページ対応）
+              const orphanPages = operationData.pages?.filter(page => page.usecaseName === null) || []
+              for (const pageData of orphanPages) {
                 const displayName = pageData.displayName && typeof pageData.displayName === 'string' && pageData.displayName.trim()
                   ? pageData.displayName.trim()
                   : (pageData.name || 'ページ').replace(/-/g, ' ')
@@ -480,7 +554,7 @@ async function importToDatabase(services: any[]) {
                     name: pageData.name || 'page',
                     displayName: displayName,
                     description: `${pageData.name || 'ページ'}のページ定義`,
-                    content: pageData.content || null, // MD形式の内容を保存 (Issue #131)
+                    content: pageData.content || null,
                     url: `/${pageData.name || 'page'}`,
                     layout: '{}',
                     components: '[]',

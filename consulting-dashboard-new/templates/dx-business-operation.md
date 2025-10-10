@@ -1,8 +1,9 @@
 # DX変革オペレーションテンプレート
 
-**バージョン**: 1.0.0
-**更新日**: 2025-01-15
+**バージョン**: 2.0.0
+**更新日**: 2025-10-10
 **DX原則**: ビジネス価値創造にフォーカスしたオペレーション設計
+**設計方針**: ユースケース・ページ分解指向 + パラソルドメイン言語連携
 
 ## ビジネスオペレーション基本情報
 
@@ -39,6 +40,85 @@
 - **品質向上**: [精度・正確性の改善]
 - **コスト削減**: [運用コストの削減]
 - **体験向上**: [ユーザー体験の改善]
+
+## 🏗️ パラソルドメイン連携
+
+### サービス境界とユースケース連携
+
+> **⚡ マイクロサービス設計の基本原則（ユースケース利用型）**
+> - **自サービス管理**: 自エンティティの全CRUD + 自ユースケースの実装
+> - **他サービス連携**: **他サービスの公開ユースケースを利用**（エンティティは意識しない）
+
+#### 📦 自サービス管理（[service-name]）
+**責務**: ✅ エンティティ管理 ✅ ユースケース実装 ✅ ビジネスロジック
+
+```
+Entity: [MainEntity] - Aggregate Root
+├── id: UUID - 一意識別子
+├── name: STRING_200 - [エンティティ名]
+├── status: ENUM - 状態（draft/active/completed/archived）
+├── [businessAttribute1]: [TYPE] - [ビジネス属性1の説明]
+├── [businessAttribute2]: [TYPE] - [ビジネス属性2の説明]
+└── metadata: JSON - DX拡張メタデータ
+
+Entity: [SupportEntity] - Support Entity
+├── id: UUID - 一意識別子
+├── [mainEntityId]: UUID - 親エンティティ参照
+├── [supportAttribute]: [TYPE] - [サポート属性の説明]
+└── automationLevel: ENUM - 自動化レベル（manual/semi_auto/full_auto）
+
+ValueObject: [DXValueObject]
+├── value: [TYPE] - 値
+├── confidence: PERCENTAGE - AI信頼度
+└── lastUpdated: TIMESTAMP - 最終更新日時
+
+Aggregate: [MainAggregate]
+├── ルート: [MainEntity]
+├── 包含: [SupportEntity]（多対多）、[DXValueObject]
+└── 不変条件: [DXビジネスルール]、自動化レベルの整合性、データ品質基準
+```
+
+#### 🔗 他サービスユースケース利用（ユースケース呼び出し型）
+**責務**: ❌ エンティティ知識不要 ✅ ユースケース利用のみ
+
+```
+[secure-access-service] ユースケース利用:
+├── UC-AUTH-01: ユーザー認証を実行する → POST /api/auth/usecases/authenticate
+├── UC-AUTH-02: 権限を検証する → POST /api/auth/usecases/validate-permission
+└── UC-AUTH-03: アクセスログを記録する → POST /api/auth/usecases/log-access
+
+[notification-service] ユースケース利用:
+├── UC-NOTIFY-01: リアルタイム通知を配信する → POST /api/notifications/usecases/send-realtime
+├── UC-NOTIFY-02: 配信状況を確認する → GET /api/notifications/usecases/delivery-status/{id}
+└── UC-NOTIFY-03: 通知設定を管理する → POST /api/notifications/usecases/manage-settings
+
+[knowledge-co-creation-service] ユースケース利用:
+├── UC-KNOWLEDGE-01: DX学習データを記録する → POST /api/knowledge/usecases/record-learning
+├── UC-KNOWLEDGE-02: ベストプラクティスを検索する → GET /api/knowledge/usecases/search-practices
+└── UC-KNOWLEDGE-03: 改善提案を生成する → POST /api/knowledge/usecases/generate-suggestions
+```
+
+**ユースケース連携パターン**:
+- **機能利用**: `POST /api/{service}/usecases/{usecase-id}` - 他サービス機能実行
+- **状況照会**: `GET /api/{service}/usecases/{usecase-id}/status` - 実行状況確認
+- **結果取得**: `GET /api/{service}/usecases/{usecase-id}/result` - 処理結果取得
+
+### DXマイクロサービス連携型ドメインサービス
+
+#### 🎯 ビジネス価値重視のドメインサービス
+```
+DomainService: DXTransformationCoordinator（DX変革調整サービス）
+├── enhance[BusinessValue]() - ビジネス価値向上
+├── coordinate[ServiceIntegration]() - サービス間連携調整（→ 他サービス連携）
+├── strengthen[AutomationCapability]() - 自動化能力強化
+└── amplify[DigitalImpact]() - デジタル効果拡大
+
+DomainService: AIOperationCoordinator（AI運用調整サービス）
+├── optimize[AIPerformance]() - AI性能最適化
+├── ensure[DataQuality]() - データ品質保証（→ 品質サービス連携）
+├── manage[LearningCycle]() - 学習サイクル管理
+└── predict[BusinessOutcome]() - ビジネス成果予測（→ 分析サービス連携）
+```
 
 ## 関係者とロール（DX時代）
 
@@ -77,6 +157,91 @@
 - **ステップ3**: [分析アルゴリズムと洞察]
 - **ステップ4**: [意思決定に活用するKPI]
 - **ステップ6**: [監視指標とアラート条件]
+
+### DXユースケース分解指針
+
+DXプロセスの各ステップを以下のカテゴリに分類し、適切な設計アプローチを取ります：
+
+#### 🖥️ ユーザー判断・操作ステップ → ユースケース + DXページ
+**対象**:
+- **ステップ4**: 意思決定支援 → UC1: データに基づく意思決定を行う
+  - **DXページ**: インタラクティブダッシュボード - AI分析結果の可視化
+  - **UX特徴**: リアルタイムデータ、予測結果、推奨アクション
+
+#### ⚙️ 自動化・AI処理ステップ → DXドメインサービス
+**対象**:
+- **ステップ1**: デジタルトリガー → 内部処理（DXEventDetector）
+- **ステップ2**: 自動データ収集 → 内部処理（DataAggregationService）
+- **ステップ3**: AI支援分析 → 内部処理（AIAnalysisService）
+- **ステップ5**: 自動実行 → 内部処理（AutomationExecutor）
+- **ステップ6**: リアルタイム監視 → 内部処理（MonitoringService）
+- **ステップ7**: 結果フィードバック → 内部処理（LearningService）
+
+#### 🔗 外部システム連携 → DX統合サービス
+**対象**:
+- **API統合**: 外部データソース連携
+- **IoTデバイス**: センサーデータ取得
+- **AI/MLプラットフォーム**: 機械学習サービス利用
+
+### DX内部処理の設計場所
+
+| 処理タイプ | 設計場所 | DX要素 |
+|----------|---------|--------|
+| **AIアルゴリズム** | domain-language.md | AIAnalysisService.analyzePattern() |
+| **自動化ロジック** | domain-language.md | AutomationExecutor.executeWorkflow() |
+| **データパイプライン** | api-specification.md | POST /internal/data/pipeline/process |
+| **MLモデル連携** | integration-specification.md | ML Platform API連携 |
+| **IoTデータ処理** | integration-specification.md | IoT Device Data Stream |
+
+### DX設計原則
+- **AI/自動化優先**: 可能な限り自動化し、人間は高付加価値判断に集中
+- **データドリブン**: すべての判断にデータと分析結果を活用
+- **継続学習**: システムが実行結果から継続的に学習・改善
+
+## 📄 ユースケース・ページ設計マトリックス
+
+> **重要**: 各ユースケースには必ず対応する1つのページが必要です。
+> DXオペレーションでは、AI/自動化による内部処理とユーザーの価値判断を明確に分離します。
+
+### ユースケース分解原則（DX特化）
+- **ユーザー価値判断ステップ** → ユースケース + DXインタラクティブページ
+- **AI/自動化処理ステップ** → ドメインサービス（ページなし）
+- **1ユースケース = 1つの明確なDX価値 = 1つのDXページ**
+
+### DXユースケース・ページ対応例
+
+| UC# | ユースケース名 | 対応ページ | エンティティ | アクター | DX要素 |
+|-----|-------------|-----------|-------------|----------|--------|
+| UC1 | [判断支援データを分析する] | AIダッシュボードページ | [MainEntity]（参照・分析） | [ロール1] | リアルタイム分析・予測表示 |
+| UC2 | [データに基づく意思決定を行う] | 意思決定支援ページ | [MainEntity]（状態更新） | [ロール2] | AI推奨・リスク評価 |
+| UC3 | [自動実行結果を確認し承認する] | 実行結果確認ページ | [MainEntity]（承認） | [ロール1] | 自動化結果・例外検出 |
+| UC4 | [DX成果を評価し次のアクションを決定する] | 成果評価ページ | [MainEntity]（評価・計画） | [ロール2] | 成果可視化・改善提案 |
+
+### DXページ設計の特徴
+
+#### AIダッシュボードページ（UC1対応）
+- **リアルタイムデータ**: 自動収集されたデータの可視化
+- **予測・分析結果**: AI分析による洞察とトレンド
+- **アラート**: 異常検出や注意すべき変化の通知
+- **ドリルダウン**: 詳細データへの段階的アクセス
+
+#### 意思決定支援ページ（UC2対応）
+- **推奨アクション**: AIによる最適解の提案
+- **シナリオ比較**: 複数選択肢の影響予測
+- **リスク評価**: 各選択肢のリスクレベル表示
+- **承認ワークフロー**: 決定事項の組織承認プロセス
+
+#### 実行結果確認ページ（UC3対応）
+- **自動化ステータス**: 自動実行の進捗・結果
+- **例外レポート**: 自動化で処理できなかった項目
+- **品質指標**: 実行品質の評価メトリクス
+- **手動介入**: 必要に応じた人的判断・修正
+
+#### 成果評価ページ（UC4対応）
+- **KPI可視化**: 設定した指標の達成状況
+- **改善提案**: システムが学習した改善案
+- **次期計画**: データに基づく次のアクション提案
+- **学習ログ**: システムの継続学習状況
 
 ## 代替フロー（DX対応）
 
@@ -227,7 +392,40 @@ stateDiagram-v2
 - [ ] 代替フロー・例外フローが適切に定義されているか？
 - [ ] ビジネス状態図はMermaid形式で記述されているか？
 
+### v2.0仕様準拠の確認
+- [ ] パラソルドメイン連携セクションが含まれているか？
+- [ ] 他サービスユースケース利用が明記されているか？
+- [ ] ユースケース・ページ分解マトリックスが定義されているか？
+- [ ] 1対1関係強制ディレクトリ構造に対応しているか？
+
 ### 指標・運用の確認
 - [ ] KPIは測定可能で意味のある指標か？
 - [ ] 技術活用とその効果が明確に定義されているか？
 - [ ] 継続的改善のサイクルが設計されているか？
+
+---
+
+## 📁 実装時のディレクトリ構造（v2.0仕様）
+
+このテンプレートを使用して作成したオペレーション定義は、以下の1対1関係強制構造で実装してください：
+
+```
+operations/[operation-name]/
+├── operation.md                    # このテンプレートで作成
+└── usecases/                      # ハイフンなし（v2.0仕様）
+    ├── [usecase-1-name]/
+    │   ├── usecase.md              # ユースケース定義
+    │   └── page.md                 # 対応DXページ定義（1対1強制）
+    ├── [usecase-2-name]/
+    │   ├── usecase.md
+    │   └── page.md
+    └── [usecase-3-name]/
+        ├── usecase.md
+        └── page.md
+```
+
+### 構造の利点
+- **明示的な1対1関係**: ユースケースとページが必ず1対1で対応
+- **DX要素の統合**: 自動化・AI・データ分析要素が統合管理される
+- **保守性向上**: 関連ファイルが同一ディレクトリに配置
+- **品質保証**: v2.0仕様により設計品質が自動的に向上

@@ -17,9 +17,14 @@
 
 ## 🏗️ パラソルドメイン連携
 
-### 主要エンティティ
-このオペレーションで操作する主要なドメインエンティティ：
+### サービス境界とユースケース連携
 
+> **⚡ マイクロサービス設計の基本原則（ユースケース利用型）**
+> - **自サービス管理**: 自エンティティの全CRUD + 自ユースケースの実装
+> - **他サービス連携**: **他サービスの公開ユースケースを利用**（エンティティは意識しない）
+
+#### 📦 自サービス管理（collaboration-facilitation-service）
+**責務**: ✅ エンティティ管理 ✅ ユースケース実装 ✅ ビジネスロジック
 ```
 Entity: Channel (チャネル) - Aggregate Root
 ├── id: UUID - チャネル識別子
@@ -31,19 +36,19 @@ Entity: Channel (チャネル) - Aggregate Root
 Entity: Message (メッセージ)
 ├── id: UUID - メッセージ識別子
 ├── channelId: UUID - 所属チャネル
-├── authorId: UUID - 送信者
+├── authorId: UUID - 送信者（→ secure-access-service/User参照）
 ├── content: TEXT - メッセージ内容
 ├── type: ENUM - メッセージタイプ(text/file/system)
 └── 状態: draft → posted → edited → deleted
 
 Entity: ChannelMember (チャネルメンバー)
 ├── channelId: UUID - チャネル識別子
-├── userId: UUID - ユーザー識別子
+├── userId: UUID - ユーザー識別子（→ secure-access-service/User参照）
 ├── role: ENUM - ロール(owner/admin/member)
 └── notificationEnabled: BOOLEAN - 通知設定
 
 ValueObject: MentionContext (メンション文脈)
-├── userId: UUID - メンション対象
+├── userId: UUID - メンション対象（→ secure-access-service/User参照）
 ├── position: INTEGER - テキスト内の位置
 └── type: ENUM - メンションタイプ(user/team/channel)
 
@@ -53,50 +58,107 @@ Aggregate: ChannelAggregate (チャネル集約)
 └── 不変条件: プライベートチャネルは招待制、アーカイブ後は投稿不可
 ```
 
-### ドメインサービス
+#### 🔗 他サービスユースケース利用（ユースケース呼び出し型）
+**責務**: ❌ エンティティ知識不要 ✅ ユースケース利用のみ
+
 ```
-DomainService: CollaborationCoordinator
-├── validateMessageContent() - メッセージ内容検証
-├── processMessage() - メッセージ投稿処理
-├── notifyMentions() - メンション通知送信
-└── updateSearchIndex() - 検索インデックス更新
+[secure-access-service] ユースケース利用:
+├── UC-AUTH-01: ユーザー認証を実行する → POST /api/auth/authenticate
+├── UC-AUTH-02: 権限を検証する → POST /api/auth/validate-permission
+├── UC-AUTH-03: アクセスログを記録する → POST /api/auth/log-access
+└── UC-AUTH-04: 組織階層を確認する → GET /api/auth/organization-hierarchy
+
+[notification-service] ユースケース利用:
+├── UC-NOTIFY-01: 通知を配信する → POST /api/notifications/send
+├── UC-NOTIFY-02: 通知設定を取得する → GET /api/notifications/settings
+├── UC-NOTIFY-03: 配信状況を確認する → GET /api/notifications/status
+└── UC-NOTIFY-04: メンション通知を送信する → POST /api/notifications/send-mention
+
+[knowledge-service] ユースケース利用:
+├── UC-KNOWLEDGE-01: 知識を記事化する → POST /api/knowledge/articles/create
+├── UC-KNOWLEDGE-02: 検索インデックスを更新する → PUT /api/knowledge/search/index
+├── UC-KNOWLEDGE-03: 関連知識を発見する → GET /api/knowledge/discover
+└── UC-KNOWLEDGE-04: 会話から洞察を抽出する → POST /api/knowledge/extract-insights
+```
+
+**ユースケース連携パターン**:
+- **機能利用**: `POST /api/{service}/usecases/{usecase-id}` - 他サービス機能実行
+- **状況照会**: `GET /api/{service}/usecases/{usecase-id}/status` - 実行状況確認
+- **結果取得**: `GET /api/{service}/usecases/{usecase-id}/result` - 処理結果取得
+
+### マイクロサービス連携型ドメインサービス
+
+#### 🎯 ビジネス価値重視のドメインサービス
+```
+DomainService: CollaborationActivator（コラボレーション活性化）
+├── enhanceTeamCommunication() - チーム連携を強化する
+├── facilitateKnowledgeSharing() - 知識共有を促進する
+├── amplifyEngagement() - エンゲージメントを向上させる
+└── strengthenTeamBonds() - チーム結束を強化する
+
+DomainService: CommunicationOrchestrator（コミュニケーション統制）
+├── coordinateMessageFlow() - メッセージ流れを最適化する
+├── optimizeNotificationDelivery() - 通知配信を最適化する（→ notification-service連携）
+├── maintainCommunicationQuality() - コミュニケーション品質を維持する
+└── preventInformationOverload() - 情報過多を防止する
+
+DomainService: KnowledgeCapture（知識獲得）
+├── extractInsightsFromConversations() - 会話から洞察を抽出する（→ knowledge-service連携）
+├── identifyExpertiseNetworks() - 専門知識ネットワークを特定する
+├── buildInstitutionalMemory() - 組織記憶を構築する
+└── enableKnowledgeDiscovery() - 知識発見を可能にする
+
+DomainService: SecurityEnforcer（セキュリティ強化）
+├── validateCommunicationPermissions() - コミュニケーション権限を検証する（→ secure-access-service連携）
+├── enforceDataProtection() - データ保護を強制する
+├── auditCommunicationActivities() - コミュニケーション活動を監査する
+└── preventUnauthorizedAccess() - 不正アクセスを防止する
 ```
 
 ## 🔄 プロセスフロー（ユースケース分解指向）
 
 > **重要**: 各ステップは「誰が何をするか」を明記し、ユースケース分解の根拠とする
 
-### 基本フロー
-1. **チャネルメンバーがメッセージ作成画面でテキスト入力を実行** → **UC1: メッセージを作成する**
-   - **操作エンティティ**: Message
-   - **必要ページ**: メッセージ作成ページ - テキスト入力・ファイル添付・メンション機能
+### 価値創造型基本フロー（マイクロサービス連携）
 
-2. **システムがメッセージ内容検証を実行** → **内部処理（ページなし）**
-   - **ドメインサービス**: CollaborationCoordinator.validateMessageContent()
+1. **チャネルメンバーがアイデア・知見共有を開始** → **UC1: チーム連携を活性化する**
+   - **自サービス操作**: Message（draft状態）、ChannelAggregate
+   - **他サービスユースケース利用**: → UC-AUTH-02: 権限を検証する
+   - **必要ページ**: チーム連携活性化ページ - 知見入力・専門知識共有・メンション機能
+   - **ビジネス価値**: チームメンバー間の知識流通促進
 
-3. **チャネルメンバーがメッセージ送信ボタンをクリック** → **UC2: メッセージを送信する**
-   - **操作エンティティ**: Message, ChannelAggregate
-   - **必要ページ**: メッセージ送信確認ページ - 送信確認・プレビュー表示
+2. **システムがコミュニケーション品質を維持** → **内部処理（ページなし）**
+   - **ドメインサービス**: CommunicationOrchestrator.maintainCommunicationQuality()
+   - **他サービスユースケース利用**: → UC-KNOWLEDGE-04: 会話から洞察を抽出する
 
-4. **システムがメッセージ保存とチャネル配信を実行** → **内部処理（ページなし）**
-   - **ドメインサービス**: CollaborationCoordinator.processMessage()
+3. **チャネルメンバーが知識共有を実行** → **UC2: 知識共有を促進する**
+   - **自サービス操作**: Message（posted状態）、ChannelAggregate
+   - **他サービスユースケース利用**: → UC-NOTIFY-01: 通知を配信する、→ UC-KNOWLEDGE-01: 知識を記事化する
+   - **必要ページ**: 知識共有促進ページ - 共有確認・影響範囲表示・配信最適化
+   - **ビジネス価値**: 組織知識の蓄積と活用促進
 
-5. **チャネルメンバーが投稿済みメッセージを確認** → **UC3: メッセージを表示する**
-   - **操作エンティティ**: Message, Channel
-   - **必要ページ**: メッセージ表示ページ - 既読・未読表示・スレッド・リアクション機能
+4. **システムが組織記憶を構築し知識発見を可能化** → **内部処理（ページなし）**
+   - **ドメインサービス**: KnowledgeCapture.buildInstitutionalMemory()
+   - **他サービスユースケース利用**: → UC-KNOWLEDGE-02: 検索インデックスを更新する
 
-### ユースケース分解原則
-- **ユーザー操作ステップ** → ユースケース + ページ
-- **システム内部処理** → ドメインサービス（ページなし）
-- **1ユースケース = 1つの明確な目的 = 1つのページ**
+5. **チャネルメンバーが継続的エンゲージメントを実現** → **UC3: エンゲージメントを向上させる**
+   - **自サービス操作**: Message（閲覧・リアクション）、Thread、Reaction
+   - **他サービスユースケース利用**: → UC-AUTH-03: アクセスログを記録する
+   - **必要ページ**: エンゲージメント向上ページ - 対話促進・知識発見・チーム結束強化
+   - **ビジネス価値**: 持続的なチーム協働と創造性向上
 
-## 📄 ユースケース・ページ設計マトリックス
+### ユースケース分解原則（価値創造指向）
+- **価値創造ステップ** → ユースケース + ページ（ビジネス成果重視）
+- **システム価値強化** → ドメインサービス（マイクロサービス連携）
+- **1ユースケース = 1つの明確なビジネス価値 = 1つの価値創造ページ**
 
-| UC# | ユースケース名 | 対応ページ | エンティティ | アクター | 設計方針 |
-|-----|---------------|-----------|-------------|----------|----------|
-| UC1 | メッセージを作成する | メッセージ作成ページ | Message | チャネルメンバー | 入力重視 - テキスト入力・ファイル添付・メンション |
-| UC2 | メッセージを送信する | メッセージ送信確認ページ | Message, ChannelAggregate | チャネルメンバー | 操作重視 - 送信確認・プレビュー表示 |
-| UC3 | メッセージを表示する | メッセージ表示ページ | Message, Channel | チャネルメンバー | 表示重視 - 既読表示・スレッド・リアクション |
+## 📄 ユースケース・ページ設計マトリックス（価値創造型）
+
+| UC# | ユースケース名（価値創造） | 対応ページ | 自サービスエンティティ | 他サービス連携 | アクター | 設計方針 |
+|-----|-------------------------|-----------|---------------------|-------------|----------|----------|
+| UC1 | チーム連携を活性化する | チーム連携活性化ページ | Message, ChannelAggregate | secure-access-service | チャネルメンバー | 価値重視 - 知見共有・専門知識流通・チーム結束 |
+| UC2 | 知識共有を促進する | 知識共有促進ページ | Message, ChannelAggregate | notification-service, knowledge-service | チャネルメンバー | 影響重視 - 組織知識蓄積・配信最適化・記憶構築 |
+| UC3 | エンゲージメントを向上させる | エンゲージメント向上ページ | Message, Thread, Reaction | secure-access-service | チャネルメンバー | 継続重視 - 対話促進・創造性向上・持続的協働 |
 
 ## 🔀 代替フロー（ユースケース分岐指向）
 

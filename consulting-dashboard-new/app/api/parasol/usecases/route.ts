@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
     // Get all use cases
     const useCases = await parasolDb.useCase.findMany({
       include: {
-        businessOperation: {
+        operation: {
           select: {
             name: true,
             displayName: true

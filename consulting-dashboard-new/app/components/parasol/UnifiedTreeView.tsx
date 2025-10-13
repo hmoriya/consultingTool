@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { ChevronRight, ChevronDown, Folder, Package, Code, FileText, Layout, FileCheck, Maximize2, Minimize2, GitBranch } from 'lucide-react';
+import { ChevronRight, ChevronDown, Folder, FolderOpen, Package, Code, FileText, Layout, FileCheck, Maximize2, Minimize2, GitBranch, File, FileCode, Settings } from 'lucide-react';
 import { TreeNode, ParasolService, BusinessCapability, BusinessOperation } from '@/types/parasol';
-import { buildUnifiedTreeFromServices, searchNodes, flattenTree } from '@/lib/parasol/tree-utils';
+import { buildUnifiedTreeFromServices, buildUnifiedTreeFromServicesAsync, searchNodes, flattenTree } from '@/lib/parasol/tree-utils';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -31,6 +31,10 @@ const nodeIcons = {
   page: Layout,
   pageDefinition: Layout,
   testDefinition: FileCheck,
+  directory: FolderOpen,
+  usecaseFile: FileText,
+  pageFile: Layout,
+  apiUsageFile: FileCode,
 };
 
 const nodeColors = {
@@ -42,6 +46,10 @@ const nodeColors = {
   page: 'text-pink-600',
   pageDefinition: 'text-pink-600',
   testDefinition: 'text-teal-600',
+  directory: 'text-amber-500',
+  usecaseFile: 'text-blue-500',
+  pageFile: 'text-green-500',
+  apiUsageFile: 'text-purple-500',
 };
 
 export function UnifiedTreeView({
@@ -53,10 +61,36 @@ export function UnifiedTreeView({
   className
 }: UnifiedTreeViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [showJapanese, setShowJapanese] = useState(false); // 日本語表示切り替え
   const [filteredNodes, setFilteredNodes] = useState<Set<string>>(new Set());
-  
-  // 統合されたツリー構造を構築（メモ化）
-  const treeNodes = useMemo(() => buildUnifiedTreeFromServices(services), [services]);
+  const [treeNodes, setTreeNodes] = useState<TreeNode[]>([]);
+  const [isLoadingTreeNodes, setIsLoadingTreeNodes] = useState(false);
+
+  // 統合されたツリー構造を非同期で構築
+  useEffect(() => {
+    const buildTreeAsync = async () => {
+      if (services.length === 0) {
+        setTreeNodes([]);
+        return;
+      }
+
+      setIsLoadingTreeNodes(true);
+      try {
+        // 非同期でファイル内容を含むツリーを構築
+        const asyncTreeNodes = await buildUnifiedTreeFromServicesAsync(services);
+        setTreeNodes(asyncTreeNodes);
+      } catch (error) {
+        console.error('Failed to build tree with file content:', error);
+        // フォールバックとして同期版を使用
+        const syncTreeNodes = buildUnifiedTreeFromServices(services);
+        setTreeNodes(syncTreeNodes);
+      } finally {
+        setIsLoadingTreeNodes(false);
+      }
+    };
+
+    buildTreeAsync();
+  }, [services]);
   
   // 検索処理
   useEffect(() => {
@@ -133,7 +167,15 @@ export function UnifiedTreeView({
             "flex-1 text-sm truncate",
             isSelected && "font-medium"
           )}>
-            {node.displayName}
+            {/* パラソル設計v2.0: ファイル・ディレクトリ構造対応 */}
+            {showJapanese
+              ? node.displayName  // 日本語（ビジネス名）
+              : (node.type === 'useCase' || node.type === 'pageDefinition' ||
+                 node.type === 'directory' || node.type === 'usecaseFile' ||
+                 node.type === 'pageFile' || node.type === 'apiUsageFile')
+                ? node.name       // 英語（ディレクトリ名・ファイル名）
+                : node.displayName // その他はビジネス名
+            }
           </span>
           
           {/* ノード数の表示 */}
@@ -196,11 +238,34 @@ export function UnifiedTreeView({
             すべて閉じる
           </Button>
         </div>
+        <div className="flex gap-1 mt-1">
+          <Button
+            size="sm"
+            variant={showJapanese ? "outline" : "default"}
+            onClick={() => setShowJapanese(false)}
+            className="flex-1 text-xs"
+          >
+            英語
+          </Button>
+          <Button
+            size="sm"
+            variant={showJapanese ? "default" : "outline"}
+            onClick={() => setShowJapanese(true)}
+            className="flex-1 text-xs"
+          >
+            日本語
+          </Button>
+        </div>
       </div>
       
       {/* ツリー表示エリア */}
       <div className="flex-1 overflow-auto">
-        {treeNodes.length === 0 ? (
+        {isLoadingTreeNodes ? (
+          <div className="p-4 text-center text-muted-foreground">
+            <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full inline-block mr-2"></div>
+            ファイル内容を読み込み中...
+          </div>
+        ) : treeNodes.length === 0 ? (
           <div className="p-4 text-center text-muted-foreground">
             サービスが登録されていません
           </div>

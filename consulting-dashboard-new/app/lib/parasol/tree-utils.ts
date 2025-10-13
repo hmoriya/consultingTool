@@ -3,11 +3,222 @@
  */
 
 import { TreeNode, ParasolService, BusinessCapability, BusinessOperation } from '@/types/parasol';
+import { readParasolFile } from '@/app/actions/files';
+import { buildApiUsageFilePath } from './file-utils';
 
 /**
- * サービス、ケーパビリティ、オペレーションからツリー構造を構築
+ * サービス、ケーパビリティ、オペレーションからツリー構造を構築（同期版・後方互換）
  */
 export function buildTreeFromParasolData(
+  service: ParasolService,
+  capabilities: BusinessCapability[],
+  operations: BusinessOperation[]
+): TreeNode {
+  // 同期版では空のコンテンツを使用
+  return buildTreeFromParasolDataSync(service, capabilities, operations);
+}
+
+/**
+ * サービス、ケーパビリティ、オペレーションからツリー構造を構築（非同期版・ファイル読み込み対応）
+ */
+export async function buildTreeFromParasolDataAsync(
+  service: ParasolService,
+  capabilities: BusinessCapability[],
+  operations: BusinessOperation[]
+): Promise<TreeNode> {
+  // サービスノード（ルート）
+  const serviceNode: TreeNode = {
+    id: service.id,
+    name: service.name,
+    displayName: service.displayName,
+    type: 'service',
+    children: [],
+    metadata: {
+      description: service.description,
+      capabilityCount: capabilities.length,
+    },
+  };
+
+  // ケーパビリティをカテゴリ別にグループ化
+  const capabilityGroups = groupCapabilitiesByCategory(capabilities);
+
+  // カテゴリ別にケーパビリティノードを作成（非同期処理対応）
+  for (const [category, caps] of Object.entries(capabilityGroups)) {
+    for (const capability of caps) {
+      const capabilityNode: TreeNode = {
+        id: capability.id,
+        name: capability.name,
+        displayName: capability.displayName,
+        type: 'capability',
+        parentId: service.id,
+        children: [],
+        metadata: {
+          category,
+          description: capability.description,
+        },
+      };
+
+      // オペレーションノードを追加
+      const capOperations = operations.filter(op => op.capabilityId === capability.id);
+      for (const operation of capOperations) {
+        const operationNode: TreeNode = {
+          id: operation.id,
+          name: operation.name,
+          displayName: operation.displayName,
+          type: 'operation',
+          parentId: capability.id,
+          children: [],
+          metadata: {
+            pattern: operation.pattern,
+            goal: operation.goal,
+          },
+        };
+
+        // ユースケースモデルを追加（v2.0 ディレクトリ・ファイル構造）
+        if ((operation as any).useCaseModels && Array.isArray((operation as any).useCaseModels)) {
+          for (const useCase of (operation as any).useCaseModels) {
+            // ユースケースディレクトリノード
+            const useCaseDirectoryNode: TreeNode = {
+              id: useCase.id,
+              name: useCase.name,
+              displayName: useCase.displayName,
+              type: 'directory',
+              parentId: operation.id,
+              children: [],
+              metadata: {
+                directoryType: 'usecase',
+                description: useCase.description,
+              },
+            };
+
+            // 1. usecase.md ファイルノード
+            const useCaseFileNode: TreeNode = {
+              id: `${useCase.id}-usecase-file`,
+              name: 'usecase.md',
+              displayName: 'ユースケース定義',
+              type: 'usecaseFile',
+              parentId: useCase.id,
+              children: [],
+              metadata: {
+                fileName: 'usecase.md',
+                fileType: 'markdown',
+                content: useCase.definition || '',
+                actors: useCase.actors,
+                preconditions: useCase.preconditions,
+                postconditions: useCase.postconditions,
+                basicFlow: useCase.basicFlow,
+                alternativeFlow: useCase.alternativeFlow,
+                exceptionFlow: useCase.exceptionFlow,
+                robustnessDiagram: useCase.robustnessDiagram,
+              },
+            };
+            useCaseDirectoryNode.children?.push(useCaseFileNode);
+
+            // 2. page.md ファイルノード
+            if (useCase.pageDefinitions && Array.isArray(useCase.pageDefinitions) && useCase.pageDefinitions.length > 0) {
+              const pageDef = useCase.pageDefinitions[0]; // v2.0では1対1関係
+              const pageFileNode: TreeNode = {
+                id: `${useCase.id}-page-file`,
+                name: 'page.md',
+                displayName: 'ページ定義',
+                type: 'pageFile',
+                parentId: useCase.id,
+                children: [],
+                metadata: {
+                  fileName: 'page.md',
+                  fileType: 'markdown',
+                  content: pageDef.content || '',
+                  description: pageDef.description,
+                  url: pageDef.url,
+                  layout: pageDef.layout,
+                },
+              };
+              useCaseDirectoryNode.children?.push(pageFileNode);
+            }
+
+            // 3. api-usage.md ファイルノード（v2.0仕様）- 実際のファイル読み込み
+            let apiUsageContent = '';
+            try {
+              // ファイルパスを構築
+              const apiUsageFilePath = buildApiUsageFilePath(
+                service.name,
+                capability.name,
+                operation.name,
+                useCase.name
+              );
+
+              // 実際のファイルを読み込み
+              const result = await readParasolFile(apiUsageFilePath);
+              if (result.success) {
+                apiUsageContent = result.data || '';
+              }
+            } catch (error) {
+              console.warn(`API usage file not found for ${useCase.name}:`, error);
+            }
+
+            const apiUsageFileNode: TreeNode = {
+              id: `${useCase.id}-api-usage-file`,
+              name: 'api-usage.md',
+              displayName: 'API利用仕様',
+              type: 'apiUsageFile',
+              parentId: useCase.id,
+              children: [],
+              metadata: {
+                fileName: 'api-usage.md',
+                fileType: 'markdown',
+                content: apiUsageContent, // 実際のファイル内容を使用
+                description: 'このユースケースでのAPI利用方法',
+              },
+            };
+            useCaseDirectoryNode.children?.push(apiUsageFileNode);
+
+            operationNode.children?.push(useCaseDirectoryNode);
+          }
+        }
+        // 従来のuseCasesプロパティも後方互換性のため残す
+        else if (operation.useCases && Array.isArray(operation.useCases)) {
+          operation.useCases.forEach((useCase, index) => {
+            const useCaseNode: TreeNode = {
+              id: `${operation.id}-usecase-${index}`,
+              name: useCase.name || `UseCase${index + 1}`,
+              displayName: useCase.displayName || `ユースケース ${index + 1}`,
+              type: 'useCase',
+              parentId: operation.id,
+              children: [],
+              metadata: useCase,
+            };
+            operationNode.children?.push(useCaseNode);
+          });
+        }
+
+        if (operation.uiDefinitions && Array.isArray(operation.uiDefinitions)) {
+          operation.uiDefinitions.forEach((page, index) => {
+            const pageNode: TreeNode = {
+              id: `${operation.id}-page-${index}`,
+              name: page.name || `Page${index + 1}`,
+              displayName: page.displayName || `ページ ${index + 1}`,
+              type: 'page',
+              parentId: operation.id,
+              metadata: page,
+            };
+            operationNode.children?.push(pageNode);
+          });
+        }
+
+        capabilityNode.children?.push(operationNode);
+      }
+
+      serviceNode.children?.push(capabilityNode);
+    }
+  }
+
+  return serviceNode;
+}
+
+/**
+ * サービス、ケーパビリティ、オペレーションからツリー構造を構築（同期版）
+ */
+function buildTreeFromParasolDataSync(
   service: ParasolService,
   capabilities: BusinessCapability[],
   operations: BusinessOperation[]
@@ -60,19 +271,35 @@ export function buildTreeFromParasolData(
           },
         };
 
-        // ユースケースモデルを追加
+        // ユースケースモデルを追加（v2.0 ディレクトリ・ファイル構造）
         if ((operation as any).useCaseModels && Array.isArray((operation as any).useCaseModels)) {
           (operation as any).useCaseModels.forEach((useCase: any) => {
-            const useCaseNode: TreeNode = {
+            // ユースケースディレクトリノード
+            const useCaseDirectoryNode: TreeNode = {
               id: useCase.id,
               name: useCase.name,
               displayName: useCase.displayName,
-              type: 'useCase',
+              type: 'directory',
               parentId: operation.id,
               children: [],
               metadata: {
-                definition: useCase.definition,
+                directoryType: 'usecase',
                 description: useCase.description,
+              },
+            };
+
+            // 1. usecase.md ファイルノード
+            const useCaseFileNode: TreeNode = {
+              id: `${useCase.id}-usecase-file`,
+              name: 'usecase.md',
+              displayName: 'ユースケース定義',
+              type: 'usecaseFile',
+              parentId: useCase.id,
+              children: [],
+              metadata: {
+                fileName: 'usecase.md',
+                fileType: 'markdown',
+                content: useCase.definition || '',
                 actors: useCase.actors,
                 preconditions: useCase.preconditions,
                 postconditions: useCase.postconditions,
@@ -82,29 +309,48 @@ export function buildTreeFromParasolData(
                 robustnessDiagram: useCase.robustnessDiagram,
               },
             };
-            
-            // ページ定義を追加
-            if (useCase.pageDefinitions && Array.isArray(useCase.pageDefinitions)) {
-              useCase.pageDefinitions.forEach((pageDef: any) => {
-                const pageDefNode: TreeNode = {
-                  id: pageDef.id,
-                  name: pageDef.name,
-                  displayName: pageDef.displayName,
-                  type: 'pageDefinition',
-                  parentId: useCase.id,
-                  children: [],
-                  metadata: {
-                    description: pageDef.description,
-                    url: pageDef.url,
-                    layout: pageDef.layout,
-                    content: pageDef.content, // MD形式のページ定義内容を追加
-                  },
-                };
-                useCaseNode.children?.push(pageDefNode);
-              });
+            useCaseDirectoryNode.children?.push(useCaseFileNode);
+
+            // 2. page.md ファイルノード
+            if (useCase.pageDefinitions && Array.isArray(useCase.pageDefinitions) && useCase.pageDefinitions.length > 0) {
+              const pageDef = useCase.pageDefinitions[0]; // v2.0では1対1関係
+              const pageFileNode: TreeNode = {
+                id: `${useCase.id}-page-file`,
+                name: 'page.md',
+                displayName: 'ページ定義',
+                type: 'pageFile',
+                parentId: useCase.id,
+                children: [],
+                metadata: {
+                  fileName: 'page.md',
+                  fileType: 'markdown',
+                  content: pageDef.content || '',
+                  description: pageDef.description,
+                  url: pageDef.url,
+                  layout: pageDef.layout,
+                },
+              };
+              useCaseDirectoryNode.children?.push(pageFileNode);
             }
-            
-            operationNode.children?.push(useCaseNode);
+
+            // 3. api-usage.md ファイルノード（v2.0仕様）
+            const apiUsageFileNode: TreeNode = {
+              id: `${useCase.id}-api-usage-file`,
+              name: 'api-usage.md',
+              displayName: 'API利用仕様',
+              type: 'apiUsageFile',
+              parentId: useCase.id,
+              children: [],
+              metadata: {
+                fileName: 'api-usage.md',
+                fileType: 'markdown',
+                content: '', // 今後実装予定
+                description: 'このユースケースでのAPI利用方法',
+              },
+            };
+            useCaseDirectoryNode.children?.push(apiUsageFileNode);
+
+            operationNode.children?.push(useCaseDirectoryNode);
           });
         }
         // 従来のuseCasesプロパティも後方互換性のため残す
@@ -148,7 +394,7 @@ export function buildTreeFromParasolData(
 }
 
 /**
- * 複数のサービスから統合されたツリー構造を構築
+ * 複数のサービスから統合されたツリー構造を構築（同期版）
  */
 export function buildUnifiedTreeFromServices(
   services: Array<{
@@ -157,9 +403,27 @@ export function buildUnifiedTreeFromServices(
     operations: BusinessOperation[];
   }>
 ): TreeNode[] {
-  return services.map(({ service, capabilities, operations }) => 
+  return services.map(({ service, capabilities, operations }) =>
     buildTreeFromParasolData(service, capabilities, operations)
   );
+}
+
+/**
+ * 複数のサービスから統合されたツリー構造を構築（非同期版・ファイル読み込み対応）
+ */
+export async function buildUnifiedTreeFromServicesAsync(
+  services: Array<{
+    service: ParasolService;
+    capabilities: BusinessCapability[];
+    operations: BusinessOperation[];
+  }>
+): Promise<TreeNode[]> {
+  const results = [];
+  for (const { service, capabilities, operations } of services) {
+    const serviceTree = await buildTreeFromParasolDataAsync(service, capabilities, operations);
+    results.push(serviceTree);
+  }
+  return results;
 }
 
 /**

@@ -1,8 +1,14 @@
-blank_issues_enabled: true
+blank_issues_enabled: false
 contact_links:
-  - name: ディスカッション
+  - name: 🤔 質問・相談
     url: https://github.com/hmoriya/consultingTool/discussions
-    about: 一般的な質問や議論はこちら
-  - name: セキュリティ脆弱性の報告
+    about: 使い方の質問や相談はDiscussionsをご利用ください
+  - name: 📖 ドキュメント
+    url: https://github.com/hmoriya/consultingTool/blob/main/CLAUDE.md
+    about: プロジェクトの詳細仕様はCLAUDE.mdをご確認ください
+  - name: 🛠️ 開発ガイド
+    url: https://github.com/hmoriya/consultingTool/blob/main/.github/ISSUE_TEMPLATE_GUIDE.md
+    about: Issue作成時の文字化け防止ガイド
+  - name: 🔒 セキュリティ脆弱性の報告
     url: https://github.com/hmoriya/consultingTool/security/policy
     about: セキュリティに関する問題は非公開で報告してください

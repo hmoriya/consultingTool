@@ -34,7 +34,8 @@ export type MDEditorType =
   | 'usecase-definition'
   | 'robustness-diagram'
   | 'page-definition'
-  | 'test-definition';
+  | 'test-definition'
+  | 'api-usage';
 
 interface MDTemplate {
   name: string;
@@ -446,6 +447,117 @@ ENUM: 列挙型
 - [ ] 項目1
 - [ ] 項目2
 - [ ] 項目3`
+  },
+  {
+    name: 'API利用仕様',
+    type: 'api-usage',
+    template: `# API利用仕様: [ユースケース名] (HOW: 具体的利用方法)
+
+<!--
+🎯 このファイルはIssue #146 API仕様WHAT/HOW分離統一化の一環で作成されました
+📋 「HOW（どう使うか）」を定義します
+👥 対象読者: 実装エンジニア
+🔗 配置場所: usecases/[usecase-name]/api-usage.md
+
+💡 「WHAT（何ができるか）」は以下で定義:
+📄 サービス仕様: services/[service-name]/api/api-specification.md
+👥 対象読者: API設計者・サービス連携者
+🛠️ テンプレート: templates/dx-api-specification.md
+-->
+
+## 利用するAPI一覧
+
+### 自サービスAPI
+| API | エンドポイント | 利用目的 | パラメータ |
+|-----|---------------|----------|--------------|
+| [API名1] | POST /api/[service]/[resource] | [利用目的の説明] | \`title\`, \`content\`, \`status\` |
+| [API名2] | GET /api/[service]/[resource]/{id} | [利用目的の説明] | \`id\` (required) |
+| [API名3] | PUT /api/[service]/[resource]/{id} | [利用目的の説明] | \`id\`, \`title\`, \`content\` |
+
+### 他サービスAPI（ユースケース利用型）
+| サービス | ユースケースAPI | 利用タイミング | 期待結果 |
+|---------|-----------------|---------------|----------|
+| secure-access-service | UC-AUTH-01: ユーザー認証を実行する | ユースケース開始時 | 認証トークン取得・操作権限確認 |
+| secure-access-service | UC-AUTH-02: 権限を検証する | 処理実行前 | 操作権限の確認 |
+| secure-access-service | UC-AUTH-03: アクセスログを記録する | 操作完了時 | 監査ログ記録 |
+
+## API呼び出しシーケンス
+
+### 基本フロー: [メインシナリオ名]
+
+1. **事前認証・権限確認**:
+   - \`POST /api/auth/usecases/authenticate\` (secure-access-service UC-AUTH-01)
+   - \`POST /api/auth/usecases/validate-permission\` (secure-access-service UC-AUTH-02)
+   - ユーザー認証と操作権限の確認
+
+2. **メイン処理開始**:
+   - \`POST /api/[service]/[resource]\` (自サービス)
+   - [処理内容の説明]
+
+3. **データ更新・検証**:
+   - \`PUT /api/[service]/[resource]/{id}\` (自サービス)
+   - [処理内容の説明]
+
+4. **結果確認・通知**:
+   - \`GET /api/[service]/[resource]/{id}\` (自サービス)
+   - 他サービス通知API (必要に応じて)
+
+5. **監査ログ記録**:
+   - \`POST /api/auth/usecases/log-access\` (secure-access-service UC-AUTH-03)
+   - 操作完了の監査記録
+
+### 代替フロー: [代替シナリオ名]
+
+1. **代替条件**: [条件の説明]
+2. **代替処理**: [処理内容]
+3. **復帰処理**: 基本フロー[X]に戻る
+
+## エラーハンドリング
+
+### 認証・権限エラー
+- **AUTH_FAILED**: 認証失敗時のトークン再取得処理
+- **PERMISSION_DENIED**: 操作権限不足時のエラー表示
+- **SESSION_EXPIRED**: セッション期限切れ時の再認証
+
+### API操作エラー
+- **VALIDATION_ERROR**: 入力内容検証エラー時の詳細エラー表示
+- **RESOURCE_NOT_FOUND**: リソース未存在時の処理
+- **CONFLICT_ERROR**: 同時更新競合時の解決
+
+### システムエラー
+- **SERVICE_UNAVAILABLE**: サービス停止時のローカル保存・再試行
+- **NETWORK_ERROR**: ネットワーク障害時のオフライン対応
+- **TIMEOUT_ERROR**: タイムアウト時の処理
+
+### リトライ・復旧戦略
+- **保存エラー**: 3回まで自動リトライ（指数バックオフ）
+- **ネットワーク障害**: ローカルストレージでの一時保存
+- **認証エラー**: 自動再認証・トークンリフレッシュ
+
+## パフォーマンス最適化
+
+### API呼び出し最適化
+- **並列処理**: 独立した処理の並列実行
+- **バッチ処理**: 複数データの一括処理
+- **キャッシュ活用**: 頻繁アクセスデータのメモリキャッシュ
+
+### UI/UX最適化
+- **非同期処理**: UIブロックしない背景処理
+- **プログレッシブロード**: 大量データの段階的読み込み
+- **楽観的更新**: UI即座反映・エラー時ロールバック
+
+## 品質保証
+
+### API利用品質
+- **成功率**: 99.5%以上 - 正常時のAPI呼び出し成功率
+- **レスポンス時間**: 95%ile < 2秒 - API呼び出し時間
+- **エラー回復率**: 95%以上 - エラー発生時の自動回復成功率
+
+### レスポンス時間目標
+- **認証API**: 95%ile < 0.5秒、99%ile < 1秒
+- **メインAPI**: 95%ile < 1秒、99%ile < 2秒
+- **検索API**: 95%ile < 2秒、99%ile < 5秒
+- **通知API**: 95%ile < 0.3秒、99%ile < 0.5秒`
   }
 ];
 
@@ -775,8 +887,9 @@ export function UnifiedMDEditor({
               <DiagramView
                 type={diagramType}
                 code={diagramCode}
-                title={title || type}
+                title={title}
                 onError={(error) => {
+                  console.error('Diagram error:', error);
                   toast({
                     title: 'ダイアグラムエラー',
                     description: error,
@@ -785,8 +898,8 @@ export function UnifiedMDEditor({
                 }}
               />
             ) : (
-              <div className="flex items-center justify-center h-[600px] text-muted-foreground">
-                <p>このコンテンツタイプではダイアグラムを生成できません</p>
+              <div className="flex items-center justify-center h-[400px] text-muted-foreground">
+                <p>ダイアグラムを生成できません</p>
               </div>
             )}
           </TabsContent>

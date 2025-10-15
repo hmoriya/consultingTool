@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { ChevronRight, ChevronDown, Folder, FolderOpen, Package, Code, FileText, Layout, FileCheck, Maximize2, Minimize2, GitBranch, File, FileCode, Settings } from 'lucide-react';
 import { TreeNode, ParasolService, BusinessCapability, BusinessOperation } from '@/types/parasol';
-import { buildUnifiedTreeFromServices, buildUnifiedTreeFromServicesAsync, searchNodes, flattenTree } from '@/lib/parasol/tree-utils';
+import { buildUnifiedTreeFromServices, searchNodes, flattenTree } from '@/lib/parasol/tree-utils';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -66,30 +66,24 @@ export function UnifiedTreeView({
   const [treeNodes, setTreeNodes] = useState<TreeNode[]>([]);
   const [isLoadingTreeNodes, setIsLoadingTreeNodes] = useState(false);
 
-  // 統合されたツリー構造を非同期で構築
+  // 統合されたツリー構造をDB-based同期的に構築
   useEffect(() => {
-    const buildTreeAsync = async () => {
-      if (services.length === 0) {
-        setTreeNodes([]);
-        return;
-      }
+    if (services.length === 0) {
+      setTreeNodes([]);
+      return;
+    }
 
-      setIsLoadingTreeNodes(true);
-      try {
-        // 非同期でファイル内容を含むツリーを構築
-        const asyncTreeNodes = await buildUnifiedTreeFromServicesAsync(services);
-        setTreeNodes(asyncTreeNodes);
-      } catch (error) {
-        console.error('Failed to build tree with file content:', error);
-        // フォールバックとして同期版を使用
-        const syncTreeNodes = buildUnifiedTreeFromServices(services);
-        setTreeNodes(syncTreeNodes);
-      } finally {
-        setIsLoadingTreeNodes(false);
-      }
-    };
-
-    buildTreeAsync();
+    setIsLoadingTreeNodes(true);
+    try {
+      // DB-based同期版でツリーを構築（ファイル読み込みなし）
+      const syncTreeNodes = buildUnifiedTreeFromServices(services);
+      setTreeNodes(syncTreeNodes);
+    } catch (error) {
+      console.error('Failed to build tree from DB data:', error);
+      setTreeNodes([]);
+    } finally {
+      setIsLoadingTreeNodes(false);
+    }
   }, [services]);
   
   // 検索処理
@@ -263,7 +257,7 @@ export function UnifiedTreeView({
         {isLoadingTreeNodes ? (
           <div className="p-4 text-center text-muted-foreground">
             <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full inline-block mr-2"></div>
-            ファイル内容を読み込み中...
+            データベースから構造を読み込み中...
           </div>
         ) : treeNodes.length === 0 ? (
           <div className="p-4 text-center text-muted-foreground">

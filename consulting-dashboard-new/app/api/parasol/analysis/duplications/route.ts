@@ -49,13 +49,13 @@ class UseCaseDuplicationAnalyzer {
     // Get all business operations with their use cases
     const operations = await parasolDb.businessOperation.findMany({
       include: {
-        useCaseModels: true,
+        useCases: true,
         service: true
       }
     })
 
     this.usecases = operations.flatMap(operation =>
-      operation.useCaseModels.map(usecase => ({
+      (operation.useCases || []).map(usecase => ({
         id: usecase.id,
         name: usecase.name,
         displayName: usecase.displayName,
@@ -167,14 +167,16 @@ class PageDuplicationAnalyzer {
       }
     })
 
-    this.pages = pages.map(page => ({
-      id: page.id,
-      name: page.name,
-      displayName: page.displayName,
-      useCaseId: page.useCaseId,
-      serviceId: page.useCase.operation.serviceId,
-      operationId: page.useCase.operationId
-    }))
+    this.pages = pages
+      .filter(page => page.useCase) // useCaseがnullでないもののみを処理
+      .map(page => ({
+        id: page.id,
+        name: page.name,
+        displayName: page.displayName,
+        useCaseId: page.useCaseId!,
+        serviceId: page.useCase!.operation.serviceId,
+        operationId: page.useCase!.operationId
+      }))
   }
 
   analyzeDuplications(): { total: number; consolidationPotential: number } {

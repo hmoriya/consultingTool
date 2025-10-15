@@ -187,6 +187,8 @@ export async function getServices() {
             alternativeFlow: uc.alternativeFlow ? JSON.parse(uc.alternativeFlow) : null,
             exceptionFlow: uc.exceptionFlow ? JSON.parse(uc.exceptionFlow) : null,
             pageDefinitions: uc.pageDefinitions || [],
+            // API利用仕様データを追加
+            apiUsageDefinition: uc.apiUsageDefinition || '',
           }))
         }))
       })),
@@ -208,6 +210,8 @@ export async function getServices() {
           alternativeFlow: uc.alternativeFlow ? JSON.parse(uc.alternativeFlow) : null,
           exceptionFlow: uc.exceptionFlow ? JSON.parse(uc.exceptionFlow) : null,
           pageDefinitions: uc.pageDefinitions || [],
+          // API利用仕様データを追加
+          apiUsageDefinition: uc.apiUsageDefinition || '',
         }))
       }))
     }));

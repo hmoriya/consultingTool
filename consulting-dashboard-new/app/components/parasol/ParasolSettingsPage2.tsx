@@ -1,14 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
-import { Search, Plus, Save, FolderTree } from 'lucide-react';
+import { Search, Plus, Save, FolderTree, Code } from 'lucide-react';
 import { saveServiceData, createBusinessOperation, createBusinessCapability, updateBusinessOperation, deleteBusinessOperation, getUseCasesForOperation } from '@/app/actions/parasol';
 import { ParasolTreeView } from './ParasolTreeView';
 import { UnifiedTreeView } from './UnifiedTreeView';
 import { TreeNode, ParasolService } from '@/types/parasol';
+import { buildTreeFromParasolData, flattenTree } from '@/app/lib/parasol/tree-utils';
 import { UnifiedDesignEditor, DesignType } from './UnifiedDesignEditor';
 import { UnifiedMDEditor, MDEditorType } from './UnifiedMDEditor';
 import { ServiceForm } from './ServiceForm';
@@ -28,6 +30,7 @@ import { generateInitialDomainLanguageFromCapabilities, refineDomainLanguageFrom
 import DuplicationAnalysisDashboard from './DuplicationAnalysisDashboard';
 import DesignQualityDashboard from './DesignQualityDashboard';
 import DesignRestructureDashboard from './DesignRestructureDashboard';
+import APIUsageManagementPanel from './APIUsageManagementPanel';
 
 interface Service {
   id: string;
@@ -50,6 +53,7 @@ interface ParasolSettingsPageProps {
 }
 
 export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPageProps) {
+  const router = useRouter();
   const [services, setServices] = useState<Service[]>(initialServices);
   const [mounted, setMounted] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -303,10 +307,137 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
     }
   };
 
+  // ファイル編集ページへのナビゲーション関数
+  const navigateToFileEditor = (node: TreeNode) => {
+    // ファイルノードから編集ページのURLを構築
+    const buildEditingRoute = (fileNode: TreeNode) => {
+      // ファイルタイプの決定
+      let fileType = '';
+      switch (fileNode.type) {
+        case 'usecaseFile':
+          fileType = 'usecase';
+          break;
+        case 'pageFile':
+          fileType = 'page';
+          break;
+        case 'apiUsageFile':
+          fileType = 'api-usage';
+          break;
+        default:
+          return null;
+      }
+
+      // 階層情報の取得（親ノードを辿る）
+      let currentNode = fileNode;
+      let usecaseNode: TreeNode | null = null;
+      let operationNode: TreeNode | null = null;
+      let capabilityNode: TreeNode | null = null;
+      let serviceNode: TreeNode | null = null;
+
+      // 全サービスのツリーノードを平坦化してノード検索を可能にする
+      const allNodes: TreeNode[] = [];
+      const servicesToUse = servicesWithUseCases.length > 0 ? servicesWithUseCases : services;
+      servicesToUse.forEach(service => {
+        const serviceTreeNode = buildTreeFromParasolData(
+          service as ParasolService,
+          service.capabilities || [],
+          service.businessOperations || []
+        );
+        allNodes.push(...flattenTree(serviceTreeNode));
+      });
+
+      // 親ノードを辿ってルートパスを構築
+      const findParentByType = (nodeId: string, targetType: string): TreeNode | null => {
+        for (const n of allNodes) {
+          if (n.children?.some(child => child.id === nodeId)) {
+            if (n.type === targetType) {
+              return n;
+            }
+            // 再帰的に親を探す
+            return findParentByType(n.id, targetType);
+          }
+        }
+        return null;
+      };
+
+      // ユースケース（ディレクトリ）ノードを取得
+      usecaseNode = findParentByType(fileNode.id, 'directory');
+      if (!usecaseNode) return null;
+
+      // オペレーションノードを取得
+      operationNode = findParentByType(usecaseNode.id, 'operation');
+      if (!operationNode) return null;
+
+      // ケーパビリティノードを取得
+      capabilityNode = findParentByType(operationNode.id, 'capability');
+      if (!capabilityNode) return null;
+
+      // サービスノードを取得
+      serviceNode = findParentByType(capabilityNode.id, 'service');
+      if (!serviceNode) return null;
+
+      // ルートパスの構築
+      const route = `/parasol/services/${serviceNode.name}/capabilities/${capabilityNode.name}/operations/${operationNode.name}/usecases/${usecaseNode.name}/edit/${fileType}`;
+      return route;
+    };
+
+    const route = buildEditingRoute(node);
+    if (route) {
+      console.log('Navigating to:', route);
+      router.push(route);
+    } else {
+      console.error('Could not build route for node:', node);
+    }
+  };
+
   // ノード選択時の処理
   const handleNodeSelect = (node: TreeNode) => {
     setSelectedNode(node);
-    
+
+    // ファイルノードの場合は統合ビューで表示（フルスクリーンナビゲーションしない）
+    if (node.type === 'usecaseFile' || node.type === 'pageFile' || node.type === 'apiUsageFile') {
+      // ファイルノードの場合でも親サービスを見つけて設定する必要がある
+      const findServiceForFileNode = (nodeId: string): Service | null => {
+        // 全サービスのツリーノードを平坦化してノード検索を可能にする
+        const allNodes: TreeNode[] = [];
+        const servicesToUse = servicesWithUseCases.length > 0 ? servicesWithUseCases : services;
+        servicesToUse.forEach(service => {
+          const serviceTreeNode = buildTreeFromParasolData(
+            service as ParasolService,
+            service.capabilities || [],
+            service.businessOperations || []
+          );
+          allNodes.push(...flattenTree(serviceTreeNode));
+        });
+
+        // ノードIDからサービスを特定
+        for (const treeNode of allNodes) {
+          if (treeNode.id === nodeId) {
+            // このノードの親を辿ってサービスを見つける
+            let currentNode = treeNode;
+            while (currentNode) {
+              if (currentNode.type === 'service') {
+                return servicesToUse.find(s => s.id === currentNode.id) || null;
+              }
+              // 親ノードを探す
+              const parentNode = allNodes.find(n => n.children?.some(child => child.id === currentNode.id));
+              currentNode = parentNode || null;
+            }
+            break;
+          }
+        }
+        return null;
+      };
+
+      const service = findServiceForFileNode(node.id);
+      if (service) {
+        setSelectedService(service);
+      }
+
+      // navigateToFileEditor(node); // この行をコメントアウトして統合表示に変更
+      return;
+    }
+
     // ノードタイプに応じて詳細画面を切り替え
     if (node.type === 'service') {
       // サービスノードが選択された場合
@@ -345,7 +476,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
         }
         return null;
       };
-      
+
       const service = findServiceForNode(node.id);
       if (service) {
         setSelectedService(service);
@@ -436,161 +567,235 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
             </div>
           </CardHeader>
           <CardContent className="overflow-auto">
-            <Tabs defaultValue="service-description" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-9">
-                <TabsTrigger value="service-description">サービス説明</TabsTrigger>
-                <TabsTrigger value="domain-language">ドメイン言語</TabsTrigger>
-                <TabsTrigger value="api-spec">API仕様</TabsTrigger>
-                <TabsTrigger value="db-design">DB設計</TabsTrigger>
-                <TabsTrigger value="capability">ケーパビリティ</TabsTrigger>
-                <TabsTrigger value="generation">生成</TabsTrigger>
-                <TabsTrigger value="duplication-analysis">重複分析</TabsTrigger>
-                <TabsTrigger value="design-quality">設計品質</TabsTrigger>
-                <TabsTrigger value="design-restructure">設計再構築</TabsTrigger>
+            <Tabs defaultValue="service-overview" className="space-y-4">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="service-overview">サービス概要</TabsTrigger>
+                <TabsTrigger value="api-what-how">API仕様（WHAT/HOW）</TabsTrigger>
+                <TabsTrigger value="design-management">設計管理</TabsTrigger>
+                <TabsTrigger value="analysis-tools">分析ツール</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="service-description">
-                <UnifiedMDEditor
-                  type="service-description"
-                  value={selectedService.serviceDescription || ''}
-                  onChange={(value) => {
-                    setSelectedService({
-                      ...selectedService,
-                      serviceDescription: value
-                    });
-                    setHasChanges(true);
-                  }}
-                  onSave={handleSave}
-                  title="サービス説明"
-                  description="このサービスの概要、責務、依存関係をMarkdownで記述します"
-                />
+              <TabsContent value="service-overview">
+                <Tabs defaultValue="service-description" className="space-y-4">
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="service-description">サービス説明</TabsTrigger>
+                    <TabsTrigger value="domain-language">ドメイン言語</TabsTrigger>
+                    <TabsTrigger value="db-design">DB設計</TabsTrigger>
+                    <TabsTrigger value="capability">ケーパビリティ</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="service-description">
+                    <UnifiedMDEditor
+                      type="service-description"
+                      value={selectedService.serviceDescription || ''}
+                      onChange={(value) => {
+                        setSelectedService({
+                          ...selectedService,
+                          serviceDescription: value
+                        });
+                        setHasChanges(true);
+                      }}
+                      onSave={handleSave}
+                      title="サービス説明"
+                      description="このサービスの概要、責務、依存関係をMarkdownで記述します"
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="domain-language">
+                    <div className="space-y-4">
+                      {/* ドメイン言語生成ボタン */}
+                      <Alert>
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertDescription>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <strong>段階的ドメイン言語生成</strong>
+                              <p className="text-sm mt-1">
+                                ケーパビリティ定義から初期ドメイン言語を生成し、ビジネスオペレーションから詳細化できます。
+                              </p>
+                            </div>
+                            <div className="flex gap-2 ml-4">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleGenerateDomainLanguageFromCapability()}
+                                disabled={!selectedService.capabilities || selectedService.capabilities.length === 0}
+                              >
+                                ケーパビリティから生成
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleRefineDomainLanguageFromOperations()}
+                                disabled={!selectedService.businessOperations || selectedService.businessOperations.length === 0}
+                              >
+                                オペレーションから詳細化
+                              </Button>
+                            </div>
+                          </div>
+                        </AlertDescription>
+                      </Alert>
+
+                      <UnifiedMDEditor
+                        type="domain-language"
+                        value={selectedService.domainLanguageDefinition || ''}
+                        onChange={(value) => {
+                          setSelectedService({
+                            ...selectedService,
+                            domainLanguageDefinition: value
+                          });
+                          setHasChanges(true);
+                        }}
+                        onSave={handleSave}
+                        title="ドメイン言語定義"
+                        description="エンティティ、値オブジェクト、ドメインサービスをMarkdownで定義します"
+                      />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="db-design">
+                    <UnifiedMDEditor
+                      type="database-design"
+                      value={selectedService.databaseDesignDefinition || ''}
+                      onChange={(value) => {
+                        setSelectedService({
+                          ...selectedService,
+                          databaseDesignDefinition: value
+                        });
+                        setHasChanges(true);
+                      }}
+                      onSave={handleSave}
+                      title="DB設計"
+                      description="テーブル、カラム、リレーションをMarkdownで定義します"
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="capability">
+                    <BusinessCapabilityEditor
+                      serviceId={selectedService.id}
+                      capabilities={selectedService.capabilities || []}
+                      onSave={async (capabilities) => {
+                        // ケーパビリティ保存処理
+                        setSelectedService({
+                          ...selectedService,
+                          capabilities
+                        });
+                        setHasChanges(true);
+                      }}
+                      onOperationClick={(capability, operation) => {
+                        // オペレーションクリック処理
+                      }}
+                      onAddOperation={() => {}}
+                      onEditOperation={() => {}}
+                      onDeleteOperation={() => {}}
+                    />
+                  </TabsContent>
+                </Tabs>
               </TabsContent>
 
-              <TabsContent value="domain-language">
-                <div className="space-y-4">
-                  {/* ドメイン言語生成ボタン */}
-                  <Alert>
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <strong>段階的ドメイン言語生成</strong>
-                          <p className="text-sm mt-1">
-                            ケーパビリティ定義から初期ドメイン言語を生成し、ビジネスオペレーションから詳細化できます。
-                          </p>
-                        </div>
-                        <div className="flex gap-2 ml-4">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleGenerateDomainLanguageFromCapability()}
-                            disabled={!selectedService.capabilities || selectedService.capabilities.length === 0}
-                          >
-                            ケーパビリティから生成
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleRefineDomainLanguageFromOperations()}
-                            disabled={!selectedService.businessOperations || selectedService.businessOperations.length === 0}
-                          >
-                            オペレーションから詳細化
-                          </Button>
-                        </div>
-                      </div>
-                    </AlertDescription>
-                  </Alert>
-                  
-                  <UnifiedMDEditor
-                    type="domain-language"
-                    value={selectedService.domainLanguageDefinition || ''}
-                    onChange={(value) => {
-                      setSelectedService({
-                        ...selectedService,
-                        domainLanguageDefinition: value
-                      });
-                      setHasChanges(true);
-                    }}
-                    onSave={handleSave}
-                    title="ドメイン言語定義"
-                    description="エンティティ、値オブジェクト、ドメインサービスをMarkdownで定義します"
-                  />
-                </div>
+              <TabsContent value="api-what-how">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Code className="h-5 w-5" />
+                      API仕様管理（WHAT/HOW分離）
+                    </CardTitle>
+                    <CardDescription>
+                      サービス全体API（WHAT）とユースケース別利用方法（HOW）を統合管理
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Tabs defaultValue="what-api-spec" className="space-y-4">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="what-api-spec">
+                          <div className="flex items-center gap-1">
+                            📋 WHAT - サービスAPI仕様
+                          </div>
+                        </TabsTrigger>
+                        <TabsTrigger value="how-api-usage">
+                          <div className="flex items-center gap-1">
+                            🔧 HOW - API利用状況
+                          </div>
+                        </TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent value="what-api-spec">
+                        <Alert className="mb-4">
+                          <AlertTriangle className="h-4 w-4" />
+                          <AlertDescription>
+                            <strong>WHAT</strong>: このサービスが「何ができるか」を定義します。
+                            他サービス設計者・アーキテクト向けの情報です。
+                          </AlertDescription>
+                        </Alert>
+
+                        <UnifiedMDEditor
+                          type="api-specification"
+                          value={selectedService.apiSpecificationDefinition || ''}
+                          onChange={(value) => {
+                            setSelectedService({
+                              ...selectedService,
+                              apiSpecificationDefinition: value
+                            });
+                            setHasChanges(true);
+                          }}
+                          onSave={handleSave}
+                          title="サービス統合API仕様（WHAT）"
+                          description="パラソルドメイン連携・SLA・制約・エンドポイント概要を定義"
+                        />
+                      </TabsContent>
+
+                      <TabsContent value="how-api-usage">
+                        <Alert className="mb-4">
+                          <AlertTriangle className="h-4 w-4" />
+                          <AlertDescription>
+                            <strong>HOW</strong>: 各ユースケースで「どう使うか」を定義します。
+                            実装エンジニア向けの具体的な利用方法です。
+                          </AlertDescription>
+                        </Alert>
+
+                        <APIUsageManagementPanel />
+                      </TabsContent>
+                    </Tabs>
+                  </CardContent>
+                </Card>
               </TabsContent>
 
-              <TabsContent value="api-spec">
-                <UnifiedMDEditor
-                  type="api-specification"
-                  value={selectedService.apiSpecificationDefinition || ''}
-                  onChange={(value) => {
-                    setSelectedService({
-                      ...selectedService,
-                      apiSpecificationDefinition: value
-                    });
-                    setHasChanges(true);
-                  }}
-                  onSave={handleSave}
-                  title="API仕様"
-                  description="RESTful APIのエンドポイントをMarkdownで定義します"
-                />
+              <TabsContent value="design-management">
+                <Tabs defaultValue="generation" className="space-y-4">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="generation">コード生成</TabsTrigger>
+                    <TabsTrigger value="design-restructure">設計再構築</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="generation">
+                    <CodeGenerationPanel
+                      serviceId={selectedService.id}
+                      capabilities={selectedService.capabilities || []}
+                      operations={selectedService.businessOperations || []}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="design-restructure">
+                    <DesignRestructureDashboard />
+                  </TabsContent>
+                </Tabs>
               </TabsContent>
 
-              <TabsContent value="db-design">
-                <UnifiedMDEditor
-                  type="database-design"
-                  value={selectedService.databaseDesignDefinition || ''}
-                  onChange={(value) => {
-                    setSelectedService({
-                      ...selectedService,
-                      databaseDesignDefinition: value
-                    });
-                    setHasChanges(true);
-                  }}
-                  onSave={handleSave}
-                  title="DB設計"
-                  description="テーブル、カラム、リレーションをMarkdownで定義します"
-                />
-              </TabsContent>
+              <TabsContent value="analysis-tools">
+                <Tabs defaultValue="duplication-analysis" className="space-y-4">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="duplication-analysis">重複分析</TabsTrigger>
+                    <TabsTrigger value="design-quality">設計品質</TabsTrigger>
+                  </TabsList>
 
-              <TabsContent value="capability">
-                <BusinessCapabilityEditor
-                  serviceId={selectedService.id}
-                  capabilities={selectedService.capabilities || []}
-                  onSave={async (capabilities) => {
-                    // ケーパビリティ保存処理
-                    setSelectedService({
-                      ...selectedService,
-                      capabilities
-                    });
-                    setHasChanges(true);
-                  }}
-                  onOperationClick={(capability, operation) => {
-                    // オペレーションクリック処理
-                  }}
-                  onAddOperation={() => {}}
-                  onEditOperation={() => {}}
-                  onDeleteOperation={() => {}}
-                />
-              </TabsContent>
+                  <TabsContent value="duplication-analysis">
+                    <DuplicationAnalysisDashboard />
+                  </TabsContent>
 
-              <TabsContent value="generation">
-                <CodeGenerationPanel
-                  serviceId={selectedService.id}
-                  capabilities={selectedService.capabilities || []}
-                  operations={selectedService.businessOperations || []}
-                />
-              </TabsContent>
-
-              <TabsContent value="duplication-analysis">
-                <DuplicationAnalysisDashboard />
-              </TabsContent>
-
-              <TabsContent value="design-quality">
-                <DesignQualityDashboard />
-              </TabsContent>
-
-              <TabsContent value="design-restructure">
-                <DesignRestructureDashboard />
+                  <TabsContent value="design-quality">
+                    <DesignQualityDashboard />
+                  </TabsContent>
+                </Tabs>
               </TabsContent>
             </Tabs>
           </CardContent>
@@ -897,6 +1102,81 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                 onSave={handleSave}
                 title="テスト定義"
                 description="テストケース、期待結果をMarkdownで記述します"
+              />
+            </CardContent>
+          </Card>
+        );
+
+      case 'usecaseFile':
+        // ユースケースファイルの統合表示
+        return (
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle>{selectedNode.displayName}</CardTitle>
+              <CardDescription>ユースケース定義ファイル（統合表示）</CardDescription>
+            </CardHeader>
+            <CardContent className="overflow-auto">
+              <UnifiedMDEditor
+                type="usecase-definition"
+                value={selectedNode.metadata?.content || ''}
+                onChange={(value) => {
+                  // ファイル変更処理（統合ビューでの編集）
+                  // TODO: ファイル更新ロジックを実装
+                  setHasChanges(true);
+                }}
+                onSave={handleSave}
+                title="ユースケース定義"
+                description="統合ビューでユースケース定義を編集します"
+              />
+            </CardContent>
+          </Card>
+        );
+
+      case 'pageFile':
+        // ページファイルの統合表示
+        return (
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle>{selectedNode.displayName}</CardTitle>
+              <CardDescription>ページ定義ファイル（統合表示）</CardDescription>
+            </CardHeader>
+            <CardContent className="overflow-auto">
+              <UnifiedMDEditor
+                type="page-definition"
+                value={selectedNode.metadata?.content || ''}
+                onChange={(value) => {
+                  // ファイル変更処理（統合ビューでの編集）
+                  // TODO: ファイル更新ロジックを実装
+                  setHasChanges(true);
+                }}
+                onSave={handleSave}
+                title="ページ定義"
+                description="統合ビューでページ定義を編集します"
+              />
+            </CardContent>
+          </Card>
+        );
+
+      case 'apiUsageFile':
+        // API利用ファイルの統合表示
+        return (
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle>{selectedNode.displayName}</CardTitle>
+              <CardDescription>API利用仕様ファイル（統合表示）</CardDescription>
+            </CardHeader>
+            <CardContent className="overflow-auto">
+              <UnifiedMDEditor
+                type="api-specification"
+                value={selectedNode.metadata?.content || ''}
+                onChange={(value) => {
+                  // ファイル変更処理（統合ビューでの編集）
+                  // TODO: ファイル更新ロジックを実装
+                  setHasChanges(true);
+                }}
+                onSave={handleSave}
+                title="API利用仕様"
+                description="統合ビューでAPI利用仕様を編集します"
               />
             </CardContent>
           </Card>

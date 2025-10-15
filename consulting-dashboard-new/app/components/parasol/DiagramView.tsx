@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import mermaid from 'mermaid';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, Copy, Maximize2, ZoomIn, ZoomOut, RotateCcw, Filter, Eye, EyeOff } from 'lucide-react';
@@ -52,38 +51,48 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
     setZoom(100);
   }, []); // 空の依存配列で初回マウント時のみ実行
 
-  // Mermaid初期化
+  // Mermaid初期化（動的インポート）
   useEffect(() => {
-    if (type === 'mermaid') {
-      mermaid.initialize({
-        theme: 'neutral',
-        themeVariables: {
-          primaryColor: '#f3f4f6',
-          primaryTextColor: '#111827',
-          primaryBorderColor: '#d1d5db',
-          lineColor: '#6b7280',
-          secondaryColor: '#e5e7eb',
-          tertiaryColor: '#f9fafb',
-          background: '#ffffff',
-          mainBkg: '#f3f4f6',
-          secondBkg: '#e5e7eb',
-          classText: '#111827',
-          fontSize: '14px',
-        },
-        startOnLoad: false,
-        flowchart: {
-          htmlLabels: true,
-          curve: 'basis',
-        },
-        er: {
-          fontSize: '14',
-          layoutDirection: 'TB',
-        },
-        classDiagram: {
-          fontSize: '14',
-        },
-      });
-    }
+    const initializeMermaid = async () => {
+      if (type === 'mermaid') {
+        try {
+          const mermaid = (await import('mermaid')).default;
+          mermaid.initialize({
+            theme: 'neutral',
+            themeVariables: {
+              primaryColor: '#f3f4f6',
+              primaryTextColor: '#111827',
+              primaryBorderColor: '#d1d5db',
+              lineColor: '#6b7280',
+              secondaryColor: '#e5e7eb',
+              tertiaryColor: '#f9fafb',
+              background: '#ffffff',
+              mainBkg: '#f3f4f6',
+              secondBkg: '#e5e7eb',
+              classText: '#111827',
+              fontSize: '14px',
+            },
+            startOnLoad: false,
+            flowchart: {
+              htmlLabels: true,
+              curve: 'basis',
+            },
+            er: {
+              fontSize: '14',
+              layoutDirection: 'TB',
+            },
+            classDiagram: {
+              fontSize: '14',
+            },
+          });
+        } catch (err) {
+          console.error('Mermaidの読み込みに失敗しました:', err);
+          setError('Mermaidライブラリが利用できません。代替表示を使用しています。');
+        }
+      }
+    };
+
+    initializeMermaid();
   }, [type]);
 
   // ダイアグラム描画
@@ -99,11 +108,14 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
         console.log('DiagramView: Rendering diagram', { type, code: code.substring(0, 200) });
 
         if (type === 'mermaid') {
-          // Mermaidレンダリング
-          const id = `mermaid-${Date.now()}`;
-          console.log('DiagramView: Calling mermaid.render with:', { id });
-
           try {
+            // Mermaidの動的インポート
+            const mermaid = (await import('mermaid')).default;
+
+            // Mermaidレンダリング
+            const id = `mermaid-${Date.now()}`;
+            console.log('DiagramView: Calling mermaid.render with:', { id });
+
             const { svg } = await mermaid.render(id, code);
             console.log('DiagramView: Mermaid render successful, SVG length:', svg.length);
             setOriginalSvgContent(svg);
@@ -111,8 +123,27 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
             console.log('DiagramView: SVG content set in React state');
           } catch (mermaidErr) {
             console.error('DiagramView: Mermaid render error:', mermaidErr);
-            const mermaidErrorMsg = mermaidErr instanceof Error ? mermaidErr.message : String(mermaidErr);
-            throw new Error(`Mermaid描画エラー: ${mermaidErrorMsg}`);
+
+            // Mermaidが利用できない場合のフォールバック
+            const fallbackSvg = `
+              <svg width="400" height="200" xmlns="http://www.w3.org/2000/svg">
+                <rect x="10" y="10" width="380" height="180" fill="#f3f4f6" stroke="#d1d5db" stroke-width="2" rx="5"/>
+                <text x="200" y="50" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#6b7280">
+                  Mermaidライブラリが利用できません
+                </text>
+                <text x="200" y="80" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#9ca3af">
+                  コード内容:
+                </text>
+                <foreignObject x="20" y="100" width="360" height="80">
+                  <div style="font-family: monospace; font-size: 10px; color: #374151; white-space: pre-wrap; overflow: auto; height: 80px; padding: 5px;">
+                    ${code.substring(0, 200)}${code.length > 200 ? '...' : ''}
+                  </div>
+                </foreignObject>
+              </svg>
+            `;
+            setOriginalSvgContent(fallbackSvg);
+            setDisplaySvgContent(fallbackSvg);
+            console.log('DiagramView: Fallback SVG content set');
           }
         } else if (type === 'plantuml') {
           // PlantUMLサーバーへのリクエスト

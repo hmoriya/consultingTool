@@ -166,6 +166,9 @@ model UseCase {
   operation       BusinessOperation   @relation(fields: [operationId], references: [id], onDelete: Cascade)
   order           Int                 @default(0) // 表示順序
 
+  // Issue #146: API利用仕様WHAT/HOW分離対応
+  apiUsageDefinition String?          // MD形式のAPI利用仕様（HOW: 具体的利用方法）
+
   // ユースケース詳細（JSON形式、後で廃止予定）
   actors          String?             // アクター（JSON: {primary: string, secondary: string[]})
   preconditions   String?             // 事前条件（JSON配列）

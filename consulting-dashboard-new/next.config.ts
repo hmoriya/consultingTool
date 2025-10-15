@@ -4,6 +4,22 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true, // 開発環境では画像最適化を無効化
   },
+  webpack: (config, { isServer }) => {
+    // ブラウザ側でNode.jsモジュールの互換性設定
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        crypto: false,
+        stream: false,
+        util: false,
+        buffer: false,
+        process: false,
+      };
+    }
+    return config;
+  },
   async rewrites() {
     return [
       {

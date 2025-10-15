@@ -3,8 +3,19 @@
  */
 
 import { TreeNode, ParasolService, BusinessCapability, BusinessOperation } from '@/types/parasol';
-import { readParasolFile } from '@/app/actions/files';
-import { buildApiUsageFilePath } from './file-utils';
+
+// Path utility functions defined inline to avoid import issues
+function buildApiUsageFilePath(serviceName: string, capabilityName: string, operationName: string, usecaseName: string): string {
+  return `docs/parasol/services/${serviceName}/capabilities/${capabilityName}/operations/${operationName}/usecases/${usecaseName}/api-usage.md`;
+}
+
+function buildUsecaseFilePath(serviceName: string, capabilityName: string, operationName: string, usecaseName: string): string {
+  return `docs/parasol/services/${serviceName}/capabilities/${capabilityName}/operations/${operationName}/usecases/${usecaseName}/usecase.md`;
+}
+
+function buildPageFilePath(serviceName: string, capabilityName: string, operationName: string, usecaseName: string): string {
+  return `docs/parasol/services/${serviceName}/capabilities/${capabilityName}/operations/${operationName}/usecases/${usecaseName}/page.md`;
+}
 
 /**
  * サービス、ケーパビリティ、オペレーションからツリー構造を構築（同期版・後方互換）
@@ -75,8 +86,8 @@ export async function buildTreeFromParasolDataAsync(
         };
 
         // ユースケースモデルを追加（v2.0 ディレクトリ・ファイル構造）
-        if ((operation as any).useCaseModels && Array.isArray((operation as any).useCaseModels)) {
-          for (const useCase of (operation as any).useCaseModels) {
+        if ((operation as any).useCases && Array.isArray((operation as any).useCases)) {
+          for (const useCase of (operation as any).useCases) {
             // ユースケースディレクトリノード
             const useCaseDirectoryNode: TreeNode = {
               id: useCase.id,
@@ -136,26 +147,7 @@ export async function buildTreeFromParasolDataAsync(
               useCaseDirectoryNode.children?.push(pageFileNode);
             }
 
-            // 3. api-usage.md ファイルノード（v2.0仕様）- 実際のファイル読み込み
-            let apiUsageContent = '';
-            try {
-              // ファイルパスを構築
-              const apiUsageFilePath = buildApiUsageFilePath(
-                service.name,
-                capability.name,
-                operation.name,
-                useCase.name
-              );
-
-              // 実際のファイルを読み込み
-              const result = await readParasolFile(apiUsageFilePath);
-              if (result.success) {
-                apiUsageContent = result.data || '';
-              }
-            } catch (error) {
-              console.warn(`API usage file not found for ${useCase.name}:`, error);
-            }
-
+            // 3. api-usage.md ファイルノード（v2.0仕様）- DBからコンテンツ取得
             const apiUsageFileNode: TreeNode = {
               id: `${useCase.id}-api-usage-file`,
               name: 'api-usage.md',
@@ -166,8 +158,9 @@ export async function buildTreeFromParasolDataAsync(
               metadata: {
                 fileName: 'api-usage.md',
                 fileType: 'markdown',
-                content: apiUsageContent, // 実際のファイル内容を使用
+                content: useCase.apiUsageDefinition || '', // DBからAPI利用仕様を取得
                 description: 'このユースケースでのAPI利用方法',
+                useCaseId: useCase.id, // デバッグ用
               },
             };
             useCaseDirectoryNode.children?.push(apiUsageFileNode);
@@ -272,8 +265,8 @@ function buildTreeFromParasolDataSync(
         };
 
         // ユースケースモデルを追加（v2.0 ディレクトリ・ファイル構造）
-        if ((operation as any).useCaseModels && Array.isArray((operation as any).useCaseModels)) {
-          (operation as any).useCaseModels.forEach((useCase: any) => {
+        if ((operation as any).useCases && Array.isArray((operation as any).useCases)) {
+          (operation as any).useCases.forEach((useCase: any) => {
             // ユースケースディレクトリノード
             const useCaseDirectoryNode: TreeNode = {
               id: useCase.id,
@@ -333,7 +326,7 @@ function buildTreeFromParasolDataSync(
               useCaseDirectoryNode.children?.push(pageFileNode);
             }
 
-            // 3. api-usage.md ファイルノード（v2.0仕様）
+            // 3. api-usage.md ファイルノード（v2.0仕様）- DBからコンテンツ取得
             const apiUsageFileNode: TreeNode = {
               id: `${useCase.id}-api-usage-file`,
               name: 'api-usage.md',
@@ -344,8 +337,9 @@ function buildTreeFromParasolDataSync(
               metadata: {
                 fileName: 'api-usage.md',
                 fileType: 'markdown',
-                content: '', // 今後実装予定
+                content: useCase.apiUsageDefinition || '', // DBからAPI利用仕様を取得
                 description: 'このユースケースでのAPI利用方法',
+                useCaseId: useCase.id, // デバッグ用
               },
             };
             useCaseDirectoryNode.children?.push(apiUsageFileNode);

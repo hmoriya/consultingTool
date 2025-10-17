@@ -92,7 +92,25 @@ model Session {
   userAgent String?
   expiresAt DateTime
   createdAt DateTime @default(now())
-  
+
   @@index([token])
   @@index([userId])
+}
+
+// 監査ログ
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?  // ユーザーID（システムアクションの場合null）
+  action      String   // アクション（LOGIN, LOGOUT, CREATE, UPDATE, DELETE等）
+  resource    String   // 対象リソース（auth, user, organization等）
+  resourceId  String?  // 対象リソースID
+  details     String?  // 詳細情報（JSON形式）
+  ipAddress   String?  // IPアドレス
+  userAgent   String?  // ユーザーエージェント
+  timestamp   DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([timestamp])
 }

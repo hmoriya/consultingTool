@@ -187,20 +187,31 @@ async function scanParasolDocs(basePath: string) {
 
                       for (const entry of usecaseEntries) {
                         if (entry.isDirectory()) {
-                          // v2.0構造: usecases/[usecase-name]/usecase.md + page.md
+                          // v2.0構造: usecases/[usecase-name]/usecase.md + page.md + api-usage.md
                           const usecaseDirPath = path.join(usecasesPath, entry.name)
                           const usecaseFilePath = path.join(usecaseDirPath, 'usecase.md')
                           const pageFilePath = path.join(usecaseDirPath, 'page.md')
+                          const apiUsageFilePath = path.join(usecaseDirPath, 'api-usage.md')
 
                           try {
                             // ユースケースファイル読み込み
                             const usecaseContent = await fs.readFile(usecaseFilePath, 'utf-8')
                             const usecaseMetadata = extractMetadata(usecaseContent, 'usecase')
 
+                            // API利用仕様ファイル読み込み
+                            let apiUsageContent = ''
+                            try {
+                              apiUsageContent = await fs.readFile(apiUsageFilePath, 'utf-8')
+                              console.log(`✅ API利用仕様読み込み成功: ${apiUsageFilePath} (${apiUsageContent.length}文字)`)
+                            } catch (apiError) {
+                              console.log(`⚠️ API利用仕様なし: ${apiUsageFilePath}`)
+                            }
+
                             const usecaseData = {
                               name: entry.name,
                               displayName: usecaseMetadata.displayName || entry.name,
-                              content: usecaseContent
+                              content: usecaseContent,
+                              apiUsageDefinition: apiUsageContent
                             }
                             usecases.push(usecaseData)
 
@@ -476,7 +487,7 @@ async function importToDatabase(services: any[]) {
               operations: JSON.stringify([]),
               businessStates: JSON.stringify([]),
               roles: JSON.stringify([]),
-              useCases: JSON.stringify([]),
+              useCases: JSON.stringify([]), // JSON形式（廃止予定）
               uiDefinitions: JSON.stringify([]),
               testCases: JSON.stringify([]),
               robustnessModel: JSON.stringify({})
@@ -513,7 +524,8 @@ async function importToDatabase(services: any[]) {
                   postconditions: '[]',
                   basicFlow: '[]',
                   alternativeFlow: '[]',
-                  exceptionFlow: '[]'
+                  exceptionFlow: '[]',
+                  apiUsageDefinition: usecaseData.apiUsageDefinition || ''
                 }
               })
 
@@ -603,7 +615,8 @@ async function importToDatabase(services: any[]) {
                   postconditions: '[]',
                   basicFlow: '[]',
                   alternativeFlow: '[]',
-                  exceptionFlow: '[]'
+                  exceptionFlow: '[]',
+                  apiUsageDefinition: ''
                 }
               })
 
@@ -642,8 +655,18 @@ async function importToDatabase(services: any[]) {
 export async function POST(request: Request) {
   try {
     console.log('🚀 APIインポート開始 - リクエストボディを取得中');
-    // POSTリクエストボディを取得
-    const body = await request.json()
+
+    // POSTリクエストボディを安全に取得
+    let body = null;
+    try {
+      const bodyText = await request.text();
+      if (bodyText && bodyText.trim()) {
+        body = JSON.parse(bodyText);
+      }
+    } catch (jsonError) {
+      console.log('📨 リクエストボディが空またはJSONではありません - ファイルスキャンモードで実行');
+    }
+
     console.log('📨 リクエストボディ取得完了:', body ? 'データあり' : 'データなし');
 
     let services;

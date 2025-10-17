@@ -55,6 +55,8 @@ export async function login(data: z.infer<typeof LoginSchema>) {
           userId: user.id,
           action: 'LOGIN',
           resource: 'auth',
+          resourceId: user.id,
+          details: JSON.stringify({ email: user.email, role: user.role.name })
         }
       })
     } catch (error) {
@@ -100,6 +102,7 @@ export async function logout() {
           userId: session.userId,
           action: 'LOGOUT',
           resource: 'auth',
+          resourceId: session.userId
         }
       })
     } catch (error) {

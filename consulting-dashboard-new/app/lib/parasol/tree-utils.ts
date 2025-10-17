@@ -3,19 +3,11 @@
  */
 
 import { TreeNode, ParasolService, BusinessCapability, BusinessOperation } from '@/types/parasol';
-
-// Path utility functions defined inline to avoid import issues
-function buildApiUsageFilePath(serviceName: string, capabilityName: string, operationName: string, usecaseName: string): string {
-  return `docs/parasol/services/${serviceName}/capabilities/${capabilityName}/operations/${operationName}/usecases/${usecaseName}/api-usage.md`;
-}
-
-function buildUsecaseFilePath(serviceName: string, capabilityName: string, operationName: string, usecaseName: string): string {
-  return `docs/parasol/services/${serviceName}/capabilities/${capabilityName}/operations/${operationName}/usecases/${usecaseName}/usecase.md`;
-}
-
-function buildPageFilePath(serviceName: string, capabilityName: string, operationName: string, usecaseName: string): string {
-  return `docs/parasol/services/${serviceName}/capabilities/${capabilityName}/operations/${operationName}/usecases/${usecaseName}/page.md`;
-}
+import {
+  buildApiUsageFilePath,
+  buildUsecaseFilePath,
+  buildPageFilePath
+} from '@/app/lib/parasol/path-utils';
 
 /**
  * サービス、ケーパビリティ、オペレーションからツリー構造を構築（同期版・後方互換）
@@ -86,13 +78,13 @@ export async function buildTreeFromParasolDataAsync(
         };
 
         // ユースケースモデルを追加（v2.0 ディレクトリ・ファイル構造）
-        if ((operation as any).useCases && Array.isArray((operation as any).useCases)) {
-          for (const useCase of (operation as any).useCases) {
+        if ((operation as any).useCaseModels && Array.isArray((operation as any).useCaseModels)) {
+          for (const useCase of (operation as any).useCaseModels) {
             // ユースケースディレクトリノード
             const useCaseDirectoryNode: TreeNode = {
               id: useCase.id,
               name: useCase.name,
-              displayName: useCase.displayName,
+              displayName: `ユースケース：${useCase.displayName}`,
               type: 'directory',
               parentId: operation.id,
               children: [],
@@ -265,13 +257,13 @@ function buildTreeFromParasolDataSync(
         };
 
         // ユースケースモデルを追加（v2.0 ディレクトリ・ファイル構造）
-        if ((operation as any).useCases && Array.isArray((operation as any).useCases)) {
-          (operation as any).useCases.forEach((useCase: any) => {
+        if ((operation as any).useCaseModels && Array.isArray((operation as any).useCaseModels)) {
+          (operation as any).useCaseModels.forEach((useCase: any) => {
             // ユースケースディレクトリノード
             const useCaseDirectoryNode: TreeNode = {
               id: useCase.id,
               name: useCase.name,
-              displayName: useCase.displayName,
+              displayName: `ユースケース：${useCase.displayName}`,
               type: 'directory',
               parentId: operation.id,
               children: [],

@@ -61,7 +61,7 @@ export function UnifiedTreeView({
   className
 }: UnifiedTreeViewProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [showJapanese, setShowJapanese] = useState(false); // 日本語表示切り替え
+  const [showJapanese, setShowJapanese] = useState(true); // 日本語表示切り替え（デフォルト：日本語）
   const [filteredNodes, setFilteredNodes] = useState<Set<string>>(new Set());
   const [treeNodes, setTreeNodes] = useState<TreeNode[]>([]);
   const [isLoadingTreeNodes, setIsLoadingTreeNodes] = useState(false);

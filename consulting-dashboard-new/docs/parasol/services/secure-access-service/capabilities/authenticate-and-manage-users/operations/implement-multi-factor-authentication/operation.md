@@ -1,7 +1,8 @@
 # ビジネスオペレーション: 多要素認証を実施する
 
-**バージョン**: 1.0.0
-**更新日**: 2025-10-01
+**バージョン**: 2.0.0
+**更新日**: 2025-10-20
+**パラソル設計v2.0仕様**: 完全準拠
 
 ## 概要
 
@@ -97,9 +98,53 @@ stateDiagram-v2
 - **コード期限切れ**: 新しいコードの入力要求
 - **連続失敗**: 一時的にアカウントロック、管理者へ通知
 
+## 🏗️ パラソルドメイン連携
+
+### マイクロサービス設計原則（ユースケース利用型）
+- **自サービス管理**: MFAConfigurationEntity（MFA設定管理）、MFASecretEntity（秘密鍵管理）、BackupCodeEntity（バックアップコード管理）
+- **他サービス連携**: 他サービス公開ユースケース利用（エンティティ直接参照禁止）
+
+#### 📊 操作エンティティ
+- **MFAConfigurationEntity** (自サービス管理・CRUD): disabled → enrolling → enabled → verified
+- **MFASecretEntity** (自サービス管理・新規作成): 秘密鍵・QRコード生成と管理
+- **BackupCodeEntity** (自サービス管理・状態更新): unused → used → expired
+
+#### 🏢 パラソル集約
+- **MFASecurityAggregate** - 多要素認証ライフサイクル統合管理
+  - 集約ルート: MFAConfiguration
+  - 包含エンティティ: MFASecret, BackupCode, AuthenticationAttempt, MFAPolicy
+  - 不変条件: 有効化済みMFAのみ認証で利用可能、バックアップコードは一度のみ利用可能、管理者・財務担当は強制有効化
+
+#### ⚙️ ドメインサービス
+- **MFAEnrollmentService**: enhance[SecurityPosture]() - セキュリティ姿勢向上
+- **MFAValidationService**: strengthen[AuthenticationSecurity]() - 認証セキュリティ強化
+- **MFARecoveryService**: coordinate[AccountRecovery]() - アカウント復旧統制
+
+#### 🔗 他サービスユースケース利用（ユースケース呼び出し型）
+**責務**: ❌ エンティティ知識不要 ✅ ユースケース利用のみ
+
+**[secure-access-service] 自サービス内利用:**
+├── UC-AUTH-01: ユーザー認証を実行する → POST /api/auth/authenticate
+├── UC-AUTH-02: セッション管理を実行する → POST /api/auth/manage-session
+└── UC-AUTH-03: アクセスログを記録する → POST /api/auth/log-access
+
+**[collaboration-facilitation-service] ユースケース利用:**
+├── UC-COMM-01: MFA設定通知を配信する → POST /api/notifications/send-mfa-setup
+├── UC-COMM-02: セキュリティアラートを送信する → POST /api/notifications/send-security-alert
+└── UC-COMM-03: MFA無効化通知を配信する → POST /api/notifications/send-mfa-disabled
+
+### ユースケース・ページ分解マトリックス
+
+| ユースケース名 | ユースケースID | 対応ページ | ビジネス価値 |
+|---------------|---------------|-----------|-------------|
+| MFAを有効化する | UC-MFA-01 | MFA設定・有効化ページ | セキュリティ強化とアカウント保護 |
+| 認証コードを入力する | UC-MFA-02 | MFA認証コード入力ページ | 安全なログイン実現 |
+| バックアップコードを使用する | UC-MFA-03 | バックアップコード利用ページ | デバイス紛失時の安全復旧 |
+| MFAをリセットする | UC-MFA-04 | MFA設定リセット・管理ページ | MFA問題の迅速解決 |
+
 ## 派生ユースケース
 
-1. MFAを有効化する
-2. 認証コードを入力する
-3. バックアップコードを使用する
-4. MFAをリセットする
+1. MFAを有効化する（UC-MFA-01）
+2. 認証コードを入力する（UC-MFA-02）
+3. バックアップコードを使用する（UC-MFA-03）
+4. MFAをリセットする（UC-MFA-04）

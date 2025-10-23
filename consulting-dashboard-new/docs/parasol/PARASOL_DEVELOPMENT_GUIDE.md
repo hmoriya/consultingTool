@@ -1,6 +1,6 @@
 # パラソル開発ガイド - DX価値創造型フレームワーク
 
-**バージョン**: 3.1.0
+**バージョン**: 3.2.0
 **更新日**: 2025-10-23
 **ステータス**: Draft
 
@@ -613,11 +613,11 @@ docs/parasol/services/
 
 各バリューステージ内のケーパビリティ階層において、3つの概念体系が存在します：
 
-| 概念体系 | 目的 | 焦点 | 成果物 |
-|---------|------|------|--------|
-| **ビジネスの階層**<br/>（バリューステージ構造） | 何をするか（What） | ビジネス価値・組織能力 | バリューストリームマップ<br/>ケーパビリティマップ |
-| **DDDの階層**<br/>（問題領域→解決領域） | どうモデル化するか（How to Model） | ドメイン知識の構造化 | サブドメインマップ<br/>ドメインモデル、設計書 |
-| **サービス/実装の階層**<br/>（ソリューション構成） | どう実装するか（How to Implement） | システムの物理構造 | コード、インフラ構成 |
+| 概念体系 | 空間/レベル | 目的 | 焦点 | 担当者 | 成果物 |
+|---------|-----------|------|------|--------|--------|
+| **ビジネスの階層**<br/>（バリューステージ構造） | - | 何をするか（What） | ビジネス価値・組織能力 | ビジネス部門<br/>経営層 | バリューストリームマップ<br/>ケーパビリティマップ |
+| **DDDの階層**<br/>（問題領域→解決領域） | **問題領域**: Subdomain<br/>**解決領域**: BC | どうモデル化するか（How to Model） | ドメイン知識の構造化 | ドメインエキスパート<br/>アーキテクト | サブドメインマップ<br/>ドメインモデル<br/>コンテキストマップ |
+| **実装の階層**<br/>（ソリューション構成） | **ソリューション構成**: MS | どう実装・構成するか（How to Implement） | システムの物理構造 | エンジニア<br/>DevOpsチーム | ソースコード<br/>API仕様<br/>インフラ構成 |
 
 ---
 
@@ -658,72 +658,128 @@ B0: バリューストリーム "DXプロジェクト成功支援"
 
 ##### 2. DDDの階層（DDD Hierarchy）
 
-**目的**: ドメイン知識の構造化とモデリング
+**目的**: ドメイン知識の構造化とモデリング（問題領域→解決領域）
 
-| レベル | 名称 | 説明 | 例 |
-|--------|------|------|-----|
-| **D0** | **問題空間レベル** | サブドメインの特定 | Core/Supporting/Generic Subdomain |
-| **D1** | **戦略的設計レベル** | コンテキスト境界の定義 | Bounded Context, Context Map |
-| **D2** | **戦術的設計レベル** | ドメインモデルの構造 | Aggregate, Entity, Value Object |
-| **D3** | **実装パターンレベル** | DDD実装パターン | Repository, Domain Service, Factory |
+| レベル | 空間/領域 | 名称 | 説明 | 例 |
+|--------|----------|------|------|-----|
+| **D0** | **問題領域**<br/>**Problem Space** | **Subdomainレベル** | ビジネスドメインの論理的な分割<br/>何を解決するか | Core/Supporting/Generic Subdomain<br/>"プロジェクト計画"、"認証基盤" |
+| **D1** | **解決領域**<br/>**Solution Space** | **Bounded Contextレベル** | ドメインモデルの一貫性境界<br/>どうモデル化するか | Bounded Context, Context Map<br/>"Project Success Service" |
+| **D2** | **解決領域**<br/>**Solution Space** | **戦術的設計レベル** | ドメインモデルの詳細構造 | Aggregate, Entity, Value Object<br/>"Project Aggregate"、"TaskEntity" |
+| **D3** | **解決領域**<br/>**Solution Space** | **実装パターンレベル** | DDD実装パターン | Repository, Domain Service, Factory<br/>"ProjectRepository" |
 
-**主要概念**:
-- **Subdomain**: 問題空間におけるビジネスドメインの論理的な分割（Core/Supporting/Generic）
-- **Bounded Context**: 解決空間におけるドメインモデルの一貫性境界、ユビキタス言語の適用範囲
-- **Aggregate**: トランザクション境界、不変条件を守る単位
-- **Entity**: ライフサイクルと一意性を持つオブジェクト
-- **Value Object**: 不変で等価性で比較されるオブジェクト
+**問題領域（D0: Problem Space）の主要概念**:
+- **Subdomain**: ビジネスドメインの論理的な分割
+  - **Core Subdomain**: 競争優位性を生む最重要領域（例: "プロジェクト成功支援"）
+  - **Supporting Subdomain**: ビジネスに必要だが差別化にならない（例: "タレント最適化"）
+  - **Generic Subdomain**: 既製品で代替可能（例: "認証基盤"）
 
-**問題空間 vs 解決空間**:
+**解決領域（D1-D3: Solution Space）の主要概念**:
+- **Bounded Context（D1）**: ドメインモデルの一貫性境界、ユビキタス言語の適用範囲
+- **Aggregate（D2）**: トランザクション境界、不変条件を守る単位
+- **Entity（D2）**: ライフサイクルと一意性を持つオブジェクト
+- **Value Object（D2）**: 不変で等価性で比較されるオブジェクト
+- **Repository（D3）**: 集約の永続化パターン
+- **Domain Service（D3）**: エンティティやVOに属さないドメインロジック
+
+**問題領域 vs 解決領域の関係**:
 ```
-問題空間（Problem Space）           解決空間（Solution Space）
-├─ Subdomain（サブドメイン）    →    Bounded Context（BC）
-│  - Core Subdomain                  - ドメインモデル
-│  - Supporting Subdomain            - ユビキタス言語
-│  - Generic Subdomain               - コンテキストマップ
+問題領域（Problem Space）           解決領域（Solution Space）
+D0: Subdomain                  →    D1: Bounded Context
+├─ Core Subdomain                   ├─ ドメインモデル（D2）
+│  "プロジェクト成功支援"            │  ├─ Project Aggregate
+│                                   │  ├─ Milestone Entity
+│                                   │  └─ Priority Value Object
+├─ Supporting Subdomain             │
+│  "タレント最適化"                 ├─ ユビキタス言語
+│                                   │  "プロジェクトを構想する"
+└─ Generic Subdomain                │
+   "認証基盤"                       └─ コンテキストマップ（D1）
+                                       Customer/Supplier関係
 ```
 
 ---
 
-##### 3. サービス/実装の階層（Service/Implementation Hierarchy）
+##### 3. 実装の階層（Implementation Hierarchy）- ソリューション構成
 
-**目的**: システムの物理的な実装とデプロイメント
+**目的**: システムの物理的な実装・構成・デプロイメント（どう実装・構成するか）
 
-| レベル | 名称 | 説明 | 例 |
-|--------|------|------|-----|
-| **S1** | **デプロイメントレベル** | 独立したデプロイ単位 | Microservice, Container, Pod |
-| **S2** | **モジュールレベル** | コードの構造化単位 | Service Module, Package |
-| **S3** | **コードレベル** | 実装の詳細 | Class, Function, API Endpoint |
-| **S4** | **データレベル** | データの物理配置 | Database, Schema, Table |
+| レベル | 領域 | 名称 | 説明 | 例 |
+|--------|------|------|------|-----|
+| **S1** | **ソリューション構成**<br/>**Solution Composition** | **マイクロサービスレベル** | 独立したデプロイ単位<br/>どう構成・配置するか | Microservice, Container, Pod<br/>"Project Service"、"Auth Service" |
+| **S2** | **ソリューション構成**<br/>**Solution Composition** | **モジュールレベル** | コードの構造化単位 | Service Module, Package<br/>"ProjectModule"、"AuthModule" |
+| **S3** | **ソリューション構成**<br/>**Solution Composition** | **コードレベル** | 実装の詳細 | Class, Function, API Endpoint<br/>"ProjectController"、"POST /api/projects" |
+| **S4** | **ソリューション構成**<br/>**Solution Composition** | **データレベル** | データの物理配置 | Database, Schema, Table<br/>"PostgreSQL"、"project_service schema" |
+
+**ソリューション構成の主要概念**:
+- **Microservice（S1）**: BCの実装・デプロイ単位。独立したプロセス、DB、API
+- **Service Module（S2）**: モノリス内でのBC実装単位。NestJSモジュール等
+- **Controller/UseCase（S3）**: ビジネスロジックの実装。API エンドポイント
+- **Database Schema（S4）**: BCごとのデータ分離。スキーマまたは物理DB
+
+**ソリューション構成のパターン**:
+```
+ソリューション構成（Solution Composition）
+
+パターン1: モノリス構成
+└─ 1つのデプロイメント単位
+    ├─ 複数のService Module（BC単位）
+    ├─ 単一のプロセス・アプリケーション
+    └─ Schema分離されたDB
+
+パターン2: マイクロサービス構成
+└─ 複数の独立したデプロイメント単位
+    ├─ BC = Microservice（1対1または1対多）
+    ├─ 独立したプロセス・コンテナ
+    └─ 独立した物理DB
+
+パターン3: ハイブリッド構成
+└─ モノリス + 一部MS
+    ├─ コアBCはモノリス内モジュール
+    ├─ 独立性が高いBCはMS化
+    └─ Schema分離 + 物理DB分離の混在
+```
 
 ---
 
 #### パラソルにおける完全な階層マッピング
 
-**重要**: バリューステージ内のケーパビリティ階層（L1/L2/L3）に、問題領域（Subdomain）、解決領域（BC）、ソリューション構成（MS）が対応します。
+**重要**: バリューステージ内のケーパビリティ階層（L1/L2/L3）に、**問題領域（Subdomain）→解決領域（BC）→ソリューション構成（MS）**の3層が対応します。
 
-| パラソル階層 | ビジネス階層 | DDD階層 | サービス/実装階層 | 多重度 |
-|------------|------------|---------|------------------|--------|
+| パラソル階層 | ビジネス階層 | DDD階層<br/>（問題領域→解決領域） | 実装階層<br/>（ソリューション構成） | 多重度 |
+|------------|------------|---------------------------|---------------------------|--------|
 | **Value Stream** | **B0: バリューストリーム** | - | - | - |
 | | "DXプロジェクト成功支援" | - | - | |
-| ↓ (1 VS = N Stages) | | | | |
-| **Value Stage** | **B1: バリューステージ** | - | - | 1 VS = N Stages |
+| ↓ | ↓ | | | 1 VS = N Stages |
+| **Value Stage** | **B1: バリューステージ** | - | - | |
 | | "プロジェクト計画支援" | - | - | |
-| ↓ (1 Stage = N Caps) | | | | |
-| **Capability L1** | **B2: ケーパビリティL1** | **D0: Subdomain**<br/>（問題領域） | - | 1 Stage = N L1 |
-| | "プロジェクト構想する能力" | Core/Supporting/Generic Subdomain | - | |
-| ↓ | ↓ | | | |
-| **Bounded Context**<br/>(= Service) | B2: ケーパビリティL1相当 | **D1: Bounded Context**<br/>（解決領域） | **S1: Microservice**<br/>（ソリューション構成） | 1 SD = 1..* BC<br/>1 BC = 1..* MS |
-| | "プロジェクト成功支援" | "Project Success Context" | "Project Service" | |
-| ↓ | ↓ | | | |
-| **Capability L2** | **B3: ケーパビリティL2** | D2: Aggregate Root候補 | S2: Service Module | 1 BC = 1..* L2 |
-| | "計画を策定する能力" | "Planning Aggregate" | "PlanningModule" | |
-| ↓ | ↓ | | | |
-| **Capability L3** | **B4: ケーパビリティL3** | D2: Domain Service | S3: Service Class | 1 L2 = 1..* L3 |
-| (= Operation) | "スケジュールを作成する能力" | "SchedulingService" | "ScheduleUseCase.ts" | |
-| ↓ | ↓ | | | |
-| **Use Case / Page** | **B5/B6: プロセス/アクティビティ** | D3: Application Service | S3: API + UI | 1 L3 = 1..* UC |
-| | "スケジュールを登録する" | "CreateScheduleUseCase" | "POST /api/schedules"<br/>+ "schedule-form.tsx" | |
+| ↓ | ↓ | | | 1 Stage = N L1 |
+| **Capability L1** | **B2: ケーパビリティL1** | **【問題領域】**<br/>**D0: Subdomain** | - | |
+| | "プロジェクト構想する能力" | Core Subdomain<br/>"プロジェクト計画" | - | |
+| ↓ | ↓ | ↓ | | 1 SD = 1..* BC |
+| **Bounded Context**<br/>(= Service) | B2: ケーパビリティL1相当 | **【解決領域】**<br/>**D1: Bounded Context** | **【ソリューション構成】**<br/>**S1: Microservice** | |
+| | "プロジェクト成功支援" | "Project Success Context"<br/>ドメインモデル設計 | "Project Service"<br/>実装・デプロイ単位 | 1 BC = 1..* MS |
+| ↓ | ↓ | ↓ | ↓ | 1 BC = 1..* L2 |
+| **Capability L2** | **B3: ケーパビリティL2** | **【解決領域】**<br/>D2: Aggregate | **【ソリューション構成】**<br/>S2: Service Module | |
+| | "計画を策定する能力" | "Planning Aggregate"<br/>トランザクション境界 | "PlanningModule"<br/>コード構造化単位 | |
+| ↓ | ↓ | ↓ | ↓ | 1 L2 = 1..* L3 |
+| **Capability L3**<br/>(= Operation) | **B4: ケーパビリティL3** | **【解決領域】**<br/>D2: Entity/VO | **【ソリューション構成】**<br/>S3: UseCase/Controller | |
+| | "スケジュールを作成する能力" | "Schedule Entity"<br/>ドメインオブジェクト | "ScheduleUseCase.ts"<br/>ビジネスロジック実装 | |
+| ↓ | ↓ | ↓ | ↓ | 1 L3 = 1..* UC |
+| **Use Case / Page** | **B5/B6: プロセス/<br/>アクティビティ** | **【解決領域】**<br/>D3: Application Service | **【ソリューション構成】**<br/>S3: API + UI | |
+| | "スケジュールを登録する" | "CreateScheduleUseCase"<br/>アプリケーションロジック | "POST /api/schedules"<br/>+ "schedule-form.tsx"<br/>API・UI実装 | |
+
+**3つの領域の流れ**:
+```
+問題領域（D0）              解決領域（D1-D3）                    ソリューション構成（S1-S4）
+何を解決するか          →   どうモデル化するか              →   どう実装・構成するか
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Subdomain                   Bounded Context                     Microservice
+"プロジェクト計画"     →    "Project Success Context"      →   "Project Service"
+(Core/Supporting/Generic)   ├─ Aggregate (D2)                   ├─ NestJS Module (S2)
+                            ├─ Entity/VO (D2)                   ├─ Controller (S3)
+                            ├─ Domain Service (D2)              ├─ UseCase (S3)
+                            └─ Repository (D3)                  └─ PostgreSQL Schema (S4)
+```
 
 ---
 

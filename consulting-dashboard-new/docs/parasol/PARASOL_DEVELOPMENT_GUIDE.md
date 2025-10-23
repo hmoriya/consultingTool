@@ -1,6 +1,6 @@
 # パラソル開発ガイド - DX価値創造型フレームワーク
 
-**バージョン**: 2.1.0
+**バージョン**: 2.2.0
 **更新日**: 2025-10-23
 **ステータス**: Draft
 
@@ -294,27 +294,134 @@ docs/parasol/services/
 | "パラソルはマイクロサービス設計ツール" | パラソルはドメイン設計ツール。実装方法は自由 |
 | "最初にアーキテクチャを決める" | 最初にドメイン境界を決め、実装は後で選択 |
 
-### 3.6 パラソルの完全な階層構造
+### 3.6 3つの概念体系とパラソルの階層構造
 
-#### 階層定義（5レベル）
+パラソル開発では、**3つの異なる概念体系**を扱います。これらを明確に区別し、適切にマッピングすることが重要です。
+
+#### 3つの概念体系
+
+| 概念体系 | 目的 | 焦点 | 成果物 |
+|---------|------|------|--------|
+| **ビジネスの階層** | 何をするか（What） | ビジネス価値・組織能力 | ビジネスモデル、プロセス定義 |
+| **DDDの階層** | どうモデル化するか（How to Model） | ドメイン知識の構造化 | ドメインモデル、設計書 |
+| **サービス/実装の階層** | どう実装するか（How to Implement） | システムの物理構造 | コード、インフラ構成 |
+
+---
+
+#### 概念体系の詳細と対応表
+
+##### 1. ビジネスの階層（Business Hierarchy）
+
+**目的**: ビジネス価値と組織能力の構造化
+
+| レベル | 名称 | 説明 | 例 |
+|--------|------|------|-----|
+| **B1** | **戦略レベル** | 経営戦略・事業ドメイン | "デジタルトランスフォーメーション推進" |
+| **B2** | **ケーパビリティレベル** | 組織の競争優位性を生む能力 | "認証基盤を提供する能力" |
+| **B3** | **プロセスレベル** | 具体的なビジネスプロセス | "ユーザー認証プロセス" |
+| **B4** | **アクティビティレベル** | エンドユーザーの活動 | "パスワードでログインする" |
+
+---
+
+##### 2. DDDの階層（DDD Hierarchy）
+
+**目的**: ドメイン知識の構造化とモデリング
+
+| レベル | 名称 | 説明 | 例 |
+|--------|------|------|-----|
+| **D1** | **戦略的設計レベル** | コンテキスト境界の定義 | Bounded Context, Context Map |
+| **D2** | **戦術的設計レベル** | ドメインモデルの構造 | Aggregate, Entity, Value Object |
+| **D3** | **実装パターンレベル** | DDD実装パターン | Repository, Domain Service, Factory |
+
+**主要概念**:
+- **Bounded Context**: ドメインモデルの一貫性境界、ユビキタス言語の適用範囲
+- **Aggregate**: トランザクション境界、不変条件を守る単位
+- **Entity**: ライフサイクルと一意性を持つオブジェクト
+- **Value Object**: 不変で等価性で比較されるオブジェクト
+
+---
+
+##### 3. サービス/実装の階層（Service/Implementation Hierarchy）
+
+**目的**: システムの物理的な実装とデプロイメント
+
+| レベル | 名称 | 説明 | 例 |
+|--------|------|------|-----|
+| **S1** | **デプロイメントレベル** | 独立したデプロイ単位 | Microservice, Container, Pod |
+| **S2** | **モジュールレベル** | コードの構造化単位 | Service Module, Package |
+| **S3** | **コードレベル** | 実装の詳細 | Class, Function, API Endpoint |
+| **S4** | **データレベル** | データの物理配置 | Database, Schema, Table |
+
+---
+
+#### パラソルにおける3概念体系のマッピング
+
+| パラソル階層 | ビジネス階層 | DDD階層 | サービス/実装階層 | 多重度 |
+|------------|------------|---------|------------------|--------|
+| **Microservice Scope** | - | - | S1: デプロイメント単位 | - |
+| ↓ (1 MS = 1..* BC) | | | | |
+| **Bounded Context** | B1/B2: 戦略/ケーパビリティ | D1: Bounded Context | S2: Service Module | 1 MS = 1..* BC |
+| (= パラソルService) | "認証基盤を提供する能力" | "Secure Access Context" | "AuthServiceModule" | |
+| ↓ (1 BC = 1..* Cap) | | | | |
+| **Business Capability** | B2: ケーパビリティ | D2: Aggregate Root候補 | S2: Sub Module | 1 BC = 1..* Cap |
+| | "認証する能力" | "Authentication Aggregate" | "AuthModule" | |
+| ↓ (1 Cap = 1..* Op) | | | | |
+| **Business Operation** | B3: ビジネスプロセス | D2: Domain Service/Use Case | S3: Service Class | 1 Cap = 1..* Op |
+| | "ログインプロセス" | "LoginService" | "LoginUseCase.ts" | |
+| ↓ (1 Op = 1..* UC) | | | | |
+| **Use Case / Page** | B4: ユーザーアクティビティ | D3: Application Service | S3: API Endpoint + UI | 1 Op = 1..* UC |
+| | "パスワードでログインする" | "PasswordLoginUseCase" | "POST /api/login" + "login.tsx" | |
+
+---
+
+#### 重要な原則：概念の分離と統合
+
+**分離の原則**:
+```
+✅ ビジネス階層: ビジネス価値を中心に考える
+   → 技術的な制約を考えない
+
+✅ DDD階層: ドメインモデルの一貫性を中心に考える
+   → 実装方法を考えない
+
+✅ サービス/実装階層: 技術的な最適化を中心に考える
+   → ビジネスロジックを含めない
+```
+
+**統合の原則**:
+```
+パラソルでは3つの概念を統合:
+1. ビジネス価値（What）を明確にする
+2. DDDパターン（How to Model）で構造化する
+3. サービス実装（How to Implement）で実現する
+```
+
+---
+
+#### パラソル階層の決定順序
 
 ```
-マイクロサービス範囲（物理的な実装単位）
-  └── 1つまたは複数のバウンデッドコンテキスト（論理的な境界）
-      └── 1つまたは複数のビジネスケーパビリティ（組織能力）
-          └── 1つまたは複数のビジネスオペレーション（価値創造活動）
-              └── 1つまたは複数の（ユースケース、ページ定義）（価値実現）
+ステップ1: ビジネス階層の分析
+├─ 戦略・ケーパビリティの特定
+├─ ビジネスプロセスの整理
+└─ ユーザーアクティビティの抽出
+
+↓
+
+ステップ2: DDD階層の設計
+├─ Bounded Contextの境界確定
+├─ Aggregateの設計
+└─ Entity/Value Objectの定義
+
+↓
+
+ステップ3: サービス/実装階層の決定
+├─ デプロイメント戦略（モノリス or MS）
+├─ モジュール構造の設計
+└─ API/データベース設計
 ```
 
-#### 各レベルの説明
-
-| レベル | 名称 | 説明 | 例 | 多重度 |
-|--------|------|------|-----|--------|
-| **L1** | **マイクロサービス範囲** | 物理的なデプロイメント単位。独立したプロセス・コンテナ | "認証基盤MS"（Secure Access + User Management） | - |
-| **L2** | **バウンデッドコンテキスト** | 論理的な境界。ドメインモデルが一貫性を持つ範囲 | "Secure Access Service" | 1 MS = 1..* BC |
-| **L3** | **ビジネスケーパビリティ** | 組織の能力。競争優位性を生む機能群 | "認証する能力", "セッション管理する能力" | 1 BC = 1..* Cap |
-| **L4** | **ビジネスオペレーション** | 具体的な業務操作。価値創造プロセス | "ログインする", "MFAを設定する" | 1 Cap = 1..* Op |
-| **L5** | **ユースケース/ページ** | システムの具体的な利用シナリオと画面 | "パスワードでログインする", "login.md" | 1 Op = 1..* UC/Page |
+**重要**: ステップ1→2は必須、ステップ3は後から変更可能
 
 #### 実装パターンとの対応
 
@@ -2464,33 +2571,36 @@ sed -i 's/docs\/parasol\/services/bounded-contexts/g' \
 
 ---
 
-### 4.6 完全な階層構造（5レベル）
+### 4.6 パラソル階層と3概念体系のマッピング（再掲）
 
-**重要**: 既存の階層構造は変更なし。マイクロサービス範囲を最上位に追加
+**重要**: パラソルの階層は**ビジネス階層**、**DDD階層**、**サービス/実装階層**の3つを統合しています。
+
+#### 完全な階層構造
 
 ```
-✅ 完全な階層構造：
+✅ パラソル階層（3概念体系の統合）：
 
-マイクロサービス範囲（物理的な実装単位）
-  └── 1つまたは複数のバウンデッドコンテキスト（論理的な境界）
-      └── 1つまたは複数のビジネスケーパビリティ（組織能力）
-          └── 1つまたは複数のビジネスオペレーション（価値創造活動）
-              └── 1つまたは複数のユースケース（具体的な利用シナリオ）
+Microservice Scope（サービス/実装階層のみ）
+  └── 1つまたは複数の Bounded Context（3概念体系の交差点）
+      └── 1つまたは複数の Business Capability（ビジネス階層 + DDD階層）
+          └── 1つまたは複数の Business Operation（ビジネス階層 + DDD階層）
+              └── 1つまたは複数の UseCase / Page（ビジネス階層 + サービス/実装階層）
                   ├── usecase.md
                   ├── page.md
                   └── api-usage.md
 ```
 
-#### 各レベルの多重度
+#### 3概念体系とのマッピング表
 
-| 上位 | 下位 | 関係 |
-|------|------|------|
-| マイクロサービス範囲 | バウンデッドコンテキスト | 1 MS = 1..* BC |
-| バウンデッドコンテキスト | ビジネスケーパビリティ | 1 BC = 1..* Capability |
-| ビジネスケーパビリティ | ビジネスオペレーション | 1 Capability = 1..* Operation |
-| ビジネスオペレーション | ユースケース/ページ | 1 Operation = 1..* UseCase/Page |
+| パラソル階層 | ビジネス階層 | DDD階層 | サービス/実装階層 | 多重度 |
+|------------|------------|---------|------------------|--------|
+| **Microservice Scope** | - | - | S1: デプロイメント単位 | - |
+| **Bounded Context** | B1/B2: 戦略/ケーパビリティ | D1: Bounded Context | S2: Service Module | 1 MS = 1..* BC |
+| **Business Capability** | B2: ケーパビリティ | D2: Aggregate Root候補 | S2: Sub Module | 1 BC = 1..* Cap |
+| **Business Operation** | B3: ビジネスプロセス | D2: Domain Service | S3: Service Class | 1 Cap = 1..* Op |
+| **Use Case / Page** | B4: ユーザーアクティビティ | D3: Application Service | S3: API + UI | 1 Op = 1..* UC |
 
-この階層は**DDDのビジネス視点**と**物理実装の柔軟性**を両立しており、非常に適切です。
+この階層は**ビジネス価値**、**ドメインモデル**、**物理実装**の3つを明確に分離しつつ統合しています。
 
 ---
 
@@ -2593,60 +2703,198 @@ consultingTool/
 
 ## 5. DX階層構造定義
 
-### DX価値創造型階層定義（5レベル）
+### 5.1 パラソル階層における3概念体系の統合
 
+パラソルのDX階層構造は、**ビジネスの階層**、**DDDの階層**、**サービス/実装の階層**を統合したものです。
+
+#### 3概念体系の統合マッピング
+
+| パラソル階層 | ビジネス階層 | DDD階層 | サービス/実装階層 | 多重度 |
+|------------|------------|---------|------------------|--------|
+| **Microservice Scope** | - | - | S1: デプロイメント単位<br/>Container, Pod | - |
+| **Bounded Context**<br/>(= Service) | B1/B2: 戦略/ケーパビリティ<br/>"認証基盤を提供する能力" | D1: Bounded Context<br/>ユビキタス言語の境界 | S2: Service Module<br/>"AuthServiceModule" | 1 MS = 1..* BC |
+| **Business Capability** | B2: ケーパビリティ<br/>"認証する能力" | D2: Aggregate Root候補<br/>"Authentication" | S2: Sub Module<br/>"AuthModule" | 1 BC = 1..* Cap |
+| **Business Operation** | B3: ビジネスプロセス<br/>"ログインプロセス" | D2: Domain Service<br/>"LoginService" | S3: Service Class<br/>"LoginUseCase.ts" | 1 Cap = 1..* Op |
+| **Use Case / Page** | B4: ユーザーアクティビティ<br/>"パスワードでログインする" | D3: Application Service<br/>"PasswordLoginUseCase" | S3: API + UI<br/>"POST /api/login"<br/>+ "login.tsx" | 1 Op = 1..* UC |
+
+---
+
+### 5.2 DX価値創造型階層定義（データ構造）
+
+```typescript
+// パラソルのデータモデル（3概念体系を統合）
+
+interface MicroserviceScope {
+  // サービス/実装階層のみ
+  deploymentUnit: string;        // 独立したデプロイメント単位
+  scalingStrategy: string;       // スケーリング戦略
+  boundedContexts: BoundedContext[];
+}
+
+interface BoundedContext {
+  // ビジネス階層 + DDD階層 + サービス/実装階層
+  displayName: string;           // ビジネス: DX価値表現サービス名（XXX支援/最適化）
+  ubiquitousLanguage: string;    // DDD: ユビキタス言語定義
+  serviceModule: string;         // サービス/実装: モジュール名
+
+  // 成果物
+  domainLanguage: DomainLanguage;      // DDD: ドメインモデル定義
+  apiSpecification: ApiSpec;           // サービス/実装: API仕様
+  databaseDesign: DatabaseDesign;      // サービス/実装: DB設計
+  integrationSpec: IntegrationSpec;    // DDD + サービス/実装: 統合仕様
+
+  capabilities: BusinessCapability[];
+}
+
+interface BusinessCapability {
+  // ビジネス階層 + DDD階層
+  displayName: string;           // ビジネス: 「XXXする能力」形式
+  aggregateRoot: string;         // DDD: 集約ルート候補
+  subModule: string;             // サービス/実装: サブモジュール名
+
+  operations: BusinessOperation[];
+}
+
+interface BusinessOperation {
+  // ビジネス階層 + DDD階層 + サービス/実装階層
+  displayName: string;           // ビジネス: 価値創造アクション指向名
+  pattern: OperationPattern;     // ビジネス: Workflow/CRUD/Analytics/...
+  domainService: string;         // DDD: ドメインサービス名
+  serviceClass: string;          // サービス/実装: サービスクラス名
+
+  useCases: UseCase[];
+}
+
+interface UseCase {
+  // ビジネス階層 + DDD階層 + サービス/実装階層
+  displayName: string;           // ビジネス: ユーザーアクティビティ
+  applicationService: string;    // DDD: アプリケーションサービス
+  apiEndpoint: string;           // サービス/実装: API エンドポイント
+  uiComponent: string;           // サービス/実装: UI コンポーネント
+
+  pages: PageDefinition[];
+  tests: TestDefinition[];
+  robustnessDiagram?: RobustnessDiagram;
+}
 ```
-MicroserviceScope (マイクロサービス範囲) ※物理実装
-├── deploymentUnit: 独立したデプロイメント単位
-├── scalingStrategy: スケーリング戦略
-└── BoundedContext[] (バウンデッドコンテキスト) ※論理境界
-    ├── displayName: DX価値表現サービス名（XXX支援/最適化/可視化/促進/共創）
-    ├── DomainLanguage: ビジネス価値ドメイン定義
-    ├── ApiSpecification: 価値創造API仕様
-    ├── DatabaseDesign: 洞察創出DB設計
-    ├── IntegrationSpecification: 価値連携仕様
-    └── BusinessCapability[] (価値創造ケーパビリティ)
-        ├── displayName: 「XXXする能力」形式（価値創造動詞使用）
-        └── BusinessOperation[] (価値創造オペレーション)
-            ├── displayName: 価値創造アクション指向名
-            ├── pattern: Workflow/CRUD/Analytics/Communication/Administration
-            └── UseCase[] (価値実現ユースケース)
-                ├── PageDefinition[]: 価値体験ページ定義
-                ├── TestDefinition[]: 価値検証テスト定義
-                └── RobustnessDiagram?: 価値実現ロバストネス図
-```
 
-### 各階層の責務と価値創造への関係
+---
 
-#### 0. マイクロサービス範囲層（物理実装）
-- **責務**: 独立したデプロイメント・スケーリング単位の定義
-- **DX効果**: システムの柔軟性・拡張性の確保
-- **決定時期**: 実装フェーズ（モノリスから始めて段階的に分離）
+### 5.3 各階層の責務（3概念体系別）
+
+#### 0. マイクロサービス範囲層
+
+| 概念体系 | 責務 | 成果物 |
+|---------|------|--------|
+| **サービス/実装** | デプロイメント戦略の定義 | docker-compose.yml, k8s manifest |
+| ビジネス | - | - |
+| DDD | - | - |
+
 - **多重度**: 1 MS = 1..* BC
+- **決定時期**: 実装フェーズ（モノリスから始めて段階的に分離）
 
-#### 1. バウンデッドコンテキスト層（論理境界）
-- **責務**: ドメインモデルの一貫性境界、顧客への具体的価値提供
+---
+
+#### 1. バウンデッドコンテキスト層（= パラソルService）
+
+| 概念体系 | 責務 | 成果物 |
+|---------|------|--------|
+| **ビジネス** | ビジネス価値の提供、組織能力の定義 | service.md（価値提供の定義） |
+| **DDD** | ドメインモデルの一貫性境界、ユビキタス言語 | domain-language.md, context-map.md |
+| **サービス/実装** | サービスモジュールの境界 | api-specification.md, database-design.md |
+
 - **DX効果**: ビジネス成果の最大化
-- **命名原則**: 価値創造動詞 + 対象 + サービス
+- **命名原則**: 価値創造動詞 + 対象 + サービス（例：「プロジェクト成功支援サービス」）
 - **多重度**: 1 BC = 1..* Capability
 
-#### 2. ケーパビリティ層（組織能力）
-- **責務**: 競争優位性を生む組織能力
+---
+
+#### 2. ケーパビリティ層
+
+| 概念体系 | 責務 | 成果物 |
+|---------|------|--------|
+| **ビジネス** | 組織の競争優位性を生む能力 | capability.md |
+| **DDD** | Aggregate Root候補の特定 | domain-language.md（Aggregate定義） |
+| **サービス/実装** | サブモジュールの構造 | サブディレクトリ構造 |
+
 - **DX効果**: 継続的な価値創造能力の構築
-- **命名原則**: 「[価値創造動詞] + [対象] + する能力」
+- **命名原則**: 「[価値創造動詞] + [対象] + する能力」（例：「認証する能力」）
 - **多重度**: 1 Capability = 1..* Operation
 
-#### 3. オペレーション層（価値創造活動）
-- **責務**: 具体的な価値創造プロセス
-- **DX効果**: 業務効率化とイノベーション促進
-- **命名原則**: [変革動詞] + [対象] + [成果・価値]
-- **多重度**: 1 Operation = 1..* UseCase/Page
+---
 
-#### 4. ユースケース層（価値実現）
-- **責務**: システムを通じた価値実現
+#### 3. オペレーション層
+
+| 概念体系 | 責務 | 成果物 |
+|---------|------|--------|
+| **ビジネス** | 具体的なビジネスプロセス | operation.md |
+| **DDD** | Domain Service、Use Caseの定義 | ドメインサービス設計 |
+| **サービス/実装** | サービスクラスの実装 | XXXService.ts, XXXUseCase.ts |
+
+- **DX効果**: 業務効率化とイノベーション促進
+- **命名原則**: [変革動詞] + [対象] + [成果・価値]（例：「ログインする」）
+- **多重度**: 1 Operation = 1..* UseCase
+
+---
+
+#### 4. ユースケース層
+
+| 概念体系 | 責務 | 成果物 |
+|---------|------|--------|
+| **ビジネス** | エンドユーザーの具体的な活動 | usecase.md |
+| **DDD** | Application Serviceの実装 | XXXApplicationService.ts |
+| **サービス/実装** | API + UIの実装 | API endpoint, UI component, page.md |
+
 - **DX効果**: ユーザーエクスペリエンスの向上
-- **命名原則**: 「〜を（が）〜する」（価値創造視点）
+- **命名原則**: 「〜を（が）〜する」（例：「パスワードでログインする」）
 - **多重度**: 1 UseCase = 1..* Page/Test/Diagram
+
+---
+
+### 5.4 3概念体系の分離と統合の実践
+
+#### 分離の原則
+
+```
+設計時の思考の分離:
+
+1️⃣ ビジネス階層で考える時
+   → ビジネス価値、組織能力、競争優位性
+   → 技術的な制約は考えない
+
+2️⃣ DDD階層で考える時
+   → ドメインモデル、境界、一貫性
+   → 実装方法は考えない
+
+3️⃣ サービス/実装階層で考える時
+   → 技術的な最適化、パフォーマンス
+   → ビジネスロジックは含めない
+```
+
+#### 統合の実践
+
+```
+パラソルでの作業フロー:
+
+ステップ1: ビジネス階層の分析
+├─ 戦略・ケーパビリティの特定 → service.md
+├─ ビジネスプロセスの整理 → operation.md
+└─ ユーザーアクティビティ → usecase.md
+
+↓
+
+ステップ2: DDD階層の設計
+├─ Bounded Contextの境界確定 → context.md, context-map.md
+├─ Aggregateの設計 → domain-language.md
+└─ Entity/Value Objectの定義 → domain-language.md
+
+↓
+
+ステップ3: サービス/実装階層の決定
+├─ デプロイメント戦略 → docker-compose.yml
+├─ API設計 → api-specification.md
+└─ DB設計 → database-design.md
+```
 
 ---
 

@@ -1,6 +1,6 @@
 # パラソル開発ガイド - DX価値創造型フレームワーク
 
-**バージョン**: 2.0.0
+**バージョン**: 3.4.0
 **更新日**: 2025-10-23
 **ステータス**: Draft
 
@@ -23,7 +23,26 @@
 
 ### パラソルドメイン言語とは
 
-パラソルドメイン言語は、**デジタルトランスフォーメーション（DX）を促進**するために設計された実装非依存の中間言語です。従来の「管理」思考を脱却し、**価値創造型のビジネス設計**を推進します。
+パラソルドメイン言語は、**MD形式でAIに解析しやすい、実装テクノロジー非依存の設計ファイル**です。**デジタルトランスフォーメーション（DX）を促進**するために設計され、従来の「管理」思考を脱却し、**価値創造型のビジネス設計**を推進します。
+
+**パラソルの3つの本質**:
+
+```
+1. MD形式（Markdown）
+   └─ 人間が読みやすく、AIが解析・生成しやすい
+   └─ GitHub、GitLab等のバージョン管理と完全統合
+   └─ コードレビュー、差分管理が容易
+
+2. AI解析可能性
+   └─ Claude、ChatGPT等のLLMが設計を理解・提案できる
+   └─ 設計からコード生成、コードから設計抽出が可能
+   └─ AI時代の開発生産性向上の鍵
+
+3. 実装テクノロジー非依存
+   └─ TypeScript、Go、Java等、どの言語でも実装可能
+   └─ ドメイン設計と実装技術の分離
+   └─ 長期的な保守性・柔軟性を確保
+```
 
 #### 基本原則
 
@@ -38,12 +57,34 @@
 
 #### DX促進の設計思想
 
-1. **実装中立性**: 特定のプログラミング言語に依存しない
-2. **ドメイン駆動設計（DDD）準拠**: エンティティ、値オブジェクト、集約などのDDD概念を表現
-3. **ユビキタス言語**: ビジネスとテクノロジーの橋渡しとなる共通語彙
-4. **生成可能**: ドメイン定義から実装コード（DB、API）を自動生成
-5. **価値創造指向**: 「管理」ではなく「価値創造」にフォーカス
-6. **MD形式統一**: すべての設計ドキュメントをMarkdown形式で記述し、実装非依存性を徹底
+1. **MD形式統一**: すべての設計ドキュメントをMarkdown形式で記述
+   - AIによる解析・生成・提案が容易
+   - バージョン管理（Git）と完全統合
+   - 差分レビュー、変更履歴管理が自然にできる
+   - プログラマブルなドキュメント（スクリプトで処理可能）
+
+2. **AI解析可能性**: Claude、ChatGPT等のLLMとの協働を前提
+   - 設計MDをAIが読み取り、実装コードを生成
+   - 既存コードからAIが設計MDを抽出・提案
+   - AIとペアプログラミング、ペア設計が可能
+   - 継続的な設計改善のフィードバックループ
+
+3. **実装テクノロジー非依存**: 特定のプログラミング言語に依存しない
+   - TypeScript、Go、Java、Python等、どの言語でも実装可能
+   - フレームワーク選択の自由（NestJS、Spring Boot、Django等）
+   - 技術スタックの変更に強い設計
+
+4. **ドメイン駆動設計（DDD）準拠**: エンティティ、値オブジェクト、集約などのDDD概念を表現
+   - 問題領域（Subdomain）と解決領域（BC）の明確な分離
+   - 戦略的設計と戦術的設計の統合
+
+5. **ユビキタス言語**: ビジネスとテクノロジーの橋渡しとなる共通語彙
+   - ビジネス部門とエンジニアが同じ言葉で対話
+   - AIもユビキタス言語を理解し、提案できる
+
+6. **価値創造指向**: 「管理」ではなく「価値創造」にフォーカス
+   - バリューストリーム、バリューステージ中心の設計
+   - ビジネス成果に直結するケーパビリティマッピング
 
 ### DXを促進する価値創造メトリクス
 
@@ -162,7 +203,255 @@ graph TB
 - 実装フェーズで決定される物理的な配置
 - 1つのバウンデッドコンテキスト = 1つ以上のマイクロサービス
 
-### 3.2 関係性マッピング
+#### サブドメイン（Subdomain）との違い
+
+DDDにおいて、**サブドメイン**と**バウンデッドコンテキスト**は異なる概念です。
+
+**サブドメイン（Subdomain）**:
+
+```
+定義: 問題空間（Problem Space）における、ビジネスドメインの論理的な分割
+
+特徴:
+✓ ビジネス視点（「何をするか」）
+✓ 問題領域の切り分け
+✓ ビジネスの優先度・戦略で決まる
+✓ システム実装前から存在
+✓ 実装に依存しない
+```
+
+**サブドメインの3つのタイプ**:
+
+| タイプ | 説明 | 例 | 戦略 |
+|--------|------|-----|------|
+| **Core Subdomain**<br/>（コアサブドメイン） | 競争優位性を生む<br/>最も重要な領域 | パラソル: "プロジェクト成功支援"<br/>Amazon: "商品推薦" | 自社開発<br/>最高の人材を投入 |
+| **Supporting Subdomain**<br/>（支援サブドメイン） | ビジネスに必要だが<br/>差別化にはならない | パラソル: "タレント最適化"<br/>Amazon: "在庫管理" | 自社開発<br/>または外注 |
+| **Generic Subdomain**<br/>（汎用サブドメイン） | 既製品で代替可能 | パラソル: "セキュアアクセス"<br/>Amazon: "決済処理" | 既製品・SaaS利用 |
+
+---
+
+**サブドメインとBounded Contextの関係**:
+
+```
+サブドメイン（問題空間） → Bounded Context（解決空間）
+
+理想的なマッピング: 1サブドメイン = 1 BC（1対1）
+
+現実的なマッピング:
+├─ 1サブドメイン = 複数BC（複雑さやチーム構成で分割）
+└─ 複数サブドメイン = 1 BC（小さいサブドメインを統合）
+```
+
+**マッピング例**:
+
+```mermaid
+graph LR
+    subgraph "問題空間（Subdomain）"
+        SD1[Core: プロジェクト<br/>成功支援]
+        SD2[Supporting: タレント<br/>最適化]
+        SD3[Generic: 認証・認可]
+    end
+
+    subgraph "解決空間（Bounded Context）"
+        BC1[Project Success<br/>Service]
+        BC2[Talent Optimization<br/>Service]
+        BC3[Secure Access<br/>Service]
+    end
+
+    SD1 --> BC1
+    SD2 --> BC2
+    SD3 --> BC3
+```
+
+**パラソルでの位置づけ**:
+
+| 概念 | パラソル階層 | 決定時期 | 成果物 |
+|------|------------|---------|--------|
+| **Subdomain** | （明示的には定義せず）<br/>B1: 戦略レベルに相当 | ビジネス戦略策定時 | ビジネス戦略書 |
+| **Bounded Context** | L2: Service レベル | 設計フェーズ | service.md, context.md, context-map.md |
+
+**重要な違い**:
+
+| 観点 | Subdomain（サブドメイン） | Bounded Context（BC） |
+|------|-------------------------|---------------------|
+| **空間** | 問題空間（Problem Space） | 解決空間（Solution Space） |
+| **視点** | ビジネス視点（What） | システム設計視点（How） |
+| **誰が定義** | ビジネス部門・ドメインエキスパート | 設計者・アーキテクト |
+| **決定要因** | ビジネス戦略・競争優位性 | 技術的制約・チーム構成・複雑さ |
+| **変更頻度** | 低い（ビジネス戦略の変更時） | 中程度（設計の見直し時） |
+| **成果物** | ビジネスモデル、戦略書 | ドメインモデル、コンテキストマップ |
+
+**例: パラソルにおける対応**:
+
+```
+Core Subdomain: "DX価値創造" → BC: "Project Success Service"
+                                  + BC: "Productivity Visualization Service"
+
+Supporting Subdomain: "人材最適化" → BC: "Talent Optimization Service"
+
+Generic Subdomain: "認証基盤" → BC: "Secure Access Service"（Auth0等で代替可能）
+```
+
+**設計上の推奨**:
+1. まずサブドメインを特定（ビジネス分析）
+2. 各サブドメインのタイプを決定（Core/Supporting/Generic）
+3. BCへのマッピングを決定（1対1を基本、必要に応じて分割/統合）
+4. Core SubdomainのBCに最高の人材とリソースを投入
+
+### 3.2 重要な用語の明確化：問題領域・解決領域・ソリューション構成
+
+パラソル開発では、**3つの異なる概念レベル**を明確に区別します。これらは同義語ではなく、それぞれ異なる視点と目的を持っています。
+
+#### 3つの概念レベルの定義
+
+| 日本語 | 英語 | 対応する概念 | 焦点 | 誰が定義するか | 成果物 |
+|--------|------|------------|------|--------------|--------|
+| **問題領域** | **Problem Space** | **Subdomain** | 何を解決するか（What） | ビジネス部門<br/>ドメインエキスパート | ビジネス戦略書<br/>サブドメインマップ |
+| **解決領域** | **Solution Space** | **Bounded Context** | どうモデル化するか<br/>（How to Model） | 設計者<br/>アーキテクト | context.md<br/>ドメインモデル図<br/>コンテキストマップ |
+| **ソリューション構成** | **Solution Composition**<br/>**Implementation** | **Microservice** | どう実装・デプロイするか<br/>（How to Implement） | エンジニア<br/>DevOpsチーム | ソースコード<br/>インフラ構成<br/>API仕様 |
+
+#### 具体例: パラソルの「プロジェクト成功支援」
+
+```
+1. 問題領域（Subdomain）: "プロジェクト計画"
+   └─ ビジネス上の問題: プロジェクトの成功率を上げたい
+   └─ サブドメインタイプ: Core Subdomain（競争優位性）
+   └─ ビジネス戦略: 自社開発、最高の人材を投入
+
+   ↓
+
+2. 解決領域（Bounded Context）: "Project Success Service"
+   └─ ドメインモデル設計:
+       ├─ Aggregate Root: Project, Milestone, Risk
+       ├─ Entity: Task, Deliverable
+       ├─ Value Object: ProjectStatus, Priority
+       └─ Repository: ProjectRepository
+   └─ ユビキタス言語: "プロジェクトを構想する"、"マイルストーンを設定する"
+   └─ 設計ドキュメント: context.md, domain-model.md
+
+   ↓
+
+3. ソリューション構成（Microservice）: "Project Service"
+   └─ 実装技術:
+       ├─ Framework: NestJS (TypeScript)
+       ├─ Database: PostgreSQL (project_service schema)
+       ├─ API: REST API (/api/projects)
+       └─ Deployment: Docker Container
+   └─ 物理構成: src/contexts/project-success/
+   └─ 実装コード: ProjectService, ProjectController, ProjectEntity
+```
+
+#### 階層構造での位置づけ
+
+```
+バリューステージ（価値創造の段階）
+  └─ ケーパビリティL1（戦略的組織能力）
+      ├─ 【問題領域】Subdomain（Core/Supporting/Generic）
+      ├─ 【解決領域】Bounded Context（ドメインモデル）
+      └─ 【ソリューション構成】Microservice（実装）
+```
+
+#### 多重度の関係
+
+```
+1つのSubdomain（問題領域）
+  ↓
+1つ以上のBounded Context（解決領域）
+  ↓
+1つ以上のMicroservice（ソリューション構成）
+
+例:
+Core Subdomain: "DX価値創造"
+  → BC1: "Project Success Service"（解決領域）
+      → MS1: "Project Service"（モノリス内モジュール）
+      → MS2: "Project Analytics Service"（将来的に分離）
+  → BC2: "Productivity Visualization Service"（解決領域）
+      → MS3: "Productivity Service"（独立マイクロサービス）
+```
+
+#### 重要な注意点
+
+**❌ よくある誤解**:
+- "解決領域"と"ソリューション構成"は同じもの
+- Bounded ContextとMicroserviceは1対1の関係
+- 問題領域（Subdomain）は実装フェーズで決める
+
+**✅ 正しい理解**:
+- **解決領域（BC）は設計書**、**ソリューション構成（MS）はコード**
+- 1つのBCは複数のMSに実装される可能性がある
+- 問題領域（Subdomain）はビジネス戦略策定時に決定
+
+#### プロセスでの流れ
+
+```
+ステップ3: サブドメインの特定（問題領域の分析）
+├─ Core/Supporting/Generic の判定
+├─ サブドメインマップ作成
+└─ 成果物: SUBDOMAIN_MAP.md
+
+↓
+
+ステップ4: Bounded Contextの設計（解決領域の設計）
+├─ Subdomain → BC へのマッピング決定
+├─ ドメインモデル設計
+├─ コンテキストマップ作成
+└─ 成果物: context.md, context-map.md, domain-model.md
+
+↓
+
+ステップ5: マイクロサービスの決定（ソリューション構成）
+├─ BC → Microservice へのマッピング決定
+├─ デプロイメント戦略（モノリス or 独立MS）
+├─ 技術スタック選択
+└─ 成果物: api-specification.md, 実装コード
+```
+
+#### ディレクトリ構造での対応
+
+```
+docs/
+├─ domain/                          # 問題領域（Problem Space）
+│   ├─ SUBDOMAIN_MAP.md             # サブドメイン全体マップ
+│   └─ subdomains/
+│       ├─ project-planning/        # Core Subdomain定義
+│       │   └─ subdomain-type.md
+│       └─ talent-optimization/     # Supporting Subdomain定義
+│           └─ subdomain-type.md
+│
+├─ design/bounded-contexts/         # 解決領域（Solution Space）
+│   ├─ project-success/
+│   │   ├─ context.md               # BC定義（ドメインモデル）
+│   │   └─ domain-model.md
+│   └─ talent-optimization/
+│       ├─ context.md
+│       └─ domain-model.md
+│
+└─ api/                             # ソリューション構成の仕様
+    └─ services/
+        ├─ project-service/
+        │   └─ api-specification.md # MS API仕様
+        └─ talent-service/
+            └─ api-specification.md
+
+src/contexts/                       # ソリューション構成の実装
+├─ project-success/                 # MS実装コード
+│   ├─ domain/
+│   ├─ application/
+│   └─ infrastructure/
+└─ talent-optimization/
+    ├─ domain/
+    ├─ application/
+    └─ infrastructure/
+```
+
+**まとめ**:
+- **問題領域（Subdomain）** = ビジネスの問題を定義（What）
+- **解決領域（BC）** = その問題をどうモデル化するか設計（How to Model）
+- **ソリューション構成（MS）** = その設計をどう実装・デプロイするか（How to Implement）
+
+これらは異なる視点・異なるフェーズ・異なる担当者によって決定される、独立した概念です。
+
+### 3.4 関係性マッピング
 
 ```mermaid
 graph TB
@@ -201,7 +490,7 @@ graph TB
     style MOD3 fill:#f3e5f5
 ```
 
-### 3.3 パラソルにおける設計原則
+### 3.5 パラソルにおける設計原則
 
 #### 原則1: 設計はバウンデッドコンテキストで行う
 
@@ -240,7 +529,7 @@ graph TB
 - モノリス内モジュール
 ```
 
-### 3.4 実践ガイド
+### 3.6 実践ガイド
 
 #### ステップ1: バウンデッドコンテキスト境界の特定
 
@@ -285,7 +574,7 @@ docs/parasol/services/
 //       └── auth/
 ```
 
-### 3.5 よくある誤解と正しい理解
+### 3.7 よくある誤解と正しい理解
 
 | 誤解 | 正しい理解 |
 |------|----------|
@@ -294,34 +583,737 @@ docs/parasol/services/
 | "パラソルはマイクロサービス設計ツール" | パラソルはドメイン設計ツール。実装方法は自由 |
 | "最初にアーキテクチャを決める" | 最初にドメイン境界を決め、実装は後で選択 |
 
-### 3.6 実装移行パターン
+### 3.8 バリューストリームとパラソルの完全な階層構造
+
+パラソル開発では、**バリューストリーム**を最上位概念とし、その中に**バリューステージ**、**ケーパビリティ階層**が存在し、各レベルで**3つの異なる概念体系**を扱います。
+
+#### 完全な階層構造
 
 ```
-フェーズ1: モノリスからスタート
-[Single Application]
-├── Auth Module
-├── Project Module
-└── Talent Module
+バリューストリーム（Value Stream）- 価値の流れ全体
+  └─ バリューステージ（Value Stage）- 価値創造の各段階
+      └─ ケーパビリティ階層（Capability Hierarchy L1/L2/L3）
+          ├─ 問題領域（Problem Space）→ サブドメイン
+          ├─ 解決領域（Solution Space）→ Bounded Context
+          └─ ソリューション構成（Implementation）→ マイクロサービス
+```
+
+---
+
+#### バリューストリームとバリューステージ
+
+**バリューストリーム（Value Stream）**:
+
+```
+定義: 顧客に価値を提供するための一連の活動の流れ
+
+特徴:
+✓ エンドツーエンドの価値創造プロセス
+✓ 顧客視点での価値の流れ
+✓ 複数のバリューステージで構成
+✓ ビジネス成果に直結
+```
+
+**バリューステージ（Value Stage）**:
+
+```
+定義: バリューストリーム内の価値創造の各段階
+
+特徴:
+✓ 明確な価値提供ポイント
+✓ ケーパビリティ階層を内包
+✓ 各ステージで問題領域→解決領域→実装へ展開
+```
+
+**パラソルにおけるバリューストリーム例**:
+
+```
+バリューストリーム: "DXプロジェクト成功支援"
+  ├─ バリューステージ1: プロジェクト計画支援
+  │   └─ ケーパビリティL1: プロジェクト構想する能力
+  │       ├─ 問題領域: プロジェクト計画サブドメイン
+  │       ├─ 解決領域: Project Success BC
+  │       └─ 実装: Project Service (MS)
+  │
+  ├─ バリューステージ2: プロジェクト実行支援
+  │   └─ ケーパビリティL2: プロジェクト実行する能力
+  │       ├─ 問題領域: プロジェクト実行サブドメイン
+  │       ├─ 解決領域: Project Success BC
+  │       └─ 実装: Project Service (MS)
+  │
+  └─ バリューステージ3: 成果可視化支援
+      └─ ケーパビリティL3: 生産性を可視化する能力
+          ├─ 問題領域: 生産性可視化サブドメイン
+          ├─ 解決領域: Productivity Visualization BC
+          └─ 実装: Productivity Service (MS)
+```
+
+---
+
+#### 3つの概念体系（各バリューステージ内）
+
+各バリューステージ内のケーパビリティ階層において、3つの概念体系が存在します：
+
+| 概念体系 | 主要概念 | 空間/レベル | 目的 | 焦点 | 担当者と責任範囲 | 成果物 |
+|---------|---------|-----------|------|------|----------------|--------|
+| **ビジネスの階層**<br/>（バリューステージ構造） | **バリューストリーム**<br/>**バリューステージ**<br/>**ビジネスケーパビリティ**<br/>**ビジネスオペレーション**<br/>**ユースケース** | - | 何をするか（What） | ビジネス価値・組織能力 | **ビジネス部門・経営層**<br/>━━━━━━━━━━━━━━━━<br/>【責任範囲】<br/>・バリューストリーム定義<br/>・バリューステージ特定<br/>・ケーパビリティブレークダウン（L1→L2→L3）<br/>・ビジネスオペレーション定義<br/>・ユースケース定義 | バリューストリームマップ<br/>ケーパビリティマップ<br/>業務フロー図 |
+| **DDDの階層**<br/>（問題領域→解決領域） | **Subdomain**（問題領域）<br/>**Bounded Context**（解決領域） | **問題領域**: Subdomain<br/>**解決領域**: BC | どうモデル化するか（How to Model） | ドメイン知識の構造化 | **ドメインエキスパート・アーキテクト**<br/>━━━━━━━━━━━━━━━━<br/>【責任範囲】<br/>・サブドメイン抽出（問題領域）<br/>・BC境界設計（解決領域）<br/>・ドメインモデル設計<br/>・コンテキストマップ作成 | サブドメインマップ<br/>ドメインモデル<br/>コンテキストマップ |
+| **実装の階層**<br/>（ソリューション構成） | **Microservice**<br/>**Service Module** | **ソリューション構成**: MS | どう実装・構成するか（How to Implement） | システムの物理構造 | **エンジニア・DevOpsチーム**<br/>━━━━━━━━━━━━━━━━<br/>【責任範囲】<br/>・MS/モノリス判断<br/>・技術スタック選択<br/>・API/DB設計<br/>・インフラ構成 | ソースコード<br/>API仕様<br/>インフラ構成 |
+
+---
+
+#### 概念体系の詳細と対応表
+
+##### 1. ビジネスの階層（Business Hierarchy）
+
+**目的**: ビジネス価値と組織能力の構造化（バリューストリーム中心）
+
+**責任者**: **ビジネス部門・経営層**
+
+**責任範囲**: ビジネス階層全体（B0-B6）のブレークダウン
+- バリューストリームの定義（B0）
+- バリューステージの特定（B1）
+- ケーパビリティのブレークダウン（B2→B3→B4）
+- ビジネスオペレーション/プロセスの定義（B5）
+- ユースケース/アクティビティの定義（B6）
+
+| レベル | 名称 | 説明 | ビジネス部門の役割 | 例 |
+|--------|------|------|------------------|-----|
+| **B0** | **バリューストリームレベル** | 顧客への価値の流れ全体 | 経営層が価値の流れを定義 | "DXプロジェクト成功支援" |
+| **B1** | **バリューステージレベル** | 価値創造の各段階 | 経営層・事業部長が各段階を特定 | "プロジェクト計画支援"、"実行支援"、"成果可視化" |
+| **B2** | **ケーパビリティL1レベル** | 戦略的組織能力 | 事業部長・部門長が戦略能力を定義 | "プロジェクト構想する能力" |
+| **B3** | **ケーパビリティL2レベル** | 戦術的組織能力 | 部門長・マネージャーが戦術能力を定義 | "プロジェクト実行する能力" |
+| **B4** | **ケーパビリティL3レベル** | 具体的な業務能力 | マネージャー・リーダーが業務能力を定義 | "タスクを管理する能力" |
+| **B5** | **プロセスレベル**<br/>（ビジネスオペレーション） | 具体的なビジネスプロセス | 現場リーダーが業務プロセスを定義 | "ユーザー認証プロセス" |
+| **B6** | **アクティビティレベル**<br/>（ユースケース） | エンドユーザーの活動 | 現場担当者がユースケースを定義 | "パスワードでログインする" |
+
+**バリューストリーム→バリューステージ→ケーパビリティ階層の関係**:
+```
+B0: バリューストリーム "DXプロジェクト成功支援"
+  │
+  ├─ B1: バリューステージ "プロジェクト計画支援"
+  │   ├─ B2: ケーパビリティL1 "プロジェクト構想する能力"
+  │   ├─ B3: ケーパビリティL2 "計画を策定する能力"
+  │   └─ B4: ケーパビリティL3 "スケジュールを作成する能力"
+  │
+  ├─ B1: バリューステージ "プロジェクト実行支援"
+  │   ├─ B2: ケーパビリティL1 "プロジェクト実行する能力"
+  │   └─ B3: ケーパビリティL2 "進捗を追跡する能力"
+  │
+  └─ B1: バリューステージ "成果可視化支援"
+      └─ B2: ケーパビリティL1 "生産性を可視化する能力"
+```
+
+---
+
+##### 2. DDDの階層（DDD Hierarchy）
+
+**目的**: ドメイン知識の構造化とモデリング（問題領域→解決領域）
+
+| レベル | 空間/領域 | 名称 | 説明 | 例 |
+|--------|----------|------|------|-----|
+| **D0** | **問題領域**<br/>**Problem Space** | **Subdomainレベル** | ビジネスドメインの論理的な分割<br/>何を解決するか | Core/Supporting/Generic Subdomain<br/>"プロジェクト計画"、"認証基盤" |
+| **D1** | **解決領域**<br/>**Solution Space** | **Bounded Contextレベル** | ドメインモデルの一貫性境界<br/>どうモデル化するか | Bounded Context, Context Map<br/>"Project Success Service" |
+| **D2** | **解決領域**<br/>**Solution Space** | **戦術的設計レベル** | ドメインモデルの詳細構造 | Aggregate, Entity, Value Object<br/>"Project Aggregate"、"TaskEntity" |
+| **D3** | **解決領域**<br/>**Solution Space** | **実装パターンレベル** | DDD実装パターン | Repository, Domain Service, Factory<br/>"ProjectRepository" |
+
+**問題領域（D0: Problem Space）の主要概念**:
+- **Subdomain**: ビジネスドメインの論理的な分割
+  - **Core Subdomain**: 競争優位性を生む最重要領域（例: "プロジェクト成功支援"）
+  - **Supporting Subdomain**: ビジネスに必要だが差別化にならない（例: "タレント最適化"）
+  - **Generic Subdomain**: 既製品で代替可能（例: "認証基盤"）
+
+**解決領域（D1-D3: Solution Space）の主要概念**:
+- **Bounded Context（D1）**: ドメインモデルの一貫性境界、ユビキタス言語の適用範囲
+- **Aggregate（D2）**: トランザクション境界、不変条件を守る単位
+- **Entity（D2）**: ライフサイクルと一意性を持つオブジェクト
+- **Value Object（D2）**: 不変で等価性で比較されるオブジェクト
+- **Repository（D3）**: 集約の永続化パターン
+- **Domain Service（D3）**: エンティティやVOに属さないドメインロジック
+
+**問題領域 vs 解決領域の関係**:
+```
+問題領域（Problem Space）           解決領域（Solution Space）
+D0: Subdomain                  →    D1: Bounded Context
+├─ Core Subdomain                   ├─ ドメインモデル（D2）
+│  "プロジェクト成功支援"            │  ├─ Project Aggregate
+│                                   │  ├─ Milestone Entity
+│                                   │  └─ Priority Value Object
+├─ Supporting Subdomain             │
+│  "タレント最適化"                 ├─ ユビキタス言語
+│                                   │  "プロジェクトを構想する"
+└─ Generic Subdomain                │
+   "認証基盤"                       └─ コンテキストマップ（D1）
+                                       Customer/Supplier関係
+```
+
+---
+
+##### 3. 実装の階層（Implementation Hierarchy）- ソリューション構成
+
+**目的**: システムの物理的な実装・構成・デプロイメント（どう実装・構成するか）
+
+| レベル | 領域 | 名称 | 説明 | 例 |
+|--------|------|------|------|-----|
+| **S1** | **ソリューション構成**<br/>**Solution Composition** | **マイクロサービスレベル** | 独立したデプロイ単位<br/>どう構成・配置するか | Microservice, Container, Pod<br/>"Project Service"、"Auth Service" |
+| **S2** | **ソリューション構成**<br/>**Solution Composition** | **モジュールレベル** | コードの構造化単位 | Service Module, Package<br/>"ProjectModule"、"AuthModule" |
+| **S3** | **ソリューション構成**<br/>**Solution Composition** | **コードレベル** | 実装の詳細 | Class, Function, API Endpoint<br/>"ProjectController"、"POST /api/projects" |
+| **S4** | **ソリューション構成**<br/>**Solution Composition** | **データレベル** | データの物理配置 | Database, Schema, Table<br/>"PostgreSQL"、"project_service schema" |
+
+**ソリューション構成の主要概念**:
+- **Microservice（S1）**: BCの実装・デプロイ単位。独立したプロセス、DB、API
+- **Service Module（S2）**: モノリス内でのBC実装単位。NestJSモジュール等
+- **Controller/UseCase（S3）**: ビジネスロジックの実装。API エンドポイント
+- **Database Schema（S4）**: BCごとのデータ分離。スキーマまたは物理DB
+
+**ソリューション構成のパターン**:
+```
+ソリューション構成（Solution Composition）
+
+パターン1: モノリス構成
+└─ 1つのデプロイメント単位
+    ├─ 複数のService Module（BC単位）
+    ├─ 単一のプロセス・アプリケーション
+    └─ Schema分離されたDB
+
+パターン2: マイクロサービス構成
+└─ 複数の独立したデプロイメント単位
+    ├─ BC = Microservice（1対1または1対多）
+    ├─ 独立したプロセス・コンテナ
+    └─ 独立した物理DB
+
+パターン3: ハイブリッド構成
+└─ モノリス + 一部MS
+    ├─ コアBCはモノリス内モジュール
+    ├─ 独立性が高いBCはMS化
+    └─ Schema分離 + 物理DB分離の混在
+```
+
+---
+
+#### パラソルにおける完全な階層マッピング
+
+**重要**: バリューステージ内のケーパビリティ階層（L1/L2/L3）に、**問題領域（Subdomain）→解決領域（BC）→ソリューション構成（MS）**の3層が対応します。
+
+| パラソル階層 | ビジネス階層 | DDD階層<br/>（問題領域→解決領域） | 実装階層<br/>（ソリューション構成） | 多重度 |
+|------------|------------|---------------------------|---------------------------|--------|
+| **Value Stream** | **B0: バリューストリーム** | - | - | - |
+| | "DXプロジェクト成功支援" | - | - | |
+| ↓ | ↓ | | | 1 VS = N Stages |
+| **Value Stage** | **B1: バリューステージ** | - | - | |
+| | "プロジェクト計画支援" | - | - | |
+| ↓ | ↓ | | | 1 Stage = N L1 |
+| **Capability L1** | **B2: ケーパビリティL1** | **【問題領域】**<br/>**D0: Subdomain** | - | |
+| | "プロジェクト構想する能力" | Core Subdomain<br/>"プロジェクト計画" | - | |
+| ↓ | ↓ | ↓ | | 1 SD = 1..* BC |
+| **Bounded Context**<br/>(= Service) | B2: ケーパビリティL1相当 | **【解決領域】**<br/>**D1: Bounded Context** | **【ソリューション構成】**<br/>**S1: Microservice** | |
+| | "プロジェクト成功支援" | "Project Success Context"<br/>ドメインモデル設計 | "Project Service"<br/>実装・デプロイ単位 | 1 BC = 1..* MS |
+| ↓ | ↓ | ↓ | ↓ | 1 BC = 1..* L2 |
+| **Capability L2** | **B3: ケーパビリティL2** | **【解決領域】**<br/>D2: Aggregate | **【ソリューション構成】**<br/>S2: Service Module | |
+| | "計画を策定する能力" | "Planning Aggregate"<br/>トランザクション境界 | "PlanningModule"<br/>コード構造化単位 | |
+| ↓ | ↓ | ↓ | ↓ | 1 L2 = 1..* L3 |
+| **Capability L3**<br/>(= Operation) | **B4: ケーパビリティL3** | **【解決領域】**<br/>D2: Entity/VO | **【ソリューション構成】**<br/>S3: UseCase/Controller | |
+| | "スケジュールを作成する能力" | "Schedule Entity"<br/>ドメインオブジェクト | "ScheduleUseCase.ts"<br/>ビジネスロジック実装 | |
+| ↓ | ↓ | ↓ | ↓ | 1 L3 = 1..* UC |
+| **Use Case / Page** | **B5/B6: プロセス/<br/>アクティビティ** | **【解決領域】**<br/>D3: Application Service | **【ソリューション構成】**<br/>S3: API + UI | |
+| | "スケジュールを登録する" | "CreateScheduleUseCase"<br/>アプリケーションロジック | "POST /api/schedules"<br/>+ "schedule-form.tsx"<br/>API・UI実装 | |
+
+**3つの領域の流れ**:
+```
+問題領域（D0）              解決領域（D1-D3）                    ソリューション構成（S1-S4）
+何を解決するか          →   どうモデル化するか              →   どう実装・構成するか
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Subdomain                   Bounded Context                     Microservice
+"プロジェクト計画"     →    "Project Success Context"      →   "Project Service"
+(Core/Supporting/Generic)   ├─ Aggregate (D2)                   ├─ NestJS Module (S2)
+                            ├─ Entity/VO (D2)                   ├─ Controller (S3)
+                            ├─ Domain Service (D2)              ├─ UseCase (S3)
+                            └─ Repository (D3)                  └─ PostgreSQL Schema (S4)
+```
+
+---
+
+#### バリューステージとサブドメイン・BCの関係
+
+**重要な原則**:
+
+```
+バリューステージ（価値創造の段階）
+  └─ ケーパビリティL1（戦略的組織能力）
+      ├─ 問題領域: Subdomain（Core/Supporting/Generic）
+      ├─ 解決領域: Bounded Context（ドメインモデル）
+      └─ ソリューション構成: Microservice（実装）
+```
+
+**パラソルにおける例**:
+
+```
+バリューステージ: "プロジェクト計画支援"
+  │
+  ├─ ケーパビリティL1: "プロジェクト構想する能力"
+  │   ├─ 問題領域: Core Subdomain "プロジェクト計画"
+  │   ├─ 解決領域: BC "Project Success Service"
+  │   └─ ソリューション: MS "Project Service"
+  │
+  └─ ケーパビリティL2: "計画を策定する能力"
+      ├─ 問題領域: （ケーパビリティL1のSubdomainに含まれる）
+      ├─ 解決領域: Aggregate "Planning Aggregate"
+      └─ ソリューション: Module "PlanningModule"
+
+バリューステージ: "成果可視化支援"
+  │
+  └─ ケーパビリティL1: "生産性を可視化する能力"
+      ├─ 問題領域: Core Subdomain "生産性可視化"
+      ├─ 解決領域: BC "Productivity Visualization Service"
+      └─ ソリューション: MS "Productivity Service"
+```
+
+**Subdomainタイプの決定**:
+
+| バリューステージ | ケーパビリティL1 | Subdomainタイプ | 対応BC | 戦略 |
+|---------------|----------------|----------------|--------|------|
+| プロジェクト計画支援 | プロジェクト構想する能力 | **Core** | Project Success | 自社開発・最優先 |
+| 成果可視化支援 | 生産性を可視化する能力 | **Core** | Productivity Visualization | 自社開発・最優先 |
+| 人材最適化支援 | 人材を最適配置する能力 | Supporting | Talent Optimization | 自社開発or外注 |
+| セキュリティ提供 | 認証基盤を提供する能力 | Generic | Secure Access | 既製品利用 |
+
+---
+
+#### 重要な原則：概念の分離と統合
+
+**分離の原則**:
+```
+✅ ビジネス階層: ビジネス価値を中心に考える
+   → 技術的な制約を考えない
+
+✅ DDD階層: ドメインモデルの一貫性を中心に考える
+   → 実装方法を考えない
+
+✅ サービス/実装階層: 技術的な最適化を中心に考える
+   → ビジネスロジックを含めない
+```
+
+**統合の原則**:
+```
+パラソルでは3つの概念を統合:
+1. ビジネス価値（What）を明確にする
+2. DDDパターン（How to Model）で構造化する
+3. サービス実装（How to Implement）で実現する
+```
+
+---
+
+#### パラソル階層の決定順序（バリューストリームから開始）
+
+```
+ステップ0: バリューストリームの定義（価値の流れ全体）
+├─ 顧客に提供する価値の明確化
+├─ エンドツーエンドの価値創造プロセスの可視化
+└─ バリューストリームマップの作成
+
+↓
+
+ステップ1: バリューステージの特定（価値創造の各段階）
+├─ 価値創造の段階を分解
+├─ 各ステージの価値提供ポイントを明確化
+└─ ステージ間の依存関係を整理
+
+↓
+
+ステップ2: ケーパビリティ階層の分析（バリューステージ内）
+├─ ケーパビリティL1（戦略的組織能力）の特定
+├─ ケーパビリティL2（戦術的組織能力）の特定
+├─ ケーパビリティL3（具体的な業務能力）の特定
+└─ ケーパビリティマップの作成
+
+↓
+
+ステップ3: サブドメインの特定（問題領域の分析）
+├─ 各ケーパビリティL1に対するサブドメインを抽出
+├─ サブドメインのタイプ決定（Core/Supporting/Generic）
+└─ サブドメインマップの作成
+
+↓
+
+ステップ4: Bounded Contextの設計（解決領域の設計）
+├─ Subdomain → Bounded Contextへのマッピング決定
+├─ Bounded Contextの境界確定
+├─ コンテキストマップの作成
+├─ Aggregateの設計
+└─ Entity/Value Objectの定義
+
+↓
+
+ステップ5: マイクロサービスの決定（ソリューション構成）
+├─ BC → Microserviceへのマッピング決定
+├─ デプロイメント戦略（モノリス or MS）
+├─ モジュール構造の設計
+└─ API/データベース設計
+```
+
+**重要な原則**:
+- **ステップ0-2は必須**：バリューストリーム、バリューステージ、ケーパビリティ階層の分析は必須
+- **ステップ3は推奨**：サブドメイン分析により戦略的な意思決定が可能（Core/Supporting/Genericの判断）
+- **ステップ4は必須**：Bounded Contextの設計は必ず実施
+- **ステップ5は後から変更可能**：実装方法は後から柔軟に変更できる
+
+**各ステップの成果物とMD作成手順**:
+
+#### ステップ0: VALUE_STREAM_MAP.md の作成
+
+**目的**: 顧客への価値の流れ全体を可視化
+
+**責任者**: **ビジネス部門（経営層）**
+
+**作成手順**:
+1. **ビジネス部門・経営層**がワークショップを主導
+2. 顧客視点で価値の流れを洗い出す
+3. AIにドラフトを依頼（例: "医療DXのバリューストリームマップを作成して"）
+4. **ビジネス部門**がレビュー・調整してMD形式で保存
+5. アーキテクトは参加するが、ビジネス判断はビジネス部門が行う
+
+**MDファイル構造例**:
+```markdown
+# バリューストリームマップ: [サービス名]
+
+## 顧客提供価値
+[エンドツーエンドの価値創造プロセス]
+
+## バリューステージ一覧
+1. [ステージ1名]: [価値提供ポイント]
+2. [ステージ2名]: [価値提供ポイント]
+3. [ステージ3名]: [価値提供ポイント]
+
+## 価値の流れ図
+[Mermaid図またはASCII図]
+```
+
+**保存場所**: `docs/domain/VALUE_STREAM_MAP.md`
+
+---
+
+#### ステップ1: VALUE_STAGE_DEFINITION.md の作成
+
+**目的**: 各バリューステージの詳細定義
+
+**責任者**: **ビジネス部門（経営層・事業部長）**
+
+**作成手順**:
+1. **ビジネス部門**がVALUE_STREAM_MAP.mdから各ステージを抽出
+2. **ビジネス部門**が各ステージの価値提供ポイント、成果指標を定義
+3. AIに各ステージの詳細化を依頼
+4. **ビジネス部門**がステージ間の依存関係を整理
+
+**MDファイル構造例**:
+```markdown
+# バリューステージ定義
+
+## ステージ1: [名称]
+- **価値提供**: [具体的な価値]
+- **成果指標**: [測定可能な指標]
+- **前提条件**: [依存する前ステージ]
+
+## ステージ2: [名称]
+...
+```
+
+**保存場所**: `docs/domain/VALUE_STAGE_DEFINITION.md`
+
+---
+
+#### ステップ2: CAPABILITY_MAP.md の作成
+
+**目的**: 組織能力の階層構造を可視化（L1/L2/L3）
+
+**責任者**: **ビジネス部門（事業部長・部門長・マネージャー）**
+
+**作成手順**:
+1. **ビジネス部門**が各バリューステージ内のケーパビリティを分析
+2. **ビジネス部門**がL1（戦略）→ L2（戦術）→ L3（具体）の階層化を実施
+   - L1: 事業部長・部門長が戦略的組織能力を定義
+   - L2: 部門長・マネージャーが戦術的組織能力を定義
+   - L3: マネージャー・リーダーが具体的な業務能力を定義
+3. AIにケーパビリティマップのドラフトを依頼
+4. **ビジネス部門**が主導でレビュー（アーキテクトは助言のみ）
+
+**MDファイル構造例**:
+```markdown
+# ケーパビリティマップ
+
+## バリューステージ: [ステージ名]
+
+### ケーパビリティL1（戦略的組織能力）
+- **[能力名]**: [説明]
+  - ケーパビリティL2（戦術的）
+    - [能力名]: [説明]
+      - ケーパビリティL3（具体的）
+        - [能力名]: [説明]
+```
+
+**保存場所**: `docs/domain/CAPABILITY_MAP.md`
+
+---
+
+#### ステップ3: SUBDOMAIN_MAP.md の作成
+
+**目的**: 問題領域の分析とサブドメインタイプの決定
+
+**責任者**: **ビジネス部門 + ドメインエキスパート・アーキテクト（協働）**
+
+**作成手順**:
+1. **ドメインエキスパート・アーキテクト**が各ケーパビリティL1に対応するサブドメインを抽出
+2. **ビジネス部門 + ドメインエキスパート**がCore/Supporting/Genericのタイプ判定
+   - Core: 競争優位性を生む → ビジネス戦略的判断（ビジネス部門主導）
+   - Supporting: 必要だが差別化にならない → 協働判断
+   - Generic: 既製品で代替可能 → アーキテクト主導
+3. AIに戦略的な判断基準を提案させる
+4. **ビジネス部門**が最終決定、ドメインエキスパートが合意形成
+
+**MDファイル構造例**:
+```markdown
+# サブドメインマップ
+
+## サブドメイン一覧
+
+### Core Subdomain（競争優位性）
+| サブドメイン名 | 説明 | 戦略 | 対応ケーパビリティL1 |
+|--------------|------|------|-------------------|
+| [名称] | [説明] | 自社開発・最高の人材投入 | [L1名] |
+
+### Supporting Subdomain（必要だが差別化にならない）
+...
+
+### Generic Subdomain（既製品で代替可能）
+...
+```
+
+**保存場所**: `docs/domain/SUBDOMAIN_MAP.md`
+
+---
+
+#### ステップ4: context.md, context-map.md の作成
+
+**目的**: 解決領域の設計（Bounded Contextの境界確定）
+
+**責任者**: **ドメインエキスパート・アーキテクト**
+
+**作成手順**:
+1. **アーキテクト**がSubdomain → Bounded Contextのマッピング決定
+2. **ドメインエキスパート + アーキテクト**が各BCのドメインモデル設計（Aggregate, Entity, VO）
+3. AIにドメインモデルのドラフトを依頼
+4. **アーキテクト**がコンテキストマップ（BC間の関係）を作成
+5. ビジネス部門はレビューに参加するが、技術的判断はアーキテクトが行う
+
+**MDファイル構造例（context.md）**:
+```markdown
+# Bounded Context: [BC名]
+
+## ユビキタス言語
+- **[用語]**: [定義]
+
+## ドメインモデル
+### Aggregate Root
+- **[名称]**: [説明]
+  - Entity: [...]
+  - Value Object: [...]
+
+## 境界内のルール
+...
+```
+
+**MDファイル構造例（context-map.md）**:
+```markdown
+# コンテキストマップ
+
+## BC間の関係
+
+### [BC1] → [BC2]
+- **関係タイプ**: Customer/Supplier
+- **統合パターン**: REST API
+- **Shared Kernel**: [共有する概念]
+```
+
+**保存場所**: `docs/design/bounded-contexts/[bc-name]/context.md`
+
+---
+
+#### ステップ5: api-specification.md の作成
+
+**目的**: ソリューション構成の具体化（実装仕様）
+
+**責任者**: **エンジニア・DevOpsチーム**
+
+**作成手順**:
+1. **エンジニア + アーキテクト**がBC → Microserviceのマッピング決定
+2. **DevOpsチーム + エンジニア**がデプロイメント戦略（モノリス/MS/ハイブリッド）を選択
+3. AIにAPI仕様、DB設計のドラフトを生成させる
+4. **エンジニア**がレビュー・実装・テスト
+5. ビジネス部門・アーキテクトはレビューに参加するが、技術選択はエンジニアが行う
+
+**MDファイル構造例**:
+```markdown
+# API仕様: [MS名]
+
+## エンドポイント一覧
+
+### POST /api/[resource]
+- **目的**: [...]
+- **リクエスト**: [...]
+- **レスポンス**: [...]
+- **ビジネスロジック**: [対応するUseCase名]
+```
+
+**保存場所**: `docs/api/services/[service-name]/api-specification.md`
+
+---
+
+**AI協働のベストプラクティスと責任分担**:
+
+```
+【ビジネス階層】ステップ0-2: ビジネス部門が主導
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- 責任者: ビジネス部門（経営層・事業部長・部門長・マネージャー）
+- AI活用: 「[業務ドメイン]のバリューストリームマップを作成して」
+         「[業務]のケーパビリティマップを作成して」
+  → AIがドラフトを生成
+  → ビジネス部門がレビュー・調整・最終決定
+- アーキテクトの役割: 助言・支援のみ（意思決定はビジネス部門）
+
+【問題領域】ステップ3: ビジネス部門 + ドメインエキスパート協働
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- 責任者: ビジネス部門 + ドメインエキスパート・アーキテクト
+- AI活用: 「[業務ドメイン]のサブドメインマップを作成して」
+  → AIがCore/Supporting/Generic分類を提案
+  → ビジネス部門が戦略的判断（Core判定）
+  → ドメインエキスパートが技術的判断（Generic判定）
+
+【解決領域】ステップ4: ドメインエキスパート・アーキテクトが主導
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- 責任者: ドメインエキスパート・アーキテクト
+- AI活用: 「[Subdomain名]のBounded Contextを設計して」
+  → AIがドメインモデルを提案
+  → アーキテクトがレビュー・精緻化・最終決定
+- ビジネス部門の役割: レビュー参加のみ（技術判断はアーキテクト）
+
+【ソリューション構成】ステップ5: エンジニアが主導
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- 責任者: エンジニア・DevOpsチーム
+- AI活用: 「[BC名]のREST API仕様を生成して」
+         「[ドメインモデル]からTypeScriptコードを生成して」
+  → AIが実装仕様・コードを生成
+  → エンジニアが実装・テスト・デプロイ
+- アーキテクトの役割: アーキテクチャレビューのみ
+
+このMD形式により、AIが設計を理解し、コード生成や改善提案が可能になります。
+各ステップで明確な責任分担を行うことで、効率的な協働開発が実現します。
+```
+
+**階層の対応関係**:
+```
+バリューストリーム（1つ）
+  └─ バリューステージ（複数）
+      └─ ケーパビリティL1（複数）
+          ├─ サブドメイン（1つ） → 問題領域
+          ├─ Bounded Context（1つ以上） → 解決領域
+          └─ Microservice（1つ以上） → ソリューション構成
+```
+
+#### 実装パターンとの対応
+
+```
+パターンA: 1つのMSに1つのBC
+┌─────────────────────┐
+│ Auth MS             │
+│ ┌─────────────────┐ │
+│ │ Secure Access   │ │
+│ │ (BC)            │ │
+│ │ ├─ Cap1         │ │
+│ │ └─ Cap2         │ │
+│ └─────────────────┘ │
+└─────────────────────┘
+
+パターンB: 1つのMSに複数のBC
+┌─────────────────────┐
+│ Auth Platform MS    │
+│ ┌─────────────────┐ │
+│ │ Secure Access   │ │
+│ │ (BC1)           │ │
+│ └─────────────────┘ │
+│ ┌─────────────────┐ │
+│ │ User Management │ │
+│ │ (BC2)           │ │
+│ └─────────────────┘ │
+└─────────────────────┘
+
+パターンC: モノリス（1つのMSに全BC）
+┌─────────────────────┐
+│ Monolith MS         │
+│ ├─ BC1 (Auth)       │
+│ ├─ BC2 (Project)    │
+│ ├─ BC3 (Talent)     │
+│ └─ BC4 (...)        │
+└─────────────────────┘
+```
+
+#### ディレクトリマッピング例
+
+```
+bounded-contexts/secure-access/     # L2: バウンデッドコンテキスト
+  └── capabilities/                 # L3: ビジネスケーパビリティ
+      ├── authenticate/             # "認証する能力"
+      │   └── operations/           # L4: ビジネスオペレーション
+      │       ├── login/            # "ログインする"
+      │       │   └── usecases/     # L5: ユースケース
+      │       │       ├── password-login/  # "パスワードでログインする"
+      │       │       │   ├── usecase.md
+      │       │       │   └── page.md
+      │       │       └── sso-login/       # "SSOでログインする"
+      │       └── logout/           # "ログアウトする"
+      └── manage-sessions/          # "セッション管理する能力"
+```
+
+**重要な原則**:
+- **L1（MS範囲）**: 実装フェーズで決定。モノリスから始めて段階的に分離
+- **L2（BC）**: 設計の最初に確定。ドメイン境界を明確化
+- **L3-L5**: ビジネス分析に基づき段階的に詳細化
+
+### 3.9 実装移行パターン
+
+```
+フェーズ1: モノリスからスタート（1 MS = 全 BC）
+┌────────────────────────┐
+│ Monolith Application   │
+│ ├── Auth Module (BC1)  │
+│ ├── Project Module (BC2)│
+│ └── Talent Module (BC3)│
+└────────────────────────┘
 
 ↓ 成長・負荷増加
 
-フェーズ2: 段階的分離
-[Auth Service] ← 独立化
-[Main Application]
-├── Project Module
-└── Talent Module
+フェーズ2: 段階的分離（BC1を独立MS化）
+┌──────────────┐  ┌────────────────────┐
+│ Auth Service │  │ Main Application   │
+│ (BC1のみ)    │  │ ├── Project (BC2)  │
+└──────────────┘  │ └── Talent (BC3)   │
+                  └────────────────────┘
 
 ↓ さらなる成長
 
-フェーズ3: 完全マイクロサービス化
-[Auth Service]
-[Project Service]
-[Talent Service]
+フェーズ3: 完全マイクロサービス化（各BC = 独立MS）
+┌──────────────┐
+│ Auth Service │ (BC1)
+└──────────────┘
+┌──────────────┐
+│Project Service│ (BC2)
+└──────────────┘
+┌──────────────┐
+│Talent Service│ (BC3)
+└──────────────┘
 ```
 
 **重要**: パラソル設計は**フェーズ1から一貫**しています。実装が変わっても、ドメインモデルは不変です。
 
-### 3.7 コンテキストマップ（Context Map）
+### 3.10 コンテキストマップ（Context Map）
 
 #### コンテキストマップとは
 
@@ -606,7 +1598,7 @@ class KnowledgeServiceClient {
 ✗ コンテキスト境界の曖昧さ
 ```
 
-### 3.8 ディレクトリ構成戦略：コンテキストとサービスの分離
+### 3.11 ディレクトリ構成戦略：コンテキストとサービスの分離
 
 #### 問題提起
 
@@ -1188,7 +2180,7 @@ consultingTool/
 - ツールによる検証が可能
 - チーム拡大・縮小に柔軟に対応
 
-### 3.9 データベース分離戦略：最大の難関を段階的に攻略
+### 3.10 データベース分離戦略：最大の難関を段階的に攻略
 
 #### 重要な原則：モノリスでもコンテキスト分離を徹底
 
@@ -2374,23 +3366,36 @@ sed -i 's/docs\/parasol\/services/bounded-contexts/g' \
 
 ---
 
-### 4.6 既存の階層構造は維持
+### 4.6 パラソル階層と3概念体系のマッピング（再掲）
 
-**重要**: ケーパビリティ → オペレーション → ユースケース の階層は変更なし
+**重要**: パラソルの階層は**ビジネス階層**、**DDD階層**、**サービス/実装階層**の3つを統合しています。
+
+#### 完全な階層構造
 
 ```
-✅ 維持される構造：
+✅ パラソル階層（3概念体系の統合）：
 
-バウンデッドコンテキスト
-  └── ビジネスケーパビリティ（組織能力）
-      └── ビジネスオペレーション（価値創造活動）
-          └── ユースケース（具体的な利用シナリオ）
-              ├── usecase.md
-              ├── page.md
-              └── api-usage.md
+Microservice Scope（サービス/実装階層のみ）
+  └── 1つまたは複数の Bounded Context（3概念体系の交差点）
+      └── 1つまたは複数の Business Capability（ビジネス階層 + DDD階層）
+          └── 1つまたは複数の Business Operation（ビジネス階層 + DDD階層）
+              └── 1つまたは複数の UseCase / Page（ビジネス階層 + サービス/実装階層）
+                  ├── usecase.md
+                  ├── page.md
+                  └── api-usage.md
 ```
 
-この階層は**DDDのビジネス視点**を表現しており、非常に適切です。
+#### 3概念体系とのマッピング表
+
+| パラソル階層 | ビジネス階層 | DDD階層 | サービス/実装階層 | 多重度 |
+|------------|------------|---------|------------------|--------|
+| **Microservice Scope** | - | - | S1: デプロイメント単位 | - |
+| **Bounded Context** | B1/B2: 戦略/ケーパビリティ | D1: Bounded Context | S2: Service Module | 1 MS = 1..* BC |
+| **Business Capability** | B2: ケーパビリティ | D2: Aggregate Root候補 | S2: Sub Module | 1 BC = 1..* Cap |
+| **Business Operation** | B3: ビジネスプロセス | D2: Domain Service | S3: Service Class | 1 Cap = 1..* Op |
+| **Use Case / Page** | B4: ユーザーアクティビティ | D3: Application Service | S3: API + UI | 1 Op = 1..* UC |
+
+この階層は**ビジネス価値**、**ドメインモデル**、**物理実装**の3つを明確に分離しつつ統合しています。
 
 ---
 
@@ -2420,63 +3425,299 @@ sed -i 's/docs\/parasol\/services/bounded-contexts/g' \
 
 ---
 
-### 4.8 最終的な構成イメージ
+### 4.8 問題空間と解決空間を分離した構成（修正案）
+
+#### 修正案A：問題空間と解決空間を明示的に分離（推奨）
 
 ```
 consultingTool/
 │
-├── bounded-contexts/              # ⭐ 設計の真実（Source of Truth）
-│   ├── CONTEXT_MAP.md            # 全体コンテキストマップ
-│   ├── _shared/                  # Shared Kernel
-│   │   ├── README.md
-│   │   ├── domain-language.md
-│   │   └── database-design.md
+├── docs/
+│   ├── domain/                    # ⭐ 問題空間（Problem Space）
+│   │   ├── SUBDOMAIN_MAP.md      # サブドメインマップ（Core/Supporting/Generic分類）
+│   │   ├── business-model.md     # ビジネスモデル全体
+│   │   └── subdomains/           # サブドメイン別分析
+│   │       ├── dx-value-creation/      # Core Subdomain
+│   │       │   ├── README.md           # サブドメイン概要
+│   │       │   ├── business-analysis.md # ビジネス分析
+│   │       │   ├── competitive-advantage.md # 競争優位性
+│   │       │   └── strategy.md         # 戦略（自社開発・最優先）
+│   │       ├── talent-optimization/    # Supporting Subdomain
+│   │       │   ├── README.md
+│   │       │   ├── business-analysis.md
+│   │       │   └── strategy.md         # 戦略（自社開発or外注）
+│   │       └── authentication/         # Generic Subdomain
+│   │           ├── README.md
+│   │           ├── business-analysis.md
+│   │           └── strategy.md         # 戦略（既製品利用）
 │   │
-│   ├── secure-access/            # バウンデッドコンテキスト
-│   │   ├── README.md             # 🆕 コンテキスト概要
-│   │   ├── context.md            # 🆕 コンテキスト定義
-│   │   ├── context-map.md        # 🆕 関係マップ
-│   │   ├── service.md            # サービス定義
-│   │   ├── domain-language.md    # ドメイン言語
-│   │   ├── api-specification.md  # API仕様
-│   │   ├── database-design.md    # DB設計
-│   │   ├── integration-specification.md
-│   │   └── capabilities/         # ビジネスケーパビリティ
-│   │       └── [capability]/
-│   │           └── operations/   # ビジネスオペレーション
-│   │               └── [operation]/
-│   │                   ├── operation.md
-│   │                   └── usecases/  # ユースケース
-│   │                       └── [usecase]/
-│   │                           ├── usecase.md
-│   │                           ├── page.md
-│   │                           └── api-usage.md
+│   ├── design/                    # ⭐ 解決空間（Solution Space）
+│   │   └── bounded-contexts/
+│   │       ├── CONTEXT_MAP.md          # BC間の関係マップ
+│   │       ├── SUBDOMAIN_BC_MAPPING.md # Subdomain→BCマッピング
+│   │       ├── _shared/                # Shared Kernel
+│   │       │
+│   │       ├── secure-access/          # BC（Generic Subdomainから）
+│   │       │   ├── README.md           # コンテキスト概要
+│   │       │   ├── context.md          # コンテキスト定義
+│   │       │   ├── subdomain-ref.md    # 🆕 対応するSubdomainへの参照
+│   │       │   ├── context-map.md      # 他BCとの関係
+│   │       │   ├── service.md          # サービス定義
+│   │       │   ├── domain-language.md  # ドメイン言語
+│   │       │   └── capabilities/
+│   │       │
+│   │       ├── project-success/        # BC（Core Subdomainから）
+│   │       │   ├── README.md
+│   │       │   ├── subdomain-ref.md    # 🆕 dx-value-creation へ参照
+│   │       │   └── ...
+│   │       │
+│   │       ├── productivity-visualization/ # BC（Core Subdomainから）
+│   │       │   ├── README.md
+│   │       │   ├── subdomain-ref.md    # 🆕 dx-value-creation へ参照
+│   │       │   └── ...
+│   │       │
+│   │       └── talent-optimization/    # BC（Supporting Subdomainから）
+│   │           ├── README.md
+│   │           ├── subdomain-ref.md    # 🆕 talent-optimization へ参照
+│   │           └── ...
 │   │
-│   ├── project-success/
-│   ├── talent-optimization/
-│   ├── productivity-visualization/
-│   ├── knowledge-co-creation/
-│   ├── revenue-optimization/
-│   └── collaboration-facilitation/
+│   └── parasol/
+│       └── PARASOL_DEVELOPMENT_GUIDE.md
 │
 ├── src/contexts/                  # 実装（モノリス）
 ├── services/                      # 将来（マイクロサービス）
-└── docs/
-    ├── architecture/
-    │   └── BOUNDED_CONTEXT_STRATEGY.md
-    └── parasol/
-        └── PARASOL_DEVELOPMENT_GUIDE.md
+└── .context-rules.json           # BC→実装マッピング
+```
+
+**新規ファイルの説明**：
+
+**SUBDOMAIN_MAP.md**（サブドメインマップ）:
+```markdown
+# サブドメインマップ
+
+## 概要
+
+DX価値創造ドメインにおけるサブドメインの分類と戦略
+
+## サブドメイン分類
+
+| サブドメイン | タイプ | 説明 | 戦略 | 対応BC |
+|------------|-------|------|------|--------|
+| DX価値創造 | **Core** | 競争優位性の源泉 | 自社開発・最優先 | Project Success, Productivity Visualization |
+| 人材最適化 | Supporting | ビジネスに必要 | 自社開発or外注 | Talent Optimization |
+| 認証基盤 | Generic | 汎用機能 | 既製品利用 | Secure Access |
+| ナレッジ管理 | Supporting | ビジネスに必要 | 自社開発or外注 | Knowledge Co-creation |
+| 収益管理 | Supporting | ビジネスに必要 | 自社開発or外注 | Revenue Optimization |
+| コラボレーション | Generic | 汎用機能 | 既製品検討 | Collaboration Facilitation |
+
+## Core Subdomain: DX価値創造
+
+**競争優位性**: プロジェクトの成功を可視化し、生産性を最大化する独自ノウハウ
+
+**戦略**:
+- ✅ 自社開発必須
+- ✅ 最高の人材を投入
+- ✅ 継続的な改善・イノベーション
+- ❌ 外部委託禁止
+
+**対応BC**: Project Success, Productivity Visualization
+```
+
+**SUBDOMAIN_BC_MAPPING.md**（Subdomain→BCマッピング）:
+```markdown
+# Subdomain → Bounded Context マッピング
+
+## マッピング方針
+
+| Subdomain | Bounded Context(s) | マッピング理由 |
+|----------|-------------------|--------------|
+| DX価値創造 | Project Success<br/>Productivity Visualization | 複雑さのため2つのBCに分割 |
+| 人材最適化 | Talent Optimization | 1対1マッピング |
+| 認証基盤 | Secure Access | 1対1マッピング |
+| ナレッジ管理 | Knowledge Co-creation | 1対1マッピング |
+| 収益管理 | Revenue Optimization | 1対1マッピング |
+| コラボレーション | Collaboration Facilitation | 1対1マッピング |
+
+## Core Subdomain の分割詳細
+
+**DX価値創造 → 2つのBCへ分割**:
+
+理由：
+1. ドメインの複雑さ（プロジェクト管理 vs 生産性分析）
+2. チーム構成（2チームに分割）
+3. リリースサイクルの違い
+```
+
+**subdomain-ref.md**（各BCディレクトリ内）:
+```markdown
+# Subdomain参照
+
+## 対応するSubdomain
+
+**Subdomain**: DX価値創造（Core Subdomain）
+**参照**: [../../domain/subdomains/dx-value-creation/](../../domain/subdomains/dx-value-creation/)
+
+## Subdomainからの要求
+
+- 競争優位性を生む機能であること
+- 継続的な改善・イノベーションが必要
+- 最高品質の実装が求められる
+
+## BCの役割
+
+このBounded Contextは、Core Subdomainの一部を実装します。
+プロジェクトの成功支援に特化し、以下を提供します：
+
+- プロジェクト計画・実行支援
+- 成功指標の定義・追跡
+- リスク管理・対策
 ```
 
 ---
 
-### 4.9 まとめ
+#### 修正案B：統合型（現実的・推奨）
 
-**変更内容**：
-1. ✅ `services/` → `bounded-contexts/` へリネーム
-2. ✅ コンテキストマップファイルを追加（全体 + 個別）
-3. ✅ Shared Kernel ディレクトリを追加
-4. ✅ 既存の階層構造は維持
+問題空間の分析は重要ですが、小規模プロジェクトでは過度に複雑になる可能性があります。
+現在の `bounded-contexts/` 構成を維持しつつ、Subdomainマッピングを追加する案：
+
+```
+consultingTool/
+│
+├── docs/
+│   ├── parasol/
+│   │   ├── PARASOL_DEVELOPMENT_GUIDE.md
+│   │   ├── SUBDOMAIN_MAP.md          # 🆕 Subdomainマップ追加
+│   │   └── bounded-contexts/
+│   │       ├── CONTEXT_MAP.md
+│   │       ├── SUBDOMAIN_BC_MAPPING.md  # 🆕 SD→BCマッピング
+│   │       ├── _shared/
+│   │       │
+│   │       ├── secure-access/
+│   │       │   ├── README.md
+│   │       │   ├── context.md
+│   │       │   ├── subdomain-type.md   # 🆕 "Generic Subdomain"と明記
+│   │       │   ├── service.md
+│   │       │   └── ...
+│   │       │
+│   │       ├── project-success/
+│   │       │   ├── README.md
+│   │       │   ├── context.md
+│   │       │   ├── subdomain-type.md   # 🆕 "Core Subdomain: DX価値創造"
+│   │       │   ├── service.md
+│   │       │   └── ...
+│   │       │
+│   │       └── talent-optimization/
+│   │           ├── README.md
+│   │           ├── subdomain-type.md   # 🆕 "Supporting Subdomain"
+│   │           └── ...
+│   │
+│   └── architecture/
+│       └── BOUNDED_CONTEXT_STRATEGY.md
+│
+├── src/contexts/                  # 実装（モノリス）
+└── services/                      # 将来（マイクロサービス）
+```
+
+**subdomain-type.md**（各BCディレクトリ内）:
+```markdown
+# Subdomain分類
+
+## このBCが対応するSubdomain
+
+**Subdomain名**: DX価値創造
+**Subdomainタイプ**: **Core Subdomain**
+
+## 戦略的重要性
+
+✅ **最優先**: 競争優位性の源泉
+✅ **自社開発**: 外部委託禁止
+✅ **最高品質**: 最優秀な人材を投入
+✅ **継続改善**: イノベーションを追求
+
+## ビジネス価値
+
+このコンテキストは組織の競争優位性を生み出す中核機能です。
+プロジェクトの成功を最大化することで、顧客に直接的な価値を提供します。
+
+## 開発方針
+
+- 品質を最優先（速度よりも品質）
+- 継続的なリファクタリング
+- 最新の技術・パターンの積極採用
+- ドメインエキスパートとの密な連携
+```
+
+---
+
+#### 比較表
+
+| 観点 | 修正案A（分離型） | 修正案B（統合型） |
+|------|----------------|----------------|
+| **明確さ** | ⭐⭐⭐⭐⭐<br/>問題空間と解決空間が物理的に分離 | ⭐⭐⭐<br/>同一階層に混在 |
+| **シンプルさ** | ⭐⭐<br/>ディレクトリが増える | ⭐⭐⭐⭐⭐<br/>既存構成を維持 |
+| **学習コスト** | ⭐⭐<br/>DDD概念の理解が必要 | ⭐⭐⭐⭐<br/>既存メンバーに優しい |
+| **保守性** | ⭐⭐⭐⭐<br/>責務が明確 | ⭐⭐⭐<br/>一部混在 |
+| **適用場面** | 大規模・複雑ドメイン | 中小規模・実用重視 |
+
+---
+
+#### 推奨
+
+**小〜中規模プロジェクト（パラソル）**: **修正案B（統合型）**
+- 既存構成を最小限の変更で改善
+- `SUBDOMAIN_MAP.md` と各BCの `subdomain-type.md` を追加
+- 問題空間の分析結果を文書化しつつ、過度な複雑化を避ける
+
+**大規模・複雑ドメイン**: **修正案A（分離型）**
+- 問題空間と解決空間を物理的に分離
+- Subdomainごとにビジネス分析を詳細化
+- より厳密なDDD実践
+
+---
+
+### 4.9 実装ロードマップ（修正案B採用の場合）
+
+#### フェーズ1: Subdomainマッピングの追加（1-2時間）
+
+```bash
+# 1. Subdomainマップの作成
+touch docs/parasol/SUBDOMAIN_MAP.md
+
+# 2. SD→BCマッピングの作成
+touch docs/parasol/bounded-contexts/SUBDOMAIN_BC_MAPPING.md
+
+# 3. 各BCにSubdomainタイプを追加
+for context in secure-access project-success talent-optimization \
+               productivity-visualization knowledge-co-creation \
+               revenue-optimization collaboration-facilitation; do
+  touch docs/parasol/bounded-contexts/$context/subdomain-type.md
+done
+```
+
+#### フェーズ2: ドキュメント記述（2-4時間）
+
+1. `SUBDOMAIN_MAP.md` にサブドメイン分類を記述
+2. `SUBDOMAIN_BC_MAPPING.md` にマッピング理由を記述
+3. 各 `subdomain-type.md` に戦略的重要性と開発方針を記述
+
+#### フェーズ3: チーム教育（1-2時間）
+
+- Subdomain vs Bounded Contextの違いを共有
+- Core/Supporting/Genericの戦略的意味を説明
+- 各BCの優先順位を明確化
+
+---
+
+### 4.10 まとめ
+
+**現在の構成からの変更（修正案B採用時）**：
+1. ✅ `services/` → `bounded-contexts/` へリネーム（既存）
+2. ✅ コンテキストマップファイルを追加（既存）
+3. ✅ Shared Kernel ディレクトリを追加（既存）
+4. 🆕 `SUBDOMAIN_MAP.md` を追加（問題空間の分析）
+5. 🆕 `SUBDOMAIN_BC_MAPPING.md` を追加（SD→BCマッピング）
+6. 🆕 各BCに `subdomain-type.md` を追加（戦略的重要性の明記）
+7. ✅ 既存の階層構造は維持
 
 **作業時間見積もり**：
 - ディレクトリリネーム：5分
@@ -2493,80 +3734,198 @@ consultingTool/
 
 ## 5. DX階層構造定義
 
-### DX型サービス構成（7サービス確認済み）
+### 5.1 パラソル階層における3概念体系の統合
 
-```
-✅ 全サービスがDX促進型命名に準拠していることを確認
+パラソルのDX階層構造は、**ビジネスの階層**、**DDDの階層**、**サービス/実装の階層**を統合したものです。
 
-1. secure-access-service           (セキュアアクセスサービス)
-2. project-success-service         (プロジェクト成功支援サービス)
-3. talent-optimization-service     (タレント最適化サービス)
-4. productivity-visualization-service (生産性可視化サービス)
-5. knowledge-co-creation-service   (ナレッジ共創サービス)
-6. revenue-optimization-service    (収益最適化サービス)
-7. collaboration-facilitation-service (コラボレーション促進サービス)
-```
+#### 3概念体系の統合マッピング
 
-### 各ファイルの役割と価値創造への貢献
-
-| ファイル | 役割 | DX価値創造への貢献 |
-|---------|------|------------------|
-| `service.md` | サービス定義 | 価値提供の明確化 |
-| `domain-language.md` | ドメイン言語定義 | ビジネス価値モデリング |
-| `api-specification.md` | API仕様 | 価値連携インターフェース |
-| `database-design.md` | DB設計 | 洞察創出データ構造 |
-| `integration-specification.md` | 統合仕様 | サービス間価値連携 |
-| `operation.md` | オペレーション定義 | 価値創造プロセス |
-| `usecases/*.md` | ユースケース | 価値実現シナリオ |
-| `pages/*.md` | ページ定義 | 価値体験設計 |
-| `tests/*.md` | テスト定義 | 価値品質保証 |
-| `robustness/*.md` | ロバストネス図 | 価値実現アーキテクチャ |
+| パラソル階層 | ビジネス階層 | DDD階層 | サービス/実装階層 | 多重度 |
+|------------|------------|---------|------------------|--------|
+| **Microservice Scope** | - | - | S1: デプロイメント単位<br/>Container, Pod | - |
+| **Bounded Context**<br/>(= Service) | B1/B2: 戦略/ケーパビリティ<br/>"認証基盤を提供する能力" | D1: Bounded Context<br/>ユビキタス言語の境界 | S2: Service Module<br/>"AuthServiceModule" | 1 MS = 1..* BC |
+| **Business Capability** | B2: ケーパビリティ<br/>"認証する能力" | D2: Aggregate Root候補<br/>"Authentication" | S2: Sub Module<br/>"AuthModule" | 1 BC = 1..* Cap |
+| **Business Operation** | B3: ビジネスプロセス<br/>"ログインプロセス" | D2: Domain Service<br/>"LoginService" | S3: Service Class<br/>"LoginUseCase.ts" | 1 Cap = 1..* Op |
+| **Use Case / Page** | B4: ユーザーアクティビティ<br/>"パスワードでログインする" | D3: Application Service<br/>"PasswordLoginUseCase" | S3: API + UI<br/>"POST /api/login"<br/>+ "login.tsx" | 1 Op = 1..* UC |
 
 ---
 
-## 5. DX階層構造定義
+### 5.2 DX価値創造型階層定義（データ構造）
 
-### DX価値創造型階層定義
+```typescript
+// パラソルのデータモデル（3概念体系を統合）
 
+interface MicroserviceScope {
+  // サービス/実装階層のみ
+  deploymentUnit: string;        // 独立したデプロイメント単位
+  scalingStrategy: string;       // スケーリング戦略
+  boundedContexts: BoundedContext[];
+}
+
+interface BoundedContext {
+  // ビジネス階層 + DDD階層 + サービス/実装階層
+  displayName: string;           // ビジネス: DX価値表現サービス名（XXX支援/最適化）
+  ubiquitousLanguage: string;    // DDD: ユビキタス言語定義
+  serviceModule: string;         // サービス/実装: モジュール名
+
+  // 成果物
+  domainLanguage: DomainLanguage;      // DDD: ドメインモデル定義
+  apiSpecification: ApiSpec;           // サービス/実装: API仕様
+  databaseDesign: DatabaseDesign;      // サービス/実装: DB設計
+  integrationSpec: IntegrationSpec;    // DDD + サービス/実装: 統合仕様
+
+  capabilities: BusinessCapability[];
+}
+
+interface BusinessCapability {
+  // ビジネス階層 + DDD階層
+  displayName: string;           // ビジネス: 「XXXする能力」形式
+  aggregateRoot: string;         // DDD: 集約ルート候補
+  subModule: string;             // サービス/実装: サブモジュール名
+
+  operations: BusinessOperation[];
+}
+
+interface BusinessOperation {
+  // ビジネス階層 + DDD階層 + サービス/実装階層
+  displayName: string;           // ビジネス: 価値創造アクション指向名
+  pattern: OperationPattern;     // ビジネス: Workflow/CRUD/Analytics/...
+  domainService: string;         // DDD: ドメインサービス名
+  serviceClass: string;          // サービス/実装: サービスクラス名
+
+  useCases: UseCase[];
+}
+
+interface UseCase {
+  // ビジネス階層 + DDD階層 + サービス/実装階層
+  displayName: string;           // ビジネス: ユーザーアクティビティ
+  applicationService: string;    // DDD: アプリケーションサービス
+  apiEndpoint: string;           // サービス/実装: API エンドポイント
+  uiComponent: string;           // サービス/実装: UI コンポーネント
+
+  pages: PageDefinition[];
+  tests: TestDefinition[];
+  robustnessDiagram?: RobustnessDiagram;
+}
 ```
-Service (価値提供サービス)
-├── displayName: DX価値表現サービス名（XXX支援/最適化/可視化/促進/共創）
-├── DomainLanguage: ビジネス価値ドメイン定義
-├── ApiSpecification: 価値創造API仕様
-├── DatabaseDesign: 洞察創出DB設計
-├── IntegrationSpecification: 価値連携仕様
-└── BusinessCapability[] (価値創造ケーパビリティ)
-    ├── displayName: 「XXXする能力」形式（価値創造動詞使用）
-    └── BusinessOperation[] (価値創造オペレーション)
-        ├── displayName: 価値創造アクション指向名
-        ├── pattern: Workflow/CRUD/Analytics/Communication/Administration
-        └── UseCase[] (価値実現ユースケース)
-            ├── PageDefinition[]: 価値体験ページ定義
-            ├── TestDefinition[]: 価値検証テスト定義
-            └── RobustnessDiagram?: 価値実現ロバストネス図
-```
 
-### 各階層の責務と価値創造への関係
+---
 
-#### 1. サービス層（価値提供）
-- **責務**: 顧客への具体的価値提供
+### 5.3 各階層の責務（3概念体系別）
+
+#### 0. マイクロサービス範囲層
+
+| 概念体系 | 責務 | 成果物 |
+|---------|------|--------|
+| **サービス/実装** | デプロイメント戦略の定義 | docker-compose.yml, k8s manifest |
+| ビジネス | - | - |
+| DDD | - | - |
+
+- **多重度**: 1 MS = 1..* BC
+- **決定時期**: 実装フェーズ（モノリスから始めて段階的に分離）
+
+---
+
+#### 1. バウンデッドコンテキスト層（= パラソルService）
+
+| 概念体系 | 責務 | 成果物 |
+|---------|------|--------|
+| **ビジネス** | ビジネス価値の提供、組織能力の定義 | service.md（価値提供の定義） |
+| **DDD** | ドメインモデルの一貫性境界、ユビキタス言語 | domain-language.md, context-map.md |
+| **サービス/実装** | サービスモジュールの境界 | api-specification.md, database-design.md |
+
 - **DX効果**: ビジネス成果の最大化
-- **命名原則**: 価値創造動詞 + 対象 + サービス
+- **命名原則**: 価値創造動詞 + 対象 + サービス（例：「プロジェクト成功支援サービス」）
+- **多重度**: 1 BC = 1..* Capability
 
-#### 2. ケーパビリティ層（組織能力）
-- **責務**: 競争優位性を生む組織能力
+---
+
+#### 2. ケーパビリティ層
+
+| 概念体系 | 責務 | 成果物 |
+|---------|------|--------|
+| **ビジネス** | 組織の競争優位性を生む能力 | capability.md |
+| **DDD** | Aggregate Root候補の特定 | domain-language.md（Aggregate定義） |
+| **サービス/実装** | サブモジュールの構造 | サブディレクトリ構造 |
+
 - **DX効果**: 継続的な価値創造能力の構築
-- **命名原則**: 「[価値創造動詞] + [対象] + する能力」
+- **命名原則**: 「[価値創造動詞] + [対象] + する能力」（例：「認証する能力」）
+- **多重度**: 1 Capability = 1..* Operation
 
-#### 3. オペレーション層（価値創造活動）
-- **責務**: 具体的な価値創造プロセス
+---
+
+#### 3. オペレーション層
+
+| 概念体系 | 責務 | 成果物 |
+|---------|------|--------|
+| **ビジネス** | 具体的なビジネスプロセス | operation.md |
+| **DDD** | Domain Service、Use Caseの定義 | ドメインサービス設計 |
+| **サービス/実装** | サービスクラスの実装 | XXXService.ts, XXXUseCase.ts |
+
 - **DX効果**: 業務効率化とイノベーション促進
-- **命名原則**: [変革動詞] + [対象] + [成果・価値]
+- **命名原則**: [変革動詞] + [対象] + [成果・価値]（例：「ログインする」）
+- **多重度**: 1 Operation = 1..* UseCase
 
-#### 4. ユースケース層（価値実現）
-- **責務**: システムを通じた価値実現
+---
+
+#### 4. ユースケース層
+
+| 概念体系 | 責務 | 成果物 |
+|---------|------|--------|
+| **ビジネス** | エンドユーザーの具体的な活動 | usecase.md |
+| **DDD** | Application Serviceの実装 | XXXApplicationService.ts |
+| **サービス/実装** | API + UIの実装 | API endpoint, UI component, page.md |
+
 - **DX効果**: ユーザーエクスペリエンスの向上
-- **命名原則**: 「〜を（が）〜する」（価値創造視点）
+- **命名原則**: 「〜を（が）〜する」（例：「パスワードでログインする」）
+- **多重度**: 1 UseCase = 1..* Page/Test/Diagram
+
+---
+
+### 5.4 3概念体系の分離と統合の実践
+
+#### 分離の原則
+
+```
+設計時の思考の分離:
+
+1️⃣ ビジネス階層で考える時
+   → ビジネス価値、組織能力、競争優位性
+   → 技術的な制約は考えない
+
+2️⃣ DDD階層で考える時
+   → ドメインモデル、境界、一貫性
+   → 実装方法は考えない
+
+3️⃣ サービス/実装階層で考える時
+   → 技術的な最適化、パフォーマンス
+   → ビジネスロジックは含めない
+```
+
+#### 統合の実践
+
+```
+パラソルでの作業フロー:
+
+ステップ1: ビジネス階層の分析
+├─ 戦略・ケーパビリティの特定 → service.md
+├─ ビジネスプロセスの整理 → operation.md
+└─ ユーザーアクティビティ → usecase.md
+
+↓
+
+ステップ2: DDD階層の設計
+├─ Bounded Contextの境界確定 → context.md, context-map.md
+├─ Aggregateの設計 → domain-language.md
+└─ Entity/Value Objectの定義 → domain-language.md
+
+↓
+
+ステップ3: サービス/実装階層の決定
+├─ デプロイメント戦略 → docker-compose.yml
+├─ API設計 → api-specification.md
+└─ DB設計 → database-design.md
+```
 
 ---
 

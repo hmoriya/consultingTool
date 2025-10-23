@@ -134,7 +134,127 @@
 | **Capability L3** | ケーパビリティL3 | Entity/VO | UseCase/Controller | 1 L2 = 1..* L3 |
 | **Use Case / Page** | プロセス/アクティビティ | Application Service | API + UI | 1 L3 = 1..* UC |
 
-### 4.3 サブドメインタイプ
+### 4.3 BCとケーパビリティ階層のマッピング
+
+**最重要**: **Bounded Context = ケーパビリティL1レベル**
+
+BCはケーパビリティL1と同じレベルであり、BC内部にケーパビリティL2/L3が含まれます。
+
+#### 対応関係
+
+```
+Bounded Context（サービス） = ケーパビリティL1
+  └─ Capability L2（BC内の戦術的能力） = Aggregate（DDD）
+      └─ Capability L3（BC内の具体的業務能力） = Operation
+          └─ Business Operation（ビジネスオペレーション）= B5
+              └─ Use Case（ユースケース）= B6
+```
+
+#### 多重度
+
+- **1 BC = 1..* ケーパビリティL2**
+- **1 ケーパビリティL2 = 1..* ケーパビリティL3（Operations）**
+- **1 ケーパビリティL3 = 1..* ビジネスオペレーション**
+- **1 ビジネスオペレーション = 1..* ユースケース**
+
+#### 具体例
+
+```
+BC: "セキュアアクセスサービス" = ケーパビリティL1 "認証・認可する能力"
+  │
+  ├─ ケーパビリティL2: "ユーザーを認証する能力"（= Aggregate）
+  │   │
+  │   ├─ ケーパビリティL3/Operation: "ログインする" (B4)
+  │   │   │
+  │   │   ├─ ビジネスオペレーション: "パスワード認証プロセス" (B5)
+  │   │   │   ├─ ユースケース: "パスワードでログインする" (B6)
+  │   │   │   └─ ユースケース: "2要素認証を実行する" (B6)
+  │   │   │
+  │   │   └─ ビジネスオペレーション: "SSO認証プロセス" (B5)
+  │   │       └─ ユースケース: "SSOでログインする" (B6)
+  │   │
+  │   └─ ケーパビリティL3/Operation: "ログアウトする" (B4)
+  │       └─ ビジネスオペレーション: "セッション終了プロセス" (B5)
+  │           └─ ユースケース: "セッションを終了する" (B6)
+  │
+  └─ ケーパビリティL2: "セッションを管理する能力"（= Aggregate）
+      └─ ケーパビリティL3/Operation: "セッション状態を追跡する" (B4)
+```
+
+#### ディレクトリ構造での表現
+
+```
+bounded-contexts/
+  └── secure-access/              # BC = ケーパビリティL1
+      └── capabilities/
+          ├── authenticate/       # ケーパビリティL2
+          │   └── operations/
+          │       ├── login/      # ケーパビリティL3 = Operation (B4)
+          │       │   └── usecases/
+          │       │       ├── password-login/   # ビジネスオペレーション (B5)
+          │       │       │   ├── usecase.md    # ユースケース (B6)
+          │       │       │   └── page.md
+          │       │       └── sso-login/        # 別のビジネスオペレーション (B5)
+          │       │           ├── usecase.md
+          │       │           └── page.md
+          │       │
+          │       └── logout/     # 別のOperation (B4)
+          │
+          └── manage-sessions/    # 別のケーパビリティL2
+```
+
+### 4.4 複数視点からの完全な対応表
+
+#### ビジネス分析視点（B0-B6）
+
+| レベル | 名称 | 説明 | 担当者 | 例 |
+|--------|------|------|--------|-----|
+| **B0** | バリューストリーム | 顧客への価値の流れ全体 | 経営層 | "DXプロジェクト成功支援" |
+| **B1** | バリューステージ | 価値創造の各段階 | 経営層・事業部長 | "プロジェクト計画支援" |
+| **B2** | ケーパビリティL1 | 戦略的組織能力 | 事業部長・部門長 | "プロジェクト構想する能力" |
+| **B3** | ケーパビリティL2 | 戦術的組織能力 | 部門長・マネージャー | "計画を策定する能力" |
+| **B4** | ケーパビリティL3 | 具体的な業務能力 | マネージャー・リーダー | "スケジュールを作成する能力" |
+| **B5** | ビジネスオペレーション | 具体的なビジネスプロセス | 現場リーダー | "スケジュール登録プロセス" |
+| **B6** | ユースケース/アクティビティ | エンドユーザーの活動 | 現場担当者 | "新規スケジュールを登録する" |
+
+#### DDD視点（D0-D3）
+
+| レベル | 領域 | 名称 | 説明 | 例 |
+|--------|------|------|------|-----|
+| **D0** | 問題領域 | Subdomain | ビジネスドメインの論理的分割 | Core: "プロジェクト計画"<br/>Generic: "認証基盤" |
+| **D1** | 解決領域 | Bounded Context | ドメインモデルの一貫性境界 | "Project Success Service" |
+| **D2** | 解決領域 | Aggregate/Entity/VO | ドメインモデルの詳細構造 | "Project Aggregate"<br/>"Schedule Entity" |
+| **D3** | 解決領域 | Repository/Domain Service | DDD実装パターン | "ProjectRepository"<br/>"PlanningService" |
+
+#### マイクロサービス/実装視点（S1-S4）
+
+| レベル | 名称 | 説明 | 例 |
+|--------|------|------|-----|
+| **S1** | Microservice | 独立したデプロイ単位 | "Project Service"<br/>"Auth Service" |
+| **S2** | Service Module | コードの構造化単位 | "ProjectModule"<br/>"PlanningModule" |
+| **S3** | Controller/UseCase | ビジネスロジック実装 | "CreateScheduleUseCase.ts"<br/>"POST /api/schedules" |
+| **S4** | Database Schema | データの物理配置 | "PostgreSQL: project_service schema" |
+
+#### 統合マッピング表
+
+| ビジネス階層 | DDD階層 | 実装階層 | パラソル階層 | 説明 |
+|------------|---------|---------|------------|------|
+| **B0: バリューストリーム** | - | - | Value Stream | 価値の流れ全体 |
+| **B1: バリューステージ** | - | - | Value Stage | 価値創造の段階 |
+| **B2: ケーパビリティL1** | **D0: Subdomain** | **S1: Microservice** | **Bounded Context** | **BC = L1レベル** |
+| **B3: ケーパビリティL2** | **D2: Aggregate** | **S2: Service Module** | Capability L2 | BC内の戦術的能力 |
+| **B4: ケーパビリティL3** | **D2: Entity/VO** | **S3: UseCase** | **Operation** | BC内の具体的業務能力 |
+| **B5: ビジネスオペレーション** | **D3: Application Service** | **S3: Controller** | Business Operation | 具体的なプロセス |
+| **B6: ユースケース** | **D3: Application Service** | **S3: API + UI** | Use Case | エンドユーザーの活動 |
+
+#### 重要なポイント
+
+1. **BC = ケーパビリティL1**: 1つのBCは1つの大きな組織能力を表す
+2. **ケーパビリティL2 = Aggregate**: BC内の戦術的な能力単位、トランザクション境界
+3. **ケーパビリティL3 = Operation**: BC内の具体的な業務能力、実装ではUseCase
+4. **B5/B6はL3の配下**: ビジネスオペレーションとユースケースはOperationの下に位置する
+
+### 4.5 サブドメインタイプ
 
 | タイプ | 説明 | 戦略 |
 |--------|------|------|

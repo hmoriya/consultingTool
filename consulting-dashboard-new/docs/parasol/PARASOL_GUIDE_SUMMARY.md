@@ -641,16 +641,118 @@ import { ProjectService } from './infrastructure/adapters/ProjectServiceAdapter'
 3. サービス実装（How to Implement）で実現する
 ```
 
-### 8.4 データベース分離戦略
+### 8.4 データベースアクセスの原則
+
+#### 最重要原則: DBはBC単位でAPIによってアクセスされる
+
+```
+✅ 正しいアクセスパターン:
+
+BC1 (Secure Access)              BC2 (Project Success)
+    │                                │
+    ↓                                ↓
+ [DB1: auth]                     [DB2: project]
+    ↑                                ↑
+    │ 直接アクセス OK                 │ 直接アクセス OK
+    │                                │
+    └─────── API経由 ────────────────┘
+           （他のBCのデータが必要な場合）
+
+
+❌ 禁止されるアクセスパターン:
+
+BC2 (Project Success)
+    │
+    ├──→ [DB2: project]  ← 自分のDB（OK）
+    │
+    └──X→ [DB1: auth]    ← 他のBCのDB（NG！）
+```
+
+#### 原則の詳細
+
+1. **各BCは自分のDBにのみ直接アクセス**
+   - BC内のコードは、そのBC専用のDBスキーマ/DBのみにアクセス
+   - 他のBCのDBに直接クエリを発行してはならない
+
+2. **他のBCのデータが必要な場合は必ずAPI経由**
+   ```typescript
+   // ❌ 禁止: 他のBCのDBに直接アクセス
+   const user = await db.auth.users.findUnique({ where: { id: userId } });
+
+   // ✅ 推奨: APIを経由してアクセス
+   const user = await authServiceClient.getUser(userId);
+   ```
+
+3. **スキーマ間の外部キー制約は禁止**
+   ```sql
+   -- ❌ 禁止: スキーマ間の外部キー
+   CREATE TABLE project.tasks (
+     assigned_to UUID REFERENCES auth.users(id)  -- NG!
+   );
+
+   -- ✅ 推奨: IDのみ保持、整合性はアプリ層で保証
+   CREATE TABLE project.tasks (
+     assigned_user_id UUID  -- auth.users.id を保持（FK なし）
+   );
+   ```
+
+4. **整合性チェックはアプリケーション層で実装**
+   ```typescript
+   class AssignTaskUseCase {
+     async execute(taskId: string, userId: string) {
+       // 1. API経由でユーザー存在確認
+       const user = await this.authServiceClient.getUser(userId);
+       if (!user) throw new Error('User not found');
+
+       // 2. 自分のDBでタスク割り当て
+       await this.projectRepo.assignTask(taskId, userId);
+     }
+   }
+   ```
+
+#### この原則のメリット
+
+- ✅ **BC間の独立性**: 各BCが独立して進化できる
+- ✅ **マイクロサービス化が容易**: 将来的に物理DB分離がスムーズ
+- ✅ **明確な境界**: コンテキスト境界が可視化される
+- ✅ **スケーラビリティ**: BC単位での独立したスケーリングが可能
+- ✅ **障害の局所化**: あるBCのDB障害が他のBCに波及しにくい
+
+### 8.5 データベース分離戦略
 
 **重要**: モノリスでもコンテキストベースで、ドメイン言語、DB、APIを分離しておく
 
-- **Phase 1**: スキーマ分離（外部キー禁止）
-- **Phase 2**: 論理DB分離
-- **Phase 3**: 物理DB分離（読み取りレプリカ）
-- **Phase 4**: 完全分離（独立MS + 独立DB）
+#### 段階的DB分離の5フェーズ
 
-### 8.5 AI協働のベストプラクティス
+- **Phase 0**: モノリスDB（現状）- 1つのDBを全BCで共有
+- **Phase 1**: スキーマ分離（まずここから！）- スキーマ別に分離、外部キー禁止
+- **Phase 2**: スキーマ別接続プール - BC毎に専用の接続プール
+- **Phase 3**: 論理DB分離 - 同一サーバー上で複数の論理DB
+- **Phase 4**: 物理DB分離（読み取りレプリカ）- 読み取り専用レプリカを分離
+- **Phase 5**: 完全分離（独立MS + 独立DB）- BC毎に独立したDBサーバー
+
+#### Phase 1の実装（推奨開始点）
+
+```sql
+-- スキーマ作成
+CREATE SCHEMA IF NOT EXISTS auth;
+CREATE SCHEMA IF NOT EXISTS project;
+
+-- 外部キー制約の削除
+ALTER TABLE tasks DROP CONSTRAINT fk_tasks_assigned_to_users;
+
+-- テーブル移動
+ALTER TABLE users SET SCHEMA auth;
+ALTER TABLE projects SET SCHEMA project;
+```
+
+**Phase 1のメリット**:
+- ダウンタイムなし
+- ロールバック容易
+- コンテキスト境界の可視化
+- 次フェーズへの準備完了
+
+### 8.6 AI協働のベストプラクティス
 
 | フェーズ | 主導者 | AI活用例 |
 |---------|--------|---------|

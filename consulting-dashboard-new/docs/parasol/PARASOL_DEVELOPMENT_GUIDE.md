@@ -1,6 +1,6 @@
 # パラソル開発ガイド - DX価値創造型フレームワーク
 
-**バージョン**: 1.3.0
+**バージョン**: 1.4.0
 **更新日**: 2025-10-23
 **ステータス**: Draft
 
@@ -1178,6 +1178,632 @@ consultingTool/
 - モノリス→マイクロサービスの自然な移行パス
 - ツールによる検証が可能
 - チーム拡大・縮小に柔軟に対応
+
+### 3.9 データベース分離戦略：最大の難関を段階的に攻略
+
+#### DB分離の重要性と課題
+
+**マイクロサービス化の本質はDB分離**です。APIを分離するだけでは不十分で、真の独立性を得るにはデータベースの分離が不可欠です。
+
+##### DB分離が難しい理由
+
+```
+❌ 課題1: データの依存関係
+- 外部キー制約の解消
+- トランザクション境界の再設計
+- 参照整合性の維持
+
+❌ 課題2: パフォーマンス劣化
+- JOINができなくなる
+- N+1問題の発生
+- データ重複の管理
+
+❌ 課題3: 移行コスト
+- データ移行の複雑さ
+- ダウンタイムの発生リスク
+- ロールバック困難性
+
+❌ 課題4: 運用負荷
+- 複数DBの監視
+- バックアップ戦略の複雑化
+- 障害時の影響範囲拡大
+```
+
+**だからこそ、段階的アプローチが必須**です。
+
+---
+
+#### 段階的DB分離：5つのフェーズ
+
+##### Phase 0: モノリスDB（現状）
+
+```
+┌─────────────────────────────────────┐
+│     Single PostgreSQL Database      │
+│                                     │
+│  ┌──────────┐  ┌──────────┐       │
+│  │  users   │  │ projects │       │
+│  │  roles   │  │  tasks   │       │
+│  │sessions  │  │  members │       │
+│  └──────────┘  └──────────┘       │
+│       ↑ FK          ↑ FK           │
+│       └─────────────┘              │
+│    外部キーで結合可能               │
+└─────────────────────────────────────┘
+         ↑
+    全APIから直接アクセス
+```
+
+**問題点**：
+- すべてのコンテキストが1つのDBを共有
+- コンテキスト境界が曖昧
+- スケーリングが困難
+
+---
+
+##### Phase 1: スキーマ分離（まずここから！）
+
+```
+┌─────────────────────────────────────────────────┐
+│       Single PostgreSQL Database                │
+│                                                 │
+│  ┌────────────────┐  ┌────────────────┐       │
+│  │ auth schema    │  │ project schema │       │
+│  │                │  │                │       │
+│  │  auth.users    │  │ project.projects│      │
+│  │  auth.roles    │  │ project.tasks  │       │
+│  │  auth.sessions │  │ project.members│       │
+│  └────────────────┘  └────────────────┘       │
+│         ↑                    ↑                 │
+│         └────── ❌ FK禁止 ───┘                 │
+│                                                 │
+│  ┌────────────────┐  ┌────────────────┐       │
+│  │ talent schema  │  │ revenue schema │       │
+│  └────────────────┘  └────────────────┘       │
+└─────────────────────────────────────────────────┘
+```
+
+**ディレクトリ構成**：
+
+```
+bounded-contexts/
+├── secure-access/
+│   └── database-design.md        # auth スキーマ設計
+├── project-success/
+│   └── database-design.md        # project スキーマ設計
+└── _shared/
+    └── database-design.md        # 共有データ設計
+
+prisma/                           # または migrations/
+├── schema.prisma                 # 全体スキーマ
+├── migrations/
+│   ├── 001_create_auth_schema.sql
+│   ├── 002_create_project_schema.sql
+│   └── 003_migrate_to_schemas.sql
+│
+└── schemas/                      # スキーマ別定義
+    ├── auth.prisma              # auth スキーマ
+    ├── project.prisma           # project スキーマ
+    └── shared.prisma            # 共有テーブル
+```
+
+**実装ルール**：
+
+```typescript
+// ❌ NG: スキーマ間の外部キー
+CREATE TABLE project.tasks (
+  id UUID PRIMARY KEY,
+  assigned_to UUID REFERENCES auth.users(id)  // ← 禁止！
+);
+
+// ✅ OK: IDだけ保持（参照整合性はアプリ層で）
+CREATE TABLE project.tasks (
+  id UUID PRIMARY KEY,
+  assigned_user_id UUID  -- auth.users.id を保持（FK なし）
+);
+
+// アプリケーション層で整合性チェック
+class AssignTaskUseCase {
+  async execute(taskId: string, userId: string) {
+    // 1. ユーザー存在確認（auth スキーマ）
+    const user = await authRepo.findUser(userId);
+    if (!user) throw new Error('User not found');
+
+    // 2. タスク割り当て（project スキーマ）
+    await projectRepo.assignTask(taskId, userId);
+  }
+}
+```
+
+**移行手順**：
+
+```sql
+-- ステップ1: スキーマ作成
+CREATE SCHEMA IF NOT EXISTS auth;
+CREATE SCHEMA IF NOT EXISTS project;
+CREATE SCHEMA IF NOT EXISTS talent;
+
+-- ステップ2: 外部キー制約の削除
+ALTER TABLE tasks DROP CONSTRAINT fk_tasks_assigned_to_users;
+
+-- ステップ3: テーブル移動
+ALTER TABLE users SET SCHEMA auth;
+ALTER TABLE projects SET SCHEMA project;
+
+-- ステップ4: アプリケーション層でのバリデーション追加
+-- （コード修正）
+```
+
+**メリット**：
+- ✅ ダウンタイムなし
+- ✅ ロールバック容易
+- ✅ コンテキスト境界の可視化
+- ✅ 次フェーズへの準備
+
+---
+
+##### Phase 2: スキーマ別接続プール
+
+```
+┌─────────────────────────────────────┐
+│    PostgreSQL (同一DB)              │
+│                                     │
+│  ┌──────┐  ┌──────┐  ┌──────┐    │
+│  │auth  │  │project│  │talent│    │
+│  │schema│  │schema │  │schema│    │
+│  └──────┘  └──────┘  └──────┘    │
+└─────────────────────────────────────┘
+      ↑          ↑          ↑
+   Pool A     Pool B     Pool C
+      │          │          │
+┌─────┴──┐  ┌───┴───┐  ┌──┴────┐
+│ Auth   │  │Project│  │Talent │
+│ API    │  │ API   │  │ API   │
+└────────┘  └───────┘  └───────┘
+```
+
+**実装例**：
+
+```typescript
+// src/contexts/secure-access/infrastructure/database.ts
+export const authDbPool = new Pool({
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  schema: 'auth',  // ← スキーマ固定
+  max: 10,
+  idleTimeoutMillis: 30000
+});
+
+// src/contexts/project-success/infrastructure/database.ts
+export const projectDbPool = new Pool({
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  schema: 'project',  // ← スキーマ固定
+  max: 20,  // プロジェクトは負荷高いので多めに
+  idleTimeoutMillis: 30000
+});
+```
+
+**メリット**：
+- ✅ コンテキスト別にリソース調整可能
+- ✅ 監視・メトリクスが分離される
+- ✅ 物理DB分離への準備
+
+---
+
+##### Phase 3: 論理DB分離（Read Replica活用）
+
+```
+┌────────────────────────┐
+│   Primary DB           │
+│  ┌─────┐  ┌─────┐    │
+│  │auth │  │proj │    │
+│  └─────┘  └─────┘    │
+└────────┬───────────────┘
+         │ Replication
+         ↓
+┌────────────────────────┐
+│   Read Replica 1       │
+│  ┌─────┐              │  ← Auth コンテキスト専用
+│  │auth │              │
+│  └─────┘              │
+└────────────────────────┘
+
+┌────────────────────────┐
+│   Read Replica 2       │
+│  ┌─────┐              │  ← Project コンテキスト専用
+│  │proj │              │
+│  └─────┘              │
+└────────────────────────┘
+```
+
+**メリット**：
+- ✅ 読み取り負荷を分散
+- ✅ コンテキスト別の最適化
+- ✅ 物理分離のテスト環境
+
+---
+
+##### Phase 4: 物理DB分離（本番MS化）
+
+```
+┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+│  Auth DB     │  │  Project DB  │  │  Talent DB   │
+│              │  │              │  │              │
+│ auth.users   │  │ proj.projects│  │talent.members│
+│ auth.roles   │  │ proj.tasks   │  │talent.skills │
+└──────┬───────┘  └──────┬───────┘  └──────┬───────┘
+       │                 │                 │
+       ↓                 ↓                 ↓
+┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+│Auth Service  │  │Project Service│  │Talent Service│
+│              │  │              │  │              │
+│ :3001        │  │ :3002        │  │ :3003        │
+└──────────────┘  └──────────────┘  └──────────────┘
+```
+
+**ディレクトリ構成**：
+
+```
+services/
+├── auth-service/
+│   ├── src/
+│   ├── prisma/
+│   │   └── schema.prisma         # auth DB専用スキーマ
+│   ├── docker-compose.yml        # auth DB専用コンテナ
+│   └── .env
+│       DATABASE_URL=postgresql://auth_db:5432/auth
+│
+├── project-service/
+│   ├── src/
+│   ├── prisma/
+│   │   └── schema.prisma         # project DB専用スキーマ
+│   ├── docker-compose.yml
+│   └── .env
+│       DATABASE_URL=postgresql://project_db:5433/project
+│
+└── talent-service/
+    └── ...
+```
+
+**docker-compose.yml例**：
+
+```yaml
+# services/auth-service/docker-compose.yml
+version: '3.8'
+services:
+  auth-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: auth
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - auth_data:/var/lib/postgresql/data
+
+  auth-api:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://auth_user:${AUTH_DB_PASSWORD}@auth-db:5432/auth
+    ports:
+      - "3001:3000"
+    depends_on:
+      - auth-db
+
+volumes:
+  auth_data:
+```
+
+---
+
+##### Phase 5: 分散データ管理（最終形態）
+
+```
+┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+│  Auth DB     │  │  Project DB  │  │  Talent DB   │
+└──────┬───────┘  └──────┬───────┘  └──────┬───────┘
+       │                 │                 │
+       ↓                 ↓                 ↓
+┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+│Auth Service  │  │Project Service│  │Talent Service│
+└──────┬───────┘  └──────┬───────┘  └──────┬───────┘
+       │                 │                 │
+       └────────┬────────┴─────────┬───────┘
+                │                  │
+                ↓                  ↓
+         ┌─────────────┐    ┌─────────────┐
+         │  Event Bus  │    │  Read Model │
+         │  (Kafka)    │    │  (Elastic)  │
+         └─────────────┘    └─────────────┘
+              ↓                    ↓
+       イベント駆動で        CQRS パターンで
+       データ同期            高速検索
+```
+
+**実装パターン**：
+
+```typescript
+// イベント駆動データ同期
+class UserService {
+  async createUser(data: CreateUserDto) {
+    // 1. Auth DBに保存
+    const user = await this.authRepo.create(data);
+
+    // 2. イベント発行
+    await this.eventBus.publish('user.created', {
+      userId: user.id,
+      name: user.name,
+      email: user.email,
+      timestamp: new Date()
+    });
+
+    return user;
+  }
+}
+
+// Project Service側でイベント受信
+class ProjectService {
+  constructor() {
+    this.eventBus.subscribe('user.created', this.handleUserCreated);
+  }
+
+  async handleUserCreated(event: UserCreatedEvent) {
+    // Project DB内のユーザー情報キャッシュを更新
+    await this.userCacheRepo.upsert({
+      userId: event.userId,
+      name: event.name,
+      email: event.email
+    });
+  }
+}
+```
+
+---
+
+#### Shared Kernel のデータ戦略
+
+##### 問題：全BCで共通のデータをどう扱うか
+
+```
+例: User, Organization, Currency などの共通エンティティ
+```
+
+##### 戦略A: マスターDBパターン
+
+```
+┌─────────────────┐
+│   Shared DB     │  ← ユーザー、組織のマスター
+│                 │
+│  users          │
+│  organizations  │
+└────────┬────────┘
+         │
+    ┌────┴────┬────────┬────────┐
+    ↓         ↓        ↓        ↓
+┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐
+│Auth DB│ │Proj DB│ │Tal DB│ │Rev DB│
+│       │ │       │ │       │ │       │
+│user_id│ │user_id│ │user_id│ │user_id│
+│(FK)   │ │(FK)   │ │(FK)   │ │(FK)   │
+└───────┘ └───────┘ └───────┘ └───────┘
+```
+
+**問題点**：Shared DBがボトルネック、SPOF（単一障害点）
+
+---
+
+##### 戦略B: データ複製パターン（推奨）
+
+```
+┌───────────────────────────────────────┐
+│          Event Bus (Kafka)            │
+└───┬────────┬──────────┬───────────┬───┘
+    │        │          │           │
+    ↓        ↓          ↓           ↓
+┌────────┐┌────────┐┌────────┐┌────────┐
+│Auth DB ││Proj DB ││Tal DB  ││Rev DB  │
+│        ││        ││        ││        │
+│users   ││users   ││users   ││users   │
+│(master)││(cache) ││(cache) ││(cache) │
+└────────┘└────────┘└────────┘└────────┘
+```
+
+**実装例**：
+
+```typescript
+// Auth Service が Master
+class AuthUserService {
+  async updateUser(userId: string, data: UpdateUserDto) {
+    // 1. Auth DBを更新（マスター）
+    const user = await this.userRepo.update(userId, data);
+
+    // 2. 変更イベント発行
+    await this.eventBus.publish('user.updated', {
+      userId: user.id,
+      name: user.name,
+      email: user.email,
+      updatedAt: new Date()
+    });
+  }
+}
+
+// Project Service はキャッシュを保持
+class ProjectUserCacheService {
+  async handleUserUpdated(event: UserUpdatedEvent) {
+    // Project DB内のユーザーキャッシュを更新
+    await this.userCacheRepo.upsert({
+      userId: event.userId,
+      name: event.name,
+      email: event.email,
+      syncedAt: event.updatedAt
+    });
+  }
+
+  async getUser(userId: string): Promise<User> {
+    // キャッシュから取得
+    let user = await this.userCacheRepo.findById(userId);
+
+    // キャッシュミスの場合、Auth Serviceに問い合わせ
+    if (!user) {
+      user = await this.authServiceClient.getUser(userId);
+      await this.userCacheRepo.upsert(user);
+    }
+
+    return user;
+  }
+}
+```
+
+---
+
+#### トランザクション境界の再設計
+
+##### モノリスでのトランザクション（簡単）
+
+```typescript
+// ❌ モノリスでは簡単だが、MS化で壊れる
+async function assignTaskToUser(taskId: string, userId: string) {
+  await db.transaction(async (tx) => {
+    // 1. ユーザー確認
+    const user = await tx.users.findUnique({ where: { id: userId } });
+    if (!user) throw new Error('User not found');
+
+    // 2. タスク割り当て
+    await tx.tasks.update({
+      where: { id: taskId },
+      data: { assignedTo: userId }
+    });
+
+    // 3. ユーザーの負荷更新
+    await tx.users.update({
+      where: { id: userId },
+      data: { taskCount: { increment: 1 } }
+    });
+  });
+  // すべて成功するかすべて失敗（ACID保証）
+}
+```
+
+##### MS化後のトランザクション（困難）
+
+```typescript
+// ✅ Sagaパターンで分散トランザクション
+class AssignTaskSaga {
+  async execute(taskId: string, userId: string) {
+    const sagaId = generateId();
+
+    try {
+      // Step 1: ユーザー確認（Auth Service）
+      const user = await this.authServiceClient.getUser(userId);
+      if (!user) throw new Error('User not found');
+
+      // Step 2: ユーザー負荷確認（Auth Service）
+      await this.authServiceClient.incrementTaskCount(userId, sagaId);
+
+      // Step 3: タスク割り当て（Project Service）
+      await this.projectServiceClient.assignTask(taskId, userId, sagaId);
+
+      // Step 4: Saga完了
+      await this.sagaRepo.markCompleted(sagaId);
+
+    } catch (error) {
+      // 補償トランザクション（ロールバック）
+      await this.compensate(sagaId);
+      throw error;
+    }
+  }
+
+  private async compensate(sagaId: string) {
+    // 実行済みの操作を逆順で取り消し
+    const steps = await this.sagaRepo.getExecutedSteps(sagaId);
+
+    for (const step of steps.reverse()) {
+      switch (step.type) {
+        case 'INCREMENT_TASK_COUNT':
+          await this.authServiceClient.decrementTaskCount(step.userId);
+          break;
+        case 'ASSIGN_TASK':
+          await this.projectServiceClient.unassignTask(step.taskId);
+          break;
+      }
+    }
+  }
+}
+```
+
+---
+
+#### データ移行チェックリスト
+
+##### Phase 1 → Phase 2 移行時
+
+```markdown
+□ 外部キー制約の棚卸し
+□ 制約削除の影響範囲調査
+□ アプリケーション層バリデーション実装
+□ ロールバック手順の準備
+□ 本番環境での段階的ロールアウト計画
+```
+
+##### Phase 3 → Phase 4 移行時（最も困難）
+
+```markdown
+□ データ量の調査（移行時間見積もり）
+□ ダウンタイム許容時間の確認
+□ 移行スクリプトの作成とテスト
+□ ブルー/グリーンデプロイメント準備
+□ データ同期メカニズムの実装
+  - 二重書き込み期間の設定
+  - データ整合性チェック
+  - 切り戻し手順の確立
+□ 移行リハーサル（本番コピーで実施）
+□ 監視・アラート設定
+□ インシデント対応手順書作成
+```
+
+---
+
+#### パラソルでの推奨ロードマップ
+
+```
+Year 1: Phase 0 → Phase 1（スキーマ分離）
+├── Q1: スキーマ設計（bounded-contexts/*/database-design.md）
+├── Q2: 外部キー制約の調査と削除計画
+├── Q3: スキーマ移行の実施
+└── Q4: アプリケーション層バリデーション強化
+
+Year 2: Phase 1 → Phase 2（接続プール分離）
+├── Q1: コンテキスト別接続プール実装
+├── Q2: モニタリング強化
+├── Q3: パフォーマンスチューニング
+└── Q4: 次フェーズ準備（Read Replica検討）
+
+Year 3以降: Phase 3 → Phase 4（物理DB分離）
+└── 負荷の高いコンテキストから段階的に分離
+    - 最優先: Secure Access（認証）
+    - 次: Productivity Visualization（分析）
+    - 最後: 残りのコンテキスト
+```
+
+---
+
+#### まとめ：DB分離の鉄則
+
+```
+1. 一気に分離しない（段階的に）
+2. Phase 1（スキーマ分離）を最優先
+3. 外部キー制約は早めに削除
+4. データ複製パターンを活用
+5. Sagaパターンで分散トランザクション
+6. 移行は本番コピーで十分にリハーサル
+7. ロールバック手順を必ず用意
+```
+
+**DB分離は時間がかかる**ことを前提に、**今できることから始める**のが成功の鍵です。
 
 ---
 

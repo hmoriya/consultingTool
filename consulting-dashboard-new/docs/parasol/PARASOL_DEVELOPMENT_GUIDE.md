@@ -1,6 +1,6 @@
 # パラソル開発ガイド - DX価値創造型フレームワーク
 
-**バージョン**: 1.2.0
+**バージョン**: 1.3.0
 **更新日**: 2025-10-23
 **ステータス**: Draft
 
@@ -596,6 +596,588 @@ class KnowledgeService {
 ✗ 過度な同期的統合
 ✗ コンテキスト境界の曖昧さ
 ```
+
+### 3.8 ディレクトリ構成戦略：コンテキストとサービスの分離
+
+#### 問題提起
+
+バウンデッドコンテキスト（設計）とマイクロサービス（実装）の関係をディレクトリ構造でどう表現するかは、プロジェクトの長期的な成功に影響します。
+
+**核心的な問いかけ**:
+- コンテキストとサービスを同一視するか、明確に分離するか？
+- ドメインモデルはどこに配置するか？
+- 1BC = 複数MSの場合、どう表現するか？
+
+#### パターン比較：5つのアプローチ
+
+##### パターンA：完全分離型（設計・実装レイヤー分離）
+
+```
+プロジェクトルート/
+├── design/                          # 設計レイヤー（実装非依存）
+│   └── bounded-contexts/           # バウンデッドコンテキスト定義
+│       ├── secure-access/          # コンテキスト名（実装非依存）
+│       │   ├── context.md          # コンテキスト定義
+│       │   ├── domain-language.md  # ドメイン言語
+│       │   ├── ubiquitous-language.md
+│       │   ├── context-map.md      # 他コンテキストとの関係
+│       │   └── domain-model/       # 概念モデル（MD形式）
+│       │       ├── entities.md
+│       │       ├── value-objects.md
+│       │       └── aggregates.md
+│       ├── project-success/
+│       └── talent-optimization/
+│
+├── implementation/                  # 実装レイヤー（技術依存）
+│   ├── services/                   # マイクロサービス実装
+│   │   ├── auth-service/           # BC: secure-access の実装
+│   │   │   ├── src/
+│   │   │   │   ├── domain/        # ドメインモデル実装
+│   │   │   │   ├── application/   # アプリケーション層
+│   │   │   │   ├── infrastructure/
+│   │   │   │   └── api/
+│   │   │   ├── tests/
+│   │   │   └── package.json
+│   │   │
+│   │   ├── project-core-service/   # BC: project-success のコア実装
+│   │   ├── project-analytics-service/ # BC: project-success の分析実装
+│   │   └── ...
+│   │
+│   ├── shared/                     # Shared Kernel（複数BCで共有）
+│   │   ├── domain/
+│   │   │   ├── common-types.ts    # 共通型定義
+│   │   │   └── user.ts            # 共有エンティティ
+│   │   └── infrastructure/
+│   │       └── event-bus.ts
+│   │
+│   └── monolith/                   # モノリス実装（初期段階）
+│       └── src/
+│           ├── contexts/          # コンテキスト別モジュール
+│           │   ├── secure-access/
+│           │   ├── project-success/
+│           │   └── talent-optimization/
+│           └── shared/
+│
+└── docs/
+    ├── architecture/
+    │   ├── context-mapping.md     # コンテキストマップ
+    │   └── service-mapping.md     # BC→実装サービスのマッピング
+    └── implementation/
+        └── migration-guide.md     # モノリス→MS移行ガイド
+```
+
+**長所**:
+- ✅ 設計と実装の完全分離（関心の分離）
+- ✅ 1BC = 複数MSのケースを自然に表現
+- ✅ ドメインモデルの共有範囲が明確
+- ✅ 実装方法の変更が設計に影響しない
+- ✅ 複数チームでの並行開発がしやすい
+
+**短所**:
+- ❌ ディレクトリ階層が深い
+- ❌ BC→実装のマッピングが間接的
+- ❌ 小規模プロジェクトには過剰
+
+**適用場面**:
+- 大規模プロジェクト（10+ BC）
+- 複数チーム開発
+- 1BC = 複数MSが一般的
+
+---
+
+##### パターンB：コンテキスト中心型（BCをルートに）
+
+```
+プロジェクトルート/
+├── contexts/                       # バウンデッドコンテキストがルート
+│   ├── secure-access/             # コンテキスト = トップレベル
+│   │   ├── design/                # 設計ドキュメント
+│   │   │   ├── context.md
+│   │   │   ├── domain-language.md
+│   │   │   └── api-specification.md
+│   │   │
+│   │   ├── domain/                # ドメインモデル（実装）
+│   │   │   ├── entities/
+│   │   │   │   ├── User.ts
+│   │   │   │   └── Session.ts
+│   │   │   ├── value-objects/
+│   │   │   └── services/
+│   │   │
+│   │   ├── application/           # アプリケーション層
+│   │   │   ├── use-cases/
+│   │   │   └── services/
+│   │   │
+│   │   └── services/              # 実装サービス（複数可）
+│   │       ├── auth-api/          # REST API実装
+│   │       │   ├── src/
+│   │       │   └── package.json
+│   │       └── auth-worker/       # バックグラウンドワーカー
+│   │           ├── src/
+│   │           └── package.json
+│   │
+│   ├── project-success/
+│   │   ├── design/
+│   │   ├── domain/                # プロジェクトドメインモデル
+│   │   ├── application/
+│   │   └── services/
+│   │       ├── project-core/      # コア機能
+│   │       └── project-analytics/ # 分析機能
+│   │
+│   └── talent-optimization/
+│
+└── shared/                        # Shared Kernel
+    ├── domain/
+    └── infrastructure/
+```
+
+**長所**:
+- ✅ コンテキスト境界が明確
+- ✅ ドメインモデルがコンテキスト内に集約
+- ✅ チーム分割が容易（1チーム = 1コンテキスト）
+- ✅ コンテキスト内の凝集性が高い
+- ✅ 設計→実装のトレーサビリティが高い
+
+**短所**:
+- ❌ services/配下に複数実装がある場合、選択が必要
+- ❌ 共有コード（Shared Kernel）の管理が別領域
+
+**適用場面**:
+- 中〜大規模プロジェクト
+- チーム別にコンテキスト担当
+- 1BC = 1〜3実装サービス
+
+---
+
+##### パターンC：サービス中心型（実装ファースト）
+
+```
+プロジェクトルート/
+├── services/                      # 実装サービスがルート
+│   ├── auth-service/             # マイクロサービス単位
+│   │   ├── design/               # このサービスの設計
+│   │   │   └── bounded-context.md # 属するBCを明記
+│   │   ├── src/
+│   │   │   ├── domain/
+│   │   │   ├── application/
+│   │   │   └── infrastructure/
+│   │   └── package.json
+│   │
+│   ├── project-core-service/
+│   └── project-analytics-service/
+│
+└── design/                        # 全体設計
+    ├── bounded-contexts/
+    │   ├── secure-access.md      # BC定義
+    │   ├── project-success.md
+    │   └── context-map.md
+    └── service-mapping.md         # サービス→BCマッピング
+```
+
+**長所**:
+- ✅ デプロイ単位と一致（運用しやすい）
+- ✅ 各サービスの独立性が高い
+- ✅ マイクロサービスアーキテクチャに自然
+
+**短所**:
+- ❌ ドメインモデルの共有が難しい
+- ❌ コンテキスト境界が不明瞭
+- ❌ 1BC = 複数サービスの関係が見えにくい
+- ❌ 設計思考よりも実装思考に偏る
+
+**適用場面**:
+- マイクロサービス前提
+- 小規模チーム
+- 1BC = 1サービスが基本
+
+---
+
+##### パターンD：ハイブリッド型（推奨）
+
+```
+プロジェクトルート/
+├── bounded-contexts/              # 設計：バウンデッドコンテキスト定義
+│   ├── secure-access/
+│   │   ├── README.md             # コンテキスト概要
+│   │   ├── domain-language.md    # ドメイン言語
+│   │   ├── context-map.md        # 他BCとの関係
+│   │   ├── api-specification.md  # 公開API仕様
+│   │   ├── database-design.md    # データ設計
+│   │   │
+│   │   └── domain-model/         # ドメインモデル定義（MD）
+│   │       ├── entities.md       # エンティティ定義
+│   │       ├── value-objects.md
+│   │       ├── aggregates.md
+│   │       └── domain-services.md
+│   │
+│   ├── project-success/
+│   ├── talent-optimization/
+│   └── _shared/                  # 共有概念（Shared Kernel設計）
+│       └── common-entities.md
+│
+├── src/                           # 実装：現在の実装方法
+│   ├── contexts/                 # モノリス内のコンテキスト実装
+│   │   ├── secure-access/       # BC実装（モジュール）
+│   │   │   ├── domain/          # ドメイン層実装
+│   │   │   │   ├── entities/
+│   │   │   │   │   ├── User.ts
+│   │   │   │   │   └── Session.ts
+│   │   │   │   ├── value-objects/
+│   │   │   │   ├── aggregates/
+│   │   │   │   └── services/
+│   │   │   │
+│   │   │   ├── application/     # アプリケーション層
+│   │   │   │   ├── use-cases/
+│   │   │   │   ├── commands/
+│   │   │   │   └── queries/
+│   │   │   │
+│   │   │   ├── infrastructure/  # インフラ層
+│   │   │   │   ├── repositories/
+│   │   │   │   └── adapters/
+│   │   │   │
+│   │   │   └── api/             # APIエンドポイント
+│   │   │       └── routes.ts
+│   │   │
+│   │   ├── project-success/
+│   │   │   ├── domain/
+│   │   │   ├── application/
+│   │   │   ├── infrastructure/
+│   │   │   └── api/
+│   │   │
+│   │   └── _shared/             # Shared Kernel実装
+│   │       ├── domain/
+│   │       │   ├── User.ts     # 共通エンティティ
+│   │       │   └── Organization.ts
+│   │       └── infrastructure/
+│   │           └── event-bus.ts
+│   │
+│   └── _cross-cutting/          # 横断的関心事
+│       ├── auth/                # 認証ミドルウェア
+│       ├── logging/
+│       └── monitoring/
+│
+├── services/                     # 将来：マイクロサービス実装
+│   ├── auth-service/            # secure-accessの独立実装
+│   │   ├── .context-mapping.json # BCとの紐付け
+│   │   ├── src/
+│   │   │   └── （src/contexts/secure-accessから移行）
+│   │   └── package.json
+│   │
+│   └── _migration-guide.md      # モノリス→MS移行ガイド
+│
+├── docs/
+│   ├── architecture/
+│   │   ├── CONTEXT_MAP.md       # 全体コンテキストマップ
+│   │   ├── IMPLEMENTATION_STRATEGY.md
+│   │   └── bc-to-service-mapping.md # BC→実装マッピング
+│   │
+│   └── bounded-contexts/         # → bounded-contexts/ へのシンボリックリンク
+│
+└── .context-rules.json           # BC→実装のルール定義
+```
+
+**`.context-rules.json`の例**:
+```json
+{
+  "version": "1.0",
+  "strategy": "monolith-first",
+  "mappings": [
+    {
+      "boundedContext": "secure-access",
+      "implementations": [
+        {
+          "type": "module",
+          "path": "src/contexts/secure-access",
+          "status": "active"
+        },
+        {
+          "type": "microservice",
+          "path": "services/auth-service",
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "boundedContext": "project-success",
+      "implementations": [
+        {
+          "type": "module",
+          "path": "src/contexts/project-success",
+          "status": "active"
+        }
+      ]
+    }
+  ],
+  "sharedKernel": {
+    "design": "bounded-contexts/_shared",
+    "implementation": "src/contexts/_shared"
+  }
+}
+```
+
+**長所**:
+- ✅ 設計と実装の対応が明確
+- ✅ モノリス→マイクロサービスの移行パスが自然
+- ✅ ドメインモデルがコンテキスト別に整理
+- ✅ 設計ドキュメントと実装の距離が近い
+- ✅ 段階的な移行が可能
+- ✅ ツールで検証可能（.context-rules.json）
+
+**短所**:
+- ❌ bounded-contexts/とsrc/contexts/の二重管理
+- ❌ ルール定義ファイルのメンテナンスが必要
+
+**適用場面**:
+- パラソルに最適
+- モノリスからスタート、段階的にMS化
+- 設計重視だが実装も重要視
+
+---
+
+##### パターンE：フラット型（シンプル）
+
+```
+プロジェクトルート/
+├── secure-access/                # BC = ディレクトリ名
+│   ├── design.md                 # 設計ドキュメント（1ファイル）
+│   └── src/                      # 実装
+│       ├── domain/
+│       ├── application/
+│       └── infrastructure/
+│
+├── project-success/
+│   ├── design.md
+│   └── src/
+│
+└── shared/
+    └── src/
+```
+
+**長所**:
+- ✅ 非常にシンプル
+- ✅ 小規模に最適
+
+**短所**:
+- ❌ 大規模には不向き
+- ❌ 設計ドキュメントが貧弱
+- ❌ 複数実装の表現ができない
+
+**適用場面**:
+- 小規模プロジェクト（< 5 BC）
+- プロトタイピング
+
+---
+
+#### パターン比較表
+
+| 観点 | パターンA<br/>完全分離型 | パターンB<br/>コンテキスト中心 | パターンC<br/>サービス中心 | パターンD<br/>ハイブリッド | パターンE<br/>フラット |
+|------|----------|------------|------------|-----------|---------|
+| **設計と実装の分離** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐ |
+| **トレーサビリティ** | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
+| **1BC=複数MS対応** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐ |
+| **モノリス対応** | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **移行容易性** | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ |
+| **学習コスト** | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **小規模適性** | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **大規模適性** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ |
+| **運用理解性** | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+
+---
+
+#### パラソルへの推奨：パターンD（ハイブリッド型）
+
+**理由**:
+
+1. **現状との整合性**
+   - 既存の `docs/parasol/services/` → `bounded-contexts/` へリネーム
+   - 実装は `src/contexts/` で管理（モノリス）
+   - 将来の `services/` ディレクトリを予約
+
+2. **段階的移行の実現**
+   - Phase 1: モノリス（src/contexts/）
+   - Phase 2: 一部MS化（services/auth-service）
+   - Phase 3: 完全MS化（services/配下に全て）
+
+3. **ドメインモデルの明確化**
+   - 設計: `bounded-contexts/*/domain-model/`（MD形式）
+   - 実装: `src/contexts/*/domain/`（TypeScript）
+   - 対応関係が明確
+
+4. **チーム開発の支援**
+   - 1チーム = 1バウンデッドコンテキスト担当
+   - 設計と実装の両方を管理
+
+---
+
+#### 具体的な移行手順（パラソル向け）
+
+##### ステップ1: ディレクトリリネーム
+
+```bash
+# 現在
+docs/parasol/services/
+
+# 変更後
+bounded-contexts/
+```
+
+##### ステップ2: 実装構造の整理
+
+```bash
+# 新規作成
+src/contexts/
+├── secure-access/
+│   ├── domain/
+│   ├── application/
+│   ├── infrastructure/
+│   └── api/
+├── project-success/
+└── _shared/
+```
+
+##### ステップ3: マッピングファイル作成
+
+```bash
+# 新規作成
+.context-rules.json
+docs/architecture/CONTEXT_MAP.md
+docs/architecture/bc-to-service-mapping.md
+```
+
+##### ステップ4: 検証スクリプト
+
+```typescript
+// scripts/validate-context-mapping.ts
+// BC定義と実装の整合性チェック
+```
+
+---
+
+#### 運用ルール
+
+##### Rule 1: ドメインモデルの配置
+
+```
+設計定義: bounded-contexts/{context-name}/domain-model/*.md
+実装コード: src/contexts/{context-name}/domain/**/*.ts
+
+例:
+bounded-contexts/secure-access/domain-model/entities.md
+  ↓ 実装
+src/contexts/secure-access/domain/entities/User.ts
+```
+
+##### Rule 2: API仕様の配置
+
+```
+設計仕様: bounded-contexts/{context-name}/api-specification.md
+実装: src/contexts/{context-name}/api/routes.ts
+
+APIスキーマ: src/contexts/{context-name}/api/schema/
+OpenAPI生成: src/contexts/{context-name}/api/openapi.yaml（自動生成）
+```
+
+##### Rule 3: Shared Kernelの管理
+
+```
+設計: bounded-contexts/_shared/
+実装: src/contexts/_shared/
+
+共有ドメインモデル例:
+- User（全BCで共通のユーザー概念）
+- Organization（組織概念）
+- Currency（通貨値オブジェクト）
+
+注意: 安易な共有は避け、必要最小限に
+```
+
+##### Rule 4: コンテキスト間通信
+
+```typescript
+// ❌ 直接import（避ける）
+import { Project } from '../project-success/domain/entities/Project';
+
+// ✅ Anti-Corruption Layer経由
+import { ProjectService } from './infrastructure/adapters/ProjectServiceAdapter';
+```
+
+##### Rule 5: マイクロサービス化の判断基準
+
+以下の条件を満たす場合、BC→MSへ分離:
+- スケーリング要件が異なる
+- デプロイ頻度が大きく異なる
+- 技術スタックを変えたい
+- チームが完全に分離されている
+
+---
+
+#### ツールサポート
+
+##### 1. VS Code設定
+
+```json
+// .vscode/settings.json
+{
+  "files.associations": {
+    "bounded-contexts/**/*.md": "parasol-design",
+    "src/contexts/**/domain/**/*.ts": "parasol-domain-model"
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/services": true  // 将来のMS用ディレクトリを検索から除外
+  }
+}
+```
+
+##### 2. 整合性チェックスクリプト
+
+```bash
+# 実装されていないBCを検出
+npm run parasol:check-missing-implementations
+
+# BC定義とドメインモデル実装の齟齬を検出
+npm run parasol:validate-domain-models
+
+# コンテキスト間の不正な依存を検出
+npm run parasol:check-dependencies
+```
+
+---
+
+#### まとめ：推奨ディレクトリ構成
+
+```
+consultingTool/
+├── bounded-contexts/          # ⭐ 設計の真実（Source of Truth）
+│   ├── secure-access/
+│   ├── project-success/
+│   ├── talent-optimization/
+│   ├── productivity-visualization/
+│   ├── knowledge-co-creation/
+│   ├── revenue-optimization/
+│   ├── collaboration-facilitation/
+│   └── _shared/
+│
+├── src/contexts/              # ⭐ 現在の実装（モノリス）
+│   ├── secure-access/
+│   ├── project-success/
+│   └── _shared/
+│
+├── services/                  # ⭐ 将来の実装（マイクロサービス）
+│   └── _migration-guide.md
+│
+├── docs/
+│   └── architecture/
+│       ├── CONTEXT_MAP.md
+│       └── bc-to-service-mapping.md
+│
+└── .context-rules.json        # ⭐ BC→実装のマッピングルール
+```
+
+**この構成の価値**:
+- 設計思考を優先しつつ、実装の現実も尊重
+- モノリス→マイクロサービスの自然な移行パス
+- ツールによる検証が可能
+- チーム拡大・縮小に柔軟に対応
 
 ---
 

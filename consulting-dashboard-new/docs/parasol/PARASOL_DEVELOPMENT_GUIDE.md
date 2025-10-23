@@ -1,6 +1,6 @@
 # パラソル開発ガイド - DX価値創造型フレームワーク
 
-**バージョン**: 2.2.0
+**バージョン**: 2.3.0
 **更新日**: 2025-10-23
 **ステータス**: Draft
 
@@ -161,6 +161,101 @@ graph TB
 **パラソルでの位置づけ**:
 - 実装フェーズで決定される物理的な配置
 - 1つのバウンデッドコンテキスト = 1つ以上のマイクロサービス
+
+#### サブドメイン（Subdomain）との違い
+
+DDDにおいて、**サブドメイン**と**バウンデッドコンテキスト**は異なる概念です。
+
+**サブドメイン（Subdomain）**:
+
+```
+定義: 問題空間（Problem Space）における、ビジネスドメインの論理的な分割
+
+特徴:
+✓ ビジネス視点（「何をするか」）
+✓ 問題領域の切り分け
+✓ ビジネスの優先度・戦略で決まる
+✓ システム実装前から存在
+✓ 実装に依存しない
+```
+
+**サブドメインの3つのタイプ**:
+
+| タイプ | 説明 | 例 | 戦略 |
+|--------|------|-----|------|
+| **Core Subdomain**<br/>（コアサブドメイン） | 競争優位性を生む<br/>最も重要な領域 | パラソル: "プロジェクト成功支援"<br/>Amazon: "商品推薦" | 自社開発<br/>最高の人材を投入 |
+| **Supporting Subdomain**<br/>（支援サブドメイン） | ビジネスに必要だが<br/>差別化にはならない | パラソル: "タレント最適化"<br/>Amazon: "在庫管理" | 自社開発<br/>または外注 |
+| **Generic Subdomain**<br/>（汎用サブドメイン） | 既製品で代替可能 | パラソル: "セキュアアクセス"<br/>Amazon: "決済処理" | 既製品・SaaS利用 |
+
+---
+
+**サブドメインとBounded Contextの関係**:
+
+```
+サブドメイン（問題空間） → Bounded Context（解決空間）
+
+理想的なマッピング: 1サブドメイン = 1 BC（1対1）
+
+現実的なマッピング:
+├─ 1サブドメイン = 複数BC（複雑さやチーム構成で分割）
+└─ 複数サブドメイン = 1 BC（小さいサブドメインを統合）
+```
+
+**マッピング例**:
+
+```mermaid
+graph LR
+    subgraph "問題空間（Subdomain）"
+        SD1[Core: プロジェクト<br/>成功支援]
+        SD2[Supporting: タレント<br/>最適化]
+        SD3[Generic: 認証・認可]
+    end
+
+    subgraph "解決空間（Bounded Context）"
+        BC1[Project Success<br/>Service]
+        BC2[Talent Optimization<br/>Service]
+        BC3[Secure Access<br/>Service]
+    end
+
+    SD1 --> BC1
+    SD2 --> BC2
+    SD3 --> BC3
+```
+
+**パラソルでの位置づけ**:
+
+| 概念 | パラソル階層 | 決定時期 | 成果物 |
+|------|------------|---------|--------|
+| **Subdomain** | （明示的には定義せず）<br/>B1: 戦略レベルに相当 | ビジネス戦略策定時 | ビジネス戦略書 |
+| **Bounded Context** | L2: Service レベル | 設計フェーズ | service.md, context.md, context-map.md |
+
+**重要な違い**:
+
+| 観点 | Subdomain（サブドメイン） | Bounded Context（BC） |
+|------|-------------------------|---------------------|
+| **空間** | 問題空間（Problem Space） | 解決空間（Solution Space） |
+| **視点** | ビジネス視点（What） | システム設計視点（How） |
+| **誰が定義** | ビジネス部門・ドメインエキスパート | 設計者・アーキテクト |
+| **決定要因** | ビジネス戦略・競争優位性 | 技術的制約・チーム構成・複雑さ |
+| **変更頻度** | 低い（ビジネス戦略の変更時） | 中程度（設計の見直し時） |
+| **成果物** | ビジネスモデル、戦略書 | ドメインモデル、コンテキストマップ |
+
+**例: パラソルにおける対応**:
+
+```
+Core Subdomain: "DX価値創造" → BC: "Project Success Service"
+                                  + BC: "Productivity Visualization Service"
+
+Supporting Subdomain: "人材最適化" → BC: "Talent Optimization Service"
+
+Generic Subdomain: "認証基盤" → BC: "Secure Access Service"（Auth0等で代替可能）
+```
+
+**設計上の推奨**:
+1. まずサブドメインを特定（ビジネス分析）
+2. 各サブドメインのタイプを決定（Core/Supporting/Generic）
+3. BCへのマッピングを決定（1対1を基本、必要に応じて分割/統合）
+4. Core SubdomainのBCに最高の人材とリソースを投入
 
 ### 3.2 関係性マッピング
 
@@ -329,15 +424,26 @@ docs/parasol/services/
 
 | レベル | 名称 | 説明 | 例 |
 |--------|------|------|-----|
+| **D0** | **問題空間レベル** | サブドメインの特定 | Core/Supporting/Generic Subdomain |
 | **D1** | **戦略的設計レベル** | コンテキスト境界の定義 | Bounded Context, Context Map |
 | **D2** | **戦術的設計レベル** | ドメインモデルの構造 | Aggregate, Entity, Value Object |
 | **D3** | **実装パターンレベル** | DDD実装パターン | Repository, Domain Service, Factory |
 
 **主要概念**:
-- **Bounded Context**: ドメインモデルの一貫性境界、ユビキタス言語の適用範囲
+- **Subdomain**: 問題空間におけるビジネスドメインの論理的な分割（Core/Supporting/Generic）
+- **Bounded Context**: 解決空間におけるドメインモデルの一貫性境界、ユビキタス言語の適用範囲
 - **Aggregate**: トランザクション境界、不変条件を守る単位
 - **Entity**: ライフサイクルと一意性を持つオブジェクト
 - **Value Object**: 不変で等価性で比較されるオブジェクト
+
+**問題空間 vs 解決空間**:
+```
+問題空間（Problem Space）           解決空間（Solution Space）
+├─ Subdomain（サブドメイン）    →    Bounded Context（BC）
+│  - Core Subdomain                  - ドメインモデル
+│  - Supporting Subdomain            - ユビキタス言語
+│  - Generic Subdomain               - コンテキストマップ
+```
 
 ---
 
@@ -356,12 +462,17 @@ docs/parasol/services/
 
 #### パラソルにおける3概念体系のマッピング
 
+**重要**: パラソルはSubdomainを明示的には定義しませんが、Bounded Contextレベルで統合します。
+
 | パラソル階層 | ビジネス階層 | DDD階層 | サービス/実装階層 | 多重度 |
 |------------|------------|---------|------------------|--------|
+| **(Subdomain)** | **B0/B1: ドメイン/戦略** | **D0: Subdomain** | - | - |
+| **明示的には定義せず** | "DX価値創造ドメイン" | Core/Supporting/Generic | - | **(暗黙的)** |
+| ↓ (1 SD = 1..* BC) | | | | |
 | **Microservice Scope** | - | - | S1: デプロイメント単位 | - |
 | ↓ (1 MS = 1..* BC) | | | | |
-| **Bounded Context** | B1/B2: 戦略/ケーパビリティ | D1: Bounded Context | S2: Service Module | 1 MS = 1..* BC |
-| (= パラソルService) | "認証基盤を提供する能力" | "Secure Access Context" | "AuthServiceModule" | |
+| **Bounded Context** | B1/B2: 戦略/ケーパビリティ | D1: Bounded Context | S2: Service Module | 1 SD = 1..* BC<br/>1 MS = 1..* BC |
+| (= パラソルService) | "認証基盤を提供する能力" | "Secure Access Context"<br/>（Generic Subdomainから） | "AuthServiceModule" | |
 | ↓ (1 BC = 1..* Cap) | | | | |
 | **Business Capability** | B2: ケーパビリティ | D2: Aggregate Root候補 | S2: Sub Module | 1 BC = 1..* Cap |
 | | "認証する能力" | "Authentication Aggregate" | "AuthModule" | |
@@ -371,6 +482,23 @@ docs/parasol/services/
 | ↓ (1 Op = 1..* UC) | | | | |
 | **Use Case / Page** | B4: ユーザーアクティビティ | D3: Application Service | S3: API Endpoint + UI | 1 Op = 1..* UC |
 | | "パスワードでログインする" | "PasswordLoginUseCase" | "POST /api/login" + "login.tsx" | |
+
+**パラソルにおけるSubdomainの扱い**:
+```
+パラソルでは Subdomain を明示的に定義しないが、
+Bounded Context（= Service）を設計する際に、
+Subdomainのタイプ（Core/Supporting/Generic）を考慮する。
+
+例：
+- Core Subdomain "DX価値創造"
+  → BC: Project Success, Productivity Visualization（自社開発、最優先）
+
+- Supporting Subdomain "人材最適化"
+  → BC: Talent Optimization（自社開発または外注）
+
+- Generic Subdomain "認証基盤"
+  → BC: Secure Access（Auth0等の既製品で代替可能）
+```
 
 ---
 
@@ -401,27 +529,47 @@ docs/parasol/services/
 #### パラソル階層の決定順序
 
 ```
-ステップ1: ビジネス階層の分析
+ステップ0: サブドメインの特定（DDD問題空間の分析）
+├─ ビジネスドメインの理解
+├─ サブドメインの抽出
+└─ サブドメインのタイプ決定（Core/Supporting/Generic）
+
+↓
+
+ステップ1: ビジネス階層の分析（ビジネス価値の明確化）
 ├─ 戦略・ケーパビリティの特定
 ├─ ビジネスプロセスの整理
 └─ ユーザーアクティビティの抽出
 
 ↓
 
-ステップ2: DDD階層の設計
+ステップ2: DDD階層の設計（ドメインモデルの構造化）
+├─ Subdomain → Bounded Contextへのマッピング決定
 ├─ Bounded Contextの境界確定
+├─ コンテキストマップの作成
 ├─ Aggregateの設計
 └─ Entity/Value Objectの定義
 
 ↓
 
-ステップ3: サービス/実装階層の決定
+ステップ3: サービス/実装階層の決定（技術実装）
 ├─ デプロイメント戦略（モノリス or MS）
 ├─ モジュール構造の設計
 └─ API/データベース設計
 ```
 
-**重要**: ステップ1→2は必須、ステップ3は後から変更可能
+**重要な原則**:
+- **ステップ0は省略可**：小規模プロジェクトではサブドメイン分析を省略し、直接BCから始めてもよい
+- **ステップ1→2は必須**：ビジネス分析とDDD設計は必ず実施
+- **ステップ3は後から変更可能**：実装方法は後から柔軟に変更できる
+
+**各ステップの成果物**:
+```
+ステップ0 → サブドメインマップ（Core/Supporting/Genericの分類）
+ステップ1 → service.md, capability.md, operation.md, usecase.md
+ステップ2 → context.md, context-map.md, domain-language.md
+ステップ3 → api-specification.md, database-design.md, docker-compose.yml
+```
 
 #### 実装パターンとの対応
 

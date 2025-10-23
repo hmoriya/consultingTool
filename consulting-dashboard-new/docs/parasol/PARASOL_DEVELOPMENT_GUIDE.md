@@ -1,6 +1,6 @@
 # パラソル開発ガイド - DX価値創造型フレームワーク
 
-**バージョン**: 2.3.0
+**バージョン**: 2.4.0
 **更新日**: 2025-10-23
 **ステータス**: Draft
 
@@ -2778,63 +2778,299 @@ Microservice Scope（サービス/実装階層のみ）
 
 ---
 
-### 4.8 最終的な構成イメージ
+### 4.8 問題空間と解決空間を分離した構成（修正案）
+
+#### 修正案A：問題空間と解決空間を明示的に分離（推奨）
 
 ```
 consultingTool/
 │
-├── bounded-contexts/              # ⭐ 設計の真実（Source of Truth）
-│   ├── CONTEXT_MAP.md            # 全体コンテキストマップ
-│   ├── _shared/                  # Shared Kernel
-│   │   ├── README.md
-│   │   ├── domain-language.md
-│   │   └── database-design.md
+├── docs/
+│   ├── domain/                    # ⭐ 問題空間（Problem Space）
+│   │   ├── SUBDOMAIN_MAP.md      # サブドメインマップ（Core/Supporting/Generic分類）
+│   │   ├── business-model.md     # ビジネスモデル全体
+│   │   └── subdomains/           # サブドメイン別分析
+│   │       ├── dx-value-creation/      # Core Subdomain
+│   │       │   ├── README.md           # サブドメイン概要
+│   │       │   ├── business-analysis.md # ビジネス分析
+│   │       │   ├── competitive-advantage.md # 競争優位性
+│   │       │   └── strategy.md         # 戦略（自社開発・最優先）
+│   │       ├── talent-optimization/    # Supporting Subdomain
+│   │       │   ├── README.md
+│   │       │   ├── business-analysis.md
+│   │       │   └── strategy.md         # 戦略（自社開発or外注）
+│   │       └── authentication/         # Generic Subdomain
+│   │           ├── README.md
+│   │           ├── business-analysis.md
+│   │           └── strategy.md         # 戦略（既製品利用）
 │   │
-│   ├── secure-access/            # バウンデッドコンテキスト
-│   │   ├── README.md             # 🆕 コンテキスト概要
-│   │   ├── context.md            # 🆕 コンテキスト定義
-│   │   ├── context-map.md        # 🆕 関係マップ
-│   │   ├── service.md            # サービス定義
-│   │   ├── domain-language.md    # ドメイン言語
-│   │   ├── api-specification.md  # API仕様
-│   │   ├── database-design.md    # DB設計
-│   │   ├── integration-specification.md
-│   │   └── capabilities/         # ビジネスケーパビリティ
-│   │       └── [capability]/
-│   │           └── operations/   # ビジネスオペレーション
-│   │               └── [operation]/
-│   │                   ├── operation.md
-│   │                   └── usecases/  # ユースケース
-│   │                       └── [usecase]/
-│   │                           ├── usecase.md
-│   │                           ├── page.md
-│   │                           └── api-usage.md
+│   ├── design/                    # ⭐ 解決空間（Solution Space）
+│   │   └── bounded-contexts/
+│   │       ├── CONTEXT_MAP.md          # BC間の関係マップ
+│   │       ├── SUBDOMAIN_BC_MAPPING.md # Subdomain→BCマッピング
+│   │       ├── _shared/                # Shared Kernel
+│   │       │
+│   │       ├── secure-access/          # BC（Generic Subdomainから）
+│   │       │   ├── README.md           # コンテキスト概要
+│   │       │   ├── context.md          # コンテキスト定義
+│   │       │   ├── subdomain-ref.md    # 🆕 対応するSubdomainへの参照
+│   │       │   ├── context-map.md      # 他BCとの関係
+│   │       │   ├── service.md          # サービス定義
+│   │       │   ├── domain-language.md  # ドメイン言語
+│   │       │   └── capabilities/
+│   │       │
+│   │       ├── project-success/        # BC（Core Subdomainから）
+│   │       │   ├── README.md
+│   │       │   ├── subdomain-ref.md    # 🆕 dx-value-creation へ参照
+│   │       │   └── ...
+│   │       │
+│   │       ├── productivity-visualization/ # BC（Core Subdomainから）
+│   │       │   ├── README.md
+│   │       │   ├── subdomain-ref.md    # 🆕 dx-value-creation へ参照
+│   │       │   └── ...
+│   │       │
+│   │       └── talent-optimization/    # BC（Supporting Subdomainから）
+│   │           ├── README.md
+│   │           ├── subdomain-ref.md    # 🆕 talent-optimization へ参照
+│   │           └── ...
 │   │
-│   ├── project-success/
-│   ├── talent-optimization/
-│   ├── productivity-visualization/
-│   ├── knowledge-co-creation/
-│   ├── revenue-optimization/
-│   └── collaboration-facilitation/
+│   └── parasol/
+│       └── PARASOL_DEVELOPMENT_GUIDE.md
 │
 ├── src/contexts/                  # 実装（モノリス）
 ├── services/                      # 将来（マイクロサービス）
-└── docs/
-    ├── architecture/
-    │   └── BOUNDED_CONTEXT_STRATEGY.md
-    └── parasol/
-        └── PARASOL_DEVELOPMENT_GUIDE.md
+└── .context-rules.json           # BC→実装マッピング
+```
+
+**新規ファイルの説明**：
+
+**SUBDOMAIN_MAP.md**（サブドメインマップ）:
+```markdown
+# サブドメインマップ
+
+## 概要
+
+DX価値創造ドメインにおけるサブドメインの分類と戦略
+
+## サブドメイン分類
+
+| サブドメイン | タイプ | 説明 | 戦略 | 対応BC |
+|------------|-------|------|------|--------|
+| DX価値創造 | **Core** | 競争優位性の源泉 | 自社開発・最優先 | Project Success, Productivity Visualization |
+| 人材最適化 | Supporting | ビジネスに必要 | 自社開発or外注 | Talent Optimization |
+| 認証基盤 | Generic | 汎用機能 | 既製品利用 | Secure Access |
+| ナレッジ管理 | Supporting | ビジネスに必要 | 自社開発or外注 | Knowledge Co-creation |
+| 収益管理 | Supporting | ビジネスに必要 | 自社開発or外注 | Revenue Optimization |
+| コラボレーション | Generic | 汎用機能 | 既製品検討 | Collaboration Facilitation |
+
+## Core Subdomain: DX価値創造
+
+**競争優位性**: プロジェクトの成功を可視化し、生産性を最大化する独自ノウハウ
+
+**戦略**:
+- ✅ 自社開発必須
+- ✅ 最高の人材を投入
+- ✅ 継続的な改善・イノベーション
+- ❌ 外部委託禁止
+
+**対応BC**: Project Success, Productivity Visualization
+```
+
+**SUBDOMAIN_BC_MAPPING.md**（Subdomain→BCマッピング）:
+```markdown
+# Subdomain → Bounded Context マッピング
+
+## マッピング方針
+
+| Subdomain | Bounded Context(s) | マッピング理由 |
+|----------|-------------------|--------------|
+| DX価値創造 | Project Success<br/>Productivity Visualization | 複雑さのため2つのBCに分割 |
+| 人材最適化 | Talent Optimization | 1対1マッピング |
+| 認証基盤 | Secure Access | 1対1マッピング |
+| ナレッジ管理 | Knowledge Co-creation | 1対1マッピング |
+| 収益管理 | Revenue Optimization | 1対1マッピング |
+| コラボレーション | Collaboration Facilitation | 1対1マッピング |
+
+## Core Subdomain の分割詳細
+
+**DX価値創造 → 2つのBCへ分割**:
+
+理由：
+1. ドメインの複雑さ（プロジェクト管理 vs 生産性分析）
+2. チーム構成（2チームに分割）
+3. リリースサイクルの違い
+```
+
+**subdomain-ref.md**（各BCディレクトリ内）:
+```markdown
+# Subdomain参照
+
+## 対応するSubdomain
+
+**Subdomain**: DX価値創造（Core Subdomain）
+**参照**: [../../domain/subdomains/dx-value-creation/](../../domain/subdomains/dx-value-creation/)
+
+## Subdomainからの要求
+
+- 競争優位性を生む機能であること
+- 継続的な改善・イノベーションが必要
+- 最高品質の実装が求められる
+
+## BCの役割
+
+このBounded Contextは、Core Subdomainの一部を実装します。
+プロジェクトの成功支援に特化し、以下を提供します：
+
+- プロジェクト計画・実行支援
+- 成功指標の定義・追跡
+- リスク管理・対策
 ```
 
 ---
 
-### 4.9 まとめ
+#### 修正案B：統合型（現実的・推奨）
 
-**変更内容**：
-1. ✅ `services/` → `bounded-contexts/` へリネーム
-2. ✅ コンテキストマップファイルを追加（全体 + 個別）
-3. ✅ Shared Kernel ディレクトリを追加
-4. ✅ 既存の階層構造は維持
+問題空間の分析は重要ですが、小規模プロジェクトでは過度に複雑になる可能性があります。
+現在の `bounded-contexts/` 構成を維持しつつ、Subdomainマッピングを追加する案：
+
+```
+consultingTool/
+│
+├── docs/
+│   ├── parasol/
+│   │   ├── PARASOL_DEVELOPMENT_GUIDE.md
+│   │   ├── SUBDOMAIN_MAP.md          # 🆕 Subdomainマップ追加
+│   │   └── bounded-contexts/
+│   │       ├── CONTEXT_MAP.md
+│   │       ├── SUBDOMAIN_BC_MAPPING.md  # 🆕 SD→BCマッピング
+│   │       ├── _shared/
+│   │       │
+│   │       ├── secure-access/
+│   │       │   ├── README.md
+│   │       │   ├── context.md
+│   │       │   ├── subdomain-type.md   # 🆕 "Generic Subdomain"と明記
+│   │       │   ├── service.md
+│   │       │   └── ...
+│   │       │
+│   │       ├── project-success/
+│   │       │   ├── README.md
+│   │       │   ├── context.md
+│   │       │   ├── subdomain-type.md   # 🆕 "Core Subdomain: DX価値創造"
+│   │       │   ├── service.md
+│   │       │   └── ...
+│   │       │
+│   │       └── talent-optimization/
+│   │           ├── README.md
+│   │           ├── subdomain-type.md   # 🆕 "Supporting Subdomain"
+│   │           └── ...
+│   │
+│   └── architecture/
+│       └── BOUNDED_CONTEXT_STRATEGY.md
+│
+├── src/contexts/                  # 実装（モノリス）
+└── services/                      # 将来（マイクロサービス）
+```
+
+**subdomain-type.md**（各BCディレクトリ内）:
+```markdown
+# Subdomain分類
+
+## このBCが対応するSubdomain
+
+**Subdomain名**: DX価値創造
+**Subdomainタイプ**: **Core Subdomain**
+
+## 戦略的重要性
+
+✅ **最優先**: 競争優位性の源泉
+✅ **自社開発**: 外部委託禁止
+✅ **最高品質**: 最優秀な人材を投入
+✅ **継続改善**: イノベーションを追求
+
+## ビジネス価値
+
+このコンテキストは組織の競争優位性を生み出す中核機能です。
+プロジェクトの成功を最大化することで、顧客に直接的な価値を提供します。
+
+## 開発方針
+
+- 品質を最優先（速度よりも品質）
+- 継続的なリファクタリング
+- 最新の技術・パターンの積極採用
+- ドメインエキスパートとの密な連携
+```
+
+---
+
+#### 比較表
+
+| 観点 | 修正案A（分離型） | 修正案B（統合型） |
+|------|----------------|----------------|
+| **明確さ** | ⭐⭐⭐⭐⭐<br/>問題空間と解決空間が物理的に分離 | ⭐⭐⭐<br/>同一階層に混在 |
+| **シンプルさ** | ⭐⭐<br/>ディレクトリが増える | ⭐⭐⭐⭐⭐<br/>既存構成を維持 |
+| **学習コスト** | ⭐⭐<br/>DDD概念の理解が必要 | ⭐⭐⭐⭐<br/>既存メンバーに優しい |
+| **保守性** | ⭐⭐⭐⭐<br/>責務が明確 | ⭐⭐⭐<br/>一部混在 |
+| **適用場面** | 大規模・複雑ドメイン | 中小規模・実用重視 |
+
+---
+
+#### 推奨
+
+**小〜中規模プロジェクト（パラソル）**: **修正案B（統合型）**
+- 既存構成を最小限の変更で改善
+- `SUBDOMAIN_MAP.md` と各BCの `subdomain-type.md` を追加
+- 問題空間の分析結果を文書化しつつ、過度な複雑化を避ける
+
+**大規模・複雑ドメイン**: **修正案A（分離型）**
+- 問題空間と解決空間を物理的に分離
+- Subdomainごとにビジネス分析を詳細化
+- より厳密なDDD実践
+
+---
+
+### 4.9 実装ロードマップ（修正案B採用の場合）
+
+#### フェーズ1: Subdomainマッピングの追加（1-2時間）
+
+```bash
+# 1. Subdomainマップの作成
+touch docs/parasol/SUBDOMAIN_MAP.md
+
+# 2. SD→BCマッピングの作成
+touch docs/parasol/bounded-contexts/SUBDOMAIN_BC_MAPPING.md
+
+# 3. 各BCにSubdomainタイプを追加
+for context in secure-access project-success talent-optimization \
+               productivity-visualization knowledge-co-creation \
+               revenue-optimization collaboration-facilitation; do
+  touch docs/parasol/bounded-contexts/$context/subdomain-type.md
+done
+```
+
+#### フェーズ2: ドキュメント記述（2-4時間）
+
+1. `SUBDOMAIN_MAP.md` にサブドメイン分類を記述
+2. `SUBDOMAIN_BC_MAPPING.md` にマッピング理由を記述
+3. 各 `subdomain-type.md` に戦略的重要性と開発方針を記述
+
+#### フェーズ3: チーム教育（1-2時間）
+
+- Subdomain vs Bounded Contextの違いを共有
+- Core/Supporting/Genericの戦略的意味を説明
+- 各BCの優先順位を明確化
+
+---
+
+### 4.10 まとめ
+
+**現在の構成からの変更（修正案B採用時）**：
+1. ✅ `services/` → `bounded-contexts/` へリネーム（既存）
+2. ✅ コンテキストマップファイルを追加（既存）
+3. ✅ Shared Kernel ディレクトリを追加（既存）
+4. 🆕 `SUBDOMAIN_MAP.md` を追加（問題空間の分析）
+5. 🆕 `SUBDOMAIN_BC_MAPPING.md` を追加（SD→BCマッピング）
+6. 🆕 各BCに `subdomain-type.md` を追加（戦略的重要性の明記）
+7. ✅ 既存の階層構造は維持
 
 **作業時間見積もり**：
 - ディレクトリリネーム：5分

@@ -254,13 +254,184 @@ bounded-contexts/
 3. **ケーパビリティL3 = Operation**: BC内の具体的な業務能力、実装ではUseCase
 4. **B5/B6はL3の配下**: ビジネスオペレーションとユースケースはOperationの下に位置する
 
-### 4.5 サブドメインタイプ
+### 4.5 サブドメインとBCのマッピング
+
+#### サブドメインタイプ
 
 | タイプ | 説明 | 戦略 |
 |--------|------|------|
 | **Core Subdomain** | 競争優位性を生む最重要領域 | 自社開発、最高の人材を投入 |
 | **Supporting Subdomain** | ビジネスに必要だが差別化にならない | 自社開発または外注 |
 | **Generic Subdomain** | 既製品で代替可能 | 既製品・SaaS利用 |
+
+#### パラソルにおけるサブドメイン→BCマッピング
+
+| バリューステージ | ケーパビリティL1 | Subdomainタイプ | 対応BC | 戦略 |
+|---------------|----------------|----------------|--------|------|
+| プロジェクト計画支援 | プロジェクト構想する能力 | **Core** | Project Success Service | 自社開発・最優先 |
+| 成果可視化支援 | 生産性を可視化する能力 | **Core** | Productivity Visualization Service | 自社開発・最優先 |
+| 人材最適化支援 | 人材を最適配置する能力 | **Supporting** | Talent Optimization Service | 自社開発or外注 |
+| セキュリティ提供 | 認証基盤を提供する能力 | **Generic** | Secure Access Service | 既製品利用 |
+
+#### マッピング原則
+
+```
+ケーパビリティL1 = Subdomain = Bounded Context
+
+例:
+バリューステージ: "プロジェクト計画支援"
+  └─ ケーパビリティL1: "プロジェクト構想する能力"
+      ├─ 問題領域: Core Subdomain "プロジェクト計画"
+      ├─ 解決領域: BC "Project Success Service"
+      └─ ソリューション: MS "Project Service"
+```
+
+### 4.6 BCのコンテキストマップ
+
+#### コンテキスト関係パターン
+
+| パターン | 説明 | パラソルでの適用例 |
+|---------|------|------------------|
+| **Shared Kernel** | 複数のコンテキストで共有されるドメインモデル | 共通エンティティ（User, Organization） |
+| **Customer/Supplier** | 下流が上流のAPIを利用（上流が優先） | Secure Access → 他サービス |
+| **Conformist** | 下流が上流のモデルに完全に従う | 外部API統合 |
+| **Anti-Corruption Layer** | 下流が独自モデルを保ち変換層を持つ | レガシーシステム統合 |
+| **Open Host Service** | 標準化されたAPIを提供 | 各サービスのREST API |
+| **Published Language** | 共通のデータ交換フォーマット | JSON API、イベントスキーマ |
+| **Partnership** | 対等な関係で協調的に開発 | Project Success ⇄ Knowledge Co-Creation |
+| **Separate Ways** | 統合せず独立して運用 | 外部の独立システム |
+
+#### パラソルの7つのBCと関係性
+
+```
+1. セキュアアクセスサービス（中核基盤）
+   役割: Upstream（上流）供給者
+   パターン: Customer/Supplier, Open Host Service
+   → すべてのサービスに認証・認可を提供
+
+2. プロジェクト成功支援サービス（中心ハブ）
+   役割: 中核的な協調ハブ
+   パターン: Partnership（多方向）
+   ⇄ Talent Optimization: プロジェクトアサイン情報の双方向連携
+   ⇄ Knowledge Co-Creation: プロジェクト知見の蓄積・活用
+   ← Productivity Visualization: 実績データの受信
+   → Revenue Optimization: プロジェクト売上情報の提供
+
+3. タレント最適化サービス
+   → Project Success: 人材スキル情報
+   → Productivity Visualization: 稼働情報
+
+4. 生産性可視化サービス
+   パターン: Partnership
+   ⇄ Revenue Optimization: 工数データ連携
+
+5. ナレッジ共創サービス
+   → Project Success: ベストプラクティス
+
+6. 収益最適化サービス
+   ← Project Success: プロジェクト情報
+   ← Productivity Visualization: 工数データ
+
+7. コラボレーション促進サービス（横断的基盤）
+   役割: 横断的なコミュニケーション基盤
+   パターン: Open Host Service
+   -.-> すべてのサービス: 通知・コミュニケーション
+```
+
+#### 統合パターンの実装ガイド
+
+| コンテキスト関係 | 推奨実装パターン | 実装例 |
+|----------------|----------------|--------|
+| **Customer/Supplier** | REST API呼び出し | `GET /api/auth/verify-token` |
+| **Partnership** | REST API + 定期同期 | `GET /api/projects/{id}` + キャッシュ |
+| **Open Host Service** | 標準化API Gateway | API Gateway + OpenAPI Spec |
+| **Shared Kernel** | 共有ライブラリ | `@parasol/shared-types` (npm package) |
+
+### 4.7 BCとマイクロサービスのマッピング
+
+#### BC → MS 実装パターン
+
+```mermaid
+graph TB
+    subgraph "設計レイヤー（パラソル定義）"
+        BC1[BC: セキュアアクセスサービス]
+        BC2[BC: プロジェクト成功支援サービス]
+        BC3[BC: タレント最適化サービス]
+    end
+
+    subgraph "実装レイヤー（技術選択）"
+        subgraph "パターン1: 1BC = 1MS"
+            MS1[MS: Auth Service]
+        end
+
+        subgraph "パターン2: 1BC = 複数MS"
+            MS2A[MS: Project Core Service]
+            MS2B[MS: Project Analytics Service]
+        end
+
+        subgraph "パターン3: モノリス内モジュール"
+            MOD3[Module: Talent Module]
+        end
+    end
+
+    BC1 --> MS1
+    BC2 --> MS2A
+    BC2 --> MS2B
+    BC3 --> MOD3
+```
+
+#### 実装パターン比較
+
+| 実装パターン | 適用ケース | メリット | デメリット | 例 |
+|------------|----------|---------|---------|-----|
+| **1BC = 1MS** | 標準パターン | シンプル、独立性高 | 運用コスト | Secure Access → Auth Service |
+| **1BC = 複数MS** | 大規模・高負荷 | スケーラビリティ | 複雑性増加 | Project Success → Core + Analytics |
+| **複数BC = 1モノリス** | 小規模・初期段階 | 開発効率、低コスト | 結合度高 | 初期段階の全BC → 1つのアプリ |
+
+#### マッピング決定基準
+
+**1BC = 複数MSに分離する判断基準**:
+- スケーリング要件が異なる
+- デプロイ頻度が大きく異なる
+- 技術スタックを変えたい
+- チームが完全に分離されている
+- 負荷パターンが異なる（読み取り専用 vs 書き込み）
+
+**複数BC = 1モノリスの判断基準**:
+- 初期段階のプロダクト
+- チームサイズが小さい（< 10人）
+- BCの数が少ない（< 5）
+- 運用コストを抑えたい
+- 開発速度を優先したい
+
+#### パラソルにおけるマッピング例
+
+```
+【初期フェーズ: モノリス】
+1つのアプリケーション
+├── contexts/secure-access/      (BC1 = Module)
+├── contexts/project-success/    (BC2 = Module)
+├── contexts/talent-optimization/ (BC3 = Module)
+└── contexts/productivity/       (BC4 = Module)
+
+↓ 成長・負荷増加
+
+【成長フェーズ: ハイブリッド】
+Auth Service (独立MS)           ← BC1分離
+Main Application
+├── contexts/project-success/   (BC2 = Module)
+├── contexts/talent-optimization/ (BC3 = Module)
+└── contexts/productivity/      (BC4 = Module)
+
+↓ さらなる成長
+
+【成熟フェーズ: マイクロサービス】
+├── Auth Service               (BC1)
+├── Project Core Service       (BC2-A)
+├── Project Analytics Service  (BC2-B)
+├── Talent Service            (BC3)
+└── Productivity Service      (BC4)
+```
 
 ---
 

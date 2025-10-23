@@ -1,6 +1,6 @@
 # パラソル開発ガイド - DX価値創造型フレームワーク
 
-**バージョン**: 1.1.0
+**バージョン**: 1.2.0
 **更新日**: 2025-10-23
 **ステータス**: Draft
 
@@ -320,6 +320,282 @@ docs/parasol/services/
 ```
 
 **重要**: パラソル設計は**フェーズ1から一貫**しています。実装が変わっても、ドメインモデルは不変です。
+
+### 3.7 コンテキストマップ（Context Map）
+
+#### コンテキストマップとは
+
+**定義**: バウンデッドコンテキスト間の関係性と統合パターンを可視化したマップ
+
+コンテキストマップは、システム全体のアーキテクチャを理解し、各コンテキスト間のコミュニケーションと依存関係を明確にするための戦略的ツールです。
+
+#### DDDにおけるコンテキスト関係パターン
+
+| パターン | 説明 | パラソルでの適用例 |
+|---------|------|------------------|
+| **Shared Kernel (共有カーネル)** | 複数のコンテキストで共有されるドメインモデル | 共通エンティティ（ユーザー、組織） |
+| **Customer/Supplier (顧客/供給者)** | 下流が上流のAPIを利用（上流が優先） | 認証サービス → 他サービス |
+| **Conformist (順応者)** | 下流が上流のモデルに完全に従う | 外部API統合 |
+| **Anti-Corruption Layer (腐敗防止層)** | 下流が独自モデルを保ち変換層を持つ | レガシーシステム統合 |
+| **Open Host Service (公開ホストサービス)** | 標準化されたAPIを提供 | 各サービスのREST API |
+| **Published Language (公開言語)** | 共通のデータ交換フォーマット | JSON API、イベントスキーマ |
+| **Partnership (パートナーシップ)** | 対等な関係で協調的に開発 | プロジェクト成功 ⇄ ナレッジ共創 |
+| **Separate Ways (独立路線)** | 統合せず独立して運用 | 外部の独立システム |
+
+#### パラソルコンテキストマップ
+
+```mermaid
+graph TB
+    %% コンテキスト定義
+    SA[セキュアアクセス<br/>サービス<br/><br/>認証・認可]
+    PS[プロジェクト成功<br/>支援サービス<br/><br/>プロジェクト管理]
+    TO[タレント最適化<br/>サービス<br/><br/>人材配置]
+    PV[生産性可視化<br/>サービス<br/><br/>工数・成果分析]
+    KC[ナレッジ共創<br/>サービス<br/><br/>知識管理]
+    RO[収益最適化<br/>サービス<br/><br/>売上・収益管理]
+    CF[コラボレーション<br/>促進サービス<br/><br/>チーム協働]
+
+    %% Customer/Supplier 関係（認証基盤）
+    SA -->|Customer/Supplier<br/>認証・認可提供| PS
+    SA -->|Customer/Supplier<br/>認証・認可提供| TO
+    SA -->|Customer/Supplier<br/>認証・認可提供| PV
+    SA -->|Customer/Supplier<br/>認証・認可提供| KC
+    SA -->|Customer/Supplier<br/>認証・認可提供| RO
+    SA -->|Customer/Supplier<br/>認証・認可提供| CF
+
+    %% Partnership 関係（協調的連携）
+    PS <-->|Partnership<br/>プロジェクト情報共有| TO
+    PS <-->|Partnership<br/>知見蓄積・活用| KC
+    PV <-->|Partnership<br/>工数データ連携| RO
+
+    %% Customer/Supplier 関係（データ提供）
+    TO -->|Customer/Supplier<br/>人材スキル情報| PS
+    PV -->|Customer/Supplier<br/>実績データ| PS
+    KC -->|Customer/Supplier<br/>ベストプラクティス| PS
+
+    PS -->|Customer/Supplier<br/>プロジェクト情報| RO
+    TO -->|Customer/Supplier<br/>稼働情報| PV
+
+    %% Open Host Service（全体基盤）
+    CF -.->|Open Host Service<br/>通知・コミュニケーション| PS
+    CF -.->|Open Host Service<br/>通知・コミュニケーション| TO
+    CF -.->|Open Host Service<br/>通知・コミュニケーション| PV
+
+    %% スタイル定義
+    style SA fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
+    style PS fill:#4ecdc4,stroke:#0a9396,stroke-width:2px,color:#fff
+    style TO fill:#45b7d1,stroke:#0077b6,stroke-width:2px,color:#fff
+    style PV fill:#96ceb4,stroke:#52b788,stroke-width:2px,color:#fff
+    style KC fill:#ffeaa7,stroke:#fdcb6e,stroke-width:2px,color:#333
+    style RO fill:#dfe6e9,stroke:#74b9ff,stroke-width:2px,color:#333
+    style CF fill:#a29bfe,stroke:#6c5ce7,stroke-width:2px,color:#fff
+```
+
+#### コンテキスト間の関係詳細
+
+##### 1. セキュアアクセスサービス（中核基盤）
+
+```
+役割: Upstream（上流）供給者
+パターン: Customer/Supplier, Open Host Service
+
+提供内容:
+- ユーザー認証API
+- 権限管理API
+- セッション管理
+- 監査ログ
+
+依存関係:
+→ すべてのサービスが依存（必須基盤）
+```
+
+##### 2. プロジェクト成功支援サービス（中心ハブ）
+
+```
+役割: 中核的な協調ハブ
+パターン: Partnership（多方向）
+
+連携関係:
+⇄ タレント最適化: プロジェクトアサイン情報の双方向連携
+⇄ ナレッジ共創: プロジェクト知見の蓄積・活用
+← 生産性可視化: 実績データの受信
+→ 収益最適化: プロジェクト売上情報の提供
+```
+
+##### 3. 生産性可視化 ⇄ 収益最適化（データ連携）
+
+```
+役割: 分析・最適化ペア
+パターン: Partnership
+
+連携内容:
+- 工数データ → 原価計算
+- 稼働率データ → 収益性分析
+- パフォーマンス指標 → 収益予測
+```
+
+##### 4. コラボレーション促進サービス（横断的基盤）
+
+```
+役割: 横断的なコミュニケーション基盤
+パターン: Open Host Service
+
+提供内容:
+- 通知配信API
+- チャット・会議機能
+- ファイル共有
+- アクティビティフィード
+
+特徴: すべてのサービスから呼び出し可能
+```
+
+#### コンテキストマップから実装へ
+
+##### 統合パターンの実装ガイド
+
+| コンテキスト関係 | 推奨実装パターン | 実装例 |
+|----------------|----------------|--------|
+| **Customer/Supplier** | REST API呼び出し | GET /api/auth/verify-token |
+| **Partnership** | イベント駆動 + API | Event: ProjectCreated → Kafka/RabbitMQ |
+| **Open Host Service** | 標準化API Gateway | API Gateway + OpenAPI Spec |
+| **Shared Kernel** | 共有ライブラリ | @parasol/shared-types (npm package) |
+
+##### 実装例: セキュアアクセス統合
+
+```typescript
+// プロジェクト成功支援サービスでの認証統合
+// パターン: Customer/Supplier
+
+// ❌ 緊密な結合（避けるべき）
+import { User } from '@secure-access/domain-model';
+
+// ✅ Anti-Corruption Layer（推奨）
+interface AuthService {
+  verifyToken(token: string): Promise<AuthResult>;
+  getUserPermissions(userId: string): Promise<Permission[]>;
+}
+
+class SecureAccessAdapter implements AuthService {
+  async verifyToken(token: string): Promise<AuthResult> {
+    // 外部APIを呼び出し、内部モデルに変換
+    const response = await fetch('/api/auth/verify', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const externalUser = await response.json();
+
+    // 内部ドメインモデルに変換（腐敗防止）
+    return this.toDomainModel(externalUser);
+  }
+
+  private toDomainModel(externalUser: any): AuthResult {
+    // 外部モデル → 内部モデル変換
+    return {
+      userId: externalUser.id,
+      name: externalUser.displayName,
+      roles: externalUser.permissions.map(p => p.role)
+    };
+  }
+}
+```
+
+##### 実装例: パートナーシップ統合（イベント駆動）
+
+```typescript
+// プロジェクト成功支援 ⇄ ナレッジ共創
+// パターン: Partnership (双方向イベント)
+
+// プロジェクト成功支援サービス
+class ProjectService {
+  async completeProject(projectId: string) {
+    // ... プロジェクト完了処理
+
+    // イベント発行
+    await eventBus.publish('project.completed', {
+      projectId,
+      outcomes: project.outcomes,
+      lessons: project.lessons,
+      timestamp: new Date()
+    });
+  }
+}
+
+// ナレッジ共創サービス
+class KnowledgeService {
+  constructor() {
+    // イベント購読
+    eventBus.subscribe('project.completed', this.captureProjectKnowledge);
+  }
+
+  async captureProjectKnowledge(event: ProjectCompletedEvent) {
+    // プロジェクト知見を知識ベースに蓄積
+    await this.knowledgeRepo.create({
+      source: 'project',
+      projectId: event.projectId,
+      insights: event.lessons,
+      // ... 内部モデルに変換
+    });
+  }
+}
+```
+
+#### コンテキストマップのメンテナンス
+
+##### 定期的な見直しポイント
+
+```markdown
+□ 新しい統合要件が発生していないか
+□ 既存の関係パターンは適切か（変更の必要性）
+□ パフォーマンス問題が発生している統合はないか
+□ セキュリティリスクが増加している箇所はないか
+□ 循環依存が発生していないか
+□ 各コンテキストの境界は明確か
+```
+
+##### コンテキストマップの進化
+
+```
+フェーズ1: 初期設計
+- 基本的なCustomer/Supplier関係
+- 同期的なREST API統合
+
+↓
+
+フェーズ2: イベント駆動導入
+- Partnership関係をイベントで実装
+- 非同期処理による疎結合化
+
+↓
+
+フェーズ3: 高度な統合
+- CQRS/Event Sourcingパターン
+- サガパターンによる分散トランザクション
+- API Gatewayによる統一アクセス
+```
+
+#### コンテキストマップのベストプラクティス
+
+##### DO（推奨）
+
+```
+✓ コンテキスト境界を明確に保つ
+✓ 各関係に適切なパターンを適用
+✓ Anti-Corruption Layerで独立性を保つ
+✓ イベント駆動で疎結合を実現
+✓ API仕様を明確にドキュメント化
+✓ 定期的にマップを更新
+```
+
+##### DON'T（非推奨）
+
+```
+✗ 直接的なDB共有（Strong Coupling）
+✗ ドメインモデルの直接共有
+✗ 循環依存の許容
+✗ 暗黙的な統合（ドキュメントなし）
+✗ 過度な同期的統合
+✗ コンテキスト境界の曖昧さ
+```
 
 ---
 

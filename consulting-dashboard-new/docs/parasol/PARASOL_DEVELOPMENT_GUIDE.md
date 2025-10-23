@@ -1,6 +1,6 @@
 # パラソル開発ガイド - DX価値創造型フレームワーク
 
-**バージョン**: 3.0.0
+**バージョン**: 3.1.0
 **更新日**: 2025-10-23
 **ステータス**: Draft
 
@@ -257,7 +257,160 @@ Generic Subdomain: "認証基盤" → BC: "Secure Access Service"（Auth0等で�
 3. BCへのマッピングを決定（1対1を基本、必要に応じて分割/統合）
 4. Core SubdomainのBCに最高の人材とリソースを投入
 
-### 3.2 関係性マッピング
+### 3.2 重要な用語の明確化：問題領域・解決領域・ソリューション構成
+
+パラソル開発では、**3つの異なる概念レベル**を明確に区別します。これらは同義語ではなく、それぞれ異なる視点と目的を持っています。
+
+#### 3つの概念レベルの定義
+
+| 日本語 | 英語 | 対応する概念 | 焦点 | 誰が定義するか | 成果物 |
+|--------|------|------------|------|--------------|--------|
+| **問題領域** | **Problem Space** | **Subdomain** | 何を解決するか（What） | ビジネス部門<br/>ドメインエキスパート | ビジネス戦略書<br/>サブドメインマップ |
+| **解決領域** | **Solution Space** | **Bounded Context** | どうモデル化するか<br/>（How to Model） | 設計者<br/>アーキテクト | context.md<br/>ドメインモデル図<br/>コンテキストマップ |
+| **ソリューション構成** | **Solution Composition**<br/>**Implementation** | **Microservice** | どう実装・デプロイするか<br/>（How to Implement） | エンジニア<br/>DevOpsチーム | ソースコード<br/>インフラ構成<br/>API仕様 |
+
+#### 具体例: パラソルの「プロジェクト成功支援」
+
+```
+1. 問題領域（Subdomain）: "プロジェクト計画"
+   └─ ビジネス上の問題: プロジェクトの成功率を上げたい
+   └─ サブドメインタイプ: Core Subdomain（競争優位性）
+   └─ ビジネス戦略: 自社開発、最高の人材を投入
+
+   ↓
+
+2. 解決領域（Bounded Context）: "Project Success Service"
+   └─ ドメインモデル設計:
+       ├─ Aggregate Root: Project, Milestone, Risk
+       ├─ Entity: Task, Deliverable
+       ├─ Value Object: ProjectStatus, Priority
+       └─ Repository: ProjectRepository
+   └─ ユビキタス言語: "プロジェクトを構想する"、"マイルストーンを設定する"
+   └─ 設計ドキュメント: context.md, domain-model.md
+
+   ↓
+
+3. ソリューション構成（Microservice）: "Project Service"
+   └─ 実装技術:
+       ├─ Framework: NestJS (TypeScript)
+       ├─ Database: PostgreSQL (project_service schema)
+       ├─ API: REST API (/api/projects)
+       └─ Deployment: Docker Container
+   └─ 物理構成: src/contexts/project-success/
+   └─ 実装コード: ProjectService, ProjectController, ProjectEntity
+```
+
+#### 階層構造での位置づけ
+
+```
+バリューステージ（価値創造の段階）
+  └─ ケーパビリティL1（戦略的組織能力）
+      ├─ 【問題領域】Subdomain（Core/Supporting/Generic）
+      ├─ 【解決領域】Bounded Context（ドメインモデル）
+      └─ 【ソリューション構成】Microservice（実装）
+```
+
+#### 多重度の関係
+
+```
+1つのSubdomain（問題領域）
+  ↓
+1つ以上のBounded Context（解決領域）
+  ↓
+1つ以上のMicroservice（ソリューション構成）
+
+例:
+Core Subdomain: "DX価値創造"
+  → BC1: "Project Success Service"（解決領域）
+      → MS1: "Project Service"（モノリス内モジュール）
+      → MS2: "Project Analytics Service"（将来的に分離）
+  → BC2: "Productivity Visualization Service"（解決領域）
+      → MS3: "Productivity Service"（独立マイクロサービス）
+```
+
+#### 重要な注意点
+
+**❌ よくある誤解**:
+- "解決領域"と"ソリューション構成"は同じもの
+- Bounded ContextとMicroserviceは1対1の関係
+- 問題領域（Subdomain）は実装フェーズで決める
+
+**✅ 正しい理解**:
+- **解決領域（BC）は設計書**、**ソリューション構成（MS）はコード**
+- 1つのBCは複数のMSに実装される可能性がある
+- 問題領域（Subdomain）はビジネス戦略策定時に決定
+
+#### プロセスでの流れ
+
+```
+ステップ3: サブドメインの特定（問題領域の分析）
+├─ Core/Supporting/Generic の判定
+├─ サブドメインマップ作成
+└─ 成果物: SUBDOMAIN_MAP.md
+
+↓
+
+ステップ4: Bounded Contextの設計（解決領域の設計）
+├─ Subdomain → BC へのマッピング決定
+├─ ドメインモデル設計
+├─ コンテキストマップ作成
+└─ 成果物: context.md, context-map.md, domain-model.md
+
+↓
+
+ステップ5: マイクロサービスの決定（ソリューション構成）
+├─ BC → Microservice へのマッピング決定
+├─ デプロイメント戦略（モノリス or 独立MS）
+├─ 技術スタック選択
+└─ 成果物: api-specification.md, 実装コード
+```
+
+#### ディレクトリ構造での対応
+
+```
+docs/
+├─ domain/                          # 問題領域（Problem Space）
+│   ├─ SUBDOMAIN_MAP.md             # サブドメイン全体マップ
+│   └─ subdomains/
+│       ├─ project-planning/        # Core Subdomain定義
+│       │   └─ subdomain-type.md
+│       └─ talent-optimization/     # Supporting Subdomain定義
+│           └─ subdomain-type.md
+│
+├─ design/bounded-contexts/         # 解決領域（Solution Space）
+│   ├─ project-success/
+│   │   ├─ context.md               # BC定義（ドメインモデル）
+│   │   └─ domain-model.md
+│   └─ talent-optimization/
+│       ├─ context.md
+│       └─ domain-model.md
+│
+└─ api/                             # ソリューション構成の仕様
+    └─ services/
+        ├─ project-service/
+        │   └─ api-specification.md # MS API仕様
+        └─ talent-service/
+            └─ api-specification.md
+
+src/contexts/                       # ソリューション構成の実装
+├─ project-success/                 # MS実装コード
+│   ├─ domain/
+│   ├─ application/
+│   └─ infrastructure/
+└─ talent-optimization/
+    ├─ domain/
+    ├─ application/
+    └─ infrastructure/
+```
+
+**まとめ**:
+- **問題領域（Subdomain）** = ビジネスの問題を定義（What）
+- **解決領域（BC）** = その問題をどうモデル化するか設計（How to Model）
+- **ソリューション構成（MS）** = その設計をどう実装・デプロイするか（How to Implement）
+
+これらは異なる視点・異なるフェーズ・異なる担当者によって決定される、独立した概念です。
+
+### 3.4 関係性マッピング
 
 ```mermaid
 graph TB
@@ -296,7 +449,7 @@ graph TB
     style MOD3 fill:#f3e5f5
 ```
 
-### 3.3 パラソルにおける設計原則
+### 3.5 パラソルにおける設計原則
 
 #### 原則1: 設計はバウンデッドコンテキストで行う
 
@@ -335,7 +488,7 @@ graph TB
 - モノリス内モジュール
 ```
 
-### 3.4 実践ガイド
+### 3.6 実践ガイド
 
 #### ステップ1: バウンデッドコンテキスト境界の特定
 
@@ -380,7 +533,7 @@ docs/parasol/services/
 //       └── auth/
 ```
 
-### 3.5 よくある誤解と正しい理解
+### 3.7 よくある誤解と正しい理解
 
 | 誤解 | 正しい理解 |
 |------|----------|
@@ -389,7 +542,7 @@ docs/parasol/services/
 | "パラソルはマイクロサービス設計ツール" | パラソルはドメイン設計ツール。実装方法は自由 |
 | "最初にアーキテクチャを決める" | 最初にドメイン境界を決め、実装は後で選択 |
 
-### 3.6 バリューストリームとパラソルの完全な階層構造
+### 3.8 バリューストリームとパラソルの完全な階層構造
 
 パラソル開発では、**バリューストリーム**を最上位概念とし、その中に**バリューステージ**、**ケーパビリティ階層**が存在し、各レベルで**3つの異なる概念体系**を扱います。
 
@@ -777,7 +930,7 @@ bounded-contexts/secure-access/     # L2: バウンデッドコンテキスト
 - **L2（BC）**: 設計の最初に確定。ドメイン境界を明確化
 - **L3-L5**: ビジネス分析に基づき段階的に詳細化
 
-### 3.7 実装移行パターン
+### 3.9 実装移行パターン
 
 ```
 フェーズ1: モノリスからスタート（1 MS = 全 BC）
@@ -813,7 +966,7 @@ bounded-contexts/secure-access/     # L2: バウンデッドコンテキスト
 
 **重要**: パラソル設計は**フェーズ1から一貫**しています。実装が変わっても、ドメインモデルは不変です。
 
-### 3.8 コンテキストマップ（Context Map）
+### 3.10 コンテキストマップ（Context Map）
 
 #### コンテキストマップとは
 
@@ -1098,7 +1251,7 @@ class KnowledgeServiceClient {
 ✗ コンテキスト境界の曖昧さ
 ```
 
-### 3.9 ディレクトリ構成戦略：コンテキストとサービスの分離
+### 3.11 ディレクトリ構成戦略：コンテキストとサービスの分離
 
 #### 問題提起
 

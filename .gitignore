@@ -43,10 +43,10 @@ next-env.d.ts
 # OS
 Thumbs.db
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
+# Database (sample data is tracked for demo purposes)
+# *.db
+# *.sqlite
+# *.sqlite3
 
 # Logs
 logs/

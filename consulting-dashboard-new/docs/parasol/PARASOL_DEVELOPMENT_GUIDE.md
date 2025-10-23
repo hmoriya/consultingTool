@@ -456,7 +456,7 @@ graph TB
 | コンテキスト関係 | 推奨実装パターン | 実装例 |
 |----------------|----------------|--------|
 | **Customer/Supplier** | REST API呼び出し | GET /api/auth/verify-token |
-| **Partnership** | イベント駆動 + API | Event: ProjectCreated → Kafka/RabbitMQ |
+| **Partnership** | REST API + 定期同期 | GET /api/projects/{id} + キャッシュ |
 | **Open Host Service** | 標準化API Gateway | API Gateway + OpenAPI Spec |
 | **Shared Kernel** | 共有ライブラリ | @parasol/shared-types (npm package) |
 
@@ -499,42 +499,49 @@ class SecureAccessAdapter implements AuthService {
 }
 ```
 
-##### 実装例: パートナーシップ統合（イベント駆動）
+##### 実装例: パートナーシップ統合（REST API同期）
 
 ```typescript
 // プロジェクト成功支援 ⇄ ナレッジ共創
-// パターン: Partnership (双方向イベント)
+// パターン: Partnership (双方向API連携)
 
 // プロジェクト成功支援サービス
 class ProjectService {
+  constructor(
+    private knowledgeServiceClient: KnowledgeServiceClient
+  ) {}
+
   async completeProject(projectId: string) {
     // ... プロジェクト完了処理
 
-    // イベント発行
-    await eventBus.publish('project.completed', {
-      projectId,
-      outcomes: project.outcomes,
-      lessons: project.lessons,
-      timestamp: new Date()
-    });
+    // ナレッジ共創サービスに知見を送信
+    try {
+      await this.knowledgeServiceClient.submitProjectLessons({
+        projectId,
+        outcomes: project.outcomes,
+        lessons: project.lessons
+      });
+    } catch (error) {
+      // エラーハンドリング（リトライ、ログなど）
+      console.error('Failed to submit lessons:', error);
+    }
   }
 }
 
 // ナレッジ共創サービス
-class KnowledgeService {
-  constructor() {
-    // イベント購読
-    eventBus.subscribe('project.completed', this.captureProjectKnowledge);
-  }
-
-  async captureProjectKnowledge(event: ProjectCompletedEvent) {
-    // プロジェクト知見を知識ベースに蓄積
-    await this.knowledgeRepo.create({
-      source: 'project',
-      projectId: event.projectId,
-      insights: event.lessons,
-      // ... 内部モデルに変換
+class KnowledgeServiceClient {
+  async submitProjectLessons(data: ProjectLessonsDto) {
+    const response = await fetch('/api/knowledge/project-lessons', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
     });
+
+    if (!response.ok) {
+      throw new Error(`Failed to submit: ${response.status}`);
+    }
+
+    return response.json();
   }
 }
 ```
@@ -558,19 +565,21 @@ class KnowledgeService {
 フェーズ1: 初期設計
 - 基本的なCustomer/Supplier関係
 - 同期的なREST API統合
+- 直接API呼び出し
 
 ↓
 
-フェーズ2: イベント駆動導入
-- Partnership関係をイベントで実装
-- 非同期処理による疎結合化
+フェーズ2: キャッシング導入
+- Partnership関係に読み取りキャッシュ追加
+- 定期的なデータ同期（ポーリング）
+- レスポンス改善
 
 ↓
 
 フェーズ3: 高度な統合
-- CQRS/Event Sourcingパターン
-- サガパターンによる分散トランザクション
+- Sagaパターンによる分散トランザクション（REST APIベース）
 - API Gatewayによる統一アクセス
+- サーキットブレーカー・リトライ機構
 ```
 
 #### コンテキストマップのベストプラクティス
@@ -581,7 +590,7 @@ class KnowledgeService {
 ✓ コンテキスト境界を明確に保つ
 ✓ 各関係に適切なパターンを適用
 ✓ Anti-Corruption Layerで独立性を保つ
-✓ イベント駆動で疎結合を実現
+✓ REST APIで明確な契約を定義
 ✓ API仕様を明確にドキュメント化
 ✓ 定期的にマップを更新
 ```
@@ -593,7 +602,7 @@ class KnowledgeService {
 ✗ ドメインモデルの直接共有
 ✗ 循環依存の許容
 ✗ 暗黙的な統合（ドキュメントなし）
-✗ 過度な同期的統合
+✗ 適切なタイムアウト・リトライなしの統合
 ✗ コンテキスト境界の曖昧さ
 ```
 
@@ -1512,52 +1521,69 @@ volumes:
 │Auth Service  │  │Project Service│  │Talent Service│
 └──────┬───────┘  └──────┬───────┘  └──────┬───────┘
        │                 │                 │
+       │    REST API     │    REST API     │
+       │   ←───────────→ │   ←───────────→ │
+       │                 │                 │
        └────────┬────────┴─────────┬───────┘
                 │                  │
                 ↓                  ↓
          ┌─────────────┐    ┌─────────────┐
-         │  Event Bus  │    │  Read Model │
-         │  (Kafka)    │    │  (Elastic)  │
+         │ API Gateway │    │  Read Cache │
+         │  (Nginx)    │    │  (Redis)    │
          └─────────────┘    └─────────────┘
               ↓                    ↓
-       イベント駆動で        CQRS パターンで
-       データ同期            高速検索
+       REST API統合と        キャッシュで
+       負荷分散              高速レスポンス
 ```
 
 **実装パターン**：
 
 ```typescript
-// イベント駆動データ同期
+// REST API同期によるデータ管理
 class UserService {
   async createUser(data: CreateUserDto) {
     // 1. Auth DBに保存
     const user = await this.authRepo.create(data);
 
-    // 2. イベント発行
-    await this.eventBus.publish('user.created', {
-      userId: user.id,
-      name: user.name,
-      email: user.email,
-      timestamp: new Date()
-    });
+    // 2. Webhookで他サービスに通知（オプション）
+    await this.notifyUserCreated(user);
 
     return user;
   }
+
+  private async notifyUserCreated(user: User) {
+    // 他サービスへのWebhook通知
+    const services = ['project-service', 'talent-service'];
+    await Promise.allSettled(
+      services.map(service =>
+        fetch(`${service}/api/webhooks/user-created`, {
+          method: 'POST',
+          body: JSON.stringify({ userId: user.id })
+        })
+      )
+    );
+  }
 }
 
-// Project Service側でイベント受信
-class ProjectService {
-  constructor() {
-    this.eventBus.subscribe('user.created', this.handleUserCreated);
+// Project Service側でWebhook受信またはポーリング
+class ProjectUserCacheService {
+  // Webhook受信
+  async handleUserCreatedWebhook(userId: string) {
+    // Auth Serviceに最新データを問い合わせ
+    const user = await this.authServiceClient.getUser(userId);
+    await this.userCacheRepo.upsert(user);
   }
 
-  async handleUserCreated(event: UserCreatedEvent) {
-    // Project DB内のユーザー情報キャッシュを更新
-    await this.userCacheRepo.upsert({
-      userId: event.userId,
-      name: event.name,
-      email: event.email
-    });
+  // 定期ポーリング（バックアップ）
+  @Cron('0 */5 * * * *') // 5分ごと
+  async syncUserCache() {
+    const updatedUsers = await this.authServiceClient.getUpdatedUsers(
+      this.lastSyncTime
+    );
+    for (const user of updatedUsers) {
+      await this.userCacheRepo.upsert(user);
+    }
+    this.lastSyncTime = new Date();
   }
 }
 ```
@@ -1599,10 +1625,11 @@ class ProjectService {
 ##### 戦略B: データ複製パターン（推奨）
 
 ```
-┌───────────────────────────────────────┐
-│          Event Bus (Kafka)            │
-└───┬────────┬──────────┬───────────┬───┘
+┌───────────────────────────────────────────┐
+│          REST API 同期戦略                 │
+└───┬────────┬──────────┬───────────┬───────┘
     │        │          │           │
+    │ REST   │ REST     │ REST      │ REST
     ↓        ↓          ↓           ↓
 ┌────────┐┌────────┐┌────────┐┌────────┐
 │Auth DB ││Proj DB ││Tal DB  ││Rev DB  │
@@ -1621,26 +1648,40 @@ class AuthUserService {
     // 1. Auth DBを更新（マスター）
     const user = await this.userRepo.update(userId, data);
 
-    // 2. 変更イベント発行
-    await this.eventBus.publish('user.updated', {
+    // 2. 更新フラグを記録（他サービスがポーリングで検知）
+    await this.userSyncLogRepo.create({
       userId: user.id,
-      name: user.name,
-      email: user.email,
       updatedAt: new Date()
     });
+
+    return user;
+  }
+
+  // 他サービス用の差分取得API
+  async getUpdatedUsers(since: Date): Promise<User[]> {
+    return this.userRepo.findUpdatedSince(since);
   }
 }
 
 // Project Service はキャッシュを保持
 class ProjectUserCacheService {
-  async handleUserUpdated(event: UserUpdatedEvent) {
-    // Project DB内のユーザーキャッシュを更新
-    await this.userCacheRepo.upsert({
-      userId: event.userId,
-      name: event.name,
-      email: event.email,
-      syncedAt: event.updatedAt
-    });
+  // 定期ポーリングで同期（5分ごと）
+  @Cron('0 */5 * * * *')
+  async syncUserCache() {
+    const updatedUsers = await this.authServiceClient.getUpdatedUsers(
+      this.lastSyncTime
+    );
+
+    for (const user of updatedUsers) {
+      await this.userCacheRepo.upsert({
+        userId: user.id,
+        name: user.name,
+        email: user.email,
+        syncedAt: new Date()
+      });
+    }
+
+    this.lastSyncTime = new Date();
   }
 
   async getUser(userId: string): Promise<User> {
@@ -2067,10 +2108,10 @@ GET  /api/auth/permissions    # 権限取得
 
 ```
 Secure Access が User のマスター
-  ↓ イベント発行（user.created, user.updated）
-他コンテキストはキャッシュを保持
-  - Project Success: user cache (name, email)
-  - Talent Optimization: user cache (name, email)
+  ↓ REST API提供（GET /api/users/:id, GET /api/users/updated）
+他コンテキストはキャッシュを保持＋定期ポーリング
+  - Project Success: user cache (name, email) + 5分ごと同期
+  - Talent Optimization: user cache (name, email) + 5分ごと同期
 ```
 
 ## Anti-Corruption Layer
@@ -2179,29 +2220,55 @@ class Period {
 }
 ```
 
-## データ同期イベント
+## データ同期API
 
-### user.created
+### GET /api/users/:id（個別取得）
 
-```json
-{
-  "eventType": "user.created",
-  "userId": "uuid",
-  "name": "string",
-  "email": "string",
-  "createdAt": "datetime"
+```typescript
+interface UserResponse {
+  userId: string;
+  name: string;
+  email: string;
+  updatedAt: string;  // ISO 8601
 }
 ```
 
-### user.updated
+### GET /api/users/updated（差分取得）
 
-```json
-{
-  "eventType": "user.updated",
-  "userId": "uuid",
-  "name": "string",
-  "email": "string",
-  "updatedAt": "datetime"
+```typescript
+interface UpdatedUsersRequest {
+  since: string;  // ISO 8601 datetime
+  limit?: number; // default: 100
+}
+
+interface UpdatedUsersResponse {
+  users: Array<{
+    userId: string;
+    name: string;
+    email: string;
+    updatedAt: string;
+  }>;
+  nextCursor?: string;  // ページネーション用
+}
+```
+
+**使用パターン**：
+
+```typescript
+// 他コンテキストからの呼び出し
+class UserCacheSyncService {
+  @Cron('0 */5 * * * *')  // 5分ごと
+  async syncUsers() {
+    const response = await this.authClient.getUpdatedUsers({
+      since: this.lastSyncTime.toISOString()
+    });
+
+    for (const user of response.users) {
+      await this.userCache.upsert(user);
+    }
+
+    this.lastSyncTime = new Date();
+  }
 }
 ```
 ```

@@ -1,20 +1,21 @@
 # パラソル開発ガイド - DX価値創造型フレームワーク
 
-**バージョン**: 1.0.0
-**更新日**: 2025-01-04
+**バージョン**: 2.0.0
+**更新日**: 2025-10-23
 **ステータス**: Draft
 
 ## 目次
 
 1. [フレームワーク概要](#1-フレームワーク概要)
 2. [DX促進アーキテクチャ](#2-dx促進アーキテクチャ)
-3. [MDファイル構成（実際の構造）](#3-mdファイル構成実際の構造)
-4. [DX階層構造定義](#4-dx階層構造定義)
-5. [価値創造型開発プロセス](#5-価値創造型開発プロセス)
-6. [DXテンプレート・仕様書](#6-dxテンプレート仕様書)
-7. [DX実装ガイド](#7-dx実装ガイド)
-8. [DX品質管理](#8-dx品質管理)
-9. [MD形式統一による品質保証](#9-md形式統一による品質保証)
+3. [マイクロサービスとバウンデッドコンテキストの違い](#3-マイクロサービスとバウンデッドコンテキストの違い)
+4. [MDファイル構成（実際の構造）](#4-mdファイル構成実際の構造)
+5. [DX階層構造定義](#5-dx階層構造定義)
+6. [価値創造型開発プロセス](#6-価値創造型開発プロセス)
+7. [DXテンプレート・仕様書](#7-dxテンプレート仕様書)
+8. [DX実装ガイド](#8-dx実装ガイド)
+9. [DX品質管理](#9-dx品質管理)
+10. [MD形式統一による品質保証](#10-md形式統一による品質保証)
 
 ---
 
@@ -121,9 +122,1750 @@ graph TB
 
 ---
 
-## 3. MDファイル構成（実際の構造）
+## 3. マイクロサービスとバウンデッドコンテキストの違い
 
-### 発見された実際のファイル構造
+### 3.1 概念の整理
+
+パラソル開発では、**バウンデッドコンテキスト（設計概念）**と**マイクロサービス（実装形態）**を明確に区別することが重要です。
+
+#### バウンデッドコンテキスト（Bounded Context）
+
+**定義**: DDDにおける論理的な境界であり、特定のドメインモデルが一貫性を持って適用される範囲
+
+```
+特徴:
+✓ 設計上の概念（論理境界）
+✓ ドメインモデルの一貫性を保証
+✓ ユビキタス言語の適用範囲
+✓ ビジネス機能・能力の境界
+✓ 実装方法に依存しない
+```
+
+**パラソルでの位置づけ**:
+- `Service` レベル = バウンデッドコンテキスト
+- 例: "セキュアアクセスサービス" は1つのバウンデッドコンテキスト
+
+#### マイクロサービス（Microservice）
+
+**定義**: 独立してデプロイ可能な実装単位であり、技術的なアーキテクチャパターン
+
+```
+特徴:
+✓ 実装上の概念（物理境界）
+✓ 独立したデプロイメント単位
+✓ 独自のデータベースを持つ
+✓ API経由で通信
+✓ 技術スタック選択の自由
+```
+
+**パラソルでの位置づけ**:
+- 実装フェーズで決定される物理的な配置
+- 1つのバウンデッドコンテキスト = 1つ以上のマイクロサービス
+
+### 3.2 関係性マッピング
+
+```mermaid
+graph TB
+    subgraph "設計レイヤー（パラソル定義）"
+        BC1[バウンデッドコンテキスト1<br/>セキュアアクセスサービス]
+        BC2[バウンデッドコンテキスト2<br/>プロジェクト成功支援サービス]
+        BC3[バウンデッドコンテキスト3<br/>タレント最適化サービス]
+    end
+
+    subgraph "実装レイヤー（技術選択）"
+        subgraph "実装パターン1: 1BC = 1MS"
+            MS1[マイクロサービス1<br/>Auth API]
+        end
+
+        subgraph "実装パターン2: 1BC = 複数MS"
+            MS2A[マイクロサービス2A<br/>Project Core API]
+            MS2B[マイクロサービス2B<br/>Project Analytics API]
+        end
+
+        subgraph "実装パターン3: モノリス内モジュール"
+            MOD3[モジュール3<br/>Talent Module]
+        end
+    end
+
+    BC1 --> MS1
+    BC2 --> MS2A
+    BC2 --> MS2B
+    BC3 --> MOD3
+
+    style BC1 fill:#e1f5ff
+    style BC2 fill:#e1f5ff
+    style BC3 fill:#e1f5ff
+    style MS1 fill:#fff4e6
+    style MS2A fill:#fff4e6
+    style MS2B fill:#fff4e6
+    style MOD3 fill:#f3e5f5
+```
+
+### 3.3 パラソルにおける設計原則
+
+#### 原則1: 設計はバウンデッドコンテキストで行う
+
+```markdown
+✅ DO: バウンデッドコンテキスト視点で設計
+- ドメイン境界の明確化
+- ビジネス機能の凝集性
+- ユビキタス言語の定義
+
+❌ DON'T: 最初から実装を考える
+- "このAPIはどのサーバーに配置するか"
+- "DBをどう分割するか"
+→ これらは実装フェーズで決定
+```
+
+#### 原則2: 実装時に物理配置を決定
+
+バウンデッドコンテキストを実装する際の選択肢:
+
+| 実装パターン | 適用ケース | メリット | デメリット |
+|------------|----------|---------|---------|
+| **1BC = 1マイクロサービス** | 標準パターン | シンプル、独立性高 | 運用コスト |
+| **1BC = 複数マイクロサービス** | 大規模・高負荷 | スケーラビリティ | 複雑性増加 |
+| **複数BC = 1モノリス** | 小規模・初期段階 | 開発効率、低コスト | 結合度高 |
+
+#### 原則3: パラソル定義は実装非依存
+
+```
+パラソル設計ドキュメント（MD形式）
+↓
+実装方法は自由に選択可能:
+- Node.js + Express
+- Python + FastAPI
+- Java + Spring Boot
+- Go + Gin
+- モノリス内モジュール
+```
+
+### 3.4 実践ガイド
+
+#### ステップ1: バウンデッドコンテキスト境界の特定
+
+```markdown
+質問リスト:
+□ この機能は独自のドメインモデルを持つか？
+□ 他のコンテキストと異なるユビキタス言語を使うか？
+□ この機能の変更が他の機能に影響を与えないか？
+□ ビジネス上、独立した価値を提供するか？
+
+すべて YES → 独立したバウンデッドコンテキスト
+```
+
+#### ステップ2: パラソルでの定義
+
+```bash
+# バウンデッドコンテキスト = サービス
+docs/parasol/services/
+├── secure-access-service/        # BC1: 認証・認可
+├── project-success-service/      # BC2: プロジェクト管理
+└── talent-optimization-service/  # BC3: 人材最適化
+```
+
+#### ステップ3: 実装方法の選択（後工程）
+
+```typescript
+// 例: セキュアアクセスサービス（BC）の実装選択
+
+// オプション1: 単一マイクロサービス
+// apps/auth-service/
+//   ├── src/
+//   └── package.json
+
+// オプション2: 複数マイクロサービス
+// apps/auth-core/      # 認証ロジック
+// apps/auth-gateway/   # API Gateway
+// apps/auth-session/   # セッション管理
+
+// オプション3: モノリス内モジュール
+// apps/main-app/
+//   └── modules/
+//       └── auth/
+```
+
+### 3.5 よくある誤解と正しい理解
+
+| 誤解 | 正しい理解 |
+|------|----------|
+| "マイクロサービス = バウンデッドコンテキスト" | バウンデッドコンテキストは設計概念、マイクロサービスは実装選択肢の1つ |
+| "7つのサービス = 7つのマイクロサービス" | 7つのバウンデッドコンテキスト。実装は1つでも複数でも可 |
+| "パラソルはマイクロサービス設計ツール" | パラソルはドメイン設計ツール。実装方法は自由 |
+| "最初にアーキテクチャを決める" | 最初にドメイン境界を決め、実装は後で選択 |
+
+### 3.6 実装移行パターン
+
+```
+フェーズ1: モノリスからスタート
+[Single Application]
+├── Auth Module
+├── Project Module
+└── Talent Module
+
+↓ 成長・負荷増加
+
+フェーズ2: 段階的分離
+[Auth Service] ← 独立化
+[Main Application]
+├── Project Module
+└── Talent Module
+
+↓ さらなる成長
+
+フェーズ3: 完全マイクロサービス化
+[Auth Service]
+[Project Service]
+[Talent Service]
+```
+
+**重要**: パラソル設計は**フェーズ1から一貫**しています。実装が変わっても、ドメインモデルは不変です。
+
+### 3.7 コンテキストマップ（Context Map）
+
+#### コンテキストマップとは
+
+**定義**: バウンデッドコンテキスト間の関係性と統合パターンを可視化したマップ
+
+コンテキストマップは、システム全体のアーキテクチャを理解し、各コンテキスト間のコミュニケーションと依存関係を明確にするための戦略的ツールです。
+
+#### DDDにおけるコンテキスト関係パターン
+
+| パターン | 説明 | パラソルでの適用例 |
+|---------|------|------------------|
+| **Shared Kernel (共有カーネル)** | 複数のコンテキストで共有されるドメインモデル | 共通エンティティ（ユーザー、組織） |
+| **Customer/Supplier (顧客/供給者)** | 下流が上流のAPIを利用（上流が優先） | 認証サービス → 他サービス |
+| **Conformist (順応者)** | 下流が上流のモデルに完全に従う | 外部API統合 |
+| **Anti-Corruption Layer (腐敗防止層)** | 下流が独自モデルを保ち変換層を持つ | レガシーシステム統合 |
+| **Open Host Service (公開ホストサービス)** | 標準化されたAPIを提供 | 各サービスのREST API |
+| **Published Language (公開言語)** | 共通のデータ交換フォーマット | JSON API、イベントスキーマ |
+| **Partnership (パートナーシップ)** | 対等な関係で協調的に開発 | プロジェクト成功 ⇄ ナレッジ共創 |
+| **Separate Ways (独立路線)** | 統合せず独立して運用 | 外部の独立システム |
+
+#### パラソルコンテキストマップ
+
+```mermaid
+graph TB
+    %% コンテキスト定義
+    SA[セキュアアクセス<br/>サービス<br/><br/>認証・認可]
+    PS[プロジェクト成功<br/>支援サービス<br/><br/>プロジェクト管理]
+    TO[タレント最適化<br/>サービス<br/><br/>人材配置]
+    PV[生産性可視化<br/>サービス<br/><br/>工数・成果分析]
+    KC[ナレッジ共創<br/>サービス<br/><br/>知識管理]
+    RO[収益最適化<br/>サービス<br/><br/>売上・収益管理]
+    CF[コラボレーション<br/>促進サービス<br/><br/>チーム協働]
+
+    %% Customer/Supplier 関係（認証基盤）
+    SA -->|Customer/Supplier<br/>認証・認可提供| PS
+    SA -->|Customer/Supplier<br/>認証・認可提供| TO
+    SA -->|Customer/Supplier<br/>認証・認可提供| PV
+    SA -->|Customer/Supplier<br/>認証・認可提供| KC
+    SA -->|Customer/Supplier<br/>認証・認可提供| RO
+    SA -->|Customer/Supplier<br/>認証・認可提供| CF
+
+    %% Partnership 関係（協調的連携）
+    PS <-->|Partnership<br/>プロジェクト情報共有| TO
+    PS <-->|Partnership<br/>知見蓄積・活用| KC
+    PV <-->|Partnership<br/>工数データ連携| RO
+
+    %% Customer/Supplier 関係（データ提供）
+    TO -->|Customer/Supplier<br/>人材スキル情報| PS
+    PV -->|Customer/Supplier<br/>実績データ| PS
+    KC -->|Customer/Supplier<br/>ベストプラクティス| PS
+
+    PS -->|Customer/Supplier<br/>プロジェクト情報| RO
+    TO -->|Customer/Supplier<br/>稼働情報| PV
+
+    %% Open Host Service（全体基盤）
+    CF -.->|Open Host Service<br/>通知・コミュニケーション| PS
+    CF -.->|Open Host Service<br/>通知・コミュニケーション| TO
+    CF -.->|Open Host Service<br/>通知・コミュニケーション| PV
+
+    %% スタイル定義
+    style SA fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
+    style PS fill:#4ecdc4,stroke:#0a9396,stroke-width:2px,color:#fff
+    style TO fill:#45b7d1,stroke:#0077b6,stroke-width:2px,color:#fff
+    style PV fill:#96ceb4,stroke:#52b788,stroke-width:2px,color:#fff
+    style KC fill:#ffeaa7,stroke:#fdcb6e,stroke-width:2px,color:#333
+    style RO fill:#dfe6e9,stroke:#74b9ff,stroke-width:2px,color:#333
+    style CF fill:#a29bfe,stroke:#6c5ce7,stroke-width:2px,color:#fff
+```
+
+#### コンテキスト間の関係詳細
+
+##### 1. セキュアアクセスサービス（中核基盤）
+
+```
+役割: Upstream（上流）供給者
+パターン: Customer/Supplier, Open Host Service
+
+提供内容:
+- ユーザー認証API
+- 権限管理API
+- セッション管理
+- 監査ログ
+
+依存関係:
+→ すべてのサービスが依存（必須基盤）
+```
+
+##### 2. プロジェクト成功支援サービス（中心ハブ）
+
+```
+役割: 中核的な協調ハブ
+パターン: Partnership（多方向）
+
+連携関係:
+⇄ タレント最適化: プロジェクトアサイン情報の双方向連携
+⇄ ナレッジ共創: プロジェクト知見の蓄積・活用
+← 生産性可視化: 実績データの受信
+→ 収益最適化: プロジェクト売上情報の提供
+```
+
+##### 3. 生産性可視化 ⇄ 収益最適化（データ連携）
+
+```
+役割: 分析・最適化ペア
+パターン: Partnership
+
+連携内容:
+- 工数データ → 原価計算
+- 稼働率データ → 収益性分析
+- パフォーマンス指標 → 収益予測
+```
+
+##### 4. コラボレーション促進サービス（横断的基盤）
+
+```
+役割: 横断的なコミュニケーション基盤
+パターン: Open Host Service
+
+提供内容:
+- 通知配信API
+- チャット・会議機能
+- ファイル共有
+- アクティビティフィード
+
+特徴: すべてのサービスから呼び出し可能
+```
+
+#### コンテキストマップから実装へ
+
+##### 統合パターンの実装ガイド
+
+| コンテキスト関係 | 推奨実装パターン | 実装例 |
+|----------------|----------------|--------|
+| **Customer/Supplier** | REST API呼び出し | GET /api/auth/verify-token |
+| **Partnership** | REST API + 定期同期 | GET /api/projects/{id} + キャッシュ |
+| **Open Host Service** | 標準化API Gateway | API Gateway + OpenAPI Spec |
+| **Shared Kernel** | 共有ライブラリ | @parasol/shared-types (npm package) |
+
+##### 実装例: セキュアアクセス統合
+
+```typescript
+// プロジェクト成功支援サービスでの認証統合
+// パターン: Customer/Supplier
+
+// ❌ 緊密な結合（避けるべき）
+import { User } from '@secure-access/domain-model';
+
+// ✅ Anti-Corruption Layer（推奨）
+interface AuthService {
+  verifyToken(token: string): Promise<AuthResult>;
+  getUserPermissions(userId: string): Promise<Permission[]>;
+}
+
+class SecureAccessAdapter implements AuthService {
+  async verifyToken(token: string): Promise<AuthResult> {
+    // 外部APIを呼び出し、内部モデルに変換
+    const response = await fetch('/api/auth/verify', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const externalUser = await response.json();
+
+    // 内部ドメインモデルに変換（腐敗防止）
+    return this.toDomainModel(externalUser);
+  }
+
+  private toDomainModel(externalUser: any): AuthResult {
+    // 外部モデル → 内部モデル変換
+    return {
+      userId: externalUser.id,
+      name: externalUser.displayName,
+      roles: externalUser.permissions.map(p => p.role)
+    };
+  }
+}
+```
+
+##### 実装例: パートナーシップ統合（REST API同期）
+
+```typescript
+// プロジェクト成功支援 ⇄ ナレッジ共創
+// パターン: Partnership (双方向API連携)
+
+// プロジェクト成功支援サービス
+class ProjectService {
+  constructor(
+    private knowledgeServiceClient: KnowledgeServiceClient
+  ) {}
+
+  async completeProject(projectId: string) {
+    // ... プロジェクト完了処理
+
+    // ナレッジ共創サービスに知見を送信
+    try {
+      await this.knowledgeServiceClient.submitProjectLessons({
+        projectId,
+        outcomes: project.outcomes,
+        lessons: project.lessons
+      });
+    } catch (error) {
+      // エラーハンドリング（リトライ、ログなど）
+      console.error('Failed to submit lessons:', error);
+    }
+  }
+}
+
+// ナレッジ共創サービス
+class KnowledgeServiceClient {
+  async submitProjectLessons(data: ProjectLessonsDto) {
+    const response = await fetch('/api/knowledge/project-lessons', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to submit: ${response.status}`);
+    }
+
+    return response.json();
+  }
+}
+```
+
+#### コンテキストマップのメンテナンス
+
+##### 定期的な見直しポイント
+
+```markdown
+□ 新しい統合要件が発生していないか
+□ 既存の関係パターンは適切か（変更の必要性）
+□ パフォーマンス問題が発生している統合はないか
+□ セキュリティリスクが増加している箇所はないか
+□ 循環依存が発生していないか
+□ 各コンテキストの境界は明確か
+```
+
+##### コンテキストマップの進化
+
+```
+フェーズ1: 初期設計
+- 基本的なCustomer/Supplier関係
+- 同期的なREST API統合
+- 直接API呼び出し
+
+↓
+
+フェーズ2: キャッシング導入
+- Partnership関係に読み取りキャッシュ追加
+- 定期的なデータ同期（ポーリング）
+- レスポンス改善
+
+↓
+
+フェーズ3: 高度な統合
+- Sagaパターンによる分散トランザクション（REST APIベース）
+- API Gatewayによる統一アクセス
+- サーキットブレーカー・リトライ機構
+```
+
+#### コンテキストマップのベストプラクティス
+
+##### DO（推奨）
+
+```
+✓ コンテキスト境界を明確に保つ
+✓ 各関係に適切なパターンを適用
+✓ Anti-Corruption Layerで独立性を保つ
+✓ REST APIで明確な契約を定義
+✓ API仕様を明確にドキュメント化
+✓ 定期的にマップを更新
+```
+
+##### DON'T（非推奨）
+
+```
+✗ 直接的なDB共有（Strong Coupling）
+✗ ドメインモデルの直接共有
+✗ 循環依存の許容
+✗ 暗黙的な統合（ドキュメントなし）
+✗ 適切なタイムアウト・リトライなしの統合
+✗ コンテキスト境界の曖昧さ
+```
+
+### 3.8 ディレクトリ構成戦略：コンテキストとサービスの分離
+
+#### 問題提起
+
+バウンデッドコンテキスト（設計）とマイクロサービス（実装）の関係をディレクトリ構造でどう表現するかは、プロジェクトの長期的な成功に影響します。
+
+**核心的な問いかけ**:
+- コンテキストとサービスを同一視するか、明確に分離するか？
+- ドメインモデルはどこに配置するか？
+- 1BC = 複数MSの場合、どう表現するか？
+
+#### パターン比較：5つのアプローチ
+
+##### パターンA：完全分離型（設計・実装レイヤー分離）
+
+```
+プロジェクトルート/
+├── design/                          # 設計レイヤー（実装非依存）
+│   └── bounded-contexts/           # バウンデッドコンテキスト定義
+│       ├── secure-access/          # コンテキスト名（実装非依存）
+│       │   ├── context.md          # コンテキスト定義
+│       │   ├── domain-language.md  # ドメイン言語
+│       │   ├── ubiquitous-language.md
+│       │   ├── context-map.md      # 他コンテキストとの関係
+│       │   └── domain-model/       # 概念モデル（MD形式）
+│       │       ├── entities.md
+│       │       ├── value-objects.md
+│       │       └── aggregates.md
+│       ├── project-success/
+│       └── talent-optimization/
+│
+├── implementation/                  # 実装レイヤー（技術依存）
+│   ├── services/                   # マイクロサービス実装
+│   │   ├── auth-service/           # BC: secure-access の実装
+│   │   │   ├── src/
+│   │   │   │   ├── domain/        # ドメインモデル実装
+│   │   │   │   ├── application/   # アプリケーション層
+│   │   │   │   ├── infrastructure/
+│   │   │   │   └── api/
+│   │   │   ├── tests/
+│   │   │   └── package.json
+│   │   │
+│   │   ├── project-core-service/   # BC: project-success のコア実装
+│   │   ├── project-analytics-service/ # BC: project-success の分析実装
+│   │   └── ...
+│   │
+│   ├── shared/                     # Shared Kernel（複数BCで共有）
+│   │   ├── domain/
+│   │   │   ├── common-types.ts    # 共通型定義
+│   │   │   └── user.ts            # 共有エンティティ
+│   │   └── infrastructure/
+│   │       └── event-bus.ts
+│   │
+│   └── monolith/                   # モノリス実装（初期段階）
+│       └── src/
+│           ├── contexts/          # コンテキスト別モジュール
+│           │   ├── secure-access/
+│           │   ├── project-success/
+│           │   └── talent-optimization/
+│           └── shared/
+│
+└── docs/
+    ├── architecture/
+    │   ├── context-mapping.md     # コンテキストマップ
+    │   └── service-mapping.md     # BC→実装サービスのマッピング
+    └── implementation/
+        └── migration-guide.md     # モノリス→MS移行ガイド
+```
+
+**長所**:
+- ✅ 設計と実装の完全分離（関心の分離）
+- ✅ 1BC = 複数MSのケースを自然に表現
+- ✅ ドメインモデルの共有範囲が明確
+- ✅ 実装方法の変更が設計に影響しない
+- ✅ 複数チームでの並行開発がしやすい
+
+**短所**:
+- ❌ ディレクトリ階層が深い
+- ❌ BC→実装のマッピングが間接的
+- ❌ 小規模プロジェクトには過剰
+
+**適用場面**:
+- 大規模プロジェクト（10+ BC）
+- 複数チーム開発
+- 1BC = 複数MSが一般的
+
+---
+
+##### パターンB：コンテキスト中心型（BCをルートに）
+
+```
+プロジェクトルート/
+├── contexts/                       # バウンデッドコンテキストがルート
+│   ├── secure-access/             # コンテキスト = トップレベル
+│   │   ├── design/                # 設計ドキュメント
+│   │   │   ├── context.md
+│   │   │   ├── domain-language.md
+│   │   │   └── api-specification.md
+│   │   │
+│   │   ├── domain/                # ドメインモデル（実装）
+│   │   │   ├── entities/
+│   │   │   │   ├── User.ts
+│   │   │   │   └── Session.ts
+│   │   │   ├── value-objects/
+│   │   │   └── services/
+│   │   │
+│   │   ├── application/           # アプリケーション層
+│   │   │   ├── use-cases/
+│   │   │   └── services/
+│   │   │
+│   │   └── services/              # 実装サービス（複数可）
+│   │       ├── auth-api/          # REST API実装
+│   │       │   ├── src/
+│   │       │   └── package.json
+│   │       └── auth-worker/       # バックグラウンドワーカー
+│   │           ├── src/
+│   │           └── package.json
+│   │
+│   ├── project-success/
+│   │   ├── design/
+│   │   ├── domain/                # プロジェクトドメインモデル
+│   │   ├── application/
+│   │   └── services/
+│   │       ├── project-core/      # コア機能
+│   │       └── project-analytics/ # 分析機能
+│   │
+│   └── talent-optimization/
+│
+└── shared/                        # Shared Kernel
+    ├── domain/
+    └── infrastructure/
+```
+
+**長所**:
+- ✅ コンテキスト境界が明確
+- ✅ ドメインモデルがコンテキスト内に集約
+- ✅ チーム分割が容易（1チーム = 1コンテキスト）
+- ✅ コンテキスト内の凝集性が高い
+- ✅ 設計→実装のトレーサビリティが高い
+
+**短所**:
+- ❌ services/配下に複数実装がある場合、選択が必要
+- ❌ 共有コード（Shared Kernel）の管理が別領域
+
+**適用場面**:
+- 中〜大規模プロジェクト
+- チーム別にコンテキスト担当
+- 1BC = 1〜3実装サービス
+
+---
+
+##### パターンC：サービス中心型（実装ファースト）
+
+```
+プロジェクトルート/
+├── services/                      # 実装サービスがルート
+│   ├── auth-service/             # マイクロサービス単位
+│   │   ├── design/               # このサービスの設計
+│   │   │   └── bounded-context.md # 属するBCを明記
+│   │   ├── src/
+│   │   │   ├── domain/
+│   │   │   ├── application/
+│   │   │   └── infrastructure/
+│   │   └── package.json
+│   │
+│   ├── project-core-service/
+│   └── project-analytics-service/
+│
+└── design/                        # 全体設計
+    ├── bounded-contexts/
+    │   ├── secure-access.md      # BC定義
+    │   ├── project-success.md
+    │   └── context-map.md
+    └── service-mapping.md         # サービス→BCマッピング
+```
+
+**長所**:
+- ✅ デプロイ単位と一致（運用しやすい）
+- ✅ 各サービスの独立性が高い
+- ✅ マイクロサービスアーキテクチャに自然
+
+**短所**:
+- ❌ ドメインモデルの共有が難しい
+- ❌ コンテキスト境界が不明瞭
+- ❌ 1BC = 複数サービスの関係が見えにくい
+- ❌ 設計思考よりも実装思考に偏る
+
+**適用場面**:
+- マイクロサービス前提
+- 小規模チーム
+- 1BC = 1サービスが基本
+
+---
+
+##### パターンD：ハイブリッド型（推奨）
+
+```
+プロジェクトルート/
+├── bounded-contexts/              # 設計：バウンデッドコンテキスト定義
+│   ├── secure-access/
+│   │   ├── README.md             # コンテキスト概要
+│   │   ├── domain-language.md    # ドメイン言語
+│   │   ├── context-map.md        # 他BCとの関係
+│   │   ├── api-specification.md  # 公開API仕様
+│   │   ├── database-design.md    # データ設計
+│   │   │
+│   │   └── domain-model/         # ドメインモデル定義（MD）
+│   │       ├── entities.md       # エンティティ定義
+│   │       ├── value-objects.md
+│   │       ├── aggregates.md
+│   │       └── domain-services.md
+│   │
+│   ├── project-success/
+│   ├── talent-optimization/
+│   └── _shared/                  # 共有概念（Shared Kernel設計）
+│       └── common-entities.md
+│
+├── src/                           # 実装：現在の実装方法
+│   ├── contexts/                 # モノリス内のコンテキスト実装
+│   │   ├── secure-access/       # BC実装（モジュール）
+│   │   │   ├── domain/          # ドメイン層実装
+│   │   │   │   ├── entities/
+│   │   │   │   │   ├── User.ts
+│   │   │   │   │   └── Session.ts
+│   │   │   │   ├── value-objects/
+│   │   │   │   ├── aggregates/
+│   │   │   │   └── services/
+│   │   │   │
+│   │   │   ├── application/     # アプリケーション層
+│   │   │   │   ├── use-cases/
+│   │   │   │   ├── commands/
+│   │   │   │   └── queries/
+│   │   │   │
+│   │   │   ├── infrastructure/  # インフラ層
+│   │   │   │   ├── repositories/
+│   │   │   │   └── adapters/
+│   │   │   │
+│   │   │   └── api/             # APIエンドポイント
+│   │   │       └── routes.ts
+│   │   │
+│   │   ├── project-success/
+│   │   │   ├── domain/
+│   │   │   ├── application/
+│   │   │   ├── infrastructure/
+│   │   │   └── api/
+│   │   │
+│   │   └── _shared/             # Shared Kernel実装
+│   │       ├── domain/
+│   │       │   ├── User.ts     # 共通エンティティ
+│   │       │   └── Organization.ts
+│   │       └── infrastructure/
+│   │           └── event-bus.ts
+│   │
+│   └── _cross-cutting/          # 横断的関心事
+│       ├── auth/                # 認証ミドルウェア
+│       ├── logging/
+│       └── monitoring/
+│
+├── services/                     # 将来：マイクロサービス実装
+│   ├── auth-service/            # secure-accessの独立実装
+│   │   ├── .context-mapping.json # BCとの紐付け
+│   │   ├── src/
+│   │   │   └── （src/contexts/secure-accessから移行）
+│   │   └── package.json
+│   │
+│   └── _migration-guide.md      # モノリス→MS移行ガイド
+│
+├── docs/
+│   ├── architecture/
+│   │   ├── CONTEXT_MAP.md       # 全体コンテキストマップ
+│   │   ├── IMPLEMENTATION_STRATEGY.md
+│   │   └── bc-to-service-mapping.md # BC→実装マッピング
+│   │
+│   └── bounded-contexts/         # → bounded-contexts/ へのシンボリックリンク
+│
+└── .context-rules.json           # BC→実装のルール定義
+```
+
+**`.context-rules.json`の例**:
+```json
+{
+  "version": "1.0",
+  "strategy": "monolith-first",
+  "mappings": [
+    {
+      "boundedContext": "secure-access",
+      "implementations": [
+        {
+          "type": "module",
+          "path": "src/contexts/secure-access",
+          "status": "active"
+        },
+        {
+          "type": "microservice",
+          "path": "services/auth-service",
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "boundedContext": "project-success",
+      "implementations": [
+        {
+          "type": "module",
+          "path": "src/contexts/project-success",
+          "status": "active"
+        }
+      ]
+    }
+  ],
+  "sharedKernel": {
+    "design": "bounded-contexts/_shared",
+    "implementation": "src/contexts/_shared"
+  }
+}
+```
+
+**長所**:
+- ✅ 設計と実装の対応が明確
+- ✅ モノリス→マイクロサービスの移行パスが自然
+- ✅ ドメインモデルがコンテキスト別に整理
+- ✅ 設計ドキュメントと実装の距離が近い
+- ✅ 段階的な移行が可能
+- ✅ ツールで検証可能（.context-rules.json）
+
+**短所**:
+- ❌ bounded-contexts/とsrc/contexts/の二重管理
+- ❌ ルール定義ファイルのメンテナンスが必要
+
+**適用場面**:
+- パラソルに最適
+- モノリスからスタート、段階的にMS化
+- 設計重視だが実装も重要視
+
+---
+
+##### パターンE：フラット型（シンプル）
+
+```
+プロジェクトルート/
+├── secure-access/                # BC = ディレクトリ名
+│   ├── design.md                 # 設計ドキュメント（1ファイル）
+│   └── src/                      # 実装
+│       ├── domain/
+│       ├── application/
+│       └── infrastructure/
+│
+├── project-success/
+│   ├── design.md
+│   └── src/
+│
+└── shared/
+    └── src/
+```
+
+**長所**:
+- ✅ 非常にシンプル
+- ✅ 小規模に最適
+
+**短所**:
+- ❌ 大規模には不向き
+- ❌ 設計ドキュメントが貧弱
+- ❌ 複数実装の表現ができない
+
+**適用場面**:
+- 小規模プロジェクト（< 5 BC）
+- プロトタイピング
+
+---
+
+#### パターン比較表
+
+| 観点 | パターンA<br/>完全分離型 | パターンB<br/>コンテキスト中心 | パターンC<br/>サービス中心 | パターンD<br/>ハイブリッド | パターンE<br/>フラット |
+|------|----------|------------|------------|-----------|---------|
+| **設計と実装の分離** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐ |
+| **トレーサビリティ** | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
+| **1BC=複数MS対応** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐ |
+| **モノリス対応** | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **移行容易性** | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ |
+| **学習コスト** | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **小規模適性** | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **大規模適性** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ |
+| **運用理解性** | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+
+---
+
+#### パラソルへの推奨：パターンD（ハイブリッド型）
+
+**理由**:
+
+1. **現状との整合性**
+   - 既存の `docs/parasol/services/` → `bounded-contexts/` へリネーム
+   - 実装は `src/contexts/` で管理（モノリス）
+   - 将来の `services/` ディレクトリを予約
+
+2. **段階的移行の実現**
+   - Phase 1: モノリス（src/contexts/）
+   - Phase 2: 一部MS化（services/auth-service）
+   - Phase 3: 完全MS化（services/配下に全て）
+
+3. **ドメインモデルの明確化**
+   - 設計: `bounded-contexts/*/domain-model/`（MD形式）
+   - 実装: `src/contexts/*/domain/`（TypeScript）
+   - 対応関係が明確
+
+4. **チーム開発の支援**
+   - 1チーム = 1バウンデッドコンテキスト担当
+   - 設計と実装の両方を管理
+
+---
+
+#### 具体的な移行手順（パラソル向け）
+
+##### ステップ1: ディレクトリリネーム
+
+```bash
+# 現在
+docs/parasol/services/
+
+# 変更後
+bounded-contexts/
+```
+
+##### ステップ2: 実装構造の整理
+
+```bash
+# 新規作成
+src/contexts/
+├── secure-access/
+│   ├── domain/
+│   ├── application/
+│   ├── infrastructure/
+│   └── api/
+├── project-success/
+└── _shared/
+```
+
+##### ステップ3: マッピングファイル作成
+
+```bash
+# 新規作成
+.context-rules.json
+docs/architecture/CONTEXT_MAP.md
+docs/architecture/bc-to-service-mapping.md
+```
+
+##### ステップ4: 検証スクリプト
+
+```typescript
+// scripts/validate-context-mapping.ts
+// BC定義と実装の整合性チェック
+```
+
+---
+
+#### 運用ルール
+
+##### Rule 1: ドメインモデルの配置
+
+```
+設計定義: bounded-contexts/{context-name}/domain-model/*.md
+実装コード: src/contexts/{context-name}/domain/**/*.ts
+
+例:
+bounded-contexts/secure-access/domain-model/entities.md
+  ↓ 実装
+src/contexts/secure-access/domain/entities/User.ts
+```
+
+##### Rule 2: API仕様の配置
+
+```
+設計仕様: bounded-contexts/{context-name}/api-specification.md
+実装: src/contexts/{context-name}/api/routes.ts
+
+APIスキーマ: src/contexts/{context-name}/api/schema/
+OpenAPI生成: src/contexts/{context-name}/api/openapi.yaml（自動生成）
+```
+
+##### Rule 3: Shared Kernelの管理
+
+```
+設計: bounded-contexts/_shared/
+実装: src/contexts/_shared/
+
+共有ドメインモデル例:
+- User（全BCで共通のユーザー概念）
+- Organization（組織概念）
+- Currency（通貨値オブジェクト）
+
+注意: 安易な共有は避け、必要最小限に
+```
+
+##### Rule 4: コンテキスト間通信
+
+```typescript
+// ❌ 直接import（避ける）
+import { Project } from '../project-success/domain/entities/Project';
+
+// ✅ Anti-Corruption Layer経由
+import { ProjectService } from './infrastructure/adapters/ProjectServiceAdapter';
+```
+
+##### Rule 5: マイクロサービス化の判断基準
+
+以下の条件を満たす場合、BC→MSへ分離:
+- スケーリング要件が異なる
+- デプロイ頻度が大きく異なる
+- 技術スタックを変えたい
+- チームが完全に分離されている
+
+---
+
+#### ツールサポート
+
+##### 1. VS Code設定
+
+```json
+// .vscode/settings.json
+{
+  "files.associations": {
+    "bounded-contexts/**/*.md": "parasol-design",
+    "src/contexts/**/domain/**/*.ts": "parasol-domain-model"
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/services": true  // 将来のMS用ディレクトリを検索から除外
+  }
+}
+```
+
+##### 2. 整合性チェックスクリプト
+
+```bash
+# 実装されていないBCを検出
+npm run parasol:check-missing-implementations
+
+# BC定義とドメインモデル実装の齟齬を検出
+npm run parasol:validate-domain-models
+
+# コンテキスト間の不正な依存を検出
+npm run parasol:check-dependencies
+```
+
+---
+
+#### まとめ：推奨ディレクトリ構成
+
+```
+consultingTool/
+├── bounded-contexts/          # ⭐ 設計の真実（Source of Truth）
+│   ├── secure-access/
+│   ├── project-success/
+│   ├── talent-optimization/
+│   ├── productivity-visualization/
+│   ├── knowledge-co-creation/
+│   ├── revenue-optimization/
+│   ├── collaboration-facilitation/
+│   └── _shared/
+│
+├── src/contexts/              # ⭐ 現在の実装（モノリス）
+│   ├── secure-access/
+│   ├── project-success/
+│   └── _shared/
+│
+├── services/                  # ⭐ 将来の実装（マイクロサービス）
+│   └── _migration-guide.md
+│
+├── docs/
+│   └── architecture/
+│       ├── CONTEXT_MAP.md
+│       └── bc-to-service-mapping.md
+│
+└── .context-rules.json        # ⭐ BC→実装のマッピングルール
+```
+
+**この構成の価値**:
+- 設計思考を優先しつつ、実装の現実も尊重
+- モノリス→マイクロサービスの自然な移行パス
+- ツールによる検証が可能
+- チーム拡大・縮小に柔軟に対応
+
+### 3.9 データベース分離戦略：最大の難関を段階的に攻略
+
+#### 重要な原則：モノリスでもコンテキスト分離を徹底
+
+> ⚠️ **初期モノリスであってもコンテキストベースで、ドメイン言語、DB、APIを分離しておく**
+
+この原則により：
+- **ドメイン言語の分離**: 各コンテキストで独自のユビキタス言語を使用
+- **DBスキーマの分離**: Phase 1から実施（外部キー禁止）
+- **APIの分離**: コンテキスト境界を明確にしたエンドポイント設計
+
+これにより、将来的なマイクロサービス化が容易になり、初期段階からコンテキスト境界を保つことができます。
+
+---
+
+#### DB分離の重要性と課題
+
+**マイクロサービス化の本質はDB分離**です。APIを分離するだけでは不十分で、真の独立性を得るにはデータベースの分離が不可欠です。
+
+##### DB分離が難しい理由
+
+```
+❌ 課題1: データの依存関係
+- 外部キー制約の解消
+- トランザクション境界の再設計
+- 参照整合性の維持
+
+❌ 課題2: パフォーマンス劣化
+- JOINができなくなる
+- N+1問題の発生
+- データ重複の管理
+
+❌ 課題3: 移行コスト
+- データ移行の複雑さ
+- ダウンタイムの発生リスク
+- ロールバック困難性
+
+❌ 課題4: 運用負荷
+- 複数DBの監視
+- バックアップ戦略の複雑化
+- 障害時の影響範囲拡大
+```
+
+**だからこそ、段階的アプローチが必須**です。
+
+---
+
+#### 段階的DB分離：5つのフェーズ
+
+##### Phase 0: モノリスDB（現状）
+
+```
+┌─────────────────────────────────────┐
+│     Single PostgreSQL Database      │
+│                                     │
+│  ┌──────────┐  ┌──────────┐       │
+│  │  users   │  │ projects │       │
+│  │  roles   │  │  tasks   │       │
+│  │sessions  │  │  members │       │
+│  └──────────┘  └──────────┘       │
+│       ↑ FK          ↑ FK           │
+│       └─────────────┘              │
+│    外部キーで結合可能               │
+└─────────────────────────────────────┘
+         ↑
+    全APIから直接アクセス
+```
+
+**問題点**：
+- すべてのコンテキストが1つのDBを共有
+- コンテキスト境界が曖昧
+- スケーリングが困難
+
+---
+
+##### Phase 1: スキーマ分離（まずここから！）
+
+```
+┌─────────────────────────────────────────────────┐
+│       Single PostgreSQL Database                │
+│                                                 │
+│  ┌────────────────┐  ┌────────────────┐       │
+│  │ auth schema    │  │ project schema │       │
+│  │                │  │                │       │
+│  │  auth.users    │  │ project.projects│      │
+│  │  auth.roles    │  │ project.tasks  │       │
+│  │  auth.sessions │  │ project.members│       │
+│  └────────────────┘  └────────────────┘       │
+│         ↑                    ↑                 │
+│         └────── ❌ FK禁止 ───┘                 │
+│                                                 │
+│  ┌────────────────┐  ┌────────────────┐       │
+│  │ talent schema  │  │ revenue schema │       │
+│  └────────────────┘  └────────────────┘       │
+└─────────────────────────────────────────────────┘
+```
+
+**ディレクトリ構成**：
+
+```
+bounded-contexts/
+├── secure-access/
+│   └── database-design.md        # auth スキーマ設計
+├── project-success/
+│   └── database-design.md        # project スキーマ設計
+└── _shared/
+    └── database-design.md        # 共有データ設計
+
+prisma/                           # または migrations/
+├── schema.prisma                 # 全体スキーマ
+├── migrations/
+│   ├── 001_create_auth_schema.sql
+│   ├── 002_create_project_schema.sql
+│   └── 003_migrate_to_schemas.sql
+│
+└── schemas/                      # スキーマ別定義
+    ├── auth.prisma              # auth スキーマ
+    ├── project.prisma           # project スキーマ
+    └── shared.prisma            # 共有テーブル
+```
+
+**実装ルール**：
+
+```typescript
+// ❌ NG: スキーマ間の外部キー
+CREATE TABLE project.tasks (
+  id UUID PRIMARY KEY,
+  assigned_to UUID REFERENCES auth.users(id)  // ← 禁止！
+);
+
+// ✅ OK: IDだけ保持（参照整合性はアプリ層で）
+CREATE TABLE project.tasks (
+  id UUID PRIMARY KEY,
+  assigned_user_id UUID  -- auth.users.id を保持（FK なし）
+);
+
+// アプリケーション層で整合性チェック
+class AssignTaskUseCase {
+  async execute(taskId: string, userId: string) {
+    // 1. ユーザー存在確認（auth スキーマ）
+    const user = await authRepo.findUser(userId);
+    if (!user) throw new Error('User not found');
+
+    // 2. タスク割り当て（project スキーマ）
+    await projectRepo.assignTask(taskId, userId);
+  }
+}
+```
+
+**移行手順**：
+
+```sql
+-- ステップ1: スキーマ作成
+CREATE SCHEMA IF NOT EXISTS auth;
+CREATE SCHEMA IF NOT EXISTS project;
+CREATE SCHEMA IF NOT EXISTS talent;
+
+-- ステップ2: 外部キー制約の削除
+ALTER TABLE tasks DROP CONSTRAINT fk_tasks_assigned_to_users;
+
+-- ステップ3: テーブル移動
+ALTER TABLE users SET SCHEMA auth;
+ALTER TABLE projects SET SCHEMA project;
+
+-- ステップ4: アプリケーション層でのバリデーション追加
+-- （コード修正）
+```
+
+**メリット**：
+- ✅ ダウンタイムなし
+- ✅ ロールバック容易
+- ✅ コンテキスト境界の可視化
+- ✅ 次フェーズへの準備
+
+---
+
+##### Phase 2: スキーマ別接続プール
+
+```
+┌─────────────────────────────────────┐
+│    PostgreSQL (同一DB)              │
+│                                     │
+│  ┌──────┐  ┌──────┐  ┌──────┐    │
+│  │auth  │  │project│  │talent│    │
+│  │schema│  │schema │  │schema│    │
+│  └──────┘  └──────┘  └──────┘    │
+└─────────────────────────────────────┘
+      ↑          ↑          ↑
+   Pool A     Pool B     Pool C
+      │          │          │
+┌─────┴──┐  ┌───┴───┐  ┌──┴────┐
+│ Auth   │  │Project│  │Talent │
+│ API    │  │ API   │  │ API   │
+└────────┘  └───────┘  └───────┘
+```
+
+**実装例**：
+
+```typescript
+// src/contexts/secure-access/infrastructure/database.ts
+export const authDbPool = new Pool({
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  schema: 'auth',  // ← スキーマ固定
+  max: 10,
+  idleTimeoutMillis: 30000
+});
+
+// src/contexts/project-success/infrastructure/database.ts
+export const projectDbPool = new Pool({
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  schema: 'project',  // ← スキーマ固定
+  max: 20,  // プロジェクトは負荷高いので多めに
+  idleTimeoutMillis: 30000
+});
+```
+
+**メリット**：
+- ✅ コンテキスト別にリソース調整可能
+- ✅ 監視・メトリクスが分離される
+- ✅ 物理DB分離への準備
+
+---
+
+##### Phase 3: 論理DB分離（Read Replica活用）
+
+```
+┌────────────────────────┐
+│   Primary DB           │
+│  ┌─────┐  ┌─────┐    │
+│  │auth │  │proj │    │
+│  └─────┘  └─────┘    │
+└────────┬───────────────┘
+         │ Replication
+         ↓
+┌────────────────────────┐
+│   Read Replica 1       │
+│  ┌─────┐              │  ← Auth コンテキスト専用
+│  │auth │              │
+│  └─────┘              │
+└────────────────────────┘
+
+┌────────────────────────┐
+│   Read Replica 2       │
+│  ┌─────┐              │  ← Project コンテキスト専用
+│  │proj │              │
+│  └─────┘              │
+└────────────────────────┘
+```
+
+**メリット**：
+- ✅ 読み取り負荷を分散
+- ✅ コンテキスト別の最適化
+- ✅ 物理分離のテスト環境
+
+---
+
+##### Phase 4: 物理DB分離（本番MS化）
+
+```
+┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+│  Auth DB     │  │  Project DB  │  │  Talent DB   │
+│              │  │              │  │              │
+│ auth.users   │  │ proj.projects│  │talent.members│
+│ auth.roles   │  │ proj.tasks   │  │talent.skills │
+└──────┬───────┘  └──────┬───────┘  └──────┬───────┘
+       │                 │                 │
+       ↓                 ↓                 ↓
+┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+│Auth Service  │  │Project Service│  │Talent Service│
+│              │  │              │  │              │
+│ :3001        │  │ :3002        │  │ :3003        │
+└──────────────┘  └──────────────┘  └──────────────┘
+```
+
+**ディレクトリ構成**：
+
+```
+services/
+├── auth-service/
+│   ├── src/
+│   ├── prisma/
+│   │   └── schema.prisma         # auth DB専用スキーマ
+│   ├── docker-compose.yml        # auth DB専用コンテナ
+│   └── .env
+│       DATABASE_URL=postgresql://auth_db:5432/auth
+│
+├── project-service/
+│   ├── src/
+│   ├── prisma/
+│   │   └── schema.prisma         # project DB専用スキーマ
+│   ├── docker-compose.yml
+│   └── .env
+│       DATABASE_URL=postgresql://project_db:5433/project
+│
+└── talent-service/
+    └── ...
+```
+
+**docker-compose.yml例**：
+
+```yaml
+# services/auth-service/docker-compose.yml
+version: '3.8'
+services:
+  auth-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: auth
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - auth_data:/var/lib/postgresql/data
+
+  auth-api:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://auth_user:${AUTH_DB_PASSWORD}@auth-db:5432/auth
+    ports:
+      - "3001:3000"
+    depends_on:
+      - auth-db
+
+volumes:
+  auth_data:
+```
+
+---
+
+##### Phase 5: 分散データ管理（最終形態）
+
+```
+┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+│  Auth DB     │  │  Project DB  │  │  Talent DB   │
+└──────┬───────┘  └──────┬───────┘  └──────┬───────┘
+       │                 │                 │
+       ↓                 ↓                 ↓
+┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+│Auth Service  │  │Project Service│  │Talent Service│
+└──────┬───────┘  └──────┬───────┘  └──────┬───────┘
+       │                 │                 │
+       │    REST API     │    REST API     │
+       │   ←───────────→ │   ←───────────→ │
+       │                 │                 │
+       └────────┬────────┴─────────┬───────┘
+                │                  │
+                ↓                  ↓
+         ┌─────────────┐    ┌─────────────┐
+         │ API Gateway │    │  Read Cache │
+         │  (Nginx)    │    │  (Redis)    │
+         └─────────────┘    └─────────────┘
+              ↓                    ↓
+       REST API統合と        キャッシュで
+       負荷分散              高速レスポンス
+```
+
+**実装パターン**：
+
+```typescript
+// REST API同期によるデータ管理
+class UserService {
+  async createUser(data: CreateUserDto) {
+    // 1. Auth DBに保存
+    const user = await this.authRepo.create(data);
+
+    // 2. Webhookで他サービスに通知（オプション）
+    await this.notifyUserCreated(user);
+
+    return user;
+  }
+
+  private async notifyUserCreated(user: User) {
+    // 他サービスへのWebhook通知
+    const services = ['project-service', 'talent-service'];
+    await Promise.allSettled(
+      services.map(service =>
+        fetch(`${service}/api/webhooks/user-created`, {
+          method: 'POST',
+          body: JSON.stringify({ userId: user.id })
+        })
+      )
+    );
+  }
+}
+
+// Project Service側でWebhook受信またはポーリング
+class ProjectUserCacheService {
+  // Webhook受信
+  async handleUserCreatedWebhook(userId: string) {
+    // Auth Serviceに最新データを問い合わせ
+    const user = await this.authServiceClient.getUser(userId);
+    await this.userCacheRepo.upsert(user);
+  }
+
+  // 定期ポーリング（バックアップ）
+  @Cron('0 */5 * * * *') // 5分ごと
+  async syncUserCache() {
+    const updatedUsers = await this.authServiceClient.getUpdatedUsers(
+      this.lastSyncTime
+    );
+    for (const user of updatedUsers) {
+      await this.userCacheRepo.upsert(user);
+    }
+    this.lastSyncTime = new Date();
+  }
+}
+```
+
+---
+
+#### Shared Kernel のデータ戦略
+
+##### 問題：全BCで共通のデータをどう扱うか
+
+```
+例: User, Organization, Currency などの共通エンティティ
+```
+
+##### 戦略A: マスターDBパターン
+
+```
+┌─────────────────┐
+│   Shared DB     │  ← ユーザー、組織のマスター
+│                 │
+│  users          │
+│  organizations  │
+└────────┬────────┘
+         │
+    ┌────┴────┬────────┬────────┐
+    ↓         ↓        ↓        ↓
+┌───────┐ ┌───────┐ ┌───────┐ ┌───────┐
+│Auth DB│ │Proj DB│ │Tal DB│ │Rev DB│
+│       │ │       │ │       │ │       │
+│user_id│ │user_id│ │user_id│ │user_id│
+│(FK)   │ │(FK)   │ │(FK)   │ │(FK)   │
+└───────┘ └───────┘ └───────┘ └───────┘
+```
+
+**問題点**：Shared DBがボトルネック、SPOF（単一障害点）
+
+---
+
+##### 戦略B: データ複製パターン（推奨）
+
+```
+┌───────────────────────────────────────────┐
+│          REST API 同期戦略                 │
+└───┬────────┬──────────┬───────────┬───────┘
+    │        │          │           │
+    │ REST   │ REST     │ REST      │ REST
+    ↓        ↓          ↓           ↓
+┌────────┐┌────────┐┌────────┐┌────────┐
+│Auth DB ││Proj DB ││Tal DB  ││Rev DB  │
+│        ││        ││        ││        │
+│users   ││users   ││users   ││users   │
+│(master)││(cache) ││(cache) ││(cache) │
+└────────┘└────────┘└────────┘└────────┘
+```
+
+**実装例**：
+
+```typescript
+// Auth Service が Master
+class AuthUserService {
+  async updateUser(userId: string, data: UpdateUserDto) {
+    // 1. Auth DBを更新（マスター）
+    const user = await this.userRepo.update(userId, data);
+
+    // 2. 更新フラグを記録（他サービスがポーリングで検知）
+    await this.userSyncLogRepo.create({
+      userId: user.id,
+      updatedAt: new Date()
+    });
+
+    return user;
+  }
+
+  // 他サービス用の差分取得API
+  async getUpdatedUsers(since: Date): Promise<User[]> {
+    return this.userRepo.findUpdatedSince(since);
+  }
+}
+
+// Project Service はキャッシュを保持
+class ProjectUserCacheService {
+  // 定期ポーリングで同期（5分ごと）
+  @Cron('0 */5 * * * *')
+  async syncUserCache() {
+    const updatedUsers = await this.authServiceClient.getUpdatedUsers(
+      this.lastSyncTime
+    );
+
+    for (const user of updatedUsers) {
+      await this.userCacheRepo.upsert({
+        userId: user.id,
+        name: user.name,
+        email: user.email,
+        syncedAt: new Date()
+      });
+    }
+
+    this.lastSyncTime = new Date();
+  }
+
+  async getUser(userId: string): Promise<User> {
+    // キャッシュから取得
+    let user = await this.userCacheRepo.findById(userId);
+
+    // キャッシュミスの場合、Auth Serviceに問い合わせ
+    if (!user) {
+      user = await this.authServiceClient.getUser(userId);
+      await this.userCacheRepo.upsert(user);
+    }
+
+    return user;
+  }
+}
+```
+
+---
+
+#### トランザクション境界の再設計
+
+##### モノリスでのトランザクション（簡単）
+
+```typescript
+// ❌ モノリスでは簡単だが、MS化で壊れる
+async function assignTaskToUser(taskId: string, userId: string) {
+  await db.transaction(async (tx) => {
+    // 1. ユーザー確認
+    const user = await tx.users.findUnique({ where: { id: userId } });
+    if (!user) throw new Error('User not found');
+
+    // 2. タスク割り当て
+    await tx.tasks.update({
+      where: { id: taskId },
+      data: { assignedTo: userId }
+    });
+
+    // 3. ユーザーの負荷更新
+    await tx.users.update({
+      where: { id: userId },
+      data: { taskCount: { increment: 1 } }
+    });
+  });
+  // すべて成功するかすべて失敗（ACID保証）
+}
+```
+
+##### MS化後のトランザクション（困難）
+
+```typescript
+// ✅ Sagaパターンで分散トランザクション
+class AssignTaskSaga {
+  async execute(taskId: string, userId: string) {
+    const sagaId = generateId();
+
+    try {
+      // Step 1: ユーザー確認（Auth Service）
+      const user = await this.authServiceClient.getUser(userId);
+      if (!user) throw new Error('User not found');
+
+      // Step 2: ユーザー負荷確認（Auth Service）
+      await this.authServiceClient.incrementTaskCount(userId, sagaId);
+
+      // Step 3: タスク割り当て（Project Service）
+      await this.projectServiceClient.assignTask(taskId, userId, sagaId);
+
+      // Step 4: Saga完了
+      await this.sagaRepo.markCompleted(sagaId);
+
+    } catch (error) {
+      // 補償トランザクション（ロールバック）
+      await this.compensate(sagaId);
+      throw error;
+    }
+  }
+
+  private async compensate(sagaId: string) {
+    // 実行済みの操作を逆順で取り消し
+    const steps = await this.sagaRepo.getExecutedSteps(sagaId);
+
+    for (const step of steps.reverse()) {
+      switch (step.type) {
+        case 'INCREMENT_TASK_COUNT':
+          await this.authServiceClient.decrementTaskCount(step.userId);
+          break;
+        case 'ASSIGN_TASK':
+          await this.projectServiceClient.unassignTask(step.taskId);
+          break;
+      }
+    }
+  }
+}
+```
+
+---
+
+#### データ移行チェックリスト
+
+##### Phase 1 → Phase 2 移行時
+
+```markdown
+□ 外部キー制約の棚卸し
+□ 制約削除の影響範囲調査
+□ アプリケーション層バリデーション実装
+□ ロールバック手順の準備
+□ 本番環境での段階的ロールアウト計画
+```
+
+##### Phase 3 → Phase 4 移行時（最も困難）
+
+```markdown
+□ データ量の調査（移行時間見積もり）
+□ ダウンタイム許容時間の確認
+□ 移行スクリプトの作成とテスト
+□ ブルー/グリーンデプロイメント準備
+□ データ同期メカニズムの実装
+  - 二重書き込み期間の設定
+  - データ整合性チェック
+  - 切り戻し手順の確立
+□ 移行リハーサル（本番コピーで実施）
+□ 監視・アラート設定
+□ インシデント対応手順書作成
+```
+
+---
+
+#### パラソルでの推奨ロードマップ
+
+```
+Year 1: Phase 0 → Phase 1（スキーマ分離）
+├── Q1: スキーマ設計（bounded-contexts/*/database-design.md）
+├── Q2: 外部キー制約の調査と削除計画
+├── Q3: スキーマ移行の実施
+└── Q4: アプリケーション層バリデーション強化
+
+Year 2: Phase 1 → Phase 2（接続プール分離）
+├── Q1: コンテキスト別接続プール実装
+├── Q2: モニタリング強化
+├── Q3: パフォーマンスチューニング
+└── Q4: 次フェーズ準備（Read Replica検討）
+
+Year 3以降: Phase 3 → Phase 4（物理DB分離）
+└── 負荷の高いコンテキストから段階的に分離
+    - 最優先: Secure Access（認証）
+    - 次: Productivity Visualization（分析）
+    - 最後: 残りのコンテキスト
+```
+
+---
+
+#### まとめ：DB分離の鉄則
+
+```
+1. 一気に分離しない（段階的に）
+2. Phase 1（スキーマ分離）を最優先
+3. 外部キー制約は早めに削除
+4. データ複製パターンを活用
+5. Sagaパターンで分散トランザクション
+6. 移行は本番コピーで十分にリハーサル
+7. ロールバック手順を必ず用意
+```
+
+**DB分離は時間がかかる**ことを前提に、**今できることから始める**のが成功の鍵です。
+
+---
+
+## 4. MDファイル構成の見直し：コンテキスト中心設計
+
+### 4.1 現状と課題
+
+#### 現在の構造（services/）
 
 ```
 docs/parasol/services/
@@ -133,22 +1875,623 @@ docs/parasol/services/
 │   ├── api-specification.md                 # API仕様 ✅
 │   ├── database-design.md                   # DB設計 ✅
 │   ├── integration-specification.md         # 統合仕様 ✅
-│   ├── capabilities-and-operations.md       # ケーパビリティ・オペレーション一覧 ✅
-│   └── capabilities/
-│       └── [capability-name]/               # ケーパビリティディレクトリ
-│           ├── capability.md                # ケーパビリティ定義 ✅
-│           └── operations/
-│               └── [operation-name]/        # オペレーションディレクトリ
-│                   ├── operation.md         # オペレーション定義 ✅
-│                   ├── usecases/           # ユースケース（復旧スクリプト対象）
-│                   │   └── [usecase].md    # 例: approve-and-create-account.md
-│                   ├── pages/              # ページ定義（復旧スクリプト対象）
-│                   │   └── [page].md       # 例: approve-and-create-account-page.md
-│                   ├── tests/              # テスト定義（復旧スクリプト対象）
-│                   │   └── [test].md       # 例: approve-and-create-account-test.md
-│                   └── robustness/         # ロバストネス図（新発見）
-│                       └── [robustness].md # 例: login-and-authenticate-robustness.md
+│   └── capabilities/                        # ビジネスケーパビリティ
+│       └── [capability-name]/
+│           └── operations/                  # ビジネスオペレーション
+│               └── [operation-name]/
+│                   ├── operation.md
+│                   ├── usecases/           # ユースケース
+│                   │   └── [usecase]/
+│                   │       ├── usecase.md
+│                   │       ├── page.md
+│                   │       └── api-usage.md
+│                   └── pages/              # ページ定義
 ```
+
+**問題点**：
+- ❌ ディレクトリ名が `services/` だが、これは**バウンデッドコンテキスト**
+- ❌ コンテキストマップの概念がない
+- ❌ コンテキスト間の関係が不明確
+
+---
+
+### 4.2 推奨構成：bounded-contexts/
+
+#### 基本方針
+
+✅ **ディレクトリ名を変更**：`services/` → `bounded-contexts/`
+✅ **コンテキストマップ概念を追加**
+✅ **既存の階層構造は維持**（ケーパビリティ → オペレーション → ユースケース）
+
+#### 新しい構造
+
+```
+bounded-contexts/                        # ⭐ リネーム（services → bounded-contexts）
+├── CONTEXT_MAP.md                       # ⭐ 新規：全体コンテキストマップ
+├── _shared/                             # ⭐ 新規：共有概念
+│   ├── domain-language.md              # 共通エンティティ定義
+│   └── database-design.md              # 共有データ設計
+│
+├── secure-access/                       # バウンデッドコンテキスト
+│   ├── README.md                        # ⭐ 新規：コンテキスト概要
+│   ├── context.md                       # ⭐ 新規：コンテキスト定義
+│   ├── context-map.md                   # ⭐ 新規：他コンテキストとの関係
+│   │
+│   ├── service.md                       # 既存：サービス定義
+│   ├── domain-language.md               # 既存：ドメイン言語
+│   ├── api-specification.md             # 既存：API仕様
+│   ├── database-design.md               # 既存：DB設計
+│   ├── integration-specification.md     # 既存：統合仕様
+│   │
+│   └── capabilities/                    # 既存：ビジネスケーパビリティ
+│       └── [capability-name]/
+│           ├── capability.md
+│           └── operations/
+│               └── [operation-name]/
+│                   ├── operation.md
+│                   ├── usecases/
+│                   │   └── [usecase]/
+│                   │       ├── usecase.md
+│                   │       ├── page.md
+│                   │       └── api-usage.md
+│                   └── pages/
+│
+├── project-success/
+│   ├── README.md
+│   ├── context.md
+│   ├── context-map.md
+│   ├── service.md
+│   └── ... (同様の構造)
+│
+├── talent-optimization/
+├── productivity-visualization/
+├── knowledge-co-creation/
+├── revenue-optimization/
+└── collaboration-facilitation/
+```
+
+---
+
+### 4.3 新規ファイルの詳細
+
+#### CONTEXT_MAP.md（全体マップ）
+
+**配置**：`bounded-contexts/CONTEXT_MAP.md`
+
+**目的**：7つのバウンデッドコンテキスト全体の関係を可視化
+
+**内容例**：
+
+```markdown
+# パラソルコンテキストマップ
+
+## 概要
+
+パラソルシステムは7つのバウンデッドコンテキストで構成されています。
+
+## コンテキスト一覧
+
+| コンテキスト名 | 役割 | 主要な関係 |
+|--------------|------|----------|
+| Secure Access | 認証・認可基盤 | すべてのコンテキストに認証を提供 |
+| Project Success | プロジェクト管理 | 中心ハブ、多方向連携 |
+| Talent Optimization | 人材配置 | Project Success と双方向連携 |
+| Productivity Visualization | 生産性分析 | Revenue Optimization とデータ連携 |
+| Knowledge Co-creation | 知識管理 | Project Success と知見共有 |
+| Revenue Optimization | 収益最適化 | Project Success から情報受信 |
+| Collaboration Facilitation | 協働促進 | 全コンテキストに通知提供 |
+
+## 全体マップ図
+
+（Mermaid図：セクション3.7のコンテキストマップ図を参照）
+
+## コンテキスト関係パターン
+
+### Customer/Supplier 関係
+- Secure Access → すべてのコンテキスト（認証提供）
+
+### Partnership 関係
+- Project Success ⇄ Talent Optimization
+- Project Success ⇄ Knowledge Co-creation
+- Productivity Visualization ⇄ Revenue Optimization
+
+### Open Host Service
+- Collaboration Facilitation → すべてのコンテキスト（通知提供）
+
+## 統合ポイント
+
+各コンテキストの詳細な統合仕様は、各コンテキスト配下の
+`integration-specification.md` を参照してください。
+```
+
+---
+
+#### context.md（コンテキスト定義）
+
+**配置**：`bounded-contexts/[context-name]/context.md`
+
+**目的**：バウンデッドコンテキストの境界と責務を明確化
+
+**内容例**：
+
+```markdown
+# バウンデッドコンテキスト：Secure Access
+
+## コンテキスト定義
+
+### 境界（Boundary）
+
+**このコンテキストが扱う範囲**：
+- ユーザー認証（Authentication）
+- ユーザー認可（Authorization）
+- セッション管理
+- アクセス制御
+- 監査ログ
+
+**このコンテキストが扱わない範囲**：
+- ユーザープロファイル詳細（Talent Optimization の責務）
+- 組織階層管理（別コンテキストの責務）
+- ビジネスロジック（各コンテキストの責務）
+
+### ユビキタス言語（Ubiquitous Language）
+
+このコンテキスト内で使用される主要用語：
+
+- **User**: システムにアクセスする主体
+- **Role**: ユーザーに付与される役割
+- **Permission**: 具体的なアクセス権限
+- **Session**: 認証済みユーザーのセッション
+- **Token**: 認証トークン（JWT）
+
+### 不変条件（Invariants）
+
+- 1ユーザーは複数のロールを持つことができる
+- セッションは有効期限を持つ
+- トークンは署名されている必要がある
+- すべてのアクセスは監査ログに記録される
+
+### コンテキストの責務
+
+1. **認証の提供**: すべてのコンテキストに対して認証サービスを提供
+2. **権限管理**: ロールと権限の定義・管理
+3. **アクセス制御**: リソースへのアクセス可否判定
+4. **監査**: セキュリティ関連イベントの記録
+
+## 関連ドキュメント
+
+- [ドメイン言語](./domain-language.md): 詳細なエンティティ・値オブジェクト定義
+- [コンテキストマップ](./context-map.md): 他コンテキストとの関係
+- [API仕様](./api-specification.md): 公開API
+- [データベース設計](./database-design.md): DB スキーマ設計
+```
+
+---
+
+#### context-map.md（個別コンテキストマップ）
+
+**配置**：`bounded-contexts/[context-name]/context-map.md`
+
+**目的**：このコンテキストと他コンテキストの関係を詳細記述
+
+**内容例**：
+
+```markdown
+# コンテキストマップ：Secure Access
+
+## このコンテキストの役割
+
+**パターン**: Customer/Supplier (Upstream)
+**役割**: 認証・認可サービスの提供者
+
+## 下流コンテキスト（依存される側）
+
+### すべてのコンテキストへの提供
+
+| コンテキスト | 関係パターン | 提供内容 | 統合方法 |
+|------------|------------|---------|---------|
+| Project Success | Customer/Supplier | 認証API | REST API |
+| Talent Optimization | Customer/Supplier | 認証API | REST API |
+| Productivity Visualization | Customer/Supplier | 認証API | REST API |
+| Knowledge Co-creation | Customer/Supplier | 認証API | REST API |
+| Revenue Optimization | Customer/Supplier | 認証API | REST API |
+| Collaboration Facilitation | Customer/Supplier | 認証API | REST API |
+
+### 提供API
+
+```
+POST /api/auth/login          # ログイン
+POST /api/auth/logout         # ログアウト
+GET  /api/auth/verify-token   # トークン検証
+GET  /api/auth/permissions    # 権限取得
+```
+
+## 上流コンテキスト（依存する側）
+
+**なし**（このコンテキストは他のコンテキストに依存しない）
+
+## 共有カーネル（Shared Kernel）
+
+### 共有エンティティ
+
+- **User**: 基本的なユーザー情報
+  - ID, Name, Email
+  - 他コンテキストはUserIDのみを保持
+
+### データ複製戦略
+
+```
+Secure Access が User のマスター
+  ↓ REST API提供（GET /api/users/:id, GET /api/users/updated）
+他コンテキストはキャッシュを保持＋定期ポーリング
+  - Project Success: user cache (name, email) + 5分ごと同期
+  - Talent Optimization: user cache (name, email) + 5分ごと同期
+```
+
+## Anti-Corruption Layer
+
+他コンテキストは直接 User エンティティをimportせず、
+アダプターを通してアクセス：
+
+```typescript
+// ❌ 直接import禁止
+import { User } from '@secure-access/domain';
+
+// ✅ アダプター経由
+interface AuthServiceAdapter {
+  verifyToken(token: string): Promise<AuthResult>;
+  getUser(userId: string): Promise<UserInfo>;
+}
+```
+
+## 統合仕様詳細
+
+詳細は [integration-specification.md](./integration-specification.md) を参照
+```
+
+---
+
+#### _shared/（共有概念）
+
+**配置**：`bounded-contexts/_shared/`
+
+**目的**：Shared Kernel（複数コンテキストで共有される概念）の管理
+
+**構成**：
+
+```
+bounded-contexts/_shared/
+├── README.md                  # Shared Kernel の説明
+├── domain-language.md         # 共通エンティティ定義
+├── database-design.md         # 共有データ設計
+└── integration-patterns.md    # 共通統合パターン
+```
+
+**domain-language.md 例**：
+
+```markdown
+# 共有ドメイン言語（Shared Kernel）
+
+## 概要
+
+複数のバウンデッドコンテキストで共有される概念を定義します。
+
+⚠️ **注意**: Shared Kernel は最小限にすべきです。
+安易な共有は各コンテキストの独立性を損ないます。
+
+## 共有エンティティ
+
+### User（ユーザー）
+
+**マスター**: Secure Access コンテキスト
+**共有範囲**: 全コンテキスト
+**共有方法**: データ複製パターン
+
+| 属性 | 型 | 説明 | 共有範囲 |
+|-----|---|------|---------|
+| id | UUID | ユーザーID | ✅ 全コンテキスト |
+| name | String | 氏名 | ✅ 全コンテキスト |
+| email | String | メールアドレス | ✅ 全コンテキスト |
+| roles | Role[] | ロール | ❌ Secure Access のみ |
+| password | String | パスワード | ❌ Secure Access のみ |
+
+### Organization（組織）
+
+**マスター**: （TBD: 組織管理コンテキスト）
+**共有範囲**: 一部コンテキスト
+
+| 属性 | 型 | 説明 |
+|-----|---|------|
+| id | UUID | 組織ID |
+| name | String | 組織名 |
+| type | OrganizationType | 組織タイプ |
+
+## 共有値オブジェクト
+
+### Money（金額）
+
+**共有範囲**: Revenue Optimization, Project Success
+
+```typescript
+class Money {
+  constructor(
+    public readonly amount: number,
+    public readonly currency: Currency
+  ) {}
+}
+```
+
+### Period（期間）
+
+**共有範囲**: Project Success, Productivity Visualization
+
+```typescript
+class Period {
+  constructor(
+    public readonly startDate: Date,
+    public readonly endDate: Date
+  ) {}
+}
+```
+
+## データ同期API
+
+### GET /api/users/:id（個別取得）
+
+```typescript
+interface UserResponse {
+  userId: string;
+  name: string;
+  email: string;
+  updatedAt: string;  // ISO 8601
+}
+```
+
+### GET /api/users/updated（差分取得）
+
+```typescript
+interface UpdatedUsersRequest {
+  since: string;  // ISO 8601 datetime
+  limit?: number; // default: 100
+}
+
+interface UpdatedUsersResponse {
+  users: Array<{
+    userId: string;
+    name: string;
+    email: string;
+    updatedAt: string;
+  }>;
+  nextCursor?: string;  // ページネーション用
+}
+```
+
+**使用パターン**：
+
+```typescript
+// 他コンテキストからの呼び出し
+class UserCacheSyncService {
+  @Cron('0 */5 * * * *')  // 5分ごと
+  async syncUsers() {
+    const response = await this.authClient.getUpdatedUsers({
+      since: this.lastSyncTime.toISOString()
+    });
+
+    for (const user of response.users) {
+      await this.userCache.upsert(user);
+    }
+
+    this.lastSyncTime = new Date();
+  }
+}
+```
+```
+
+---
+
+### 4.4 移行手順
+
+#### ステップ1: ディレクトリリネーム
+
+```bash
+cd consulting-dashboard-new
+
+# バックアップ
+cp -r docs/parasol/services docs/parasol/services.backup
+
+# リネーム
+mv docs/parasol/services docs/parasol/bounded-contexts
+
+# または
+git mv docs/parasol/services docs/parasol/bounded-contexts
+```
+
+#### ステップ2: 新規ファイルの作成
+
+```bash
+# 全体コンテキストマップ
+touch docs/parasol/bounded-contexts/CONTEXT_MAP.md
+
+# Shared Kernel
+mkdir -p docs/parasol/bounded-contexts/_shared
+touch docs/parasol/bounded-contexts/_shared/README.md
+touch docs/parasol/bounded-contexts/_shared/domain-language.md
+touch docs/parasol/bounded-contexts/_shared/database-design.md
+
+# 各コンテキストにファイル追加
+for context in secure-access project-success talent-optimization \
+               productivity-visualization knowledge-co-creation \
+               revenue-optimization collaboration-facilitation; do
+
+  mkdir -p docs/parasol/bounded-contexts/$context
+  touch docs/parasol/bounded-contexts/$context/README.md
+  touch docs/parasol/bounded-contexts/$context/context.md
+  touch docs/parasol/bounded-contexts/$context/context-map.md
+done
+```
+
+#### ステップ3: コード内のパス参照を更新
+
+```bash
+# スクリプトやコード内の参照を更新
+grep -r "docs/parasol/services" --include="*.ts" --include="*.js" \
+  | sed 's/docs\/parasol\/services/docs\/parasol\/bounded-contexts/g'
+
+# 具体的には：
+# - scripts/restore-usecase-definitions.js
+# - app/actions/parasol.ts
+# - app/components/parasol/*
+```
+
+#### ステップ4: ドキュメントの更新
+
+```bash
+# ガイドドキュメント内の参照を更新
+sed -i 's/docs\/parasol\/services/bounded-contexts/g' \
+  docs/parasol/PARASOL_DEVELOPMENT_GUIDE.md
+```
+
+---
+
+### 4.5 各ファイルの役割まとめ
+
+| レベル | ファイル | 目的 | 新規/既存 |
+|-------|---------|------|----------|
+| **全体** | `CONTEXT_MAP.md` | 7コンテキスト全体の関係 | 🆕 新規 |
+| **全体** | `_shared/domain-language.md` | 共有エンティティ定義 | 🆕 新規 |
+| **コンテキスト** | `README.md` | コンテキスト概要 | 🆕 新規 |
+| **コンテキスト** | `context.md` | コンテキスト定義・境界 | 🆕 新規 |
+| **コンテキスト** | `context-map.md` | 他コンテキストとの関係 | 🆕 新規 |
+| **コンテキスト** | `service.md` | サービス定義 | ✅ 既存 |
+| **コンテキスト** | `domain-language.md` | ドメイン言語 | ✅ 既存 |
+| **コンテキスト** | `api-specification.md` | API仕様 | ✅ 既存 |
+| **コンテキスト** | `database-design.md` | DB設計 | ✅ 既存 |
+| **コンテキスト** | `integration-specification.md` | 統合仕様 | ✅ 既存 |
+| **ケーパビリティ** | `capability.md` | ビジネスケーパビリティ | ✅ 既存 |
+| **オペレーション** | `operation.md` | ビジネスオペレーション | ✅ 既存 |
+| **ユースケース** | `usecase.md` | ユースケース定義 | ✅ 既存 |
+| **ユースケース** | `page.md` | ページ定義 | ✅ 既存 |
+| **ユースケース** | `api-usage.md` | API使用方法 | ✅ 既存 |
+
+---
+
+### 4.6 既存の階層構造は維持
+
+**重要**: ケーパビリティ → オペレーション → ユースケース の階層は変更なし
+
+```
+✅ 維持される構造：
+
+バウンデッドコンテキスト
+  └── ビジネスケーパビリティ（組織能力）
+      └── ビジネスオペレーション（価値創造活動）
+          └── ユースケース（具体的な利用シナリオ）
+              ├── usecase.md
+              ├── page.md
+              └── api-usage.md
+```
+
+この階層は**DDDのビジネス視点**を表現しており、非常に適切です。
+
+---
+
+### 4.7 変更の影響範囲
+
+#### 影響を受けるもの
+
+```
+✅ ディレクトリパス
+  - docs/parasol/services/* → docs/parasol/bounded-contexts/*
+
+✅ スクリプト
+  - scripts/restore-usecase-definitions.js（パス参照）
+
+✅ アプリケーションコード
+  - app/actions/parasol.ts（ファイル読み込みパス）
+  - app/components/parasol/*（表示ロジック）
+```
+
+#### 影響を受けないもの
+
+```
+✅ ファイルの内容（service.md, domain-language.md など）
+✅ ケーパビリティ/オペレーション/ユースケースの構造
+✅ データベースのデータ（既存データはそのまま）
+```
+
+---
+
+### 4.8 最終的な構成イメージ
+
+```
+consultingTool/
+│
+├── bounded-contexts/              # ⭐ 設計の真実（Source of Truth）
+│   ├── CONTEXT_MAP.md            # 全体コンテキストマップ
+│   ├── _shared/                  # Shared Kernel
+│   │   ├── README.md
+│   │   ├── domain-language.md
+│   │   └── database-design.md
+│   │
+│   ├── secure-access/            # バウンデッドコンテキスト
+│   │   ├── README.md             # 🆕 コンテキスト概要
+│   │   ├── context.md            # 🆕 コンテキスト定義
+│   │   ├── context-map.md        # 🆕 関係マップ
+│   │   ├── service.md            # サービス定義
+│   │   ├── domain-language.md    # ドメイン言語
+│   │   ├── api-specification.md  # API仕様
+│   │   ├── database-design.md    # DB設計
+│   │   ├── integration-specification.md
+│   │   └── capabilities/         # ビジネスケーパビリティ
+│   │       └── [capability]/
+│   │           └── operations/   # ビジネスオペレーション
+│   │               └── [operation]/
+│   │                   ├── operation.md
+│   │                   └── usecases/  # ユースケース
+│   │                       └── [usecase]/
+│   │                           ├── usecase.md
+│   │                           ├── page.md
+│   │                           └── api-usage.md
+│   │
+│   ├── project-success/
+│   ├── talent-optimization/
+│   ├── productivity-visualization/
+│   ├── knowledge-co-creation/
+│   ├── revenue-optimization/
+│   └── collaboration-facilitation/
+│
+├── src/contexts/                  # 実装（モノリス）
+├── services/                      # 将来（マイクロサービス）
+└── docs/
+    ├── architecture/
+    │   └── BOUNDED_CONTEXT_STRATEGY.md
+    └── parasol/
+        └── PARASOL_DEVELOPMENT_GUIDE.md
+```
+
+---
+
+### 4.9 まとめ
+
+**変更内容**：
+1. ✅ `services/` → `bounded-contexts/` へリネーム
+2. ✅ コンテキストマップファイルを追加（全体 + 個別）
+3. ✅ Shared Kernel ディレクトリを追加
+4. ✅ 既存の階層構造は維持
+
+**作業時間見積もり**：
+- ディレクトリリネーム：5分
+- 新規ファイル作成：30分（テンプレートベース）
+- コード修正：1-2時間（パス参照の更新）
+- テスト：30分
+
+**リスク**：
+- 低リスク（ファイル移動が主）
+- git mv でバージョン履歴を保持可能
+- ロールバックも容易
+
+---
+
+## 5. DX階層構造定義
 
 ### DX型サービス構成（7サービス確認済み）
 
@@ -181,7 +2524,7 @@ docs/parasol/services/
 
 ---
 
-## 4. DX階層構造定義
+## 5. DX階層構造定義
 
 ### DX価値創造型階層定義
 
@@ -227,7 +2570,7 @@ Service (価値提供サービス)
 
 ---
 
-## 5. 価値創造型開発プロセス
+## 6. 価値創造型開発プロセス
 
 ### MDファイル作成 → DB登録 → UI表示の流れ
 
@@ -290,7 +2633,7 @@ const success = await uploadParasolData(allServices);
 
 ---
 
-## 6. DXテンプレート・仕様書
+## 7. DXテンプレート・仕様書
 
 ### 価値創造型テンプレートの使い方
 
@@ -359,7 +2702,7 @@ const success = await uploadParasolData(allServices);
 
 ---
 
-## 7. DX実装ガイド
+## 8. DX実装ガイド
 
 ### 新規DXサービス追加手順
 
@@ -443,7 +2786,7 @@ node scripts/dx-maturity-assessment.js [service-name]
 
 ---
 
-## 8. DX品質管理
+## 9. DX品質管理
 
 ### 価値創造テスト戦略
 
@@ -551,9 +2894,9 @@ templates/
 - [DX成熟度評価モデル](./dx-maturity-model.md)
 - [価値創造メトリクス設計](./value-creation-metrics.md)
 
-## 9. MD形式統一による品質保証
+## 10. MD形式統一による品質保証
 
-### 9.1 パラソル設計の核心原則
+### 10.1 パラソル設計の核心原則
 
 #### MD形式の絶対性
 
@@ -572,7 +2915,7 @@ templates/
 }
 ```
 
-### 9.2 データ消失問題の根本解決
+### 10.2 データ消失問題の根本解決
 
 #### 問題の本質
 
@@ -602,7 +2945,7 @@ apiSpecificationDefinition TEXT,    -- MD: ビジネス観点の仕様
 databaseDesignDefinition TEXT,      -- MD: 概念レベルの設計
 ```
 
-### 9.3 開発ベストプラクティス
+### 10.3 開発ベストプラクティス
 
 #### 1. 新規開発時の鉄則
 
@@ -631,7 +2974,7 @@ sqlite3 parasol.db "SELECT name,
 grep -i "CREATE TABLE\|SELECT\|POST\|GET" *.md && echo "❌ 実装詳細検出"
 ```
 
-### 9.4 移行戦略とロードマップ
+### 10.4 移行戦略とロードマップ
 
 #### フェーズ1: 現状把握と修正（完了）
 - [x] データ表示問題の修正
@@ -653,7 +2996,7 @@ grep -i "CREATE TABLE\|SELECT\|POST\|GET" *.md && echo "❌ 実装詳細検出"
 - [ ] CI/CDでのMD形式チェック
 - [ ] 開発者教育の実施
 
-### 9.5 期待効果
+### 10.5 期待効果
 
 #### 技術的価値
 - **データ消失問題の根絶**: 表示不具合の完全解消

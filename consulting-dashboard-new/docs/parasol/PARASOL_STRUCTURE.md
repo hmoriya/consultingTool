@@ -1,5 +1,18 @@
 # パラソル設計ディレクトリ完全構造
 
+> ⚠️ **構造進化のお知らせ**: このドキュメントは現在のサービス構造を記録しています。
+>
+> **最新の階層構造設計（v3.0）については**:
+> - [PARASOL_L3_OPERATION_HIERARCHY_CORRECTION.md](PARASOL_L3_OPERATION_HIERARCHY_CORRECTION.md) - L3 Capability ⊃ Operation階層
+> - [PARASOL_LAYERED_DIRECTORY_STRATEGY.md](PARASOL_LAYERED_DIRECTORY_STRATEGY.md) - 3層ディレクトリ分離戦略
+>
+> **v3.0の核心**:
+> - **Service** = 複数のBC（Business Capability）を含む
+> - **BC** = ビジネスケーパビリティ（Why-What-Howの中心）
+> - **L3 Capability** = What（能力の定義）
+> - **Operation** = How（能力を実現する操作）
+> - 階層: Service ⊃ BC ⊃ L3 ⊃ Operation ⊃ UseCase
+
 ## 📊 統計情報
 - **合計サービス**: 7
 - **合計ケーパビリティ**: 22

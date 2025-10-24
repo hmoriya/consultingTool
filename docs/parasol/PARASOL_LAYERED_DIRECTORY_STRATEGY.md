@@ -1,5 +1,12 @@
 # パラソル階層別ディレクトリ分離戦略
 
+> ⚠️ **注意**: このドキュメントはBC内部の階層構造（L3/Operation）の詳細は含みません。
+>
+> **BC内部の階層構造（L3 Capability ⊃ Operation）については**:
+> [PARASOL_L3_OPERATION_HIERARCHY_CORRECTION.md](PARASOL_L3_OPERATION_HIERARCHY_CORRECTION.md) (v3.0) を参照してください。
+>
+> このドキュメントは、3つのディレクトリ領域（Layer 1/2/3）の分離戦略に焦点を当てています。
+
 ## 📋 概要
 
 Value Definition層からUseCase層までを**単一のディレクトリ構造で管理するのは現実的ではない**。
@@ -31,13 +38,17 @@ consultingTool/
 │   │   └── value-stages/
 │   │
 │   └── parasol/                       ← 🏗️ Layer 2: システム設計層
-│       ├── capabilities/
-│       ├── business-capabilities/
-│       └── operations/
+│       ├── capabilities/              # L1/L2/L3階層マップ
+│       └── business-capabilities/     # BC詳細設計
+│           └── BC-XXX/
+│               ├── domain/api/data/   # BC How詳細
+│               └── capabilities/      # L3能力層
+│                   └── L3-XXX/
+│                       └── operations/ # Operation層
 │
 └── services/                          ← 💻 Layer 3: サービス実装層
     └── [service-name]/
-        └── src/capabilities/[bc-name]/operations/[op-name]/usecases/
+        └── src/capabilities/[bc-name]/capabilities/[l3-name]/operations/[op-name]/usecases/
 ```
 
 ---
@@ -193,34 +204,32 @@ docs/parasol/business-capabilities/
 - 下流BC
 ```
 
-#### 3. Operations（ビジネスオペレーション = L3 Capability）
+#### 3. L3 Capabilities と Operations
+
+> **詳細な階層構造**: [PARASOL_L3_OPERATION_HIERARCHY_CORRECTION.md](PARASOL_L3_OPERATION_HIERARCHY_CORRECTION.md) (v3.0)
+
+**重要な理解**:
+- **L3 Capability = What**（能力の定義）
+- **Operation = How**（能力を実現する操作）
+- L3 ⊃ Operations（L3能力は複数のOperationを含む）
+
 ```
-docs/parasol/operations/
-├── README.md                          # Operation全体一覧
-├── BC-001-task-management/
-│   ├── OP-001-create-wbs.md
-│   ├── OP-002-define-tasks.md
-│   ├── OP-003-estimate-effort.md
-│   └── ...
+docs/parasol/business-capabilities/BC-XXX/
+└── capabilities/                      # L3能力層
+    └── L3-XXX-[capability-name]/
+        ├── README.md                  # L3能力定義（What）
+        └── operations/                # 操作層
+            └── OP-XXX-[operation-name]/
+                ├── README.md          # Operation定義（How）
+                └── usecases/          # → services/へ
 ```
 
-**OP-xxx.md構造**:
-```markdown
-# OP-001: WBSを作成する
+**詳細構造と数量関係**:
+- 1 BC = 3-5 L3 Capabilities
+- 1 L3 = 2-4 Operations
+- 1 Operation = 1-3 UseCases
 
-## 📋 What: 操作内容
-- この操作が実現すること
-- インプット/アウトプット
-
-## 🏗️ How: BC設計の使い方
-- 使用するBC Domain要素 → [BC-001/domain/README.md](リンク)
-- 使用するBC API → [BC-001/api/endpoints.md#create-wbs](リンク)
-- 使用するBC Data → [BC-001/data/database-design.md#tasks-table](リンク)
-
-## 💻 UseCases
-- UC-001: 手動でWBSを作成する
-- UC-002: テンプレートからWBSを作成する
-```
+詳細は [PARASOL_L3_OPERATION_HIERARCHY_CORRECTION.md](PARASOL_L3_OPERATION_HIERARCHY_CORRECTION.md) を参照
 
 ### 管理主体
 - システムアーキテクト
@@ -245,7 +254,7 @@ docs/parasol/operations/
 
 ### 配置場所
 ```
-services/[service-name]/src/capabilities/[bc-name]/operations/[op-name]/usecases/
+services/[service-name]/src/capabilities/[bc-name]/capabilities/[l3-name]/operations/[op-name]/usecases/
 ```
 
 ### 管理対象
@@ -254,18 +263,20 @@ services/[service-name]/src/capabilities/[bc-name]/operations/[op-name]/usecases
 ```
 services/project-success-service/src/
 └── capabilities/
-    └── task-management/                      # BC-001
-        └── operations/
-            └── create-wbs/                   # OP-001
-                └── usecases/
-                    ├── create-wbs-manually/  # UC-001
-                    │   ├── usecase.md
-                    │   ├── page.md
-                    │   └── README.md         # 実装ガイド
-                    └── create-wbs-from-template/  # UC-002
-                        ├── usecase.md
-                        ├── page.md
-                        └── README.md
+    └── task-management/                              # BC-001
+        └── capabilities/
+            └── task-decomposition/                   # L3-001
+                └── operations/
+                    └── create-wbs/                   # OP-001
+                        └── usecases/
+                            ├── create-wbs-manually/  # UC-001
+                            │   ├── usecase.md
+                            │   ├── page.md
+                            │   └── README.md         # 実装ガイド
+                            └── create-wbs-from-template/  # UC-002
+                                ├── usecase.md
+                                ├── page.md
+                                └── README.md
 ```
 
 **README.md構造**:
@@ -273,8 +284,9 @@ services/project-success-service/src/
 # UC-001: 手動でWBSを作成する - 実装ガイド
 
 ## 🔗 設計参照
-- BC Why-What-How: [docs/parasol/business-capabilities/BC-001-task-management/](リンク)
-- Operation定義: [docs/parasol/operations/BC-001/OP-001-create-wbs.md](リンク)
+- **BC** (Why-What-How): [docs/parasol/business-capabilities/BC-001-task-management/](リンク)
+- **L3 Capability** (What): [docs/parasol/business-capabilities/BC-001/capabilities/L3-001-task-decomposition/](リンク)
+- **Operation** (How): [docs/parasol/business-capabilities/BC-001/capabilities/L3-001/operations/OP-001-create-wbs/](リンク)
 
 ## 💻 Implementation: 実装詳細
 

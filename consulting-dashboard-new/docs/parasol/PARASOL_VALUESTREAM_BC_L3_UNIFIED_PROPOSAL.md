@@ -1,8 +1,22 @@
 # パラソル設計書構造提案: ValueStream/BC/L3=Operation統合モデル（改訂版）
 
+> ⚠️ **重要: この提案（v2.0）は誤りでした**
+>
+> **誤った理解**: L3 Capability = Business Operation（同じ抽象度）
+>
+> **正しい理解（v3.0）**:
+> - L3 Capability = What（能力の定義）⊃ Operation = How（操作の定義）
+> - L3とOperationは親子関係（別階層）
+>
+> **最新版を参照**: [PARASOL_L3_OPERATION_HIERARCHY_CORRECTION.md](PARASOL_L3_OPERATION_HIERARCHY_CORRECTION.md) (v3.0)
+>
+> **このドキュメントは参考資料として残していますが、構造設計にはv3.0を使用してください。**
+
+---
+
 **作成日**: 2025-10-23
-**バージョン**: 2.0.0（改訂版）
-**重要な修正**: L3 Capability = Business Operation（同じ抽象度）
+**バージョン**: 2.0.0（改訂版） - ⚠️ 廃止予定
+**重要な修正**: L3 Capability = Business Operation（同じ抽象度） - ⚠️ この理解は誤りでした
 **対象読者**: エンタープライズアーキテクト、サービス設計者、開発者
 
 ---

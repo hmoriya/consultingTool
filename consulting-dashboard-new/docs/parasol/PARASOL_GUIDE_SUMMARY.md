@@ -1,8 +1,17 @@
 # パラソル開発ガイド要約
 
-**バージョン**: 3.4.0（要約版）
+**バージョン**: 3.4.0（要約版・v3.0階層構造対応）
 **元ドキュメント**: PARASOL_DEVELOPMENT_GUIDE.md
 **作成日**: 2025-10-23
+**更新日**: 2025-10-24
+
+> ⚠️ **v3.0階層構造への対応**: この要約はv3.0階層構造に対応しています。
+>
+> **最新の詳細階層構造については**:
+> - [PARASOL_L3_OPERATION_HIERARCHY_CORRECTION.md](PARASOL_L3_OPERATION_HIERARCHY_CORRECTION.md) - L3 Capability ⊃ Operation階層
+> - [PARASOL_LAYERED_DIRECTORY_STRATEGY.md](PARASOL_LAYERED_DIRECTORY_STRATEGY.md) - 3層ディレクトリ分離戦略
+>
+> **v3.0の核心**: BC ⊃ L3 Capability（What：能力）⊃ Operation（How：操作）⊃ UseCase
 
 ## 目次
 

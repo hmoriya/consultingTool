@@ -1,8 +1,20 @@
 # パラソル開発ガイド - DX価値創造型フレームワーク
 
-**バージョン**: 3.4.0
-**更新日**: 2025-10-23
+**バージョン**: 3.4.0（v3.0階層構造対応）
+**更新日**: 2025-10-24
 **ステータス**: Draft
+
+> ⚠️ **v3.0階層構造への対応**: このガイドにv3.0の詳細階層構造（BC → L3 → Operation）を反映しています。
+>
+> **最新の階層構造設計については**:
+> - [PARASOL_L3_OPERATION_HIERARCHY_CORRECTION.md](PARASOL_L3_OPERATION_HIERARCHY_CORRECTION.md) - L3 Capability ⊃ Operation階層の詳細
+> - [PARASOL_LAYERED_DIRECTORY_STRATEGY.md](PARASOL_LAYERED_DIRECTORY_STRATEGY.md) - 3層ディレクトリ分離戦略
+>
+> **v3.0の核心**:
+> - BC（Business Capability）= ビジネスケーパビリティ（Why-What-Howの中心）
+> - L3 Capability = What（何ができるか：能力の定義）
+> - Operation = How（どうやるか：能力を実現する操作）
+> - 階層: BC ⊃ L3 Capability ⊃ Operation ⊃ UseCase
 
 ## 目次
 

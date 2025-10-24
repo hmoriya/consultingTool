@@ -1,9 +1,22 @@
 # パラソル設計ディレクトリ構造標準仕様 v2.0
 
+> ⚠️ **重要更新**: このドキュメントはサービスレベルのディレクトリ構造を定義しています。
+>
+> **BC（Business Capability）内部の詳細構造（L3 Capability ⊃ Operation階層）については**:
+> - [PARASOL_L3_OPERATION_HIERARCHY_CORRECTION.md](PARASOL_L3_OPERATION_HIERARCHY_CORRECTION.md) (v3.0) を参照
+> - [PARASOL_LAYERED_DIRECTORY_STRATEGY.md](PARASOL_LAYERED_DIRECTORY_STRATEGY.md) を参照
+>
+> **v3.0の核心**:
+> - L3 Capability = What（何ができるか：能力の定義）
+> - Operation = How（どうやるか：操作の定義）
+> - L3 ⊃ Operations（L3能力は複数のOperationを含む親子関係）
+
+---
+
 **バージョン**: 2.0.0
 **更新日**: 2025-10-10
 **適用範囲**: 全パラソルサービス
-**準拠**: パラソル設計v2.0仕様
+**準拠**: パラソル設計v2.0仕様（+ v3.0階層構造）
 
 ## 📋 標準ディレクトリ構造
 

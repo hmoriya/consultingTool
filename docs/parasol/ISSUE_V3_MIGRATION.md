@@ -20,6 +20,64 @@ BC → L3 Capability（What: 能力）⊃ Operation（How: 操作）→ UseCase
 - **L3 Capability** = 「何ができるか」（能力の定義）
 - **Operation** = 「どうやるか」（操作の定義）
 
+## 🔍 重要な前提：L2 Capability vs Bounded Context
+
+### 分析アプローチの違い
+
+パラソル設計では、**2つの異なる分析アプローチ**を統合します。
+
+#### L2 Capability: トップダウン分析
+```
+企業戦略・ビジネス価値
+  ↓ 分解
+ValueStream → ValueStage
+  ↓ 分解
+L1 Capability（大分類）
+  ↓ 分解
+L2 Capability（中分類）← ビジネス戦略起点
+```
+
+**特徴**:
+- Enterprise Architecture的なアプローチ
+- ビジネス価値・戦略から演繹的に導出
+- 経営層・事業企画部門が主導
+
+#### Bounded Context: ボトムアップ分析
+```
+実際の業務プロセス
+  ↓ 分析
+ドメインエキスパートとの対話
+  ↓ 発見
+ユビキタス言語の抽出
+  ↓ 境界発見
+Bounded Context← ドメイン分析起点
+```
+
+**特徴**:
+- Domain-Driven Design的なアプローチ
+- 現場の業務・用語から帰納的に発見
+- ドメインエキスパート・アーキテクトが主導
+
+### 統合プロセス
+
+```
+トップダウン分析          ボトムアップ分析
+（L2 Capability）         （Bounded Context）
+       ↓                        ↓
+       └──────→ 照合 ←──────┘
+                 ↓
+      パラソル設計における最終的なBC
+                 ↓
+            Service（実装単位）
+                 ↓
+          Microservice（デプロイ単位）
+```
+
+**重要**: L2とBounded Contextは**分析の種類が違う**ため同義ではありません。
+- 一致する場合もあるが、必然ではない
+- M:Nの関係になる可能性がある
+- 両方の分析結果を照らし合わせて最適な設計境界を決定
+
 ## 📊 移行内容
 
 ### Phase 1: ドキュメント整備（✅ 完了）
@@ -35,12 +93,14 @@ BC → L3 Capability（What: 能力）⊃ Operation（How: 操作）→ UseCase
 ### Phase 2: BC内部構造の再設計（このIssue）
 
 #### 2.1 BCマッピングの作成（Week 1）
-- [ ] 既存22ケーパビリティをBCとして整理
+- [ ] **トップダウン分析**: 既存のL2 Capabilityを整理
+- [ ] **ボトムアップ分析**: ドメインエキスパートとの対話でBounded Context候補を発見
+- [ ] **統合**: L2とBounded Contextを照合し、最終的なBC境界を決定
 - [ ] 各BCのL3能力を特定（1 BC = 3-5 L3）
 - [ ] 各L3のOperationをマッピング（1 L3 = 2-4 Ops）
 
-**担当**: アーキテクト
-**成果物**: `BC_L3_OPERATION_MAPPING.md`
+**担当**: アーキテクト + ドメインエキスパート
+**成果物**: `BC_L3_OPERATION_MAPPING.md`（L2-BC照合結果を含む）
 
 #### 2.2 BC設計書テンプレートの作成（Week 2）
 - [ ] BC README.mdテンプレート

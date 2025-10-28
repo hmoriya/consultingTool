@@ -1,15 +1,59 @@
 # ビジネスオペレーション: パフォーマンスを評価する
 
-**バージョン**: 1.0.0
-**更新日**: 2025-10-01
+**バージョン**: 2.0.0
+**更新日**: 2025-10-28
+**パラソル設計仕様**: v2.0準拠
 
 ## 概要
 
-**目的**: メンバーのパフォーマンスを公正に評価し、フィードバックする
+**目的**: 公正で建設的なパフォーマンス評価により、メンバーの成長と組織の目標達成を同時に実現する
 
-**パターン**: Workflow + Analytics
+**パターン**: Analytics
 
-**ゴール**: 評価が完了し、メンバーにフィードバックされ、次の目標が設定される
+**ゴール**: データドリブン評価による信頼性の高いフィードバックと、個人成長を促進する目標設定の完成
+
+## パラソルドメイン連携
+
+### 🎯 操作エンティティ
+- **PerformanceEvaluationEntity**（状態更新: draft → in_progress → calibration → finalized）- パフォーマンス評価プロセス管理
+- **EvaluationGoalEntity**（作成・更新: 目標設定・達成度更新）- 評価目標管理
+- **FeedbackSessionEntity**（作成・更新: 面談実施・記録）- フィードバック面談管理
+- **MemberEntity**（参照・更新: performance history）- メンバーパフォーマンス履歴管理
+
+### 🏗️ パラソル集約
+- **PerformanceEvaluationAggregate** - パフォーマンス評価統合管理
+  - 集約ルート: PerformanceEvaluation
+  - 包含エンティティ: EvaluationGoal, FeedbackSession, CalibrationResult
+  - 不変条件: 評価公正性確保、フィードバック完了必須
+
+### ⚙️ ドメインサービス
+- **FairEvaluationService**: enhance[EvaluationObjectivity]() - 評価客観性向上
+- **PerformanceDevelopmentService**: strengthen[MemberGrowth]() - メンバー成長支援強化
+- **CalibrationOptimizationService**: coordinate[EvaluationConsistency]() - 評価一貫性調整
+- **FeedbackEffectivenessService**: amplify[DevelopmentImpact]() - 育成効果増幅
+
+## ユースケース・ページ分解マトリックス（1対1関係）
+
+| ユースケース | 対応ページ | 1対1関係 | 設計品質 |
+|-------------|-----------|----------|----------|
+| 該当ユースケースなし | - | - | - |
+
+### 🔗 他サービスユースケース利用（ユースケース呼び出し型）
+**責務**: ❌ エンティティ知識不要 ✅ ユースケース利用のみ
+
+[secure-access-service] ユースケース利用:
+├── UC-AUTH-01: ユーザー認証を実行する → POST /api/auth/usecases/authenticate
+├── UC-AUTH-02: 権限を検証する → POST /api/auth/usecases/validate-permission
+└── UC-AUTH-03: アクセスログを記録する → POST /api/auth/usecases/log-access
+
+[productivity-visualization-service] ユースケース利用:
+├── UC-VISUAL-01: パフォーマンスデータを取得する → GET /api/productivity/usecases/get-performance-data
+├── UC-VISUAL-02: 成果分析レポートを生成する → POST /api/productivity/usecases/generate-achievement-report
+└── UC-VISUAL-03: 目標達成度を可視化する → POST /api/productivity/usecases/visualize-goal-achievement
+
+[collaboration-facilitation-service] ユースケース利用:
+├── UC-COMM-01: 評価通知を配信する → POST /api/collaboration/usecases/send-evaluation-notification
+└── UC-COMM-02: フィードバック面談予約を送信する → POST /api/collaboration/usecases/send-feedback-appointment
 
 ## 関係者とロール
 
@@ -65,12 +109,21 @@ stateDiagram-v2
     FeedbackGiven --> [*]
 ```
 
-## KPI
+## ビジネス価値とKPI
 
-- **評価完了率**: 評価期間終了後2週間以内に100%完了
-- **フィードバック実施率**: 評価確定後1週間以内に100%実施
-- **目標達成率**: 全メンバーの平均70%以上
-- **評価の公正性**: 評価分布が正規分布に近似
+### 🎯 ビジネス価値
+- **メンバー成長促進**: 建設的評価により個人能力向上30%と満足度向上を実現
+- **組織パフォーマンス向上**: 公正評価による適切な人材配置で組織効率25%向上
+- **人材リテンション強化**: 透明性ある評価により離職率30%削減
+- **企業競争力強化**: 継続的な人材育成により市場競争力を向上
+
+### 📊 成功指標（KPI）
+- **評価完了率**: 評価期間終了後10営業日以内に100%完了
+- **フィードバック実施率**: 評価確定後5営業日以内に100%面談実施
+- **目標達成率**: 全メンバーの平均目標達成率80%以上維持
+- **評価納得度**: 評価結果に対するメンバー納得度4.3/5.0以上
+- **評価公正性指標**: 部門間評価分布のバラつき係数0.2以下
+- **成長実感度**: 評価プロセスによる成長実感度4.5/5.0以上
 
 ## ビジネスルール
 

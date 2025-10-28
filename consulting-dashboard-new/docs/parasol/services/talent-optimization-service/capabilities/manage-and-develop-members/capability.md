@@ -1,7 +1,8 @@
 # ケーパビリティ: メンバーを管理し育成する能力
 
-**バージョン**: 1.0.0
-**更新日**: 2025-10-01
+**バージョン**: 2.0.0
+**更新日**: 2025-10-28
+**パラソル設計仕様**: v2.0準拠
 
 ## 定義
 
@@ -45,3 +46,51 @@
 - **関連ケーパビリティ**:
   - チームを編成し最適化する能力
   - リソースを最適に配分する能力
+
+## パラソルドメイン連携
+
+### 🎯 ケーパビリティレベル操作エンティティ
+- **MemberEntity**（状態更新: active → evaluated → developed）- メンバー情報・評価・育成管理
+- **PerformanceEvaluationEntity**（作成・更新: 評価実施・結果管理）- パフォーマンス評価管理
+- **CareerDevelopmentEntity**（作成・更新: キャリア計画・支援）- キャリア開発管理
+- **MemberSkillEntity**（参照・更新: スキル情報・進捗）- メンバースキル管理
+
+### 🏗️ ケーパビリティレベル集約
+- **MemberManagementAggregate** - メンバー管理統合
+  - 集約ルート: Member
+  - 包含エンティティ: Performance, Career, Skill
+  - 不変条件: 評価公正性、継続的成長支援
+
+### ⚙️ ケーパビリティレベルドメインサービス
+- **MemberOptimizationService**: enhance[MemberValue]() - メンバー価値向上
+- **PerformanceManagementService**: strengthen[EvaluationQuality]() - 評価品質強化
+- **CareerGuidanceService**: coordinate[CareerGrowth]() - キャリア成長調整
+- **TalentDevelopmentService**: amplify[OrganizationalCapability]() - 組織能力増幅
+
+## ユースケース・ページ分解マトリックス（ケーパビリティレベル）
+
+| オペレーション | ユースケース数 | ページ数 | 1対1関係 | 品質レベル |
+|---------------|--------------|---------|----------|-----------|
+| register-and-manage-members | 4 | 4 | ✅ | 高品質 |
+| evaluate-performance | 4 | 4 | ✅ | 高品質 |
+| develop-and-support-career | 4 | 4 | ✅ | 高品質 |
+| **合計** | **12** | **12** | **✅** | **高品質** |
+
+### 🔗 他サービスユースケース利用（ケーパビリティレベル）
+**責務**: ❌ エンティティ知識不要 ✅ ユースケース利用のみ
+
+[secure-access-service] 基盤認証:
+├── 全オペレーションで統一的認証・権限・監査
+└── メンバー情報のセキュアな管理
+
+[knowledge-co-creation-service] ナレッジ活用:
+├── キャリア開発ガイドライン・ベストプラクティス
+└── 評価フレームワーク・業界標準
+
+[productivity-visualization-service] 可視化:
+├── パフォーマンス分析・評価ダッシュボード
+└── キャリア進捗・成長可視化
+
+[collaboration-facilitation-service] コミュニケーション:
+├── 評価通知・フィードバック配信
+└── メンター連携・面談調整

@@ -1,15 +1,59 @@
 # ビジネスオペレーション: チーム構成を最適化する
 
-**バージョン**: 1.0.0
-**更新日**: 2025-10-01
+**バージョン**: 2.0.0
+**更新日**: 2025-10-28
+**パラソル設計仕様**: v2.0準拠
 
 ## 概要
 
-**目的**: チームパフォーマンスに基づき、チーム構成を最適化する
+**目的**: チームパフォーマンスを継続的に分析し、データドリブンな最適化により高パフォーマンスチームを実現する
 
-**パターン**: Workflow + Analytics
+**パターン**: Analytics
 
-**ゴール**: チーム構成が最適化され、パフォーマンスが改善される
+**ゴール**: チーム構成の科学的最適化により、チーム生産性とメンバー満足度を同時に最大化する
+
+## パラソルドメイン連携
+
+### 🎯 操作エンティティ
+- **TeamCompositionEntity**（状態更新: analyzing → optimizing → stabilizing → optimized）- チーム構成最適化プロセス管理
+- **PerformanceAnalysisEntity**（作成・更新: 継続分析）- パフォーマンス分析結果管理
+- **OptimizationPlanEntity**（作成・更新: 提案作成・実行）- 最適化計画管理
+- **TeamMemberEntity**（参照・更新: role/allocation変更）- メンバー配置情報管理
+
+### 🏗️ パラソル集約
+- **TeamOptimizationAggregate** - チーム最適化統合管理
+  - 集約ルート: TeamComposition
+  - 包含エンティティ: PerformanceAnalysis, OptimizationPlan, ImpactAssessment
+  - 不変条件: 最適化中チームは安定性確保、変更率30%以下制限
+
+### ⚙️ ドメインサービス
+- **PerformanceOptimizationService**: enhance[TeamEffectiveness]() - チーム効果性最大化
+- **CompositionAnalyticsService**: strengthen[DataDrivenDecisions]() - データドリブン意思決定強化
+- **TeamDynamicsService**: coordinate[MemberSynergy]() - メンバーシナジー調整
+- **ContinuousImprovementService**: amplify[OptimizationImpact]() - 最適化効果増幅
+
+## ユースケース・ページ分解マトリックス（1対1関係）
+
+| ユースケース | 対応ページ | 1対1関係 | 設計品質 |
+|-------------|-----------|----------|----------|
+| 該当ユースケースなし | - | - | - |
+
+### 🔗 他サービスユースケース利用（ユースケース呼び出し型）
+**責務**: ❌ エンティティ知識不要 ✅ ユースケース利用のみ
+
+[secure-access-service] ユースケース利用:
+├── UC-AUTH-01: ユーザー認証を実行する → POST /api/auth/usecases/authenticate
+├── UC-AUTH-02: 権限を検証する → POST /api/auth/usecases/validate-permission
+└── UC-AUTH-03: アクセスログを記録する → POST /api/auth/usecases/log-access
+
+[productivity-visualization-service] ユースケース利用:
+├── UC-VISUAL-01: パフォーマンスデータを取得する → GET /api/productivity/usecases/get-performance-data
+├── UC-VISUAL-02: 分析レポートを生成する → POST /api/productivity/usecases/generate-analysis-report
+└── UC-VISUAL-03: 効果測定を実行する → POST /api/productivity/usecases/measure-effectiveness
+
+[collaboration-facilitation-service] ユースケース利用:
+├── UC-COMM-01: 最適化通知を配信する → POST /api/collaboration/usecases/send-optimization-notification
+└── UC-COMM-02: 変更承諾確認を送信する → POST /api/collaboration/usecases/send-change-confirmation
 
 ## 関係者とロール
 
@@ -65,12 +109,21 @@ stateDiagram-v2
     Analyzing --> Current: 変更不要
 ```
 
-## KPI
+## ビジネス価値とKPI
 
-- **最適化効果**: 再編成後、パフォーマンス20%向上
-- **安定化期間**: 再編成後2週間以内に安定
-- **メンバー満足度**: 再編成後の満足度4.0以上（5点満点）
-- **最適化実施率**: 課題特定の60%で最適化を実施
+### 🎯 ビジネス価値
+- **チーム生産性最大化**: データドリブン最適化によりチーム生産性35%向上
+- **メンバーエンゲージメント強化**: 科学的配置によりメンバー満足度とモチベーション向上
+- **プロジェクト成功率向上**: 最適化されたチームによりプロジェクト成功率30%向上
+- **組織学習促進**: 最適化知見の蓄積により組織の継続的改善能力を向上
+
+### 📊 成功指標（KPI）
+- **チーム生産性向上率**: 最適化後3ヶ月で35%以上の生産性向上達成
+- **最適化効果持続性**: 最適化効果が6ヶ月以上持続する成功率85%以上
+- **メンバー満足度**: 最適化後のチーム満足度4.5/5.0以上維持
+- **最適化成功率**: 実施した最適化の90%以上で期待効果を達成
+- **安定化速度**: チーム再編成後2週間以内に新体制で安定稼働
+- **変更受容率**: メンバーの変更受諾率85%以上で円滑な移行実現
 
 ## ビジネスルール
 

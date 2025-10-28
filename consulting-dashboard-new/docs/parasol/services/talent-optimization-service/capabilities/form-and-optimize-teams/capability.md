@@ -1,7 +1,8 @@
 # ケーパビリティ: チームを編成し最適化する能力
 
-**バージョン**: 1.0.0
-**更新日**: 2025-10-01
+**バージョン**: 2.0.0
+**更新日**: 2025-10-28
+**パラソル設計仕様**: v2.0準拠
 
 ## 定義
 
@@ -45,3 +46,51 @@
 - **関連ケーパビリティ**:
   - リソースを最適に配分する能力
   - プロジェクトを成功に導く能力
+
+## パラソルドメイン連携
+
+### 🎯 ケーパビリティレベル操作エンティティ
+- **TeamEntity**（状態更新: forming → performing → optimizing）- チーム編成・最適化管理
+- **TeamCompositionEntity**（作成・更新: 構成策定・調整）- チーム構成管理
+- **TeamPerformanceEntity**（作成・更新: 評価実施・分析）- チームパフォーマンス管理
+- **TeamMemberAssignmentEntity**（作成・更新: アサイン実行・調整）- チームメンバー配置管理
+
+### 🏗️ ケーパビリティレベル集約
+- **TeamOptimizationAggregate** - チーム最適化統合
+  - 集約ルート: Team
+  - 包含エンティティ: Composition, Performance, Assignment
+  - 不変条件: チームバランス維持、継続的最適化
+
+### ⚙️ ケーパビリティレベルドメインサービス
+- **TeamSynergyService**: enhance[TeamCollaboration]() - チーム連携向上
+- **CompositionOptimizationService**: strengthen[TeamBalance]() - チームバランス強化
+- **PerformanceAnalyticsService**: coordinate[TeamIntelligence]() - チーム知見調整
+- **TeamEvolutionService**: amplify[CollectiveCapability]() - 集合能力増幅
+
+## ユースケース・ページ分解マトリックス（ケーパビリティレベル）
+
+| オペレーション | ユースケース数 | ページ数 | 1対1関係 | 品質レベル |
+|---------------|--------------|---------|----------|-----------|
+| form-teams | 3 | 3 | ✅ | 高品質 |
+| monitor-team-performance | 3 | 3 | ✅ | 高品質 |
+| optimize-team-composition | 3 | 3 | ✅ | 高品質 |
+| **合計** | **9** | **9** | **✅** | **高品質** |
+
+### 🔗 他サービスユースケース利用（ケーパビリティレベル）
+**責務**: ❌ エンティティ知識不要 ✅ ユースケース利用のみ
+
+[secure-access-service] 基盤認証:
+├── 全オペレーションで統一的認証・権限・監査
+└── チーム情報のセキュアな管理
+
+[project-success-service] プロジェクト連携:
+├── プロジェクト要件・リソース需要情報
+└── チーム編成要求・進捗連携
+
+[productivity-visualization-service] 可視化:
+├── チームパフォーマンス分析・ダッシュボード
+└── チーム構成・最適化可視化
+
+[collaboration-facilitation-service] コミュニケーション:
+├── チーム編成通知・調整連絡
+└── チーム内コミュニケーション促進

@@ -3,8 +3,9 @@
 ## サービス概要
 **名前**: talent-optimization-service
 **表示名**: タレント最適化サービス
-**バージョン**: 1.0.0
-**更新日**: 2025-10-01
+**バージョン**: 2.0.0
+**更新日**: 2025-10-28
+**パラソル設計仕様**: v2.0準拠
 
 ### サービスの目的
 組織の人的資源を最適に配置し、個々の能力を最大限に発揮させることで、チーム全体の生産性を向上させる。スキルマッチング、リソース配分、パフォーマンス管理を統合的に行い、人材育成とビジネス成果の両立を実現する。
@@ -25,3 +26,70 @@
 
 ### ビジネスケーパビリティ
 - **チームの生産性を最大化する能力**: リソース最適配置、スキル育成、チーム編成、パフォーマンス評価
+
+## パラソルドメイン連携
+
+### 🎯 サービスレベル操作エンティティ
+- **TalentEntity**（状態更新: 人材情報管理・最適化）- 組織人材の総合管理
+- **TeamEntity**（作成・更新: チーム編成・最適化）- チーム構成と最適化管理
+- **SkillEntity**（作成・更新: スキル定義・評価）- スキル体系と評価管理
+- **PerformanceEntity**（作成・更新: 評価実施・分析）- パフォーマンス評価管理
+
+### 🏗️ サービスレベル集約
+- **TalentOptimizationAggregate** - タレント最適化統合管理
+  - 集約ルート: TalentOptimization
+  - 包含エンティティ: Team, Skill, Performance, ResourceAllocation
+  - 不変条件: 人材価値最大化、組織生産性向上
+
+### ⚙️ サービスレベルドメインサービス
+- **TalentIntelligenceService**: enhance[OrganizationalCapability]() - 組織能力向上
+- **OptimalAllocationService**: strengthen[ResourceEfficiency]() - リソース効率強化
+- **SkillEvolutionService**: coordinate[ContinuousLearning]() - 継続学習調整
+- **PerformanceMaximizationService**: amplify[TeamProductivity]() - チーム生産性増幅
+
+## ビジネスケーパビリティ詳細
+
+### 1. メンバーを管理し育成する能力 (manage-and-develop-members)
+**責務**: 組織メンバーの情報管理、パフォーマンス評価、キャリア開発支援
+**オペレーション**: register-and-manage-members, evaluate-performance, develop-and-support-career
+
+### 2. チームを編成し最適化する能力 (form-and-optimize-teams)
+**責務**: チーム編成、パフォーマンス監視、構成最適化
+**オペレーション**: form-teams, monitor-team-performance, optimize-team-composition
+
+### 3. リソースを最適配分する能力 (optimally-allocate-resources)
+**責務**: リソース配分、需要予測、稼働率最適化
+**オペレーション**: allocate-resources, forecast-resource-demand, optimize-resource-utilization
+
+### 4. スキルを可視化し育成する能力 (visualize-and-develop-skills)
+**責務**: スキルギャップ分析、マトリックス構築、開発実行
+**オペレーション**: analyze-skill-gaps, create-skill-matrix, execute-skill-development
+
+## ユースケース・ページ分解マトリックス（サービスレベル）
+
+| ケーパビリティ | オペレーション数 | ユースケース総数 | ページ総数 | 1対1関係 |
+|---------------|-----------------|-----------------|-----------|----------|
+| manage-and-develop-members | 3 | 12 | 12 | ✅ |
+| form-and-optimize-teams | 3 | 9 | 9 | ✅ |
+| optimally-allocate-resources | 3 | 9 | 9 | ✅ |
+| visualize-and-develop-skills | 3 | 12 | 12 | ✅ |
+| **合計** | **12** | **42** | **42** | **✅** |
+
+### 🔗 他サービス連携（サービスレベル）
+**責務**: ❌ エンティティ知識不要 ✅ ユースケース利用のみ
+
+[secure-access-service] 基盤サービス利用:
+├── 認証・権限・監査機能の統一的利用
+└── 全オペレーションで共通利用
+
+[knowledge-co-creation-service] ナレッジ連携:
+├── スキルフレームワーク・トレンド情報取得
+└── 学習リソース・ベストプラクティス活用
+
+[productivity-visualization-service] 分析可視化:
+├── データ分析・ダッシュボード生成
+└── パフォーマンス可視化・レポート作成
+
+[collaboration-facilitation-service] コミュニケーション:
+├── 通知配信・アラート機能
+└── チーム連携・メンター機能

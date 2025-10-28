@@ -1,15 +1,59 @@
 # ビジネスオペレーション: リソースを配分し調整する
 
-**バージョン**: 1.0.0
-**更新日**: 2025-10-01
+**バージョン**: 2.0.0
+**更新日**: 2025-10-28
+**パラソル設計仕様**: v2.0準拠
 
 ## 概要
 
-**目的**: プロジェクトにリソースを配分し、状況に応じて調整する
+**目的**: 戦略的リソース配分により組織全体の生産性を最大化し、プロジェクト成功と人材活用を最適化する
 
-**パターン**: Workflow
+**パターン**: Analytics
 
-**ゴール**: すべてのプロジェクトに必要なリソースが配分され、稼働が開始される
+**ゴール**: データドリブンなリソース配分による組織効率向上と、公正で透明性のあるアサインメント実現
+
+## パラソルドメイン連携
+
+### 🎯 操作エンティティ
+- **ResourceAllocationEntity**（状態更新: requested → under_review → allocated → active）- リソース配分プロセス管理
+- **ResourceRequestEntity**（作成・更新: 要求受付・調整）- リソース要求管理
+- **AllocationPlanEntity**（作成・更新: 配分計画策定・実行）- 配分計画管理
+- **TeamMemberEntity**（参照・更新: assignment変更）- メンバーアサイン情報管理
+
+### 🏗️ パラソル集約
+- **ResourceAllocationAggregate** - リソース配分統合管理
+  - 集約ルート: ResourceAllocation
+  - 包含エンティティ: ResourceRequest, AllocationPlan, AdjustmentHistory
+  - 不変条件: 配分稼働率100%以下、公平性確保
+
+### ⚙️ ドメインサービス
+- **OptimalAllocationService**: enhance[ResourceEfficiency]() - リソース効率最大化
+- **PriorityOptimizationService**: strengthen[StrategicAlignment]() - 戦略的整合性強化
+- **FairDistributionService**: coordinate[EquitableAssignment]() - 公平な配分調整
+- **DynamicAdjustmentService**: amplify[AdaptiveCapability]() - 適応能力増幅
+
+## ユースケース・ページ分解マトリックス（1対1関係）
+
+| ユースケース | 対応ページ | 1対1関係 | 設計品質 |
+|-------------|-----------|----------|----------|
+| 該当ユースケースなし | - | - | - |
+
+### 🔗 他サービスユースケース利用（ユースケース呼び出し型）
+**責務**: ❌ エンティティ知識不要 ✅ ユースケース利用のみ
+
+[secure-access-service] ユースケース利用:
+├── UC-AUTH-01: ユーザー認証を実行する → POST /api/auth/usecases/authenticate
+├── UC-AUTH-02: 権限を検証する → POST /api/auth/usecases/validate-permission
+└── UC-AUTH-03: アクセスログを記録する → POST /api/auth/usecases/log-access
+
+[project-success-service] ユースケース利用:
+├── UC-PROJECT-01: プロジェクト情報を取得する → GET /api/projects/usecases/get-project-info
+├── UC-PROJECT-02: プロジェクト優先度を確認する → GET /api/projects/usecases/get-priority-level
+└── UC-PROJECT-03: リソース要求を受け付ける → POST /api/projects/usecases/submit-resource-request
+
+[collaboration-facilitation-service] ユースケース利用:
+├── UC-COMM-01: 配分決定通知を配信する → POST /api/collaboration/usecases/send-allocation-notification
+└── UC-COMM-02: 調整会議案内を送信する → POST /api/collaboration/usecases/send-meeting-invitation
 
 ## 関係者とロール
 
@@ -66,12 +110,21 @@ stateDiagram-v2
     Reallocated --> Assigned: 再アサイン
 ```
 
-## KPI
+## ビジネス価値とKPI
 
-- **配分リードタイム**: 要求から配分まで1週間以内
-- **充足率**: リソース要求の90%以上を充足
-- **公平性**: PMのリソース満足度4.0以上（5点満点）
-- **変更率**: プロジェクト期間中の変更10%以下
+### 🎯 ビジネス価値
+- **組織生産性最大化**: 戦略的リソース配分により組織全体の生産性40%向上
+- **プロジェクト成功率向上**: 最適なリソース配分によりプロジェクト成功率35%向上
+- **人材活用効率化**: 科学的配分によりメンバー稼働率とスキル活用を最適化
+- **コスト効率改善**: 効率的リソース配分によりプロジェクト運営コスト20%削減
+
+### 📊 成功指標（KPI）
+- **配分スピード**: 要求から配分決定まで3営業日以内で100%実現
+- **要求充足率**: リソース要求の95%以上を期限内充足
+- **配分公平性**: 全PMのリソース配分満足度4.6/5.0以上維持
+- **配分安定性**: プロジェクト期間中の配分変更5%以下で安定運営
+- **稼働率最適化**: 組織全体の平均稼働率85-90%の理想範囲維持
+- **戦略的整合性**: 戦略重要プロジェクトへの優先配分率90%以上
 
 ## ビジネスルール
 

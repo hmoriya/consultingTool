@@ -1,15 +1,63 @@
 # ビジネスオペレーション: スキルギャップを分析する
 
-**バージョン**: 1.0.0
-**更新日**: 2025-10-01
+**バージョン**: 2.0.0
+**更新日**: 2025-10-28
+**パラソル設計仕様**: v2.0準拠
 
 ## 概要
 
-**目的**: 組織の現状スキルと必要スキルのギャップを分析する
+**目的**: AIドリブンなスキルギャップ分析により組織の競争力を先読みし、戦略的人材育成と市場優位性確立を実現する
 
 **パターン**: Analytics
 
-**ゴール**: スキルギャップが定量的に把握され、育成の優先順位が明確になる
+**ゴール**: 予測的スキル分析による先制的育成計画と、組織能力の持続的競争優位性構築
+
+## パラソルドメイン連携
+
+### 🎯 操作エンティティ
+- **SkillGapAnalysisEntity**（状態更新: collecting → analyzing → completed → actionable）- スキルギャップ分析管理
+- **SkillAssessmentEntity**（作成・更新: 継続評価）- スキル評価結果管理
+- **GapResolutionPlanEntity**（作成・更新: 解消計画策定・実行）- ギャップ解消計画管理
+- **MemberSkillEntity**（参照・更新: skill level progression）- メンバースキル進捗管理
+
+### 🏗️ パラソル集約
+- **SkillGapAnalysisAggregate** - スキルギャップ分析統合管理
+  - 集約ルート: SkillGapAnalysis
+  - 包含エンティティ: SkillAssessment, GapResolutionPlan, TrendAnalysis
+  - 不変条件: 分析定期実行確保、優先順位明確化
+
+### ⚙️ ドメインサービス
+- **PredictiveSkillAnalyticsService**: enhance[SkillIntelligence]() - スキル知能向上
+- **StrategicGapIdentificationService**: strengthen[CompetitiveAlignment]() - 競争力整合強化
+- **OptimalDevelopmentService**: coordinate[SkillDevelopment]() - スキル開発調整
+- **FutureReadinessService**: amplify[OrganizationalAgility]() - 組織敏捷性増幅
+
+## ユースケース・ページ分解マトリックス（1対1関係）
+
+| ユースケース | 対応ページ | 1対1関係 | 設計品質 |
+|-------------|-----------|----------|----------|
+| 該当ユースケースなし | - | - | - |
+
+### 🔗 他サービスユースケース利用（ユースケース呼び出し型）
+**責務**: ❌ エンティティ知識不要 ✅ ユースケース利用のみ
+
+[secure-access-service] ユースケース利用:
+├── UC-AUTH-01: ユーザー認証を実行する → POST /api/auth/usecases/authenticate
+├── UC-AUTH-02: 権限を検証する → POST /api/auth/usecases/validate-permission
+└── UC-AUTH-03: アクセスログを記録する → POST /api/auth/usecases/log-access
+
+[project-success-service] ユースケース利用:
+├── UC-PROJECT-01: プロジェクト要件を取得する → GET /api/projects/usecases/get-project-requirements
+├── UC-PROJECT-02: 将来プロジェクト予測を取得する → GET /api/projects/usecases/get-future-project-forecasts
+└── UC-PROJECT-03: ビジネス戦略を確認する → GET /api/projects/usecases/get-business-strategy
+
+[knowledge-co-creation-service] ユースケース利用:
+├── UC-KNOW-01: 市場トレンド情報を取得する → GET /api/knowledge/usecases/get-market-trends
+└── UC-KNOW-02: 技術動向を分析する → POST /api/knowledge/usecases/analyze-technology-trends
+
+[productivity-visualization-service] ユースケース利用:
+├── UC-VISUAL-01: スキルギャップレポートを生成する → POST /api/productivity/usecases/generate-skill-gap-report
+└── UC-VISUAL-02: スキルマップを可視化する → POST /api/productivity/usecases/visualize-skill-matrix
 
 ## 関係者とロール
 

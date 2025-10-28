@@ -15,9 +15,11 @@
 - **価値3**: 具体的な提供価値の説明
 
 ## 実現手段（ビジネスオペレーション）
-- capture-knowledge
-- share-knowledge
-- apply-knowledge
+- capture-knowledge（知識保全）
+- organize-knowledge（知識整理）
+- share-knowledge（知識共有）
+- search-knowledge（知識検索）
+- validate-knowledge（知識検証）
 
 ## KPI
 - **指標1**: 目標値と測定方法

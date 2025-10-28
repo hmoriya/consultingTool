@@ -1,7 +1,8 @@
 # ケーパビリティ: リソースを最適に配分する能力
 
-**バージョン**: 1.0.0
-**更新日**: 2025-10-01
+**バージョン**: 2.0.0
+**更新日**: 2025-10-28
+**パラソル設計仕様**: v2.0準拠
 
 ## 定義
 
@@ -46,3 +47,51 @@
   - チームを編成し最適化する能力
   - プロジェクトを成功に導く能力
   - 生産性を可視化する能力（工数データ）
+
+## パラソルドメイン連携
+
+### 🎯 ケーパビリティレベル操作エンティティ
+- **ResourceEntity**（状態更新: available → allocated → optimized）- リソース配分・最適化管理
+- **AllocationEntity**（作成・更新: 配分実行・調整）- リソース配分管理
+- **UtilizationEntity**（作成・更新: 稼働率計測・分析）- 稼働率管理
+- **DemandForecastEntity**（作成・更新: 需要予測・更新）- リソース需要予測管理
+
+### 🏗️ ケーパビリティレベル集約
+- **ResourceAllocationAggregate** - リソース配分統合管理
+  - 集約ルート: ResourceAllocation
+  - 包含エンティティ: Allocation, Utilization, DemandForecast
+  - 不変条件: 公平配分確保、稼働率適正維持
+
+### ⚙️ ケーパビリティレベルドメインサービス
+- **ResourceOptimizationService**: enhance[ResourceEfficiency]() - リソース効率向上
+- **AllocationBalancingService**: strengthen[FairDistribution]() - 公平配分強化
+- **UtilizationAnalyticsService**: coordinate[ProductivityInsights]() - 生産性洞察調整
+- **DemandPredictionService**: amplify[ForecastAccuracy]() - 予測精度増幅
+
+## ユースケース・ページ分解マトリックス（ケーパビリティレベル）
+
+| オペレーション | ユースケース数 | ページ数 | 1対1関係 | 品質レベル |
+|---------------|--------------|---------|----------|-----------|
+| allocate-resources | 3 | 3 | ✅ | 高品質 |
+| forecast-resource-demand | 3 | 3 | ✅ | 高品質 |
+| optimize-resource-utilization | 3 | 3 | ✅ | 高品質 |
+| **合計** | **9** | **9** | **✅** | **高品質** |
+
+### 🔗 他サービスユースケース利用（ケーパビリティレベル）
+**責務**: ❌ エンティティ知識不要 ✅ ユースケース利用のみ
+
+[secure-access-service] 基盤認証:
+├── 全オペレーションで統一的認証・権限・監査
+└── リソース情報のセキュアな管理
+
+[project-success-service] プロジェクト連携:
+├── プロジェクト要件・リソース需要情報
+└── プロジェクト進捗・リソース需要変更
+
+[productivity-visualization-service] 可視化:
+├── リソース配分分析・ダッシュボード
+└── 稼働率・生産性可視化
+
+[collaboration-facilitation-service] コミュニケーション:
+├── リソース配分通知・調整連絡
+└── チーム間リソース調整促進

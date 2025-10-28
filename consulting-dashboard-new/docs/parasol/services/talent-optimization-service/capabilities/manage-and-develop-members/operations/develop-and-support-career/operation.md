@@ -1,15 +1,59 @@
 # ビジネスオペレーション: キャリアを開発し支援する
 
-**バージョン**: 1.0.0
-**更新日**: 2025-10-01
+**バージョン**: 2.0.0
+**更新日**: 2025-10-28
+**パラソル設計仕様**: v2.0準拠
 
 ## 概要
 
-**目的**: メンバーのキャリア目標を明確化し、実現に向けた支援を提供する
+**目的**: メンバーの潜在能力を最大化し、個人と組織の成長を同時に実現するキャリア開発エコシステムを構築する
 
 **パターン**: Workflow
 
-**ゴール**: キャリアパスが明確になり、具体的な育成計画が実行される
+**ゴール**: 戦略的キャリア開発により、メンバーエンゲージメントと組織競争力を同時に向上させる
+
+## パラソルドメイン連携
+
+### 🎯 操作エンティティ
+- **CareerPlanEntity**（状態更新: draft → active → progressing → achieved）- キャリアプラン管理
+- **DevelopmentPlanEntity**（作成・更新: 継続実行）- 育成計画実行管理
+- **CareerGoalEntity**（作成・更新: 目標設定・達成）- キャリア目標追跡
+- **MemberEntity**（参照・更新: career progression）- メンバーキャリア情報管理
+
+### 🏗️ パラソル集約
+- **CareerDevelopmentAggregate** - キャリア開発統合管理
+  - 集約ルート: CareerPlan
+  - 包含エンティティ: DevelopmentPlan, CareerGoal, SkillGapAnalysis
+  - 不変条件: キャリア目標は実現可能性確保、育成リソース制限内運用
+
+### ⚙️ ドメインサービス
+- **CareerGrowthService**: enhance[IndividualPotential]() - 個人ポテンシャル最大化
+- **TalentDevelopmentService**: strengthen[OrganizationalCapability]() - 組織能力強化
+- **CareerPathOptimizationService**: coordinate[CareerAlignment]() - キャリア最適化調整
+- **SuccessionPlanningService**: amplify[LeadershipPipeline]() - リーダーシップパイプライン拡大
+
+## ユースケース・ページ分解マトリックス（1対1関係）
+
+| ユースケース | 対応ページ | 1対1関係 | 設計品質 |
+|-------------|-----------|----------|----------|
+| 該当ユースケースなし | - | - | - |
+
+### 🔗 他サービスユースケース利用（ユースケース呼び出し型）
+**責務**: ❌ エンティティ知識不要 ✅ ユースケース利用のみ
+
+[secure-access-service] ユースケース利用:
+├── UC-AUTH-01: ユーザー認証を実行する → POST /api/auth/usecases/authenticate
+├── UC-AUTH-02: 権限を検証する → POST /api/auth/usecases/validate-permission
+└── UC-AUTH-03: アクセスログを記録する → POST /api/auth/usecases/log-access
+
+[knowledge-co-creation-service] ユースケース利用:
+├── UC-KNOW-01: 育成コンテンツを取得する → GET /api/knowledge/usecases/get-development-content
+├── UC-KNOW-02: 学習リソースを検索する → POST /api/knowledge/usecases/search-learning-resources
+└── UC-KNOW-03: ベストプラクティスを共有する → POST /api/knowledge/usecases/share-best-practices
+
+[collaboration-facilitation-service] ユースケース利用:
+├── UC-COMM-01: キャリア面談通知を配信する → POST /api/collaboration/usecases/send-career-interview-notification
+└── UC-COMM-02: 育成進捗レポートを送信する → POST /api/collaboration/usecases/send-development-progress-report
 
 ## 関係者とロール
 
@@ -65,12 +109,21 @@ stateDiagram-v2
     Revised --> Planning: 再計画
 ```
 
-## KPI
+## ビジネス価値とKPI
 
-- **キャリア面談実施率**: 年1回以上全メンバーと実施
-- **育成計画実行率**: 策定した計画の80%以上を実行
-- **キャリア目標達成率**: 3年以内の目標達成率60%以上
-- **社内異動率**: 計画的な異動・昇進率20%/年
+### 🎯 ビジネス価値
+- **人材ポテンシャル最大化**: 戦略的キャリア開発によりメンバー能力向上40%達成
+- **組織エンゲージメント強化**: キャリア支援によりメンバーエンゲージメント向上
+- **リテンション率向上**: 計画的キャリア開発により離職率50%削減
+- **次世代リーダー育成**: 体系的育成によりリーダーシップパイプライン構築
+
+### 📊 成功指標（KPI）
+- **キャリア面談完了率**: 年2回以上全メンバーと面談実施100%達成
+- **育成計画実行率**: 策定した育成計画の90%以上を期限内実行
+- **キャリア目標達成率**: 3年以内のキャリア目標達成率75%以上
+- **内部昇進率**: 管理職ポジションの80%以上を内部昇進で充足
+- **スキル向上率**: 年間スキル評価で85%以上のメンバーが向上
+- **キャリア満足度**: メンバーのキャリア開発満足度4.7/5.0以上維持
 
 ## ビジネスルール
 

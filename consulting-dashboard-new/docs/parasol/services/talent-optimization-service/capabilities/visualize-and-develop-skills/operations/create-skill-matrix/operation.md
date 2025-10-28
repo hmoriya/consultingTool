@@ -1,15 +1,59 @@
-# ビジネスオペレーション: スキルを定義し体系化する
+# ビジネスオペレーション: スキルマトリックスを構築し活用する
 
-**バージョン**: 1.0.0
-**更新日**: 2025-10-01
+**バージョン**: 2.0.0
+**更新日**: 2025-10-28
+**パラソル設計仕様**: v2.0準拠
 
 ## 概要
 
-**目的**: 組織に必要なスキルを定義し、体系的に分類する
+**目的**: 戦略的なスキルマトリックス構築により組織の知的資産を可視化し、競争力強化と人材価値最大化を実現する
 
-**パターン**: CRUD
+**パターン**: Analytics
 
-**ゴール**: スキル体系が確立され、すべてのメンバーが共通のスキル定義を使用する
+**ゴール**: データドリブンなスキル体系により戦略的人材育成と最適配置を実現し、組織の持続的競争優位性を確立
+
+## パラソルドメイン連携
+
+### 🎯 操作エンティティ
+- **SkillMatrixEntity**（状態更新: draft → validated → active → optimized）- スキルマトリックス構築管理
+- **SkillFrameworkEntity**（作成・更新: フレームワーク定義・改善）- スキルフレームワーク管理
+- **SkillCategoryEntity**（作成・更新: カテゴリ体系・分類）- スキルカテゴリ体系管理
+- **SkillLevelEntity**（作成・更新: レベル定義・基準）- スキルレベル基準管理
+
+### 🏗️ パラソル集約
+- **SkillMatrixAggregate** - スキルマトリックス統合管理
+  - 集約ルート: SkillMatrix
+  - 包含エンティティ: SkillFramework, SkillCategory, SkillLevel
+  - 不変条件: 体系一貫性確保、レベル基準明確化
+
+### ⚙️ ドメインサービス
+- **SkillIntelligenceService**: enhance[SkillInsights]() - スキル知見向上
+- **FrameworkOptimizationService**: strengthen[SkillFramework]() - スキルフレームワーク強化
+- **MatrixAnalyticsService**: coordinate[SkillAnalytics]() - スキル分析調整
+- **CompetitiveAdvantageService**: amplify[OrganizationalCapability]() - 組織能力増幅
+
+## ユースケース・ページ分解マトリックス（1対1関係）
+
+| ユースケース | 対応ページ | 1対1関係 | 設計品質 |
+|-------------|-----------|----------|----------|
+| 該当ユースケースなし | - | - | - |
+
+### 🔗 他サービスユースケース利用（ユースケース呼び出し型）
+**責務**: ❌ エンティティ知識不要 ✅ ユースケース利用のみ
+
+[secure-access-service] ユースケース利用:
+├── UC-AUTH-01: ユーザー認証を実行する → POST /api/auth/usecases/authenticate
+├── UC-AUTH-02: 権限を検証する → POST /api/auth/usecases/validate-permission
+└── UC-AUTH-03: アクセスログを記録する → POST /api/auth/usecases/log-access
+
+[knowledge-co-creation-service] ユースケース利用:
+├── UC-KNOW-01: 業界標準フレームワークを取得する → GET /api/knowledge/usecases/get-industry-frameworks
+├── UC-KNOW-02: スキルトレンド情報を取得する → GET /api/knowledge/usecases/get-skill-trends
+└── UC-KNOW-03: ベストプラクティスを参照する → GET /api/knowledge/usecases/get-best-practices
+
+[productivity-visualization-service] ユースケース利用:
+├── UC-VISUAL-01: スキルマトリックスを可視化する → POST /api/productivity/usecases/visualize-skill-matrix
+└── UC-VISUAL-02: スキル分析ダッシュボードを生成する → POST /api/productivity/usecases/generate-skill-analytics
 
 ## 関係者とロール
 
@@ -62,12 +106,21 @@ stateDiagram-v2
     Deprecated --> [*]
 ```
 
-## KPI
+## ビジネス価値とKPI
 
-- **スキルカバー率**: 必要スキルの95%以上を定義
-- **定義更新頻度**: 年2回の見直し実施
-- **利用率**: 全メンバーの90%以上がスキル登録
-- **レベル判定精度**: レベル判定の一致率80%以上
+### 🎯 ビジネス価値
+- **組織知的資産可視化**: 戦略的スキルマトリックスにより組織の知的資産を完全可視化し競争力強化
+- **人材価値最大化**: データドリブンなスキル分析により個人と組織の価値を最大化
+- **戦略的人材育成**: 科学的スキル体系により効果的な人材育成プログラムを実現
+- **最適人材配置**: スキルマトリックスに基づく最適配置により生産性30%向上
+
+### 📊 成功指標（KPI）
+- **スキル体系完成度**: 業界標準スキル体系の98%以上をカバーし完全性確保
+- **マトリックス活用率**: 全人事決定の95%以上でスキルマトリックスを活用
+- **スキル予測精度**: 将来必要スキルの90%以上を3ヶ月前に予測し先行育成
+- **レベル判定精度**: スキルレベル評価の95%以上で一致率確保
+- **フレームワーク進化**: 年4回の体系アップデートで業界変化に適応
+- **価値創造効果**: スキルマトリックス活用により人材ROI40%向上
 
 ## ビジネスルール
 

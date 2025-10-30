@@ -17,7 +17,7 @@ async function updateAllocations() {
       { email: 'pm@example.com', projectName: 'デジタルバンキング戦略', allocation: 0 }, // 削除
       
       // 木村大輔（PM） - 2プロジェクトで計60%
-      { email: 'pm2@example.com', projectName: 'ビジネスプロセス最適化', allocation: 30 },
+      { email: 'pm2@example.com', projectName: 'ビジネスオペレーション最適化', allocation: 30 },
       { email: 'pm2@example.com', projectName: 'スマートファクトリー導入', allocation: 30 },
       { email: 'pm2@example.com', projectName: '電子カルテシステム統合', allocation: 0 }, // 削除
       { email: 'pm2@example.com', projectName: '再生可能エネルギー管理システム', allocation: 0 }, // 削除
@@ -30,14 +30,14 @@ async function updateAllocations() {
       
       // 高橋愛（コンサルタント） - 1プロジェクトで80%
       { email: 'consultant2@example.com', projectName: 'デジタルトランスフォーメーション推進', allocation: 50 },
-      { email: 'consultant2@example.com', projectName: 'ビジネスプロセス最適化', allocation: 30 },
+      { email: 'consultant2@example.com', projectName: 'ビジネスオペレーション最適化', allocation: 30 },
       { email: 'consultant2@example.com', projectName: 'スマートファクトリー導入', allocation: 0 }, // 削除
       { email: 'consultant2@example.com', projectName: 'デジタルバンキング戦略', allocation: 0 }, // 削除
       { email: 'consultant2@example.com', projectName: '電子カルテシステム統合', allocation: 0 }, // 削除
       { email: 'consultant2@example.com', projectName: '再生可能エネルギー管理システム', allocation: 0 }, // 削除
       
       // 渡辺健（コンサルタント） - 2プロジェクトで計80%
-      { email: 'consultant3@example.com', projectName: 'ビジネスプロセス最適化', allocation: 40 },
+      { email: 'consultant3@example.com', projectName: 'ビジネスオペレーション最適化', allocation: 40 },
       { email: 'consultant3@example.com', projectName: '電子カルテシステム統合', allocation: 40 },
       { email: 'consultant3@example.com', projectName: 'データ分析基盤構築', allocation: 0 }, // 削除
       { email: 'consultant3@example.com', projectName: 'オムニチャネル戦略推進', allocation: 0 }, // 削除
@@ -45,7 +45,7 @@ async function updateAllocations() {
       // 伊藤真由美（コンサルタント） - 2プロジェクトで計80%
       { email: 'consultant4@example.com', projectName: 'データ分析基盤構築', allocation: 50 },
       { email: 'consultant4@example.com', projectName: 'オムニチャネル戦略推進', allocation: 30 },
-      { email: 'consultant4@example.com', projectName: 'ビジネスプロセス最適化', allocation: 0 }, // 削除
+      { email: 'consultant4@example.com', projectName: 'ビジネスオペレーション最適化', allocation: 0 }, // 削除
       { email: 'consultant4@example.com', projectName: 'スマートファクトリー導入', allocation: 0 }, // 削除
       { email: 'consultant4@example.com', projectName: '電子カルテシステム統合', allocation: 0 }, // 削除
       { email: 'consultant4@example.com', projectName: '再生可能エネルギー管理システム', allocation: 0 }, // 削除

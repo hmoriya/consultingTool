@@ -57,7 +57,7 @@ export async function seedAnalyzeUtilization(service: any, capability: any) {
 | 意思決定 | C | R | I | A |
 | 施策実行 | A | R | R | I |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

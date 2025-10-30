@@ -28,6 +28,43 @@ v2.0では「**L3 Capability = Business Operation（同じ抽象度）**」と�
 3. **Why-What-How責務の適正化**: 各層の責務を明確に定義
 4. **ドキュメント構造の最適化**: 情報の重複を排除し、保守性を向上
 
+### 重要な前提：L2 Capability vs Bounded Context
+
+パラソル設計では、**2つの異なる分析アプローチ**を統合します。
+
+#### L2 Capability: トップダウン分析（演繹的）
+```
+企業戦略・ビジネス価値
+  ↓ 分解
+ValueStream → ValueStage → L1 → L2 Capability
+```
+- **Enterprise Architecture**的アプローチ
+- ビジネス戦略から演繹的に導出
+- 主導：経営層、事業企画部門
+
+#### Bounded Context: ボトムアップ分析（帰納的）
+```
+実際の業務プロセス
+  ↓ ドメイン分析
+ユビキタス言語の抽出 → Bounded Context
+```
+- **Domain-Driven Design**的アプローチ
+- 現場の業務から帰納的に発見
+- 主導：ドメインエキスパート、アーキテクト
+
+#### 統合プロセス
+```
+L2 Capability（トップダウン）
+  ∩ 照合・統合
+Bounded Context（ボトムアップ）
+  ↓
+パラソル設計における最終的なBC
+```
+
+**重要**: L2とBounded Contextは**分析の種類が違う**ため同義ではありません。
+- 1対1になる場合もあれば、M:Nの関係になる可能性もある
+- 両方の分析結果を照らし合わせて最適な設計境界を決定
+
 ---
 
 ## ❌ v2.0の問題点
@@ -251,13 +288,18 @@ services/project-success-service/src/
 ## 📝 タスクリスト（Phase 2）
 
 ### Week 1: BC-L3-Operationマッピング
-- [ ] 既存22ケーパビリティの分析
+- [ ] **トップダウン分析**: 既存のL2 Capability（22個）を整理
+- [ ] **ボトムアップ分析**: ドメインエキスパートとの対話でBounded Context候補を発見
+- [ ] **統合**: L2とBounded Contextを照合し、最終的なBC境界を決定
+  - L2とBCが1対1で一致する場合
+  - L2とBCがM:Nの関係になる場合の調整
+  - 不一致時の判断（戦略vs現場の視点）
 - [ ] L3能力の抽出（各BCから3-5個）
 - [ ] Operationの再分類（各L3配下に2-4個）
-- [ ] マッピング表の作成
+- [ ] マッピング表の作成（L2-BC照合結果を含む）
 
-**担当**: アーキテクト
-**成果物**: `BC_L3_OPERATION_MAPPING.md`
+**担当**: アーキテクト + ドメインエキスパート
+**成果物**: `BC_L3_OPERATION_MAPPING.md`（L2-BC照合結果を含む）
 
 ### Week 2: テンプレート整備
 - [ ] BC READMEテンプレート作成

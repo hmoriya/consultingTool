@@ -803,6 +803,39 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
       );
     }
 
+    // ファイルノードの場合、親ユースケースノードを取得
+    let usecaseNode: TreeNode | null = null;
+    if (selectedNode.type === 'usecaseFile' || selectedNode.type === 'pageFile' || selectedNode.type === 'apiUsageFile') {
+      // 全サービスのツリーノードを平坦化してノード検索を可能にする
+      const allNodes: TreeNode[] = [];
+      const servicesToUse = servicesWithUseCases.length > 0 ? servicesWithUseCases : services;
+      servicesToUse.forEach(service => {
+        const serviceTreeNode = buildTreeFromParasolData(
+          service as ParasolService,
+          service.capabilities || [],
+          service.businessOperations || []
+        );
+        allNodes.push(...flattenTree(serviceTreeNode));
+      });
+
+      // 親ノードを辿ってユースケースディレクトリを見つける
+      const findParentByType = (nodeId: string, targetType: string): TreeNode | null => {
+        for (const n of allNodes) {
+          if (n.children?.some(child => child.id === nodeId)) {
+            if (n.type === targetType) {
+              return n;
+            }
+            // 再帰的に親を探す
+            return findParentByType(n.id, targetType);
+          }
+        }
+        return null;
+      };
+
+      // ユースケース（ディレクトリ）ノードを取得
+      usecaseNode = findParentByType(selectedNode.id, 'directory');
+    }
+
     // ノードタイプに応じた詳細表示
     switch (selectedNode.type) {
       case 'capability':
@@ -854,7 +887,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
         if (!operation) return null;
 
         return (
-          <Card className="h-full">
+          <Card className="h-full flex flex-col">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
               <div className="space-y-1">
                 <CardTitle>{selectedNode.displayName}</CardTitle>
@@ -872,14 +905,14 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                 UseCase追加
               </Button>
             </CardHeader>
-            <CardContent className="overflow-auto">
-              <Tabs defaultValue="design" className="w-full">
+            <CardContent className="overflow-auto flex flex-col flex-1 min-h-0">
+              <Tabs defaultValue="design" className="w-full flex flex-col flex-1 min-h-0">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="design">オペレーション設計</TabsTrigger>
                   <TabsTrigger value="usecases">ユースケース ({operationUseCases.length})</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="design">
+                <TabsContent value="design" className="flex flex-col flex-1 min-h-0">
                   <UnifiedMDEditor
                     type="operation-design"
                     value={operation.design || ''}
@@ -972,20 +1005,20 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
         // ユースケースの詳細表示
         const useCaseData = selectedNode.metadata;
         return (
-          <Card className="h-full">
+          <Card className="h-full flex flex-col">
             <CardHeader>
               <CardTitle>{selectedNode.displayName}</CardTitle>
               <CardDescription>ユースケース詳細</CardDescription>
             </CardHeader>
-            <CardContent className="overflow-auto">
-              <Tabs defaultValue="definition" className="w-full">
+            <CardContent className="overflow-auto flex flex-col flex-1 min-h-0">
+              <Tabs defaultValue="definition" className="w-full flex flex-col flex-1 min-h-0">
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="definition">ユースケース定義</TabsTrigger>
                   <TabsTrigger value="robustness">ロバストネス図</TabsTrigger>
                   <TabsTrigger value="tests">テスト定義</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="definition" className="mt-4">
+                <TabsContent value="definition" className="mt-4 flex flex-col flex-1 min-h-0">
                   <UnifiedMDEditor
                     type="usecase-definition"
                     value={useCaseData?.definition || ''}
@@ -1000,7 +1033,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                   />
                 </TabsContent>
 
-                <TabsContent value="robustness" className="mt-4">
+                <TabsContent value="robustness" className="mt-4 flex flex-col flex-1 min-h-0">
                   <UnifiedMDEditor
                     type="robustness-diagram"
                     value={useCaseData?.robustnessDiagram?.content || ''}
@@ -1015,8 +1048,8 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                   />
                 </TabsContent>
 
-                <TabsContent value="tests" className="mt-4">
-                  <div className="space-y-4">
+                <TabsContent value="tests" className="mt-4 flex flex-col flex-1 min-h-0">
+                  <div className="space-y-4 flex-1 overflow-auto">
                     {useCaseData?.testDefinitions && useCaseData.testDefinitions.length > 0 ? (
                       useCaseData.testDefinitions.map((test: any, index: number) => (
                         <Card key={test.id || index}>
@@ -1059,12 +1092,12 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
         // ページ定義のMD表示
         const pageDef = selectedNode.metadata;
         return (
-          <Card className="h-full">
+          <Card className="h-full flex flex-col">
             <CardHeader>
               <CardTitle>{selectedNode.displayName}</CardTitle>
               <CardDescription>ページ定義</CardDescription>
             </CardHeader>
-            <CardContent className="overflow-auto">
+            <CardContent className="overflow-auto flex flex-col flex-1 min-h-0">
               <UnifiedMDEditor
                 type="page-definition"
                 value={pageDef?.content || ''}
@@ -1085,12 +1118,12 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
         // テスト定義のMD表示
         const testDef = selectedNode.metadata;
         return (
-          <Card className="h-full">
+          <Card className="h-full flex flex-col">
             <CardHeader>
               <CardTitle>{selectedNode.displayName}</CardTitle>
               <CardDescription>テスト定義</CardDescription>
             </CardHeader>
-            <CardContent className="overflow-auto">
+            <CardContent className="overflow-auto flex flex-col flex-1 min-h-0">
               <UnifiedMDEditor
                 type="test-definition"
                 value={testDef?.content || ''}
@@ -1110,12 +1143,12 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
       case 'usecaseFile':
         // ユースケースファイルの統合表示
         return (
-          <Card className="h-full">
+          <Card className="h-full flex flex-col">
             <CardHeader>
-              <CardTitle>{selectedNode.displayName}</CardTitle>
-              <CardDescription>ユースケース定義ファイル（統合表示）</CardDescription>
+              <CardTitle>ユースケース定義：{usecaseNode?.displayName?.replace(/^ユースケース：/, '') || selectedNode.displayName}</CardTitle>
+              <CardDescription>アクター、事前/事後条件、基本フローを定義</CardDescription>
             </CardHeader>
-            <CardContent className="overflow-auto">
+            <CardContent className="overflow-auto flex flex-col flex-1 min-h-0">
               <UnifiedMDEditor
                 type="usecase-definition"
                 value={selectedNode.metadata?.content || ''}
@@ -1135,12 +1168,12 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
       case 'pageFile':
         // ページファイルの統合表示
         return (
-          <Card className="h-full">
+          <Card className="h-full flex flex-col">
             <CardHeader>
-              <CardTitle>{selectedNode.displayName}</CardTitle>
-              <CardDescription>ページ定義ファイル（統合表示）</CardDescription>
+              <CardTitle>ページ定義：{usecaseNode?.displayName?.replace(/^ユースケース：/, '') || selectedNode.displayName}</CardTitle>
+              <CardDescription>画面構成、振る舞い、遷移を定義</CardDescription>
             </CardHeader>
-            <CardContent className="overflow-auto">
+            <CardContent className="overflow-auto flex flex-col flex-1 min-h-0">
               <UnifiedMDEditor
                 type="page-definition"
                 value={selectedNode.metadata?.content || ''}
@@ -1160,12 +1193,12 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
       case 'apiUsageFile':
         // API利用ファイルの統合表示
         return (
-          <Card className="h-full">
+          <Card className="h-full flex flex-col">
             <CardHeader>
-              <CardTitle>{selectedNode.displayName}</CardTitle>
-              <CardDescription>API利用仕様ファイル（統合表示）</CardDescription>
+              <CardTitle>API利用仕様：{usecaseNode?.displayName?.replace(/^ユースケース：/, '') || selectedNode.displayName}</CardTitle>
+              <CardDescription>呼び出しシーケンス、エラー対応を定義</CardDescription>
             </CardHeader>
-            <CardContent className="overflow-auto">
+            <CardContent className="overflow-auto flex flex-col flex-1 min-h-0">
               <UnifiedMDEditor
                 type="api-specification"
                 value={selectedNode.metadata?.content || ''}
@@ -1188,8 +1221,8 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
   };
 
   return (
-    <div className="h-[calc(100vh-100px)] w-full">
-      <div className="mb-4 flex justify-between items-center">
+    <div className="h-[calc(100vh-60px)] w-full">
+      <div className="mb-2 flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">パラソル設計管理</h1>
           <p className="text-muted-foreground mt-1">
@@ -1299,7 +1332,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
         <ResizableHandle withHandle />
 
         <ResizablePanel defaultSize={80}>
-          <div className="h-full p-4">
+          <div className="h-full px-4 py-2 flex flex-col">
             {renderDetailContent()}
           </div>
         </ResizablePanel>

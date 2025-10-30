@@ -54,9 +54,17 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
   // Mermaid初期化（動的インポート）
   useEffect(() => {
     const initializeMermaid = async () => {
-      if (type === 'mermaid') {
-        try {
-          const mermaid = (await import('mermaid')).default;
+      // ブラウザ環境でのみ実行
+      if (typeof window === 'undefined' || type !== 'mermaid') {
+        return;
+      }
+
+      try {
+        console.log('DiagramView: Initializing Mermaid in browser environment');
+        const mermaid = (await import('mermaid')).default;
+
+        // ブラウザ環境を確認してから初期化
+        if (typeof document !== 'undefined') {
           mermaid.initialize({
             theme: 'neutral',
             themeVariables: {
@@ -85,10 +93,11 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
               fontSize: '14',
             },
           });
-        } catch (err) {
-          console.error('Mermaidの読み込みに失敗しました:', err);
-          setError('Mermaidライブラリが利用できません。代替表示を使用しています。');
+          console.log('DiagramView: Mermaid initialization successful');
         }
+      } catch (err) {
+        console.error('Mermaidの読み込みに失敗しました:', err);
+        setError('Mermaidライブラリが利用できません。代替表示を使用しています。');
       }
     };
 
@@ -98,8 +107,9 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
   // ダイアグラム描画
   useEffect(() => {
     const renderDiagram = async () => {
-      if (!code) {
-        console.log('DiagramView: No code to render');
+      // ブラウザ環境とコードの存在を確認
+      if (typeof window === 'undefined' || !code) {
+        console.log('DiagramView: No code to render or not in browser environment');
         return;
       }
 
@@ -109,7 +119,11 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
 
         if (type === 'mermaid') {
           try {
-            // Mermaidの動的インポート
+            // ブラウザ環境でのみMermaidを動的インポート
+            if (typeof document === 'undefined') {
+              throw new Error('Document not available');
+            }
+
             const mermaid = (await import('mermaid')).default;
 
             // Mermaidレンダリング
@@ -143,6 +157,7 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
             `;
             setOriginalSvgContent(fallbackSvg);
             setDisplaySvgContent(fallbackSvg);
+            setError('Mermaidライブラリでエラーが発生しました。代替表示を使用しています。');
             console.log('DiagramView: Fallback SVG content set');
           }
         } else if (type === 'plantuml') {
@@ -405,8 +420,8 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
         </div>
       </div>
 
-      <Card className="overflow-hidden">
-        <CardContent className="p-4">
+      <Card className="overflow-hidden flex flex-col flex-1">
+        <CardContent className="p-4 flex flex-col flex-1">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-sm font-medium">ステレオタイプフィルター</h3>
             <DropdownMenu>
@@ -542,10 +557,11 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
             </DropdownMenu>
           </div>
           <div
-            className="w-full overflow-auto"
+            className="w-full overflow-auto border rounded-md flex-1"
             style={{
-              minHeight: '400px',
-              maxHeight: isFullscreen ? 'calc(80vh - 100px)' : '600px'
+              minHeight: '600px',
+              maxHeight: isFullscreen ? 'calc(90vh - 50px)' : '98vh',
+              height: isFullscreen ? 'calc(90vh - 50px)' : '98vh'
             }}
             dangerouslySetInnerHTML={{ __html: displaySvgContent || '' }}
           />
@@ -555,7 +571,7 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
   );
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 h-full">
       {!isFullscreen && <DiagramContent />}
 
       <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>

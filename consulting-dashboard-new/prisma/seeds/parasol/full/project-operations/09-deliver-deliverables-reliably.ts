@@ -58,7 +58,7 @@ export async function seedDeliverDeliverablesReliably(service: any, capability: 
 | 受入確認 | C | C | I | R |
 | 完了処理 | R | C | I | A |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

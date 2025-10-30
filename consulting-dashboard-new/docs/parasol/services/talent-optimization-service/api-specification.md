@@ -309,7 +309,7 @@ Accept: application/json
   "description": "全社的なDX推進を担当",
   "type": "Project",
   "leaderId": "uuid",
-  "purpose": "ビジネスプロセスのデジタル化",
+  "purpose": "ビジネスオペレーションのデジタル化",
   "startDate": "2024-01-01",
   "endDate": "2024-12-31",
   "maxSize": 10,

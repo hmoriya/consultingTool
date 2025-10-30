@@ -57,7 +57,7 @@ export async function seedCaptureKnowledge(service: any, capability: any) {
 | 公開承認 | I | C | R | I |
 | 活用促進 | C | C | R | A |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

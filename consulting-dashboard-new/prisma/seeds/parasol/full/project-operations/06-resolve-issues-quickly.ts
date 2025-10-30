@@ -58,7 +58,7 @@ export async function seedResolveIssuesQuickly(service: any, capability: any) {
 | 効果確認 | C | R | I | I |
 | 知識共有 | I | R | I | C |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

@@ -1,15 +1,59 @@
 # ビジネスオペレーション: チームパフォーマンスを監視する
 
-**バージョン**: 1.0.0
-**更新日**: 2025-10-01
+**バージョン**: 2.0.0
+**更新日**: 2025-10-28
+**パラソル設計仕様**: v2.0準拠
 
 ## 概要
 
-**目的**: チームのパフォーマンスを継続的に監視し、問題を早期に発見する
+**目的**: チームのパフォーマンスを継続的に監視し、データドリブンな意思決定によりチーム成果を最大化する
 
 **パターン**: Analytics
 
-**ゴール**: チームパフォーマンスが可視化され、課題が早期に特定される
+**ゴール**: リアルタイムパフォーマンス監視により、問題の早期発見と予防的改善を実現
+
+## パラソルドメイン連携
+
+### 🎯 操作エンティティ
+- **PerformanceMetricEntity**（作成・更新: 継続蓄積）- パフォーマンス指標データ管理
+- **TeamPerformanceEntity**（状態更新: measuring → warning → critical → recovering）- チームパフォーマンス状態管理
+- **AlertEntity**（作成・更新: trigger/resolved状態）- アラート情報管理
+- **PerformanceAnalysisEntity**（作成・更新: 分析結果更新）- パフォーマンス分析結果管理
+
+### 🏗️ パラソル集約
+- **PerformanceMonitoringAggregate** - パフォーマンス監視統合管理
+  - 集約ルート: TeamPerformance
+  - 包含エンティティ: PerformanceMetric, Alert, AnalysisResult, TrendData
+  - 不変条件: アラート重複なし、測定データ整合性保持
+
+### ⚙️ ドメインサービス
+- **PerformanceAnalyticsService**: enhance[DataInsights]() - データ洞察力向上
+- **PredictiveAnalysisService**: strengthen[PredictiveCapability]() - 予測分析能力強化
+- **AlertManagementService**: coordinate[AlertResponse]() - アラート対応協調
+- **ImprovementRecommendationService**: amplify[ContinuousImprovement]() - 継続改善効果増幅
+
+## ユースケース・ページ分解マトリックス（1対1関係）
+
+| ユースケース | 対応ページ | 1対1関係 | 設計品質 |
+|-------------|-----------|----------|----------|
+| 該当ユースケースなし | - | - | - |
+
+### 🔗 他サービスユースケース利用（ユースケース呼び出し型）
+**責務**: ❌ エンティティ知識不要 ✅ ユースケース利用のみ
+
+[secure-access-service] ユースケース利用:
+├── UC-AUTH-01: ユーザー認証を実行する → POST /api/auth/usecases/authenticate
+├── UC-AUTH-02: 権限を検証する → POST /api/auth/usecases/validate-permission
+└── UC-AUTH-03: アクセスログを記録する → POST /api/auth/usecases/log-access
+
+[productivity-visualization-service] ユースケース利用:
+├── UC-REPORT-01: パフォーマンスデータを取得する → GET /api/productivity/usecases/get-performance-data
+├── UC-REPORT-02: KPIダッシュボードを生成する → POST /api/productivity/usecases/generate-kpi-dashboard
+└── UC-REPORT-03: トレンド分析を実行する → POST /api/productivity/usecases/analyze-trends
+
+[collaboration-facilitation-service] ユースケース利用:
+├── UC-COMM-01: パフォーマンスアラートを配信する → POST /api/collaboration/usecases/send-performance-alert
+└── UC-COMM-02: 改善提案通知を送信する → POST /api/collaboration/usecases/send-improvement-notification
 
 ## 関係者とロール
 
@@ -63,12 +107,21 @@ stateDiagram-v2
     Warning --> Healthy: 改善
 ```
 
-## KPI
+## ビジネス価値とKPI
 
-- **ベロシティ**: スプリント毎のストーリーポイント消化率80%以上
-- **品質**: バグ混入率5%以下
-- **士気**: チームモラールスコア4.0以上（5点満点）
-- **稼働率**: チーム平均稼働率75-85%
+### 🎯 ビジネス価値
+- **プロアクティブ問題解決**: 早期発見により問題解決コストを60%削減
+- **チーム生産性向上**: データドリブン改善によりチーム生産性25%向上
+- **メンバーエンゲージメント向上**: 透明な評価によりメンバー満足度向上
+- **プロジェクト成功率向上**: 継続監視によりプロジェクト成功率20%向上
+
+### 📊 成功指標（KPI）
+- **ベロシティ**: スプリント毎のストーリーポイント消化率80%以上維持
+- **品質指標**: バグ混入率5%以下の品質水準維持
+- **チーム士気**: チームモラールスコア4.0以上（5点満点）維持
+- **稼働率最適化**: チーム平均稼働率75-85%の健全範囲維持
+- **問題早期発見率**: パフォーマンス低下の80%以上を事前検知
+- **改善実行率**: 提案された改善アクションの90%以上を期限内実行
 
 ## ビジネスルール
 

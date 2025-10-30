@@ -57,7 +57,7 @@ export async function seedAllocateResourcesOptimally(service: any, capability: a
 | 配置実行 | R | I | C | A |
 | 効果測定 | R | C | C | I |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

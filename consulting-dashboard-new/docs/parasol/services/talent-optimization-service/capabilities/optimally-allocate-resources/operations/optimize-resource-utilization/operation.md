@@ -1,15 +1,59 @@
 # ビジネスオペレーション: 稼働率を監視し最適化する
 
-**バージョン**: 1.0.0
-**更新日**: 2025-10-01
+**バージョン**: 2.0.0
+**更新日**: 2025-10-28
+**パラソル設計仕様**: v2.0準拠
 
 ## 概要
 
-**目的**: メンバーの稼働率を監視し、適正範囲に維持する
+**目的**: AIドリブンなリアルタイム稼働率監視により、メンバーウェルビーイングと組織生産性を同時最適化する
 
 **パターン**: Analytics
 
-**ゴール**: 全メンバーの稼働率が適正範囲に維持され、燃え尽きが防止される
+**ゴール**: 持続可能な高パフォーマンス稼働率の実現と、バーンアウト予防による長期的人材価値最大化
+
+## パラソルドメイン連携
+
+### 🎯 操作エンティティ
+- **UtilizationMonitoringEntity**（状態更新: monitoring → analyzing → alerting → optimizing）- 稼働率監視管理
+- **WorkloadBalanceEntity**（作成・更新: 継続調整）- ワークロードバランス管理
+- **UtilizationOptimizationEntity**（作成・更新: 最適化実行）- 稼働率最適化管理
+- **TeamMemberEntity**（参照・更新: utilization status）- メンバー稼働状況管理
+
+### 🏗️ パラソル集約
+- **UtilizationOptimizationAggregate** - 稼働率最適化統合管理
+  - 集約ルート: UtilizationMonitoring
+  - 包含エンティティ: WorkloadBalance, OptimizationAction, HealthMetrics
+  - 不変条件: 継続的監視維持、健康状態保護最優先
+
+### ⚙️ ドメインサービス
+- **WellbeingOptimizationService**: enhance[MemberWellbeing]() - メンバーウェルビーイング向上
+- **ProductivityBalanceService**: strengthen[SustainablePerformance]() - 持続可能パフォーマンス強化
+- **PredictiveBurnoutService**: coordinate[BurnoutPrevention]() - バーンアウト予防調整
+- **WorkloadIntelligenceService**: amplify[OptimalUtilization]() - 最適稼働率増幅
+
+## ユースケース・ページ分解マトリックス（1対1関係）
+
+| ユースケース | 対応ページ | 1対1関係 | 設計品質 |
+|-------------|-----------|----------|----------|
+| 該当ユースケースなし | - | - | - |
+
+### 🔗 他サービスユースケース利用（ユースケース呼び出し型）
+**責務**: ❌ エンティティ知識不要 ✅ ユースケース利用のみ
+
+[secure-access-service] ユースケース利用:
+├── UC-AUTH-01: ユーザー認証を実行する → POST /api/auth/usecases/authenticate
+├── UC-AUTH-02: 権限を検証する → POST /api/auth/usecases/validate-permission
+└── UC-AUTH-03: アクセスログを記録する → POST /api/auth/usecases/log-access
+
+[productivity-visualization-service] ユースケース利用:
+├── UC-VISUAL-01: 稼働率データを取得する → GET /api/productivity/usecases/get-utilization-data
+├── UC-VISUAL-02: 稼働率ダッシュボードを生成する → POST /api/productivity/usecases/generate-utilization-dashboard
+└── UC-VISUAL-03: ワークロードバランスを可視化する → POST /api/productivity/usecases/visualize-workload-balance
+
+[collaboration-facilitation-service] ユースケース利用:
+├── UC-COMM-01: 稼働率アラートを配信する → POST /api/collaboration/usecases/send-utilization-alert
+└── UC-COMM-02: 最適化提案通知を送信する → POST /api/collaboration/usecases/send-optimization-suggestion
 
 ## 関係者とロール
 
@@ -63,12 +107,21 @@ stateDiagram-v2
     Optimal --> [*]
 ```
 
-## KPI
+## ビジネス価値とKPI
 
-- **適正稼働率**: 75-85%の範囲に90%以上のメンバーが収まる
-- **過稼働率**: 100%超過メンバー5%以下
-- **低稼働率**: 50%未満メンバー10%以下
-- **アラート対応時間**: アラート発行後24時間以内に対策
+### 🎯 ビジネス価値
+- **メンバーウェルビーイング向上**: 科学的稼働率管理によりバーンアウト率80%削減
+- **持続可能な生産性実現**: 適正稼働率維持により長期的な組織パフォーマンス向上
+- **人材リテンション強化**: 働きやすい環境提供により離職率50%削減
+- **医療費・採用コスト削減**: 健康管理により関連コスト30%削減
+
+### 📊 成功指標（KPI）
+- **適正稼働率達成**: 75-85%範囲に95%以上のメンバーが維持
+- **過稼働ゼロ達成**: 100%超過メンバー0%で完全予防実現
+- **低稼働最小化**: 60%未満メンバー5%以下で効率的活用
+- **即時対応力**: 稼働率異常検知後12時間以内に対策実行
+- **バーンアウト予防**: 予兆検知による事前介入成功率95%以上
+- **稼働率満足度**: メンバーの稼働率バランス満足度4.8/5.0以上
 
 ## ビジネスルール
 

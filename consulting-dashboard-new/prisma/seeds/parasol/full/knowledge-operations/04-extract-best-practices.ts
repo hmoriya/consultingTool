@@ -57,7 +57,7 @@ export async function seedExtractBestPractices(service: any, capability: any) {
 | 検証 | C | R | A | I |
 | 標準化 | I | C | R | A |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

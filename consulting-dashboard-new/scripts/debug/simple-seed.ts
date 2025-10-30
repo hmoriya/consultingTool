@@ -39,7 +39,7 @@ async function simpleSeed() {
 
     const project2 = await projectDb.project.create({
       data: {
-        name: 'ビジネスプロセス最適化',
+        name: 'ビジネスオペレーション最適化',
         code: 'BPO001',
         clientId: clientOrgId,
         status: 'planning',

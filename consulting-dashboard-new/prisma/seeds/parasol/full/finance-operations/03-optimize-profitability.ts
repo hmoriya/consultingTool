@@ -57,7 +57,7 @@ export async function seedOptimizeProfitability(service: any, capability: any) {
 | 実行管理 | C | R | C | I |
 | 効果測定 | R | C | C | A |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

@@ -57,7 +57,7 @@ export async function seedFacilitateCommunication(service: any, capability: any)
 | 双方向対話 | A | R | C | C |
 | 効果測定 | R | C | I | I |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

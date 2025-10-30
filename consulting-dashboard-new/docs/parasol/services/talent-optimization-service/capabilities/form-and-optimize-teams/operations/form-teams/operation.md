@@ -1,15 +1,58 @@
 # ビジネスオペレーション: チームを編成する
 
-**バージョン**: 1.0.0
-**更新日**: 2025-10-01
+**バージョン**: 2.0.0
+**更新日**: 2025-10-28
+**パラソル設計仕様**: v2.0準拠
 
 ## 概要
 
-**目的**: プロジェクトに最適なメンバーを選定し、チームを編成する
+**目的**: プロジェクトに最適なメンバーを選定し、高パフォーマンスチームを編成して、プロジェクト成功確率を最大化する
 
 **パターン**: Workflow
 
-**ゴール**: プロジェクトに必要なスキルを持つメンバーで構成されたチームが編成される
+**ゴール**: プロジェクト要件を満たし、スキルバランスが最適化された高パフォーマンスチームの編成完了
+
+## パラソルドメイン連携
+
+### 🎯 操作エンティティ
+- **TeamEntity**（状態更新: draft → recruiting → active → completed）- チーム基本情報と状態管理
+- **TeamMemberEntity**（作成・更新: role/allocation変更）- チームメンバー関係管理
+- **ProjectRequirementEntity**（参照のみ: project-service）- プロジェクト要件参照
+- **MemberEntity**（参照のみ: talent-service内部）- メンバー情報とスキル参照
+
+### 🏗️ パラソル集約
+- **TeamAggregate** - チーム編成ライフサイクル統合管理
+  - 集約ルート: Team
+  - 包含エンティティ: TeamMember, SkillRequirement, AllocationPlan
+  - 不変条件: チーム総稼働率100%以下、必須スキル100%カバー
+
+### ⚙️ ドメインサービス
+- **TeamOptimizationService**: enhance[TeamPerformance]() - チームパフォーマンス最大化
+- **SkillMatchingService**: strengthen[SkillAlignment]() - スキルマッチング精度向上
+- **ResourceBalancingService**: coordinate[ResourceAllocation]() - リソース配分最適化
+- **TeamDynamicsService**: amplify[TeamSynergy]() - チームシナジー効果増幅
+
+## ユースケース・ページ分解マトリックス（1対1関係）
+
+| ユースケース | 対応ページ | 1対1関係 | 設計品質 |
+|-------------|-----------|----------|----------|
+| search-candidates | 候補者検索ページ | ✅ | S評価 |
+
+### 🔗 他サービスユースケース利用（ユースケース呼び出し型）
+**責務**: ❌ エンティティ知識不要 ✅ ユースケース利用のみ
+
+[secure-access-service] ユースケース利用:
+├── UC-AUTH-01: ユーザー認証を実行する → POST /api/auth/usecases/authenticate
+├── UC-AUTH-02: 権限を検証する → POST /api/auth/usecases/validate-permission
+└── UC-AUTH-03: アクセスログを記録する → POST /api/auth/usecases/log-access
+
+[project-success-service] ユースケース利用:
+├── UC-PROJECT-01: プロジェクト情報を取得する → GET /api/projects/usecases/get-project-info
+└── UC-PROJECT-02: プロジェクト要件を確認する → GET /api/projects/usecases/get-requirements
+
+[collaboration-facilitation-service] ユースケース利用:
+├── UC-COMM-01: チーム編成通知を配信する → POST /api/collaboration/usecases/send-team-notification
+└── UC-COMM-02: アサイン確認メッセージを送信する → POST /api/collaboration/usecases/send-assignment-confirmation
 
 ## 関係者とロール
 
@@ -66,12 +109,21 @@ stateDiagram-v2
     Revised --> Recruiting: 再募集
 ```
 
-## KPI
+## ビジネス価値とKPI
 
-- **チーム編成リードタイム**: プロジェクト開始2週間前に確定
-- **スキル充足率**: 必要スキルの95%以上をカバー
-- **メンバー承諾率**: 打診の80%以上が承諾
-- **チーム安定性**: プロジェクト期間中のメンバー変更10%以下
+### 🎯 ビジネス価値
+- **プロジェクト成功確率向上**: 最適なチーム編成によりプロジェクト成功率を25%向上
+- **チームパフォーマンス最大化**: スキルシナジー効果によりチーム生産性30%向上
+- **リソース効率化**: 適材適所配置により稼働率を最適化し、コスト削減15%達成
+- **メンバーエンゲージメント向上**: 適切なアサインによりメンバー満足度とモチベーション向上
+
+### 📊 成功指標（KPI）
+- **チーム編成リードタイム**: プロジェクト開始2週間前に100%確定
+- **スキル充足率**: 必要スキルの95%以上をカバー達成
+- **メンバー承諾率**: 打診の85%以上が初回で承諾
+- **チーム安定性**: プロジェクト期間中のメンバー変更10%以下維持
+- **チームパフォーマンス指標**: 編成チームの生産性目標達成率90%以上
+- **アサイン満足度**: チームメンバーのアサイン満足度4.5/5.0以上
 
 ## ビジネスルール
 

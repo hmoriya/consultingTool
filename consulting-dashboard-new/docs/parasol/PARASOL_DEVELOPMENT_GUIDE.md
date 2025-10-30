@@ -696,7 +696,7 @@ docs/parasol/services/
 | **B2** | **ケーパビリティL1レベル** | 戦略的組織能力 | 事業部長・部門長が戦略能力を定義 | "プロジェクト構想する能力" |
 | **B3** | **ケーパビリティL2レベル** | 戦術的組織能力 | 部門長・マネージャーが戦術能力を定義 | "プロジェクト実行する能力" |
 | **B4** | **ケーパビリティL3レベル** | 具体的な業務能力 | マネージャー・リーダーが業務能力を定義 | "タスクを管理する能力" |
-| **B5** | **プロセスレベル**<br/>（ビジネスオペレーション） | 具体的なビジネスプロセス | 現場リーダーが業務プロセスを定義 | "ユーザー認証プロセス" |
+| **B5** | **プロセスレベル**<br/>（ビジネスオペレーション） | 具体的なビジネスオペレーション | 現場リーダーが業務プロセスを定義 | "ユーザー認証プロセス" |
 | **B6** | **アクティビティレベル**<br/>（ユースケース） | エンドユーザーの活動 | 現場担当者がユースケースを定義 | "パスワードでログインする" |
 
 **バリューストリーム→バリューステージ→ケーパビリティ階層の関係**:
@@ -3404,7 +3404,7 @@ Microservice Scope（サービス/実装階層のみ）
 | **Microservice Scope** | - | - | S1: デプロイメント単位 | - |
 | **Bounded Context** | B1/B2: 戦略/ケーパビリティ | D1: Bounded Context | S2: Service Module | 1 MS = 1..* BC |
 | **Business Capability** | B2: ケーパビリティ | D2: Aggregate Root候補 | S2: Sub Module | 1 BC = 1..* Cap |
-| **Business Operation** | B3: ビジネスプロセス | D2: Domain Service | S3: Service Class | 1 Cap = 1..* Op |
+| **Business Operation** | B3: ビジネスオペレーション | D2: Domain Service | S3: Service Class | 1 Cap = 1..* Op |
 | **Use Case / Page** | B4: ユーザーアクティビティ | D3: Application Service | S3: API + UI | 1 Op = 1..* UC |
 
 この階層は**ビジネス価値**、**ドメインモデル**、**物理実装**の3つを明確に分離しつつ統合しています。
@@ -3750,6 +3750,114 @@ done
 
 パラソルのDX階層構造は、**ビジネスの階層**、**DDDの階層**、**サービス/実装の階層**を統合したものです。
 
+#### 5.1.1 L2 Capability vs Bounded Context: 分析アプローチの違い
+
+**重要**: パラソル設計では、**2つの異なる分析アプローチ**を統合します。
+
+##### L2 Capability: トップダウン分析（演繹的）
+
+```
+企業戦略・ビジネス価値
+  ↓ 分解
+ValueStream → ValueStage
+  ↓ ケーパビリティマッピング
+L1 Capability（大分類）
+  ↓ 分解
+L2 Capability（中分類）← Enterprise Architecture起点
+  ↓ 分解
+L3 Capability（小分類）
+```
+
+**特徴**:
+- **Enterprise Architecture**的なアプローチ
+- ビジネス価値・戦略から演繹的に導出
+- **トップダウン**：上位概念から下位概念へ分解
+- 主導：経営層、事業企画部門、エンタープライズアーキテクト
+
+**成果物**: Capability Map、ValueStream Map
+
+##### Bounded Context: ボトムアップ分析（帰納的）
+
+```
+実際の業務プロセス・現場の課題
+  ↓ ドメイン分析
+ドメインエキスパートとの対話
+  ↓ 発見
+ユビキタス言語の抽出
+  ↓ 境界発見
+Bounded Context← Domain-Driven Design起点
+  ├── Aggregates
+  ├── Entities
+  └── Value Objects
+```
+
+**特徴**:
+- **Domain-Driven Design**的なアプローチ
+- 現場の業務・用語から帰納的に発見
+- **ボトムアップ**：具体的な業務から抽象的な境界を発見
+- 主導：ドメインエキスパート、DDD実践者、アーキテクト
+
+**成果物**: Context Map、Ubiquitous Language定義、ドメインモデル
+
+##### 統合プロセス：パラソル設計の核心
+
+```
+トップダウン分析          ボトムアップ分析
+（L2 Capability）         （Bounded Context）
+       ↓                        ↓
+  ビジネス戦略               現場の業務実態
+       ↓                        ↓
+       └──────→ 照合・統合 ←──────┘
+                    ↓
+         パラソル設計における最終的なBC
+         （L2とDDD BCの最適な融合）
+                    ↓
+            L3 Capability層
+                    ↓
+             Operation層
+                    ↓
+              UseCase層
+```
+
+**統合の原則**:
+1. **L2とBounded Contextは同義ではない**
+   - 分析手法が異なるため、結果も異なる可能性
+   - 1対1になる場合もあれば、M:Nになる場合もある
+
+2. **両方の視点で検証**
+   - L2から見て：ビジネス戦略上必要なケーパビリティが揃っているか
+   - BCから見て：ユビキタス言語の一貫性が保たれているか
+
+3. **不一致時の判断**
+   - L2にあってBCにない：戦略的に必要だが現場で認識されていない能力
+   - BCにあってL2にない：現場で必要だが戦略で考慮されていない能力
+   - **両方を照合して最適な境界を決定**
+
+**具体例**:
+
+```
+トップダウン分析結果:
+L2-001: プロジェクト管理能力
+L2-002: タスク管理能力
+L2-003: リスク管理能力
+
+ボトムアップ分析結果:
+BC: プロジェクト計画コンテキスト
+  ユビキタス言語: WBS, タスク, マイルストーン, 依存関係
+  集約: Project, Task, Schedule
+
+BC: リスク管理コンテキスト
+  ユビキタス言語: リスク, 影響度, 発生確率, 対応策
+  集約: Risk, Mitigation
+
+照合結果:
+→ L2のタスク管理能力は、BCのプロジェクト計画コンテキストに含まれる
+→ 最終的なBC: プロジェクト計画BC（L2-001 + L2-002を統合）
+→ 最終的なBC: リスク管理BC（L2-003と一致）
+```
+
+---
+
 #### 3概念体系の統合マッピング
 
 | パラソル階層 | ビジネス階層 | DDD階層 | サービス/実装階層 | 多重度 |
@@ -3757,7 +3865,7 @@ done
 | **Microservice Scope** | - | - | S1: デプロイメント単位<br/>Container, Pod | - |
 | **Bounded Context**<br/>(= Service) | B1/B2: 戦略/ケーパビリティ<br/>"認証基盤を提供する能力" | D1: Bounded Context<br/>ユビキタス言語の境界 | S2: Service Module<br/>"AuthServiceModule" | 1 MS = 1..* BC |
 | **Business Capability** | B2: ケーパビリティ<br/>"認証する能力" | D2: Aggregate Root候補<br/>"Authentication" | S2: Sub Module<br/>"AuthModule" | 1 BC = 1..* Cap |
-| **Business Operation** | B3: ビジネスプロセス<br/>"ログインプロセス" | D2: Domain Service<br/>"LoginService" | S3: Service Class<br/>"LoginUseCase.ts" | 1 Cap = 1..* Op |
+| **Business Operation** | B3: ビジネスオペレーション<br/>"ログインプロセス" | D2: Domain Service<br/>"LoginService" | S3: Service Class<br/>"LoginUseCase.ts" | 1 Cap = 1..* Op |
 | **Use Case / Page** | B4: ユーザーアクティビティ<br/>"パスワードでログインする" | D3: Application Service<br/>"PasswordLoginUseCase" | S3: API + UI<br/>"POST /api/login"<br/>+ "login.tsx" | 1 Op = 1..* UC |
 
 ---
@@ -3870,7 +3978,7 @@ interface UseCase {
 
 | 概念体系 | 責務 | 成果物 |
 |---------|------|--------|
-| **ビジネス** | 具体的なビジネスプロセス | operation.md |
+| **ビジネス** | 具体的なビジネスオペレーション | operation.md |
 | **DDD** | Domain Service、Use Caseの定義 | ドメインサービス設計 |
 | **サービス/実装** | サービスクラスの実装 | XXXService.ts, XXXUseCase.ts |
 
@@ -3921,7 +4029,7 @@ interface UseCase {
 
 ステップ1: ビジネス階層の分析
 ├─ 戦略・ケーパビリティの特定 → service.md
-├─ ビジネスプロセスの整理 → operation.md
+├─ ビジネスオペレーションの整理 → operation.md
 └─ ユーザーアクティビティ → usecase.md
 
 ↓

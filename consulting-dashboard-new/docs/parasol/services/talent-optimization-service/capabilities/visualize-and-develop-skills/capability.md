@@ -1,7 +1,8 @@
 # ケーパビリティ: スキルを可視化し開発する能力
 
-**バージョン**: 1.0.0
-**更新日**: 2025-10-01
+**バージョン**: 2.0.0
+**更新日**: 2025-10-28
+**パラソル設計仕様**: v2.0準拠
 
 ## 定義
 
@@ -45,3 +46,51 @@
   - チームを編成し最適化する能力
   - リソースを最適に配分する能力
   - ナレッジを共創する能力（学習コンテンツ）
+
+## パラソルドメイン連携
+
+### 🎯 ケーパビリティレベル操作エンティティ
+- **SkillEntity**（状態更新: draft → validated → active → evolved）- スキル定義・体系化管理
+- **SkillMatrixEntity**（作成・更新: マトリックス構築・更新）- スキルマトリックス管理
+- **SkillGapEntity**（作成・更新: ギャップ分析・評価）- スキルギャップ分析管理
+- **SkillDevelopmentEntity**（作成・更新: 開発計画・実行）- スキル開発管理
+
+### 🏗️ ケーパビリティレベル集約
+- **SkillVisualizationAggregate** - スキル可視化統合管理
+  - 集約ルート: SkillVisualization
+  - 包含エンティティ: SkillMatrix, SkillGap, SkillDevelopment
+  - 不変条件: スキル体系一貫性確保、継続的改善必須
+
+### ⚙️ ケーパビリティレベルドメインサービス
+- **SkillIntelligenceService**: enhance[SkillInsights]() - スキル知見向上
+- **VisualizationOptimizationService**: strengthen[SkillVisibility]() - スキル可視性強化
+- **DevelopmentAccelerationService**: coordinate[LearningEffectiveness]() - 学習効果調整
+- **CapabilityEvolutionService**: amplify[OrganizationalCapability]() - 組織能力増幅
+
+## ユースケース・ページ分解マトリックス（ケーパビリティレベル）
+
+| オペレーション | ユースケース数 | ページ数 | 1対1関係 | 品質レベル |
+|---------------|--------------|---------|----------|-----------|
+| analyze-skill-gaps | 4 | 4 | ✅ | 高品質 |
+| create-skill-matrix | 4 | 4 | ✅ | 高品質 |
+| execute-skill-development | 4 | 4 | ✅ | 高品質 |
+| **合計** | **12** | **12** | **✅** | **高品質** |
+
+### 🔗 他サービスユースケース利用（ケーパビリティレベル）
+**責務**: ❌ エンティティ知識不要 ✅ ユースケース利用のみ
+
+[secure-access-service] 基盤認証:
+├── 全オペレーションで統一的認証・権限・監査
+└── スキル情報のセキュアな管理
+
+[knowledge-co-creation-service] ナレッジ活用:
+├── 学習リソース・コンテンツ取得
+└── スキル開発ベストプラクティス活用
+
+[productivity-visualization-service] 可視化:
+├── スキルマトリックス・ギャップ分析可視化
+└── スキル開発進捗・効果可視化
+
+[collaboration-facilitation-service] コミュニケーション:
+├── スキル開発通知・フィードバック配信
+└── メンター連携・学習コミュニティ促進

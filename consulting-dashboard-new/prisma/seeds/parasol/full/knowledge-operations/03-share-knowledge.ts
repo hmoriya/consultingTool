@@ -57,7 +57,7 @@ export async function seedShareKnowledge(service: any, capability: any) {
 | 効果測定 | C | C | R | A |
 | 改善活動 | C | C | R | A |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

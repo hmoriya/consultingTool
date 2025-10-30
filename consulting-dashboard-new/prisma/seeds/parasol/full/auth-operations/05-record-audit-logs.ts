@@ -29,7 +29,7 @@ export async function seedRecordAuditLogs(service: any, capability: any) {
 - **トリガー**: セキュリティイベント、管理操作
 - **所要時間**: ログ記録100ミリ秒以内
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 詳細なプロセスステップとRACIマトリクスは実装に含まれています。
 

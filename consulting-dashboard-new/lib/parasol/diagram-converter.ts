@@ -442,7 +442,7 @@ export class DiagramConverter {
     if (processSteps.length > 0) {
       processSteps.forEach((step, index) => {
         const nodeId = `Step${index + 1}`;
-        const stepText = this.escapeText(step.text);
+        const stepText = this.escapeText(`${step.step}. ${step.text}`);
         flowchart += `    ${nodeId}[${stepText}]\n`;
       });
 
@@ -645,7 +645,7 @@ export class DiagramConverter {
     basicSteps.forEach((step, index) => {
       const nodeId = `Step${index + 1}`;
       const nextNodeId = index < basicSteps.length - 1 ? `Step${index + 2}` : 'End';
-      const stepText = this.escapeText(step.text);
+      const stepText = this.escapeText(`${step.step}. ${step.text}`);
       flowchart += `    ${nodeId}[${stepText}]\n`;
 
       if (index === 0) {
@@ -809,14 +809,51 @@ export class DiagramConverter {
 
   // テキストをMermaid用にエスケープ
   private static escapeText(text: string): string {
-    // 最初の50文字程度に切り詰め
-    let escaped = text.length > 50 ? text.substring(0, 47) + '...' : text;
+    // 空文字チェック
+    if (!text || text.trim() === '') {
+      return 'Empty';
+    }
 
-    // Mermaidの特殊文字をエスケープ
+    // 文字数制限を70文字に拡大（より多くの情報を保持）
+    let escaped = text.trim();
+    const maxLength = 70;
+
+    if (escaped.length > maxLength) {
+      // より賢い切り詰め: 句読点や区切り文字で自然に分割
+      let cutPoint = maxLength - 3; // "..."のためのスペース
+
+      // 理想的な切り詰め点を探す（句読点、スペース、日本語の区切り）
+      const breakPoints = [cutPoint, cutPoint - 5, cutPoint - 10];
+      for (const point of breakPoints) {
+        const char = escaped.charAt(point);
+        if (char === '。' || char === '、' || char === ' ' || char === '）' || char === ')') {
+          cutPoint = point + 1;
+          break;
+        }
+      }
+
+      // Unicode文字境界を考慮して安全に切り詰め
+      escaped = escaped.substring(0, cutPoint);
+
+      // 末尾が不完全な文字になる可能性をチェック
+      const lastChar = escaped.charAt(escaped.length - 1);
+      if (lastChar && lastChar.charCodeAt(0) >= 0xD800 && lastChar.charCodeAt(0) <= 0xDFFF) {
+        escaped = escaped.substring(0, escaped.length - 1);
+      }
+
+      escaped += '...';
+    }
+
+    // 最小限のMermaid特殊文字のみエスケープ（可読性を重視）
     escaped = escaped
-      .replace(/"/g, '&quot;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+      .replace(/\n/g, ' ')
+      .replace(/\r/g, ' ')
+      .replace(/\t/g, ' ')
+      .replace(/\s+/g, ' ')
+      .replace(/"/g, '&#34;')
+      .replace(/\[/g, '&#91;')
+      .replace(/\]/g, '&#93;')
+      .trim();
 
     return escaped;
   }

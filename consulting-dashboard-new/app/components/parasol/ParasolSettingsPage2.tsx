@@ -1145,7 +1145,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
         return (
           <Card className="h-full flex flex-col">
             <CardHeader>
-              <CardTitle>ユースケース定義：{usecaseNode?.displayName || selectedNode.displayName}</CardTitle>
+              <CardTitle>ユースケース定義：{usecaseNode?.displayName?.replace(/^ユースケース：/, '') || selectedNode.displayName}</CardTitle>
               <CardDescription>アクター、事前/事後条件、基本フローを定義</CardDescription>
             </CardHeader>
             <CardContent className="overflow-auto flex flex-col flex-1 min-h-0">
@@ -1170,7 +1170,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
         return (
           <Card className="h-full flex flex-col">
             <CardHeader>
-              <CardTitle>ページ定義：{usecaseNode?.displayName || selectedNode.displayName}</CardTitle>
+              <CardTitle>ページ定義：{usecaseNode?.displayName?.replace(/^ユースケース：/, '') || selectedNode.displayName}</CardTitle>
               <CardDescription>画面構成、振る舞い、遷移を定義</CardDescription>
             </CardHeader>
             <CardContent className="overflow-auto flex flex-col flex-1 min-h-0">
@@ -1195,7 +1195,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
         return (
           <Card className="h-full flex flex-col">
             <CardHeader>
-              <CardTitle>API利用仕様：{usecaseNode?.displayName || selectedNode.displayName}</CardTitle>
+              <CardTitle>API利用仕様：{usecaseNode?.displayName?.replace(/^ユースケース：/, '') || selectedNode.displayName}</CardTitle>
               <CardDescription>呼び出しシーケンス、エラー対応を定義</CardDescription>
             </CardHeader>
             <CardContent className="overflow-auto flex flex-col flex-1 min-h-0">

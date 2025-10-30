@@ -57,7 +57,7 @@ export async function seedVisualizeAndControlProgress(service: any, capability: 
 | 進捗報告 | R | C | I | A |
 | 是正実行 | A | R | C | I |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

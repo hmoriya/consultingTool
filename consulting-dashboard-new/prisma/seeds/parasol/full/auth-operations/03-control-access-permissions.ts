@@ -29,7 +29,7 @@ export async function seedControlAccessPermissions(service: any, capability: any
 - **トリガー**: 役職変更、プロジェクト参画、定期監査
 - **所要時間**: 権限変更30分、定期レビュー1週間
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 詳細なプロセスステップとRACIマトリクスは実装に含まれています。
 

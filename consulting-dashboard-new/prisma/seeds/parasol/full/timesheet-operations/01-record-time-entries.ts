@@ -51,7 +51,7 @@ export async function seedRecordTimeEntries(service: any, capability: any) {
 | 入力確認 | C | A | R |
 | 承認申請 | R | A | I |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

@@ -57,7 +57,7 @@ export async function seedTrackRevenue(service: any, capability: any) {
 | 収益分析 | R | C | A | I |
 | レポート作成 | R | I | A | C |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

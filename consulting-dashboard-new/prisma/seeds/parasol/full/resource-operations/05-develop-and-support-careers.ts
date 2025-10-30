@@ -57,7 +57,7 @@ export async function seedDevelopAndSupportCareers(service: any, capability: any
 | 進捗確認 | C | R | R | I |
 | 調整・支援 | R | C | C | C |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

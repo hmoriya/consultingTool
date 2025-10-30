@@ -29,7 +29,7 @@ export async function seedEstablishUserIdentity(service: any, capability: any) {
 - **トリガー**: 人事部門からの申請、ユーザー本人からの更新要求
 - **所要時間**: 新規登録15分、更新5分
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 詳細なプロセスステップとRACIマトリクスは実装に含まれています。
 

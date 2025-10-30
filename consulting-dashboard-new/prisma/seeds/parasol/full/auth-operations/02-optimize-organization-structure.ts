@@ -29,7 +29,7 @@ export async function seedOptimizeOrganizationStructure(service: any, capability
 - **トリガー**: 組織改編通知、部門新設・統廃合
 - **所要時間**: 小規模変更30分、大規模改編2-3日
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 詳細なプロセスステップとRACIマトリクスは実装に含まれています。
 

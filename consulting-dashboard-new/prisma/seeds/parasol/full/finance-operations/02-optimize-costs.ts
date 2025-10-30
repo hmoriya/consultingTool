@@ -57,7 +57,7 @@ export async function seedOptimizeCosts(service: any, capability: any) {
 | コスト最適化 | R | C | C | A |
 | 報告作成 | R | C | I | A |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

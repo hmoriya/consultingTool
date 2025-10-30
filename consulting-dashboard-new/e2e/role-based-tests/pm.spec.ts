@@ -48,7 +48,7 @@ test.describe('PM Role Tests', () => {
     
     // 自分が担当するプロジェクトが表示されることを確認
     await expect(page.getByText('デジタルトランスフォーメーション推進')).toBeVisible()
-    await expect(page.getByText('ビジネスプロセス最適化')).toBeVisible()
+    await expect(page.getByText('ビジネスオペレーション最適化')).toBeVisible()
     await expect(page.getByText('データ分析基盤構築')).toBeVisible()
     
     // PMの名前が表示されることを確認

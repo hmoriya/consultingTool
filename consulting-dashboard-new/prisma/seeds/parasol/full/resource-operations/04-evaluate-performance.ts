@@ -58,7 +58,7 @@ export async function seedEvaluatePerformance(service: any, capability: any) {
 | FB実施 | R | A | I | I |
 | 改善計画 | C | R | I | I |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

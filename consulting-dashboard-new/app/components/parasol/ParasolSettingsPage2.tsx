@@ -1112,8 +1112,8 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
         return (
           <Card className="h-full flex flex-col">
             <CardHeader>
-              <CardTitle>{selectedNode.displayName}</CardTitle>
-              <CardDescription>ユースケース定義ファイル（統合表示）</CardDescription>
+              <CardTitle>ユースケース定義：{selectedNode.displayName}</CardTitle>
+              <CardDescription>アクター、事前/事後条件、基本フローを定義</CardDescription>
             </CardHeader>
             <CardContent className="overflow-auto flex flex-col flex-1 min-h-0">
               <UnifiedMDEditor
@@ -1137,8 +1137,8 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
         return (
           <Card className="h-full flex flex-col">
             <CardHeader>
-              <CardTitle>{selectedNode.displayName}</CardTitle>
-              <CardDescription>ページ定義ファイル（統合表示）</CardDescription>
+              <CardTitle>ページ定義：{selectedNode.displayName}</CardTitle>
+              <CardDescription>画面構成、振る舞い、遷移を定義</CardDescription>
             </CardHeader>
             <CardContent className="overflow-auto flex flex-col flex-1 min-h-0">
               <UnifiedMDEditor
@@ -1162,8 +1162,8 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
         return (
           <Card className="h-full flex flex-col">
             <CardHeader>
-              <CardTitle>{selectedNode.displayName}</CardTitle>
-              <CardDescription>API利用仕様ファイル（統合表示）</CardDescription>
+              <CardTitle>API利用仕様：{selectedNode.displayName}</CardTitle>
+              <CardDescription>呼び出しシーケンス、エラー対応を定義</CardDescription>
             </CardHeader>
             <CardContent className="overflow-auto flex flex-col flex-1 min-h-0">
               <UnifiedMDEditor

@@ -804,8 +804,8 @@ export function UnifiedMDEditor({
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+      <CardContent className="flex flex-col flex-1 min-h-0">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="flex flex-col flex-1 min-h-0">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="edit" className="flex items-center gap-2" disabled={readOnly}>
               <FileText className="h-4 w-4" />
@@ -883,8 +883,9 @@ export function UnifiedMDEditor({
           </TabsContent>
 
           <TabsContent value="diagram" className="mt-4">
-            {diagramCode ? (
-              <DiagramView
+            <div className="flex-1 min-h-0 overflow-hidden">
+              {diagramCode ? (
+                <DiagramView
                 type={diagramType}
                 code={diagramCode}
                 title={title}
@@ -902,6 +903,7 @@ export function UnifiedMDEditor({
                 <p>ダイアグラムを生成できません</p>
               </div>
             )}
+            </div>
           </TabsContent>
         </Tabs>
       </CardContent>

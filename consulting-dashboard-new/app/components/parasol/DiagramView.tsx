@@ -405,8 +405,8 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
         </div>
       </div>
 
-      <Card className="overflow-hidden">
-        <CardContent className="p-4">
+      <Card className="overflow-hidden flex flex-col flex-1">
+        <CardContent className="p-4 flex flex-col flex-1">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-sm font-medium">ステレオタイプフィルター</h3>
             <DropdownMenu>
@@ -542,10 +542,11 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
             </DropdownMenu>
           </div>
           <div
-            className="w-full overflow-auto"
+            className="w-full overflow-auto border rounded-md flex-1"
             style={{
-              minHeight: '400px',
-              maxHeight: isFullscreen ? 'calc(80vh - 100px)' : '600px'
+              minHeight: '600px',
+              maxHeight: isFullscreen ? 'calc(90vh - 50px)' : '98vh',
+              height: isFullscreen ? 'calc(90vh - 50px)' : '98vh'
             }}
             dangerouslySetInnerHTML={{ __html: displaySvgContent || '' }}
           />
@@ -555,7 +556,7 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
   );
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 h-full">
       {!isFullscreen && <DiagramContent />}
 
       <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>

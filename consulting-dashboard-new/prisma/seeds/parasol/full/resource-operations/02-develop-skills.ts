@@ -57,7 +57,7 @@ export async function seedDevelopSkills(service: any, capability: any) {
 | 効果測定 | R | C | C | I |
 | 認定・評価 | A | C | R | I |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

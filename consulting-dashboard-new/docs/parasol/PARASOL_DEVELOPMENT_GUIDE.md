@@ -696,7 +696,7 @@ docs/parasol/services/
 | **B2** | **ケーパビリティL1レベル** | 戦略的組織能力 | 事業部長・部門長が戦略能力を定義 | "プロジェクト構想する能力" |
 | **B3** | **ケーパビリティL2レベル** | 戦術的組織能力 | 部門長・マネージャーが戦術能力を定義 | "プロジェクト実行する能力" |
 | **B4** | **ケーパビリティL3レベル** | 具体的な業務能力 | マネージャー・リーダーが業務能力を定義 | "タスクを管理する能力" |
-| **B5** | **プロセスレベル**<br/>（ビジネスオペレーション） | 具体的なビジネスプロセス | 現場リーダーが業務プロセスを定義 | "ユーザー認証プロセス" |
+| **B5** | **プロセスレベル**<br/>（ビジネスオペレーション） | 具体的なビジネスオペレーション | 現場リーダーが業務プロセスを定義 | "ユーザー認証プロセス" |
 | **B6** | **アクティビティレベル**<br/>（ユースケース） | エンドユーザーの活動 | 現場担当者がユースケースを定義 | "パスワードでログインする" |
 
 **バリューストリーム→バリューステージ→ケーパビリティ階層の関係**:
@@ -3404,7 +3404,7 @@ Microservice Scope（サービス/実装階層のみ）
 | **Microservice Scope** | - | - | S1: デプロイメント単位 | - |
 | **Bounded Context** | B1/B2: 戦略/ケーパビリティ | D1: Bounded Context | S2: Service Module | 1 MS = 1..* BC |
 | **Business Capability** | B2: ケーパビリティ | D2: Aggregate Root候補 | S2: Sub Module | 1 BC = 1..* Cap |
-| **Business Operation** | B3: ビジネスプロセス | D2: Domain Service | S3: Service Class | 1 Cap = 1..* Op |
+| **Business Operation** | B3: ビジネスオペレーション | D2: Domain Service | S3: Service Class | 1 Cap = 1..* Op |
 | **Use Case / Page** | B4: ユーザーアクティビティ | D3: Application Service | S3: API + UI | 1 Op = 1..* UC |
 
 この階層は**ビジネス価値**、**ドメインモデル**、**物理実装**の3つを明確に分離しつつ統合しています。
@@ -3865,7 +3865,7 @@ BC: リスク管理コンテキスト
 | **Microservice Scope** | - | - | S1: デプロイメント単位<br/>Container, Pod | - |
 | **Bounded Context**<br/>(= Service) | B1/B2: 戦略/ケーパビリティ<br/>"認証基盤を提供する能力" | D1: Bounded Context<br/>ユビキタス言語の境界 | S2: Service Module<br/>"AuthServiceModule" | 1 MS = 1..* BC |
 | **Business Capability** | B2: ケーパビリティ<br/>"認証する能力" | D2: Aggregate Root候補<br/>"Authentication" | S2: Sub Module<br/>"AuthModule" | 1 BC = 1..* Cap |
-| **Business Operation** | B3: ビジネスプロセス<br/>"ログインプロセス" | D2: Domain Service<br/>"LoginService" | S3: Service Class<br/>"LoginUseCase.ts" | 1 Cap = 1..* Op |
+| **Business Operation** | B3: ビジネスオペレーション<br/>"ログインプロセス" | D2: Domain Service<br/>"LoginService" | S3: Service Class<br/>"LoginUseCase.ts" | 1 Cap = 1..* Op |
 | **Use Case / Page** | B4: ユーザーアクティビティ<br/>"パスワードでログインする" | D3: Application Service<br/>"PasswordLoginUseCase" | S3: API + UI<br/>"POST /api/login"<br/>+ "login.tsx" | 1 Op = 1..* UC |
 
 ---
@@ -3978,7 +3978,7 @@ interface UseCase {
 
 | 概念体系 | 責務 | 成果物 |
 |---------|------|--------|
-| **ビジネス** | 具体的なビジネスプロセス | operation.md |
+| **ビジネス** | 具体的なビジネスオペレーション | operation.md |
 | **DDD** | Domain Service、Use Caseの定義 | ドメインサービス設計 |
 | **サービス/実装** | サービスクラスの実装 | XXXService.ts, XXXUseCase.ts |
 
@@ -4029,7 +4029,7 @@ interface UseCase {
 
 ステップ1: ビジネス階層の分析
 ├─ 戦略・ケーパビリティの特定 → service.md
-├─ ビジネスプロセスの整理 → operation.md
+├─ ビジネスオペレーションの整理 → operation.md
 └─ ユーザーアクティビティ → usecase.md
 
 ↓

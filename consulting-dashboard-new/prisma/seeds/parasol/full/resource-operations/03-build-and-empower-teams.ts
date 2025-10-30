@@ -58,7 +58,7 @@ export async function seedBuildAndEmpowerTeams(service: any, capability: any) {
 | 成長支援 | R | R | C | C |
 | 評価実施 | R | C | A | C |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

@@ -58,7 +58,7 @@ export async function seedAssureQuality(service: any, capability: any) {
 | 顧客レビュー | C | C | R | A |
 | 改善実施 | R | C | C | I |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

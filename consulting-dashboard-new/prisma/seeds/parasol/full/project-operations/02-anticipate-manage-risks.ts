@@ -57,7 +57,7 @@ export async function seedAnticipateAndManageRisks(service: any, capability: any
 | 効果測定 | R | R | I | I |
 | 報告 | R | C | I | A |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

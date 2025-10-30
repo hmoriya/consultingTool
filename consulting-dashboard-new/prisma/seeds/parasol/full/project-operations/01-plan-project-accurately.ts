@@ -36,7 +36,7 @@ export async function seedPlanProjectAccurately(service: any, capability: any) {
   - 権限: プロジェクトスコープ決定、リソース配分決定、計画承認申請
 
 - ビジネスアナリスト [BusinessAnalyst] [BUSINESS_ANALYST]
-  - 責任: 要求収集、要件定義、ビジネスプロセス分析
+  - 責任: 要求収集、要件定義、ビジネスオペレーション分析
   - 権限: 要件の優先順位提案、実現性評価
 
 - ソリューションアーキテクト [SolutionArchitect] [SOLUTION_ARCHITECT]
@@ -56,7 +56,7 @@ export async function seedPlanProjectAccurately(service: any, capability: any) {
 | リスク分析 | R | C | R | I |
 | 承認取得 | R | C | I | A |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

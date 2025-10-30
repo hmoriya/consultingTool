@@ -56,7 +56,7 @@ export async function seedProjects(users?: any[], organizations?: any) {
       }),
       projectDb.project.create({
         data: {
-          name: 'ビジネスプロセス最適化',
+          name: 'ビジネスオペレーション最適化',
           code: 'BPO001',
           clientId: clientOrgId,
           status: 'active',
@@ -242,7 +242,7 @@ export async function seedProjects(users?: any[], organizations?: any) {
             { name: 'DX推進ガイドライン', type: 'document', milestone: '基本設計完了' },
             { name: 'プロジェクト最終報告書', type: 'report', milestone: 'システムリリース' }
           ]
-        } else if (projectName.includes('ビジネスプロセス最適化')) {
+        } else if (projectName.includes('ビジネスオペレーション最適化')) {
           return [
             { name: '現状業務分析レポート', type: 'report', milestone: '要件定義完了' },
             { name: '最適化提案書', type: 'document', milestone: '基本設計完了' },

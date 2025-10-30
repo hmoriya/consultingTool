@@ -29,7 +29,7 @@ export async function seedExecuteAuthentication(service: any, capability: any) {
 - **トリガー**: ログイン要求、セッションタイムアウト
 - **所要時間**: 認証処理3秒以内
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 詳細なプロセスステップとRACIマトリクスは実装に含まれています。
 

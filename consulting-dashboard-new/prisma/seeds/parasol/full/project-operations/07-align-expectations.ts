@@ -57,7 +57,7 @@ export async function seedAlignExpectations(service: any, capability: any) {
 | 継続的確認 | R | C | I | C |
 | 満足度評価 | C | R | I | A |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

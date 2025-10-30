@@ -59,7 +59,7 @@ export async function seedProjectService() {
         description: '既存業務プロセスのデジタル化と新規ビジネスモデル構築',
       },
       {
-        name: 'ビジネスプロセス最適化',
+        name: 'ビジネスオペレーション最適化',
         code: 'BPO001',
         clientId: clientOrg.id,
         status: 'planning',

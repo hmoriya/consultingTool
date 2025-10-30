@@ -57,7 +57,7 @@ export async function seedDeliverNotifications(service: any, capability: any) {
 | 通知配信 | R | I | A | C |
 | 配信確認 | R | I | C | A |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

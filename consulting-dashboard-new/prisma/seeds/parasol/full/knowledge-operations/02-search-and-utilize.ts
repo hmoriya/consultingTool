@@ -57,7 +57,7 @@ export async function seedSearchAndUtilize(service: any, capability: any) {
 | 効果測定 | R | A | C | I |
 | 改善提案 | C | R | C | I |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

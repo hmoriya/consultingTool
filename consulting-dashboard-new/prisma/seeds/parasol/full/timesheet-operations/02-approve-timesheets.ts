@@ -56,7 +56,7 @@ export async function seedApproveTimesheets(service: any, capability: any) {
 | 差し戻し | R | C | C | I |
 | 最終確定 | A | I | R | C |
 
-## ビジネスプロセス
+## ビジネスオペレーション
 
 ### プロセスフロー
 \`\`\`

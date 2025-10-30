@@ -26,7 +26,7 @@ Workflow（ワークフロー）- 複数のステップを経て計画を策定�
 - **ソリューションアーキテクト [SolutionArchitect] [SOLUTION_ARCHITECT]**: 技術的実現性の検証
 - **クライアントステークホルダー [ClientStakeholder] [CLIENT_STAKEHOLDER]**: 要求の提供と承認
 
-## ビジネスプロセス
+## ビジネスオペレーション
 ### 1. 要求収集 [RequirementGathering] [REQUIREMENT_GATHERING]
 - クライアントインタビューの実施
 - 現状分析（AS-IS）の実施
@@ -91,7 +91,7 @@ Analytics（分析）- データ収集・分析・可視化による洞察提供
 - **エグゼクティブ [Executive] [EXECUTIVE]**: 経営判断の実施者
 - **クライアント [Client] [CLIENT]**: 進捗情報の受領者
 
-## ビジネスプロセス
+## ビジネスオペレーション
 ### 1. 進捗情報収集 [ProgressCollection] [PROGRESS_COLLECTION]
 - タスク完了状況の更新
 - 工数実績の記録
@@ -150,7 +150,7 @@ Analytics（分析）- スキルマッチングと稼働分析による最適化
 - **コンサルタント [Consultant] [CONSULTANT]**: 配置対象者
 - **スキル管理者 [SkillManager] [SKILL_MANAGER]**: スキル情報の管理者
 
-## ビジネスプロセス
+## ビジネスオペレーション
 ### 1. 要求分析 [DemandAnalysis] [DEMAND_ANALYSIS]
 - プロジェクト要求の収集
 - 必要スキルの特定
@@ -209,7 +209,7 @@ CRUD（作成・読取・更新・削除）- 知識の体系的な管理
 - **レビュアー [Reviewer] [REVIEWER]**: 品質確認者
 - **プロジェクトマネージャー [ProjectManager] [PROJECT_MANAGER]**: 承認者
 
-## ビジネスプロセス
+## ビジネスオペレーション
 ### 1. 知識抽出 [KnowledgeExtraction] [KNOWLEDGE_EXTRACTION]
 - プロジェクト振り返り実施
 - 成功要因の分析

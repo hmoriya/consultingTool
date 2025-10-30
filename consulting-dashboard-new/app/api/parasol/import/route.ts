@@ -496,10 +496,10 @@ async function importToDatabase(services: any[]) {
           importedOperations++
 
           // ユースケースが存在する場合とそうでない場合を分けて処理
-          // 注意: operations.stepsはユースケースではなくビジネスプロセスのステップなので除外
+          // 注意: operations.stepsはユースケースではなくビジネスオペレーションのステップなので除外
           const actualUseCases = operationData.usecases && Array.isArray(operationData.usecases)
             ? operationData.usecases.filter((uc: any) => {
-                // stepsプロパティを持つオブジェクトはビジネスプロセスステップなのでユースケースから除外
+                // stepsプロパティを持つオブジェクトはビジネスオペレーションステップなのでユースケースから除外
                 return uc && typeof uc === 'object' && !('steps' in uc) && uc.name && uc.displayName;
               })
             : [];

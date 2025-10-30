@@ -28,7 +28,7 @@ export async function seedNotifications(users?: any, projects?: any) {
     // プロジェクトIDマッピング
     const projectIds = {
       dataAnalysis: projects.find((p: any) => p.name === 'データ分析基盤構築')?.id,
-      businessProcess: projects.find((p: any) => p.name === 'ビジネスプロセス最適化')?.id,
+      businessProcess: projects.find((p: any) => p.name === 'ビジネスオペレーション最適化')?.id,
       dx: projects.find((p: any) => p.name === 'デジタルトランスフォーメーション推進')?.id
     }
 

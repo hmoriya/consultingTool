@@ -50,7 +50,7 @@ test.describe('Executive Role Tests', () => {
     
     // 全プロジェクトが表示されることを確認
     await expect(page.getByText('デジタルトランスフォーメーション推進')).toBeVisible()
-    await expect(page.getByText('ビジネスプロセス最適化')).toBeVisible()
+    await expect(page.getByText('ビジネスオペレーション最適化')).toBeVisible()
     await expect(page.getByText('データ分析基盤構築')).toBeVisible()
   })
 

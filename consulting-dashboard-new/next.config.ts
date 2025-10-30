@@ -18,6 +18,7 @@ const nextConfig: NextConfig = {
         process: false,
       };
     }
+
     return config;
   },
   async rewrites() {

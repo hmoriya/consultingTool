@@ -803,6 +803,39 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
       );
     }
 
+    // ファイルノードの場合、親ユースケースノードを取得
+    let usecaseNode: TreeNode | null = null;
+    if (selectedNode.type === 'usecaseFile' || selectedNode.type === 'pageFile' || selectedNode.type === 'apiUsageFile') {
+      // 全サービスのツリーノードを平坦化してノード検索を可能にする
+      const allNodes: TreeNode[] = [];
+      const servicesToUse = servicesWithUseCases.length > 0 ? servicesWithUseCases : services;
+      servicesToUse.forEach(service => {
+        const serviceTreeNode = buildTreeFromParasolData(
+          service as ParasolService,
+          service.capabilities || [],
+          service.businessOperations || []
+        );
+        allNodes.push(...flattenTree(serviceTreeNode));
+      });
+
+      // 親ノードを辿ってユースケースディレクトリを見つける
+      const findParentByType = (nodeId: string, targetType: string): TreeNode | null => {
+        for (const n of allNodes) {
+          if (n.children?.some(child => child.id === nodeId)) {
+            if (n.type === targetType) {
+              return n;
+            }
+            // 再帰的に親を探す
+            return findParentByType(n.id, targetType);
+          }
+        }
+        return null;
+      };
+
+      // ユースケース（ディレクトリ）ノードを取得
+      usecaseNode = findParentByType(selectedNode.id, 'directory');
+    }
+
     // ノードタイプに応じた詳細表示
     switch (selectedNode.type) {
       case 'capability':
@@ -1112,8 +1145,8 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
         return (
           <Card className="h-full flex flex-col">
             <CardHeader>
-              <CardTitle>{selectedNode.displayName}</CardTitle>
-              <CardDescription>ユースケース定義ファイル（統合表示）</CardDescription>
+              <CardTitle>ユースケース定義：{usecaseNode?.displayName?.replace(/^ユースケース：/, '') || selectedNode.displayName}</CardTitle>
+              <CardDescription>アクター、事前/事後条件、基本フローを定義</CardDescription>
             </CardHeader>
             <CardContent className="overflow-auto flex flex-col flex-1 min-h-0">
               <UnifiedMDEditor
@@ -1137,8 +1170,8 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
         return (
           <Card className="h-full flex flex-col">
             <CardHeader>
-              <CardTitle>{selectedNode.displayName}</CardTitle>
-              <CardDescription>ページ定義ファイル（統合表示）</CardDescription>
+              <CardTitle>ページ定義：{usecaseNode?.displayName?.replace(/^ユースケース：/, '') || selectedNode.displayName}</CardTitle>
+              <CardDescription>画面構成、振る舞い、遷移を定義</CardDescription>
             </CardHeader>
             <CardContent className="overflow-auto flex flex-col flex-1 min-h-0">
               <UnifiedMDEditor
@@ -1162,8 +1195,8 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
         return (
           <Card className="h-full flex flex-col">
             <CardHeader>
-              <CardTitle>{selectedNode.displayName}</CardTitle>
-              <CardDescription>API利用仕様ファイル（統合表示）</CardDescription>
+              <CardTitle>API利用仕様：{usecaseNode?.displayName?.replace(/^ユースケース：/, '') || selectedNode.displayName}</CardTitle>
+              <CardDescription>呼び出しシーケンス、エラー対応を定義</CardDescription>
             </CardHeader>
             <CardContent className="overflow-auto flex flex-col flex-1 min-h-0">
               <UnifiedMDEditor

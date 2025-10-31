@@ -994,6 +994,15 @@ export class DiagramConverter {
           } else {
             // フォールバック: #### エンティティ名 形式
             const simpleName = trimmed.replace(/^#{3,4}\s+/, '').trim();
+            
+            // プレースホルダーパターンをチェック（[エンティティ名]など）
+            if (simpleName.match(/^\[.+\]$/)) {
+              // プレースホルダーは無視
+              console.log('Skipping placeholder:', simpleName);
+              currentEntity = null;
+              return;
+            }
+            
             // DDDコンセプト用語を除外
             const excludedTerms = [
               'コアエンティティ', '集約ルート', 'ドメインイベント',
@@ -1007,7 +1016,7 @@ export class DiagramConverter {
             );
 
             if (simpleName && !isExcluded) {
-              const sanitizedName = this.sanitizeForMermaid(simpleName);
+              const sanitizedName = this.sanitizeNameForMermaid(simpleName);
               if (!processedEntities.has(sanitizedName)) {
                 processedEntities.add(sanitizedName);
                 currentEntity = {
@@ -1126,8 +1135,15 @@ export class DiagramConverter {
             // 旧フォーマットのフォールバック
             const match = trimmed.match(/^###\s+(.+?)(?:\s*[（(](.+?)[）)])?$/);
             if (match) {
+              const voName = match[1].trim();
+              // プレースホルダーをチェック
+              if (voName.match(/^\[.+\]$/)) {
+                console.log('Skipping value object placeholder:', voName);
+                currentValueObject = null;
+                return;
+              }
               currentValueObject = {
-                name: this.sanitizeForMermaid(match[1].trim()),
+                name: this.sanitizeNameForMermaid(voName),
                 attributes: [],
                 relationships: []
               };
@@ -1187,7 +1203,13 @@ export class DiagramConverter {
 
             // Check if this is actually an aggregate (not just any #### header)
             if (name.toLowerCase().includes('aggregate') || name.endsWith('集約')) {
-              currentAggregate = { name: this.sanitizeForMermaid(name), root: '', entities: [] };
+              // プレースホルダーをチェック
+              if (name.match(/^\[.+\]$/)) {
+                console.log('Skipping aggregate placeholder:', name);
+                currentAggregate = null;
+                return;
+              }
+              currentAggregate = { name: this.sanitizeNameForMermaid(name), root: '', entities: [] };
               result.aggregates.push(currentAggregate);
               console.log('Found aggregate (simple format):', name);
             }
@@ -1236,8 +1258,29 @@ export class DiagramConverter {
               currentAggregate.root = value;
               console.log('Set aggregate root from list:', value);
             } else if (inAggregateEntities && value) {
-              currentAggregate.entities.push(value);
-              console.log('Added aggregate entity:', value);
+              // Skip lines that are relationship descriptions, not entity names
+              if (value.includes('との関係') || 
+                  value.includes('で参照') || 
+                  value.includes('IDのみ') ||
+                  value.includes('不要関係のみ')) {
+                console.log('Skipping relationship description:', value);
+                return;
+              }
+              
+              // Extract entity name from patterns like "Message（複数）" or "Notification（複数）"
+              const entityMatch = value.match(/^([A-Za-z]+)[（(](.+?)[）)]/);
+              if (entityMatch) {
+                const entityName = entityMatch[1].trim();
+                currentAggregate.entities.push(entityName);
+                console.log('Added aggregate entity (extracted):', entityName);
+              } else {
+                // For simple entity names without parentheses
+                const simpleEntityMatch = value.match(/^([A-Za-z]+)$/);
+                if (simpleEntityMatch) {
+                  currentAggregate.entities.push(simpleEntityMatch[1]);
+                  console.log('Added aggregate entity (simple):', simpleEntityMatch[1]);
+                }
+              }
             }
           }
         }
@@ -1473,7 +1516,12 @@ export class DiagramConverter {
       '説明': 'description'
     };
     
-    return nameMap[japaneseName] || this.sanitizeForMermaid(japaneseName);
+    // プレースホルダーの場合は無視
+    if (japaneseName.match(/^\[.+\]$/)) {
+      return '';
+    }
+    
+    return nameMap[japaneseName] || this.sanitizeNameForMermaid(japaneseName);
   }
 
   // Mermaid用にクラス名やメンバー名をサニタイズ
@@ -1562,9 +1610,15 @@ export class DiagramConverter {
       // エンティティ名の検出（### で始まる行）
       if (inEntitySection && trimmed.startsWith('### ')) {
         const name = trimmed.substring(4).trim();
+        // プレースホルダーをチェック
+        if (name.match(/^\[.+\]$/)) {
+          console.log(`Line ${index}: Skipping placeholder entity: "${name}"`);
+          currentEntity = null;
+          return;
+        }
         console.log(`Line ${index}: Found entity: "${name}"`);
         currentEntity = { 
-          name: this.sanitizeForMermaid(name), 
+          name: this.sanitizeNameForMermaid(name), 
           attributes: [],
           relationships: []
         };

@@ -41,28 +41,28 @@ docs/parasol/services/
 └── [service-name]/
     ├── service.md
     ├── domain-language.md
-    ├── api-specification.md
+    ├── api-specification.md           # サービスレベル（廃止予定）
     ├── database-design.md
     ├── integration-specification.md
-    └── capabilities/                    # ケーパビリティ層
+    ├── api/
+    │   └── api-specification.md       # Issue #146対応済み（WHAT）
+    └── capabilities/                   # ケーパビリティ層
         └── [capability-name]/
-            └── operations/              # オペレーション層（Capability直下）
+            └── operations/             # オペレーション層（Capability直下）
                 └── [operation-name]/
                     ├── operation.md
                     └── usecases/
                         └── [usecase-name]/
                             ├── usecase.md
-                            └── page.md
+                            ├── page.md
+                            └── api-usage.md  # Issue #146対応済み（HOW）
 ```
 
 ### ターゲット構造（V3.0）
 ```
 docs/parasol/business-capabilities/
 └── BC-001-[capability-name]/           # BC層（新設）
-    ├── README.md                        # BC概要
-    ├── WHY.md                           # ビジネス価値
-    ├── WHAT.md                          # L3能力一覧
-    ├── HOW.md                           # 設計方針
+    ├── README.md                        # BC概要（Why・What概要含む）
     │
     ├── domain/                          # How詳細: ドメイン設計
     │   ├── README.md
@@ -70,8 +70,9 @@ docs/parasol/business-capabilities/
     │   ├── entities.md
     │   └── value-objects.md
     │
-    ├── api/                             # How詳細: API設計
+    ├── api/                             # What詳細: API設計
     │   ├── README.md
+    │   ├── api-specification.md         # Issue #146対応済み
     │   ├── endpoints.md
     │   └── schemas.md
     │
@@ -89,7 +90,8 @@ docs/parasol/business-capabilities/
         │       │   └── usecases/
         │       │       └── [usecase-name]/
         │       │           ├── usecase.md
-        │       │           └── page.md
+        │       │           ├── page.md
+        │       │           └── api-usage.md  # Issue #146対応済み
         │       └── OP-002-[operation-name]/
         │           └── ...
         └── L3-002-[capability-name]/
@@ -103,21 +105,33 @@ docs/parasol/business-capabilities/
 | 項目 | V2.0 | V3.0 |
 |------|------|------|
 | **ルートディレクトリ** | `services/` | `business-capabilities/` |
-| **BC層** | なし | 新設（WHY/WHAT/HOW） |
+| **BC層** | なし | 新設（README + domain/api/data） |
 | **L3層** | Capability = Operation | L3 Capability（What） |
 | **Operation層** | Capability直下 | L3 Capability配下 |
-| **設計ドキュメント** | サービス直下 | BC層に集約 |
+| **設計ドキュメント** | サービス直下 | BC層に集約（domain/api/data） |
+| **API仕様** | 2箇所（重複） | `api/api-specification.md` (Issue #146) |
+| **API利用仕様** | 一部のみ | `api-usage.md` 全ユースケース (Issue #146) |
 
 ### 2. 階層別責務の明確化
 
 | 階層 | Why | What | How | Implementation |
 |------|-----|------|-----|----------------|
-| **BC** | ✅ 定義 | ✅ L3一覧 | ✅ 定義 | - |
+| **BC** | ✅ 定義（README） | ✅ L3一覧（README） | ✅ 定義（domain/api/data） | - |
 | **L3 Capability** | - | ✅ 定義 | 🔗 BC参照 | - |
 | **Operation** | - | - | ✅ 定義 | - |
 | **UseCase** | 🔗 参照 | 🔗 参照 | 🔗 参照 | ✅ 定義 |
 
-### 3. 数量関係の設計
+### 3. Issue #146対応との整合性
+
+V3移行は、Issue #146で確立されたAPI WHAT/HOW分離構造を踏襲します：
+
+| ファイル | 役割 | Issue #146対応 | V3での配置 |
+|---------|------|---------------|-----------|
+| **api/api-specification.md** | WHAT（能力定義） | ✅ 対応済み | BC層に移動 |
+| **api/endpoints/*.md** | WHAT詳細 | ✅ 対応済み | BC層に移動 |
+| **usecases/*/api-usage.md** | HOW（利用方法） | ✅ 対応済み | そのまま維持 |
+
+### 4. 数量関係の設計
 
 ```
 1 BC = 3-5 L3 Capabilities
@@ -163,16 +177,18 @@ mkdir -p docs/parasol/business-capabilities/BC-{001..NNN}-[name]/{domain,api,dat
 
 #### Task 2.2: BC層ドキュメントの作成
 各BCについて以下のファイルを作成：
-- [ ] README.md（BC概要）
-- [ ] WHY.md（ビジネス価値）
-- [ ] WHAT.md（L3能力一覧）
-- [ ] HOW.md（設計方針）
+- [ ] README.md（BC概要 - Why・What・Howの概要を含む）
+  - **Why**: このBCが解決するビジネス課題
+  - **What**: このBCが提供するL3能力一覧
+  - **How**: 設計方針（domain/api/data参照）
 
 #### Task 2.3: BC設計ドキュメントの移行
 既存のドメイン・API・DB設計をBC層に集約：
 - [ ] domain-language.md → domain/ディレクトリへ分割
-- [ ] api-specification.md → api/ディレクトリへ分割
+- [ ] **api/api-specification.md → BC層api/へ移動**（Issue #146構造維持）
+- [ ] api/endpoints → BC層api/へ移動
 - [ ] database-design.md → data/ディレクトリへ分割
+- [ ] **注意**: api-usage.mdは各ユースケースレベルに配置（Issue #146対応済み）
 
 ### Phase 3: L3 Capability層の構築（3-5日）
 
@@ -189,7 +205,7 @@ done
 - [ ] 能力の概要（What）
 - [ ] 実現できること
 - [ ] 必要な知識
-- [ ] BC設計の参照（How）
+- [ ] BC設計の参照（How） - domain/api/dataへのリンク
 - [ ] Operations一覧
 
 #### Task 3.3: Operationの移動
@@ -207,8 +223,9 @@ mv services/[service]/capabilities/[cap]/operations/[op] \
 - [ ] BC設計（domain/api/data）の使い方を明記
 - [ ] パラソルドメイン連携セクションの更新
 
-#### Task 4.2: UseCase・Page定義の確認
+#### Task 4.2: UseCase・Page・API利用仕様の確認
 - [ ] usecase.md と page.md の1対1関係を確認
+- [ ] **api-usage.md の存在を確認**（Issue #146対応）
 - [ ] パラソルドメイン連携セクションの検証
 - [ ] BC層への参照リンクの追加
 
@@ -235,6 +252,7 @@ docs/parasol/services-registry/
 - [ ] BC数とL3数の関係性確認（1 BC = 3-5 L3）
 - [ ] L3数とOperation数の関係性確認（1 L3 = 2-4 Ops）
 - [ ] 全てのUseCaseがOperation配下にあることを確認
+- [ ] **api-usage.mdの充足率確認**（Issue #146品質基準）
 
 #### Task 6.2: リンク整合性の確認
 ```bash
@@ -246,6 +264,7 @@ find docs/parasol/business-capabilities -name "*.md" -exec markdown-link-check {
 - [ ] PARASOL_DEVELOPMENT_GUIDE.mdの更新
 - [ ] directory-structure-standard.mdの更新（v3.0版）
 - [ ] README.mdの更新（新構造の説明）
+- [ ] **Issue #146対応ガイドの更新**（V3構造への適合）
 
 ## ✅ タスク分解
 
@@ -254,14 +273,14 @@ find docs/parasol/business-capabilities -name "*.md" -exec markdown-link-check {
 - [ ] **BC001**: BC層の特定と命名（BC-001～BC-NNN）
 - [ ] **BC002**: L3 Capabilityの分類（L3-001～L3-NNN）
 - [ ] **BC003**: BCディレクトリ構造の作成
-- [ ] **BC004**: BC層ドキュメント（WHY/WHAT/HOW）の作成
+- [ ] **BC004**: BC層ドキュメント（README）の作成
 - [ ] **BC005**: L3 READMEの作成
 - [ ] **BC006**: Operationの移動とREADME更新
 
 ### 優先度：中（推奨）
 
 - [ ] **BC007**: BC設計ドキュメント（domain/api/data）の分割
-- [ ] **BC008**: UseCase・Page定義の参照リンク追加
+- [ ] **BC008**: UseCase・Page・API利用仕様の参照リンク追加
 - [ ] **BC009**: サービスレジストリの作成
 - [ ] **BC010**: リンク整合性の検証
 
@@ -279,6 +298,7 @@ find docs/parasol/business-capabilities -name "*.md" -exec markdown-link-check {
 - [ ] **階層関係**: 1 BC = 3-5 L3 = 7-15 Operations
 - [ ] **v3.0準拠率**: 100%（全BCがv3.0構造に準拠）
 - [ ] **リンク整合性**: 100%（全Markdownリンクが有効）
+- [ ] **API利用仕様充足率**: 100%（Issue #146品質維持）
 
 ### 定性的指標
 
@@ -286,6 +306,7 @@ find docs/parasol/business-capabilities -name "*.md" -exec markdown-link-check {
 - [ ] **情報の一元化**: BC層にドメイン・API・DB設計が集約されている
 - [ ] **トレーサビリティ**: UseCase → Operation → L3 → BCの参照が可能
 - [ ] **保守性**: 新規開発者が構造を理解しやすい
+- [ ] **Issue #146整合性**: WHAT/HOW分離が維持されている
 
 ## 📚 参考ドキュメント
 
@@ -293,6 +314,7 @@ find docs/parasol/business-capabilities -name "*.md" -exec markdown-link-check {
 - [PARASOL_L3_OPERATION_HIERARCHY_CORRECTION.md](consulting-dashboard-new/docs/parasol/PARASOL_L3_OPERATION_HIERARCHY_CORRECTION.md) - v3.0階層構造の詳細
 - [parasol-design-process-guide.md](consulting-dashboard-new/docs/parasol/parasol-design-process-guide.md) - v3.0対応プロセスガイド
 - [V2_V3_COEXISTENCE_STRATEGY.md](consulting-dashboard-new/docs/parasol/V2_V3_COEXISTENCE_STRATEGY.md) - V2/V3共存戦略
+- **[api-what-how-separation-guide.md](consulting-dashboard-new/docs/implementation/api-what-how-separation-guide.md) - Issue #146対応ガイド**
 
 ### 参考
 - [directory-structure-standard-v2.md](consulting-dashboard-new/docs/parasol/directory-structure-standard-v2.md) - v2.0構造（移行元）
@@ -322,6 +344,15 @@ find docs/parasol/business-capabilities -name "*.md" -exec markdown-link-check {
 | **Phase 3: 段階的移行** | 1-2週間 | 🟡 参照のみ | 🟢 メイン稼働 | V3へ主要参照を移行 |
 | **Phase 4: V2アーカイブ** | 1週間 | 🔴 アーカイブ | 🟢 完全稼働 | V2を読み取り専用化 |
 
+### Issue #146との整合性維持
+
+V3移行作業では、Issue #146で確立されたAPI WHAT/HOW分離原則を厳守してください：
+
+| ファイル | 役割 | 配置 | 移行時の注意 |
+|---------|------|------|-------------|
+| **api-specification.md** | WHAT（能力定義） | BC層api/ | 内容は変更せず移動のみ |
+| **api-usage.md** | HOW（利用方法） | ユースケース層 | 配置変更なし |
+
 ### リスクと対策
 
 | リスク | 影響 | 対策 |
@@ -330,6 +361,7 @@ find docs/parasol/business-capabilities -name "*.md" -exec markdown-link-check {
 | BC粒度の誤り | 非効率な構造 | BC定義のレビュー会実施 |
 | 移行漏れ | 構造の不整合 | チェックリストによる確認 |
 | V2とV3で内容が乖離 | 情報の不整合 | V2を早期に読み取り専用化 |
+| Issue #146との不整合 | API仕様の混乱 | Issue #146ガイドの遵守 |
 
 ## 📝 移行テンプレート
 
@@ -338,29 +370,49 @@ find docs/parasol/business-capabilities -name "*.md" -exec markdown-link-check {
 # BC-XXX: [ビジネスケーパビリティ名]
 
 ## 🎯 Why: ビジネス価値
-[WHY.mdへのリンク]
 
 このBCが解決するビジネス課題:
 - [課題1]
 - [課題2]
 
+提供するビジネス価値:
+- [価値1]
+- [価値2]
+
 ## 📋 What: 機能（L3能力）
-[WHAT.mdへのリンク]
 
 このBCが提供する能力:
 - **L3-001**: [能力名] - [説明]
 - **L3-002**: [能力名] - [説明]
+- **L3-003**: [能力名] - [説明]
+
+詳細は各L3のREADME.mdを参照
 
 ## 🏗️ How: 設計方針
-[HOW.mdへのリンク]
 
-- ドメインモデル: [domain/README.md](domain/README.md)
-- API設計: [api/README.md](api/README.md)
-- データ設計: [data/README.md](data/README.md)
+### ドメイン設計
+- [domain/README.md](domain/README.md)
+- 主要集約: [Aggregate1], [Aggregate2]
+- エンティティ: [Entity1], [Entity2]
+
+### API設計
+- [api/README.md](api/README.md)
+- **API仕様**: [api/api-specification.md](api/api-specification.md) ← Issue #146対応済み
+- エンドポイント: [api/endpoints.md](api/endpoints.md)
+
+### データ設計
+- [data/README.md](data/README.md)
+- データベース設計: [data/database-design.md](data/database-design.md)
 
 ## 📦 BC境界
-- トランザクション境界: BC内は強整合性
+
+### トランザクション境界
+- BC内のL3/Operation間: 強整合性
 - BC間: 結果整合性（イベント駆動）
+
+### 他BCとの連携
+- [BC-YYY]: [連携内容]
+- [BC-ZZZ]: [連携内容]
 ```
 
 ### L3 README.mdテンプレート
@@ -383,19 +435,20 @@ find docs/parasol/business-capabilities -name "*.md" -exec markdown-link-check {
 ## 🔗 BC設計の参照（How）
 
 ### ドメインモデル
-- **Aggregates**: [名前] ([BC/domain/aggregates.md](../../domain/aggregates.md#xxx))
+- **Aggregates**: [名前] ([../../domain/aggregates.md](../../domain/aggregates.md#xxx))
 - **Entities**: [エンティティ一覧]
 - **Value Objects**: [値オブジェクト一覧]
 
 ### API
+- **API仕様**: [../../api/api-specification.md](../../api/api-specification.md) ← Issue #146対応済み
 - [エンドポイント一覧]
 
-詳細: [BC/api/endpoints.md](../../api/endpoints.md)
+詳細: [../../api/endpoints.md](../../api/endpoints.md)
 
 ### データ
 - **Tables**: [テーブル一覧]
 
-詳細: [BC/data/database-design.md](../../data/database-design.md)
+詳細: [../../data/database-design.md](../../data/database-design.md)
 
 ## ⚙️ Operations: この能力を実現する操作
 
@@ -436,13 +489,14 @@ find docs/parasol/business-capabilities -name "*.md" -exec markdown-link-check {
 
 1. このissueをプロジェクトボードに追加
 2. 共存戦略の確認: [V2_V3_COEXISTENCE_STRATEGY.md](consulting-dashboard-new/docs/parasol/V2_V3_COEXISTENCE_STRATEGY.md)
-3. Phase 0（準備）から着手
+3. **Issue #146対応の確認**: [api-what-how-separation-guide.md](consulting-dashboard-new/docs/implementation/api-what-how-separation-guide.md)
+4. Phase 0（準備）から着手
    - MIGRATION_STATUS.mdの作成
    - V2_V3_MAPPING.mdの作成
    - BC特定会議の実施
-4. Phase 1のタスク（BC001-BC003）を開始
-5. 各Phaseごとにプルリクエストを作成
-6. レビューとフィードバックを経て次Phaseへ進行
+5. Phase 1のタスク（BC001-BC003）を開始
+6. 各Phaseごとにプルリクエストを作成
+7. レビューとフィードバックを経て次Phaseへ進行
 
 ---
 
@@ -450,3 +504,4 @@ find docs/parasol/business-capabilities -name "*.md" -exec markdown-link-check {
 **マイルストーン提案**: V3.0 Directory Migration
 **優先度**: Medium-High
 **推定工数**: 6-8週間（共存期間含む）
+**関連Issue**: #146 (API WHAT/HOW分離)

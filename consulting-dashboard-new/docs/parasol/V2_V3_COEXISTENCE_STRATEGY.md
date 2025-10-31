@@ -46,22 +46,21 @@ docs/parasol/
 │
 ├── business-capabilities/              # V3構造（新規・構築中）
 │   ├── BC-001-task-management/
-│   │   ├── README.md
-│   │   ├── WHY.md
-│   │   ├── WHAT.md
-│   │   ├── HOW.md
-│   │   ├── domain/
+│   │   ├── README.md              # BC概要（Why・What含む）
+│   │   ├── domain/                # How詳細: ドメイン設計
 │   │   │   ├── README.md
 │   │   │   ├── aggregates.md
 │   │   │   ├── entities.md
 │   │   │   └── value-objects.md
-│   │   ├── api/
+│   │   ├── api/                   # What詳細: API設計
 │   │   │   ├── README.md
+│   │   │   ├── api-specification.md  # Issue #146対応済み
 │   │   │   ├── endpoints.md
 │   │   │   └── schemas.md
-│   │   ├── data/
+│   │   ├── data/                  # How詳細: データ設計
 │   │   │   ├── README.md
-│   │   │   └── database-design.md
+│   │   │   ├── database-design.md
+│   │   │   └── data-flow.md
 │   │   └── capabilities/
 │   │       └── L3-001-task-decomposition/
 │   │           ├── README.md
@@ -90,7 +89,7 @@ docs/parasol/
 
 ### 1. V2からV3への参照
 
-**services/project-success-service/README.md** に追記：
+**services/project-success-service/service.md** に追記：
 
 ```markdown
 # プロジェクト成功サービス
@@ -98,8 +97,8 @@ docs/parasol/
 > ⚠️ **移行のお知らせ**: このサービスはV3構造へ移行中です。
 >
 > **新しい参照先**:
-> - BC-001: タスク管理 → [business-capabilities/BC-001-task-management/](../business-capabilities/BC-001-task-management/)
-> - BC-002: リソース最適化 → [business-capabilities/BC-002-resource-optimization/](../business-capabilities/BC-002-resource-optimization/)
+> - BC-001: タスク管理 → [../../business-capabilities/BC-001-task-management/](../../business-capabilities/BC-001-task-management/)
+> - BC-002: リソース最適化 → [../../business-capabilities/BC-002-resource-optimization/](../../business-capabilities/BC-002-resource-optimization/)
 >
 > V2構造は2025年XX月XX日まで参照可能です。
 

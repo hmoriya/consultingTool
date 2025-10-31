@@ -1,5 +1,26 @@
 # 生産性可視化サービス
 
+> ⚠️ **V3構造への移行のお知らせ** (2025-10-31更新)
+>
+> このサービスは、V3.0ビジネスケーパビリティ構造に移行しました。
+>
+> **新しいV3構造**（BC-005に統合）:
+> - **BC-005**: [チームとリソースの最適化](../../business-capabilities/BC-005-team-and-resource-optimization/)
+>   - 生産性可視化機能はtalent-optimization-serviceに統合されました
+>   - 工数記録、タイムシート承認、稼働率分析、AIによる生産性インサイト
+>
+> **移行ステータス**: Phase 2完了（BC層・L3層構築完了）
+>
+> **重要**: このサービスは独立したサービスとしては廃止され、BC-005に統合されました
+>
+> **V2構造の利用**:
+> - このV2ドキュメントは2026年1月まで参照可能です（読み取り専用）
+> - 新規開発は[V3構造](../../business-capabilities/BC-005-team-and-resource-optimization/)を参照してください
+>
+> 詳細: [MIGRATION_STATUS.md](../../MIGRATION_STATUS.md) | [V2_V3_MAPPING.md](../../V2_V3_MAPPING.md)
+
+---
+
 ## サービス概要
 **名前**: productivity-visualization-service
 **表示名**: 生産性可視化サービス

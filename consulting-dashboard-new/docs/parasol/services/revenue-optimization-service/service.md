@@ -1,5 +1,23 @@
 # 収益最適化サービス
 
+> ⚠️ **V3構造への移行のお知らせ** (2025-10-31更新)
+>
+> このサービスは、V3.0ビジネスケーパビリティ構造に移行しました。
+>
+> **新しいV3構造**:
+> - **BC-002**: [財務健全性と収益性](../../business-capabilities/BC-002-financial-health-and-profitability/)
+>   - 収益追跡、コスト管理、予実管理、キャッシュフロー管理、請求精度向上
+>
+> **移行ステータス**: Phase 2完了（BC層・L3層構築完了）
+>
+> **V2構造の利用**:
+> - このV2ドキュメントは2026年1月まで参照可能です（読み取り専用）
+> - 新規開発は[V3構造](../../business-capabilities/BC-002-financial-health-and-profitability/)を参照してください
+>
+> 詳細: [MIGRATION_STATUS.md](../../MIGRATION_STATUS.md) | [V2_V3_MAPPING.md](../../V2_V3_MAPPING.md)
+
+---
+
 ## サービス概要
 **名前**: revenue-optimization-service
 **表示名**: 収益最適化サービス

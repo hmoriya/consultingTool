@@ -1,5 +1,25 @@
 # セキュアアクセスサービス
 
+> ⚠️ **V3構造への移行のお知らせ** (2025-10-31更新)
+>
+> このサービスは、V3.0ビジネスケーパビリティ構造に移行しました。
+>
+> **新しいV3構造**（2つのBCに分割）:
+> - **BC-003**: [アクセス制御とセキュリティ](../../business-capabilities/BC-003-access-control-and-security/)
+>   - ユーザー認証、多要素認証、権限制御、セッション管理、監査ログ記録
+> - **BC-004**: [組織構造とガバナンス](../../business-capabilities/BC-004-organizational-structure-and-governance/)
+>   - 組織階層管理、ロール定義、ガバナンスポリシー、コンプライアンス
+>
+> **移行ステータス**: Phase 2完了（BC層・L3層構築完了）
+>
+> **V2構造の利用**:
+> - このV2ドキュメントは2026年1月まで参照可能です（読み取り専用）
+> - 新規開発は[V3構造](../../business-capabilities/)のBC-003とBC-004を参照してください
+>
+> 詳細: [MIGRATION_STATUS.md](../../MIGRATION_STATUS.md) | [V2_V3_MAPPING.md](../../V2_V3_MAPPING.md)
+
+---
+
 ## サービス概要
 **名前**: secure-access-service
 **表示名**: セキュアアクセスサービス

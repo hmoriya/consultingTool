@@ -1,5 +1,23 @@
 # プロジェクト成功支援サービス
 
+> ⚠️ **V3構造への移行のお知らせ** (2025-10-31更新)
+>
+> このサービスは、V3.0ビジネスケーパビリティ構造に移行しました。
+>
+> **新しいV3構造**:
+> - **BC-001**: [Project Delivery & Quality Management](../../business-capabilities/BC-001-project-delivery-and-quality/)
+>   - プロジェクト計画、実行、タスク管理、品質保証、リスク管理
+>
+> **移行ステータス**: Phase 2完了（BC層・L3層構築完了）
+>
+> **V2構造の利用**:
+> - このV2ドキュメントは2026年1月まで参照可能です（読み取り専用）
+> - 新規開発は[V3構造](../../business-capabilities/BC-001-project-delivery-and-quality/)を参照してください
+>
+> 詳細: [MIGRATION_STATUS.md](../../MIGRATION_STATUS.md) | [V2_V3_MAPPING.md](../../V2_V3_MAPPING.md)
+
+---
+
 ## サービス概要
 **名前**: project-success-service
 **表示名**: プロジェクト成功支援サービス

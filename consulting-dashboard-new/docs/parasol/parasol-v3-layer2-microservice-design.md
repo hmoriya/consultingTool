@@ -777,6 +777,7 @@ Layer 2が完了したら、Layer 3（パラソル開発設計）へ進みます
 - [Layer 1: パラソル価値デザイン](./parasol-v3-layer1-value-design.md)
 - [Layer 3: パラソル開発設計](./parasol-v3-layer3-development-design.md)
 - [ドメイン言語進化ガイド](./parasol-v3-domain-language-evolution.md)
+- [サブドメイン・BC・マイクロサービスの整合性ガイド](./parasol-v3-subdomain-bc-ms-alignment.md)
 
 ---
 

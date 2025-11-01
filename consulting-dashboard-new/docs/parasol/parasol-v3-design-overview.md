@@ -286,6 +286,7 @@ Week 13-: 実装
 - [Layer 2: マイクロサービスデザイン](./parasol-v3-layer2-microservice-design.md)
 - [Layer 3: パラソル開発設計](./parasol-v3-layer3-development-design.md)
 - [ドメイン言語進化ガイド](./parasol-v3-domain-language-evolution.md)
+- [サブドメイン・BC・マイクロサービスの整合性ガイド](./parasol-v3-subdomain-bc-ms-alignment.md)
 
 ### 既存ドキュメント
 - [パラソル開発ガイド](./PARASOL_DEVELOPMENT_GUIDE.md)

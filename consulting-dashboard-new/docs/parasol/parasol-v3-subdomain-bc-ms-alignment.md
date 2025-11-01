@@ -10,9 +10,14 @@
 
 このドキュメントは、DDD(Domain-Driven Design)における**問題領域(Problem Space)**と**解決領域(Solution Space)**の整合性を、パラソルV3の3層デザイン構造でどのように取るかを説明します。
 
+**位置づけ**:
+- [Layer 2: マイクロサービスデザイン](./parasol-v3-layer2-microservice-design.md)の**補完ガイド**
+- BC境界決定の4つの検証観点（トランザクション/ビジネスルール/変更頻度/チーム境界）は、Layer 2ガイドに既に記載されています
+- 本ドキュメントは、DDDの理論とパラソルV3の実践を橋渡しし、整合性の取り方を体系的に説明します
+
 **前提知識**:
 - [パラソルV3設計 - 全体概要](./parasol-v3-design-overview.md)
-- [Layer 2: マイクロサービスデザイン](./parasol-v3-layer2-microservice-design.md)
+- [Layer 2: マイクロサービスデザイン](./parasol-v3-layer2-microservice-design.md) ← **必読**
 - ドメイン駆動設計(DDD)の基礎知識
 
 ---
@@ -206,6 +211,8 @@ BC: リスク管理BC
 
 これが**最も重要な設計判断**です。
 
+> **注**: BC境界決定の検証観点は、[Layer 2: マイクロサービスデザイン](./parasol-v3-layer2-microservice-design.md#step-2-bc定義とビジネス価値)に記載されています。以下は、その詳細化と実践例です。
+
 #### BC境界決定の4つの検証観点
 
 ```markdown
@@ -318,21 +325,7 @@ BC: リスク管理BC      ┴→ マイクロサービス: project-service
 - 初期MVP開発
 - BC間の連携が非常に密
 - チームリソースが限定的
-- 後で分割する前提
-
-#### 戦略C: 1 BC = 複数マイクロサービス（大規模）
-
-```
-BC: プロジェクト計画BC
-    ├→ マイクロサービス: plan-write-service (CQRS Write)
-    └→ マイクロサービス: plan-read-service  (CQRS Read)
-```
-
-**適用ケース**:
-- BCが非常に大きい
-- 読み取りと書き込みの負荷が異なる
-- チームが複数に分かれる
-- スケール要件が異なる
+- 後で分割する前提（フェーズ2で1 BC = 1 MSに移行）
 
 ---
 
@@ -415,17 +408,6 @@ BC-03 + BC-04 → stakeholder-finance-service
 
 ```
 BC-01 → project-planning-service
-BC-02 → risk-management-service
-BC-03 → stakeholder-service
-BC-04 → finance-evaluation-service
-```
-
-**フェーズ3（成熟期）: CQRS適用**
-
-```
-BC-01 → project-planning-write-service (Write)
-     → project-planning-read-service  (Read)
-
 BC-02 → risk-management-service
 BC-03 → stakeholder-service
 BC-04 → finance-evaluation-service
@@ -699,17 +681,6 @@ BC-XXX → project-planning-service
 ### フェーズ2（成長期）
 
 **戦略**: 維持（変更なし）
-
-### フェーズ3（成熟期）
-
-**戦略検討**: CQRS分離の可能性
-
-```
-BC-XXX → project-planning-write-service
-       → project-planning-read-service
-```
-
-**判断基準**: 読み取り負荷が書き込みの10倍以上になった場合
 
 ## 承認
 

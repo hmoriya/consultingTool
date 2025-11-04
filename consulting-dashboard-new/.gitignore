@@ -50,6 +50,13 @@ dev.db
 *.tsbuildinfo
 next-env.d.ts
 
+# playwright screenshots
+.playwright-mcp/
+
+# temporary issue drafts
+docs/issues/issue-*.txt
+docs/issues/issue-*.md
+
 /app/generated/prisma
 
 # test artifacts

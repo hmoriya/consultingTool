@@ -227,12 +227,12 @@ Authorization: Bearer <JWT_TOKEN>
 **トークン構造**:
 ```json
 {
-  "sub": "user-uuid",
-  "email": "user@example.com",
-  "roles": ["team_member", "workspace_admin"],
-  "permissions": ["message:send", "workspace:manage", "meeting:schedule"],
-  "iat": 1699000000,
-  "exp": 1699003600
+  "sub": "user-uuid",                             // UUID
+  "email": "user@example.com",                    // EMAIL
+  "roles": ["team_member", "workspace_admin"],    // ARRAY<STRING_50>
+  "permissions": ["message:send", "workspace:manage", "meeting:schedule"],  // ARRAY<STRING_50>
+  "iat": 1699000000,                              // INTEGER (Unix timestamp)
+  "exp": 1699003600                               // INTEGER (Unix timestamp)
 }
 ```
 
@@ -369,21 +369,21 @@ POST /api/v1/bc-007/integration/create-workspace-from-project
 **リクエスト**:
 ```json
 {
-  "projectId": "proj-uuid",
-  "projectName": "Project Alpha",
-  "managerId": "user-uuid",
-  "teamMemberIds": ["user1-uuid", "user2-uuid"]
+  "projectId": "proj-uuid",                       // UUID
+  "projectName": "Project Alpha",                 // STRING_200
+  "managerId": "user-uuid",                       // UUID
+  "teamMemberIds": ["user1-uuid", "user2-uuid"]   // ARRAY<UUID>
 }
 ```
 
 **レスポンス**:
 ```json
 {
-  "workspaceId": "ws-uuid",
-  "name": "Project Alpha Workspace",
+  "workspaceId": "ws-uuid",                       // UUID
+  "name": "Project Alpha Workspace",              // STRING_200
   "defaultChannels": [
-    {"id": "ch1-uuid", "name": "general"},
-    {"id": "ch2-uuid", "name": "tech"}
+    {"id": "ch1-uuid", "name": "general"},        // id: UUID, name: STRING_100
+    {"id": "ch2-uuid", "name": "tech"}            // id: UUID, name: STRING_100
   ]
 }
 ```

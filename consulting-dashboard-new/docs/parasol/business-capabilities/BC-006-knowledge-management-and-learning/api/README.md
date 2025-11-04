@@ -180,12 +180,12 @@ Authorization: Bearer <JWT_TOKEN>
 **トークン構造**:
 ```json
 {
-  "sub": "user-uuid",
-  "email": "user@example.com",
-  "roles": ["knowledge_author", "learner"],
-  "permissions": ["knowledge:read", "knowledge:write", "learning:enroll"],
-  "iat": 1699000000,
-  "exp": 1699003600
+  "sub": "user-uuid",                             // UUID
+  "email": "user@example.com",                    // EMAIL
+  "roles": ["knowledge_author", "learner"],       // ARRAY<STRING_50>
+  "permissions": ["knowledge:read", "knowledge:write", "learning:enroll"],  // ARRAY<STRING_50>
+  "iat": 1699000000,                              // INTEGER (Unix timestamp)
+  "exp": 1699003600                               // INTEGER (Unix timestamp)
 }
 ```
 
@@ -320,10 +320,10 @@ POST /api/v1/bc-006/integration/extract-from-project
 **リクエスト**:
 ```json
 {
-  "projectId": "proj-uuid",
-  "includeDocuments": true,
-  "includeDeliverables": true,
-  "includeMeetings": true
+  "projectId": "proj-uuid",                       // UUID
+  "includeDocuments": true,                       // BOOLEAN
+  "includeDeliverables": true,                    // BOOLEAN
+  "includeMeetings": true                         // BOOLEAN
 }
 ```
 
@@ -332,17 +332,17 @@ POST /api/v1/bc-006/integration/extract-from-project
 {
   "extractedKnowledge": [
     {
-      "title": "Extracted knowledge title",
-      "content": "...",
-      "importance": 0.85,
-      "suggestedCategory": "category-uuid"
+      "title": "Extracted knowledge title",      // STRING_200
+      "content": "...",                           // TEXT
+      "importance": 0.85,                         // DECIMAL
+      "suggestedCategory": "category-uuid"        // UUID
     }
   ],
   "bestPractices": [
     {
-      "title": "Best practice title",
-      "description": "...",
-      "impact": 0.92
+      "title": "Best practice title",             // STRING_200
+      "description": "...",                       // TEXT
+      "impact": 0.92                              // DECIMAL
     }
   ]
 }

@@ -43,6 +43,61 @@ BC-005のデータ層は、リソース管理、タレント育成、チーム�
 
 ---
 
+## 🔄 Parasol型マッピング定義
+
+このBCで使用するParasol Domain Language型とPostgreSQL型の対応表。
+
+### 基本型マッピング
+
+| Parasol型 | PostgreSQL型 | 制約例 | 説明 |
+|-----------|-------------|--------|------|
+| UUID | UUID | PRIMARY KEY, NOT NULL | UUID v4形式の一意識別子 |
+| STRING_20 | VARCHAR(20) | NOT NULL, CHECK(length(...) <= 20) | 最大20文字の文字列 |
+| STRING_50 | VARCHAR(50) | NOT NULL, CHECK(length(...) <= 50) | 最大50文字の文字列 |
+| STRING_100 | VARCHAR(100) | NOT NULL, CHECK(length(...) <= 100) | 最大100文字の文字列 |
+| STRING_200 | VARCHAR(200) | NOT NULL, CHECK(length(...) <= 200) | 最大200文字の文字列 |
+| STRING_255 | VARCHAR(255) | NOT NULL, CHECK(length(...) <= 255) | 最大255文字の文字列 |
+| TEXT | TEXT | - | 長文（制限なし） |
+| INTEGER | INTEGER | CHECK(value > 0) | 整数 |
+| DECIMAL | NUMERIC | CHECK(value >= 0) | 小数（金額、工数等） |
+| PERCENTAGE | NUMERIC(5,2) | CHECK(value BETWEEN 0 AND 100) | パーセンテージ（0-100） |
+| BOOLEAN | BOOLEAN | NOT NULL DEFAULT false | 真偽値 |
+| DATE | DATE | NOT NULL | YYYY-MM-DD形式の日付 |
+| TIMESTAMP | TIMESTAMP WITH TIME ZONE | NOT NULL DEFAULT CURRENT_TIMESTAMP | ISO8601形式のタイムスタンプ |
+| EMAIL | VARCHAR(255) | CHECK(email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z\|a-z]{2,}$') | RFC5322準拠メールアドレス |
+| URL | TEXT | CHECK(url ~* '^https?://') | RFC3986準拠URL |
+| MONEY | JSONB or (NUMERIC + VARCHAR(3)) | CHECK(amount >= 0), CHECK(currency ~ '^[A-Z]{3}$') | 金額（通貨付き） |
+| JSON | JSONB | - | JSON形式データ |
+| BINARY | BYTEA | - | バイナリデータ |
+
+### 実装ガイドライン
+
+1. **NOT NULL制約**: Parasol型の必須フィールドは`NOT NULL`制約を付与
+2. **CHECK制約**: 長さ制約、範囲制約を`CHECK`で実装
+3. **インデックス**: 検索頻度の高いカラムには適切なインデックスを作成
+4. **デフォルト値**: `TIMESTAMP`は`DEFAULT CURRENT_TIMESTAMP`を推奨
+5. **列挙型**: Parasol型の`STRING_XX` (enum値) は`VARCHAR + CHECK`または`ENUM`型で実装
+
+### BC固有の型定義
+
+**リソース配分型**:
+- `ALLOCATION_PERCENTAGE`: プロジェクト配分率 → `NUMERIC(3,2) CHECK (allocation_percentage BETWEEN 0.0 AND 2.0)` (最大200%)
+- `UTILIZATION_RATE`: 稼働率 → `NUMERIC(5,2) CHECK (utilization_rate BETWEEN 0 AND 100)`
+
+**工数型**:
+- `HOURS`: 工数（時間） → `NUMERIC(8,2) CHECK (hours >= 0 AND hours <= 24)` (1日最大24時間)
+- `WORK_DATE`: 作業日 → `DATE NOT NULL`
+
+**スキル型**:
+- `SKILL_LEVEL`: スキルレベル → `INTEGER CHECK (level BETWEEN 1 AND 5)`
+- `SKILL_CATEGORY`: スキルカテゴリ → `VARCHAR(100)`
+
+**パフォーマンス評価型**:
+- `RATING`: 評価点 → `NUMERIC(3,2) CHECK (rating BETWEEN 0 AND 5)`
+- `PERFORMANCE_PERIOD`: 評価期間 → `(period_start DATE, period_end DATE) CHECK (period_end >= period_start)`
+
+---
+
 ## アーキテクチャ {#architecture}
 
 ### データグループ

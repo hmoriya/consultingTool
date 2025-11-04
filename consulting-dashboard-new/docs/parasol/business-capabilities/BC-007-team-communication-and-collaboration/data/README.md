@@ -41,6 +41,67 @@ BC-007のデータ層は、メッセージング、通知、会議、コラボ�
 
 ---
 
+## 🔄 Parasol型マッピング定義
+
+このBCで使用するParasol Domain Language型とPostgreSQL型の対応表。
+
+### 基本型マッピング
+
+| Parasol型 | PostgreSQL型 | 制約例 | 説明 |
+|-----------|-------------|--------|------|
+| UUID | UUID | PRIMARY KEY, NOT NULL | UUID v4形式の一意識別子 |
+| STRING_20 | VARCHAR(20) | NOT NULL, CHECK(length(...) <= 20) | 最大20文字の文字列 |
+| STRING_50 | VARCHAR(50) | NOT NULL, CHECK(length(...) <= 50) | 最大50文字の文字列 |
+| STRING_100 | VARCHAR(100) | NOT NULL, CHECK(length(...) <= 100) | 最大100文字の文字列 |
+| STRING_200 | VARCHAR(200) | NOT NULL, CHECK(length(...) <= 200) | 最大200文字の文字列 |
+| STRING_255 | VARCHAR(255) | NOT NULL, CHECK(length(...) <= 255) | 最大255文字の文字列 |
+| TEXT | TEXT | - | 長文（制限なし） |
+| INTEGER | INTEGER | CHECK(value > 0) | 整数 |
+| DECIMAL | NUMERIC | CHECK(value >= 0) | 小数（金額、工数等） |
+| PERCENTAGE | NUMERIC(5,2) | CHECK(value BETWEEN 0 AND 100) | パーセンテージ（0-100） |
+| BOOLEAN | BOOLEAN | NOT NULL DEFAULT false | 真偽値 |
+| DATE | DATE | NOT NULL | YYYY-MM-DD形式の日付 |
+| TIMESTAMP | TIMESTAMP WITH TIME ZONE | NOT NULL DEFAULT CURRENT_TIMESTAMP | ISO8601形式のタイムスタンプ |
+| EMAIL | VARCHAR(255) | CHECK(email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z\|a-z]{2,}$') | RFC5322準拠メールアドレス |
+| URL | TEXT | CHECK(url ~* '^https?://') | RFC3986準拠URL |
+| MONEY | JSONB or (NUMERIC + VARCHAR(3)) | CHECK(amount >= 0), CHECK(currency ~ '^[A-Z]{3}$') | 金額（通貨付き） |
+| JSON | JSONB | - | JSON形式データ |
+| BINARY | BYTEA | - | バイナリデータ |
+
+### 実装ガイドライン
+
+1. **NOT NULL制約**: Parasol型の必須フィールドは`NOT NULL`制約を付与
+2. **CHECK制約**: 長さ制約、範囲制約を`CHECK`で実装
+3. **インデックス**: 検索頻度の高いカラムには適切なインデックスを作成
+4. **デフォルト値**: `TIMESTAMP`は`DEFAULT CURRENT_TIMESTAMP`を推奨
+5. **列挙型**: Parasol型の`STRING_XX` (enum値) は`VARCHAR + CHECK`または`ENUM`型で実装
+
+### BC固有の型定義
+
+**メッセージ型**:
+- `MESSAGE_TYPE`: メッセージ種別 → `VARCHAR(30) CHECK (type IN ('text', 'image', 'file', 'video', 'audio', 'system'))`
+- `CONTENT_SEARCH`: 全文検索ベクトル → `TSVECTOR`
+- `RECIPIENT_INFO`: 受信者情報 → `JSONB` (複数受信者対応)
+
+**通知型**:
+- `PRIORITY`: 優先度 → `VARCHAR(20) CHECK (priority IN ('urgent', 'high', 'normal', 'low'))`
+- `NOTIFICATION_STATUS`: 通知状態 → `VARCHAR(30) CHECK (status IN ('pending', 'scheduled', 'delivered', 'failed', 'cancelled'))`
+- `DELIVERY_CHANNEL`: 配信チャネル → `VARCHAR(20) CHECK (channel IN ('push', 'email', 'sms', 'in_app'))`
+
+**会議型**:
+- `MEETING_TYPE`: 会議種別 → `VARCHAR(30)`
+- `LOCATION_TYPE`: 開催形式 → `VARCHAR(20) CHECK (location_type IN ('physical', 'online', 'hybrid'))`
+- `ATTENDANCE_STATUS`: 出席状況 → `VARCHAR(20) CHECK (attendance_status IN ('pending', 'accepted', 'declined', 'tentative', 'attended', 'absent'))`
+- `DURATION_MINUTES`: 会議時間 → `INTEGER CHECK (duration_minutes > 0)`
+
+**コラボレーション型**:
+- `WORKSPACE_TYPE`: ワークスペース種別 → `VARCHAR(30) CHECK (type IN ('project', 'team', 'department', 'personal'))`
+- `PERMISSION_LEVEL`: 権限レベル → `VARCHAR(20) CHECK (permission IN ('owner', 'admin', 'editor', 'commenter', 'viewer'))`
+- `FILE_SIZE`: ファイルサイズ → `BIGINT CHECK (file_size > 0)` (バイト単位)
+- `MIME_TYPE`: MIMEタイプ → `VARCHAR(100)`
+
+---
+
 ## データベーステーブル {#tables}
 
 ### Messaging Context

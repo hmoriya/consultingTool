@@ -56,12 +56,12 @@ BC-001のAPI全体像と仕様を定義
 **リクエスト**:
 ```json
 {
-  "name": "新規プロジェクト名",
-  "description": "プロジェクトの説明",
-  "startDate": "2025-11-01",
-  "endDate": "2026-03-31",
-  "budget": 10000000.00,
-  "ownerId": "uuid-of-owner"
+  "name": "新規プロジェクト名",                    // STRING_200
+  "description": "プロジェクトの説明",             // TEXT
+  "startDate": "2025-11-01",                      // DATE
+  "endDate": "2026-03-31",                        // DATE
+  "budget": 10000000.00,                          // DECIMAL
+  "ownerId": "uuid-of-owner"                      // UUID
 }
 ```
 
@@ -69,13 +69,13 @@ BC-001のAPI全体像と仕様を定義
 - **HTTP 201 Created**
 ```json
 {
-  "projectId": "550e8400-e29b-41d4-a716-446655440000",
-  "name": "新規プロジェクト名",
-  "status": "planning",
-  "createdAt": "2025-10-31T10:00:00Z",
+  "projectId": "550e8400-e29b-41d4-a716-446655440000",  // UUID
+  "name": "新規プロジェクト名",                         // STRING_200
+  "status": "planning",                                 // STRING_50
+  "createdAt": "2025-10-31T10:00:00Z",                 // TIMESTAMP
   "_links": {
-    "self": "/api/bc-001/projects/550e8400-e29b-41d4-a716-446655440000",
-    "tasks": "/api/bc-001/projects/550e8400-e29b-41d4-a716-446655440000/tasks"
+    "self": "/api/bc-001/projects/550e8400-e29b-41d4-a716-446655440000",  // STRING_200
+    "tasks": "/api/bc-001/projects/550e8400-e29b-41d4-a716-446655440000/tasks"  // STRING_200
   }
 }
 ```
@@ -274,14 +274,14 @@ BC-001のAPI全体像と仕様を定義
 **リクエスト**:
 ```json
 {
-  "name": "タスク名",
-  "description": "タスクの説明",
-  "parentTaskId": "uuid-of-parent-task",
-  "priority": "high",
-  "estimatedHours": 16.5,
-  "assigneeId": "uuid-of-assignee",
-  "startDate": "2025-11-10",
-  "dueDate": "2025-11-20"
+  "name": "タスク名",                              // STRING_200
+  "description": "タスクの説明",                   // TEXT
+  "parentTaskId": "uuid-of-parent-task",          // UUID
+  "priority": "high",                             // STRING_20
+  "estimatedHours": 16.5,                         // DECIMAL
+  "assigneeId": "uuid-of-assignee",               // UUID
+  "startDate": "2025-11-10",                      // DATE
+  "dueDate": "2025-11-20"                         // DATE
 }
 ```
 

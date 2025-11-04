@@ -369,21 +369,21 @@ BC-003は**全BCの認証・認可基盤**として、以下のBC間連携APIを
 **リクエスト**:
 ```json
 {
-  "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+  "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."  // STRING_1000 (JWT Token)
 }
 ```
 
 **レスポンス（200 OK）**:
 ```json
 {
-  "valid": true,
+  "valid": true,                                  // BOOLEAN
   "claims": {
-    "sub": "user-uuid",
-    "email": "user@example.com",
-    "roles": ["project_manager"],
-    "permissions": ["project:read", "project:write"],
-    "sessionId": "session-uuid",
-    "exp": 1698751800
+    "sub": "user-uuid",                           // UUID
+    "email": "user@example.com",                  // EMAIL
+    "roles": ["project_manager"],                 // ARRAY<STRING_50>
+    "permissions": ["project:read", "project:write"],  // ARRAY<STRING_50>
+    "sessionId": "session-uuid",                  // UUID
+    "exp": 1698751800                             // INTEGER (Unix timestamp)
   }
 }
 ```
@@ -409,18 +409,18 @@ BC-003は**全BCの認証・認可基盤**として、以下のBC間連携APIを
 **リクエスト**:
 ```json
 {
-  "userId": "user-uuid",
-  "permission": "project:write",
-  "resourceId": "project-uuid",
-  "resourceType": "project"
+  "userId": "user-uuid",                          // UUID
+  "permission": "project:write",                  // STRING_50
+  "resourceId": "project-uuid",                   // UUID
+  "resourceType": "project"                       // STRING_50
 }
 ```
 
 **レスポンス（200 OK）**:
 ```json
 {
-  "granted": true,
-  "reason": "User has role 'project_manager' with permission 'project:write'"
+  "granted": true,                                // BOOLEAN
+  "reason": "User has role 'project_manager' with permission 'project:write'"  // STRING_200
 }
 ```
 

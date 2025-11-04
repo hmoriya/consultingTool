@@ -363,15 +363,15 @@ erDiagram
 | プロパティ | Parasol言語 | 英語名 | 型 | 制約 | 説明 |
 |-----------|------------|--------|-----|------|------|
 | 予算ID | BudgetID | BUDGET_ID | UUID | PK, NOT NULL | 一意識別子 |
-| 予算名 | BudgetName | BUDGET_NAME | String(200) | NOT NULL | 予算名 |
-| 会計年度 | FiscalYear | FISCAL_YEAR | Integer | NOT NULL, UNIQUE | 会計年度（YYYY） |
-| 総予算額 | TotalAmount | TOTAL_AMOUNT | Decimal(15,2) | NOT NULL, > 0 | 総予算額 |
-| 通貨 | Currency | CURRENCY | String(3) | NOT NULL | 通貨コード（ISO 4217） |
-| 承認状態 | ApprovalStatus | APPROVAL_STATUS | Enum | NOT NULL | draft/pending/approved/rejected |
+| 予算名 | BudgetName | BUDGET_NAME | STRING_200 | NOT NULL | 予算名 |
+| 会計年度 | FiscalYear | FISCAL_YEAR | INTEGER | NOT NULL, UNIQUE | 会計年度（YYYY） |
+| 総予算額 | TotalAmount | TOTAL_AMOUNT | DECIMAL | NOT NULL, > 0 | 総予算額 |
+| 通貨 | Currency | CURRENCY | STRING_20 | NOT NULL | 通貨コード（ISO 4217） |
+| 承認状態 | ApprovalStatus | APPROVAL_STATUS | STRING_50 | NOT NULL | draft/pending/approved/rejected |
 | 承認者ID | ApprovedByID | APPROVED_BY_ID | UUID | FK → User | 承認者 |
-| 承認日 | ApprovedDate | APPROVED_DATE | Date | | 承認日 |
-| 作成日時 | CreatedAt | CREATED_AT | Timestamp | NOT NULL | レコード作成日時 |
-| 更新日時 | UpdatedAt | UPDATED_AT | Timestamp | NOT NULL | 最終更新日時 |
+| 承認日 | ApprovedDate | APPROVED_DATE | DATE | | 承認日 |
+| 作成日時 | CreatedAt | CREATED_AT | TIMESTAMP | NOT NULL | レコード作成日時 |
+| 更新日時 | UpdatedAt | UPDATED_AT | TIMESTAMP | NOT NULL | 最終更新日時 |
 
 #### ライフサイクル
 ```
@@ -388,16 +388,16 @@ erDiagram
 | プロパティ | Parasol言語 | 英語名 | 型 | 制約 | 説明 |
 |-----------|------------|--------|-----|------|------|
 | コストID | CostID | COST_ID | UUID | PK, NOT NULL | 一意識別子 |
-| コスト名 | CostName | COST_NAME | String(200) | NOT NULL | コスト名 |
-| カテゴリ | Category | CATEGORY | Enum | NOT NULL | labor/outsource/equipment/other |
-| 金額 | Amount | AMOUNT | Decimal(15,2) | NOT NULL, > 0 | コスト金額 |
-| 通貨 | Currency | CURRENCY | String(3) | NOT NULL | 通貨コード |
-| 発生日 | OccurredDate | OCCURRED_DATE | Date | NOT NULL | コスト発生日 |
+| コスト名 | CostName | COST_NAME | STRING_200 | NOT NULL | コスト名 |
+| カテゴリ | Category | CATEGORY | STRING_50 | NOT NULL | labor/outsource/equipment/other |
+| 金額 | Amount | AMOUNT | DECIMAL | NOT NULL, > 0 | コスト金額 |
+| 通貨 | Currency | CURRENCY | STRING_20 | NOT NULL | 通貨コード |
+| 発生日 | OccurredDate | OCCURRED_DATE | DATE | NOT NULL | コスト発生日 |
 | プロジェクトID | ProjectID | PROJECT_ID | UUID | FK → Project (BC-001) | 関連プロジェクト |
 | 予算項目ID | BudgetItemID | BUDGET_ITEM_ID | UUID | FK → BudgetItem, NOT NULL | 配分先予算項目 |
-| 説明 | Description | DESCRIPTION | Text | | コスト説明 |
-| 作成日時 | CreatedAt | CREATED_AT | Timestamp | NOT NULL | レコード作成日時 |
-| 更新日時 | UpdatedAt | UPDATED_AT | Timestamp | NOT NULL | 最終更新日時 |
+| 説明 | Description | DESCRIPTION | TEXT | | コスト説明 |
+| 作成日時 | CreatedAt | CREATED_AT | TIMESTAMP | NOT NULL | レコード作成日時 |
+| 更新日時 | UpdatedAt | UPDATED_AT | TIMESTAMP | NOT NULL | 最終更新日時 |
 
 ---
 
@@ -408,16 +408,16 @@ erDiagram
 | プロパティ | Parasol言語 | 英語名 | 型 | 制約 | 説明 |
 |-----------|------------|--------|-----|------|------|
 | 収益ID | RevenueID | REVENUE_ID | UUID | PK, NOT NULL | 一意識別子 |
-| 収益名 | RevenueName | REVENUE_NAME | String(200) | NOT NULL | 収益名 |
-| 金額 | Amount | AMOUNT | Decimal(15,2) | NOT NULL, > 0 | 収益金額 |
-| 通貨 | Currency | CURRENCY | String(3) | NOT NULL | 通貨コード |
-| 認識日 | RecognizedDate | RECOGNIZED_DATE | Date | NOT NULL | 収益認識日 |
-| 収益区分 | RevenueType | REVENUE_TYPE | Enum | NOT NULL | project/retainer/other |
+| 収益名 | RevenueName | REVENUE_NAME | STRING_200 | NOT NULL | 収益名 |
+| 金額 | Amount | AMOUNT | DECIMAL | NOT NULL, > 0 | 収益金額 |
+| 通貨 | Currency | CURRENCY | STRING_20 | NOT NULL | 通貨コード |
+| 認識日 | RecognizedDate | RECOGNIZED_DATE | DATE | NOT NULL | 収益認識日 |
+| 収益区分 | RevenueType | REVENUE_TYPE | STRING_50 | NOT NULL | project/retainer/other |
 | プロジェクトID | ProjectID | PROJECT_ID | UUID | FK → Project (BC-001) | 関連プロジェクト |
 | 請求書ID | InvoiceID | INVOICE_ID | UUID | FK → Invoice | 関連請求書 |
-| 説明 | Description | DESCRIPTION | Text | | 収益説明 |
-| 作成日時 | CreatedAt | CREATED_AT | Timestamp | NOT NULL | レコード作成日時 |
-| 更新日時 | UpdatedAt | UPDATED_AT | Timestamp | NOT NULL | 最終更新日時 |
+| 説明 | Description | DESCRIPTION | TEXT | | 収益説明 |
+| 作成日時 | CreatedAt | CREATED_AT | TIMESTAMP | NOT NULL | レコード作成日時 |
+| 更新日時 | UpdatedAt | UPDATED_AT | TIMESTAMP | NOT NULL | 最終更新日時 |
 
 ---
 
@@ -428,15 +428,15 @@ erDiagram
 | プロパティ | Parasol言語 | 英語名 | 型 | 制約 | 説明 |
 |-----------|------------|--------|-----|------|------|
 | 請求書ID | InvoiceID | INVOICE_ID | UUID | PK, NOT NULL | 一意識別子 |
-| 請求書番号 | InvoiceNumber | INVOICE_NUMBER | String(50) | NOT NULL, UNIQUE | 請求書番号 |
-| 請求金額 | InvoiceAmount | INVOICE_AMOUNT | Decimal(15,2) | NOT NULL, > 0 | 請求金額 |
-| 通貨 | Currency | CURRENCY | String(3) | NOT NULL | 通貨コード |
-| 請求日 | InvoiceDate | INVOICE_DATE | Date | NOT NULL | 請求日 |
-| 支払期限 | PaymentDue | PAYMENT_DUE | Date | NOT NULL | 支払期限 |
-| 支払状態 | PaymentStatus | PAYMENT_STATUS | Enum | NOT NULL | unpaid/partially_paid/fully_paid/overdue |
+| 請求書番号 | InvoiceNumber | INVOICE_NUMBER | STRING_50 | NOT NULL, UNIQUE | 請求書番号 |
+| 請求金額 | InvoiceAmount | INVOICE_AMOUNT | DECIMAL | NOT NULL, > 0 | 請求金額 |
+| 通貨 | Currency | CURRENCY | STRING_20 | NOT NULL | 通貨コード |
+| 請求日 | InvoiceDate | INVOICE_DATE | DATE | NOT NULL | 請求日 |
+| 支払期限 | PaymentDue | PAYMENT_DUE | DATE | NOT NULL | 支払期限 |
+| 支払状態 | PaymentStatus | PAYMENT_STATUS | STRING_50 | NOT NULL | unpaid/partially_paid/fully_paid/overdue |
 | クライアントID | ClientID | CLIENT_ID | UUID | FK → Client, NOT NULL | クライアント |
-| 作成日時 | CreatedAt | CREATED_AT | Timestamp | NOT NULL | レコード作成日時 |
-| 更新日時 | UpdatedAt | UPDATED_AT | Timestamp | NOT NULL | 最終更新日時 |
+| 作成日時 | CreatedAt | CREATED_AT | TIMESTAMP | NOT NULL | レコード作成日時 |
+| 更新日時 | UpdatedAt | UPDATED_AT | TIMESTAMP | NOT NULL | 最終更新日時 |
 
 #### ライフサイクル
 ```
@@ -455,9 +455,9 @@ erDiagram
 #### プロパティ
 | プロパティ | Parasol言語 | 英語名 | 型 | 説明 |
 |-----------|------------|--------|-----|------|
-| 金額 | amount | AMOUNT | Decimal(15,2) | 金額 |
-| 通貨 | currency | CURRENCY | String(3) | 通貨コード（ISO 4217: JPY, USD, EUR） |
-| 為替レート | exchangeRate | EXCHANGE_RATE | Decimal(10,6) | 基準通貨への為替レート（オプション） |
+| 金額 | amount | AMOUNT | DECIMAL | 金額 |
+| 通貨 | currency | CURRENCY | STRING_20 | 通貨コード（ISO 4217: JPY, USD, EUR） |
+| 為替レート | exchangeRate | EXCHANGE_RATE | DECIMAL | 基準通貨への為替レート（オプション） |
 
 #### 不変条件
 - amount ≥ 0（負の金額は別途ReturnAmountなど専用VOで表現）
@@ -491,8 +491,8 @@ class MoneyAmount {
 #### プロパティ
 | プロパティ | Parasol言語 | 英語名 | 型 | 説明 |
 |-----------|------------|--------|-----|------|
-| カテゴリ名 | categoryName | CATEGORY_NAME | String(100) | カテゴリ名 |
-| カテゴリコード | categoryCode | CATEGORY_CODE | String(20) | カテゴリコード（LABOR, OUTSOURCE, EQUIPMENT, OTHER） |
+| カテゴリ名 | categoryName | CATEGORY_NAME | STRING_100 | カテゴリ名 |
+| カテゴリコード | categoryCode | CATEGORY_CODE | STRING_20 | カテゴリコード（LABOR, OUTSOURCE, EQUIPMENT, OTHER） |
 | 親カテゴリID | parentCategoryId | PARENT_CATEGORY_ID | UUID | 親カテゴリ（階層構造用） |
 
 #### 使用例
@@ -513,12 +513,12 @@ const costCategories: CostCategory[] = [
 #### プロパティ
 | プロパティ | Parasol言語 | 英語名 | 型 | 説明 |
 |-----------|------------|--------|-----|------|
-| 粗利益 | grossProfit | GROSS_PROFIT | Decimal(15,2) | 粗利益（収益 - 直接費） |
-| 営業利益 | operatingProfit | OPERATING_PROFIT | Decimal(15,2) | 営業利益（粗利益 - 間接費） |
-| 純利益 | netProfit | NET_PROFIT | Decimal(15,2) | 純利益（営業利益 - 税金等） |
-| 粗利率 | grossMarginRate | GROSS_MARGIN_RATE | Decimal(5,2) | 粗利率（%） |
-| 営業利益率 | operatingMarginRate | OPERATING_MARGIN_RATE | Decimal(5,2) | 営業利益率（%） |
-| 純利益率 | netMarginRate | NET_MARGIN_RATE | Decimal(5,2) | 純利益率（%） |
+| 粗利益 | grossProfit | GROSS_PROFIT | DECIMAL | 粗利益（収益 - 直接費） |
+| 営業利益 | operatingProfit | OPERATING_PROFIT | DECIMAL | 営業利益（粗利益 - 間接費） |
+| 純利益 | netProfit | NET_PROFIT | DECIMAL | 純利益（営業利益 - 税金等） |
+| 粗利率 | grossMarginRate | GROSS_MARGIN_RATE | DECIMAL | 粗利率（%） |
+| 営業利益率 | operatingMarginRate | OPERATING_MARGIN_RATE | DECIMAL | 営業利益率（%） |
+| 純利益率 | netMarginRate | NET_MARGIN_RATE | DECIMAL | 純利益率（%） |
 
 #### 計算式
 ```typescript

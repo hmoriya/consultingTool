@@ -361,13 +361,13 @@ POST /api/bc-002/resource-costs
 Content-Type: application/json
 
 {
-  "resourceId": "uuid",
-  "costType": "labor",
-  "amount": 150000,
-  "currency": "JPY",
+  "resourceId": "uuid",                           // UUID
+  "costType": "labor",                            // STRING_50
+  "amount": 150000,                               // DECIMAL
+  "currency": "JPY",                              // STRING_20
   "period": {
-    "startDate": "2025-11-01",
-    "endDate": "2025-11-30"
+    "startDate": "2025-11-01",                    // DATE
+    "endDate": "2025-11-30"                       // DATE
   }
 }
 ```

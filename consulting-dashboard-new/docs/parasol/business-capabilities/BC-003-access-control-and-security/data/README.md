@@ -60,6 +60,56 @@
 
 ---
 
+## 🔄 Parasol型マッピング定義
+
+このBCで使用するParasol Domain Language型とPostgreSQL型の対応表。
+
+### 基本型マッピング
+
+| Parasol型 | PostgreSQL型 | 制約例 | 説明 |
+|-----------|-------------|--------|------|
+| UUID | UUID | PRIMARY KEY, NOT NULL | UUID v4形式の一意識別子 |
+| STRING_20 | VARCHAR(20) | NOT NULL, CHECK(length(...) <= 20) | 最大20文字の文字列 |
+| STRING_50 | VARCHAR(50) | NOT NULL, CHECK(length(...) <= 50) | 最大50文字の文字列 |
+| STRING_100 | VARCHAR(100) | NOT NULL, CHECK(length(...) <= 100) | 最大100文字の文字列 |
+| STRING_200 | VARCHAR(200) | NOT NULL, CHECK(length(...) <= 200) | 最大200文字の文字列 |
+| STRING_255 | VARCHAR(255) | NOT NULL, CHECK(length(...) <= 255) | 最大255文字の文字列 |
+| TEXT | TEXT | - | 長文（制限なし） |
+| INTEGER | INTEGER | CHECK(value > 0) | 整数 |
+| DECIMAL | NUMERIC | CHECK(value >= 0) | 小数（金額、工数等） |
+| PERCENTAGE | NUMERIC(5,2) | CHECK(value BETWEEN 0 AND 100) | パーセンテージ（0-100） |
+| BOOLEAN | BOOLEAN | NOT NULL DEFAULT false | 真偽値 |
+| DATE | DATE | NOT NULL | YYYY-MM-DD形式の日付 |
+| TIMESTAMP | TIMESTAMP WITH TIME ZONE | NOT NULL DEFAULT CURRENT_TIMESTAMP | ISO8601形式のタイムスタンプ |
+| EMAIL | VARCHAR(255) | CHECK(email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z\|a-z]{2,}$') | RFC5322準拠メールアドレス |
+| URL | TEXT | CHECK(url ~* '^https?://') | RFC3986準拠URL |
+| MONEY | JSONB or (NUMERIC + VARCHAR(3)) | CHECK(amount >= 0), CHECK(currency ~ '^[A-Z]{3}$') | 金額（通貨付き） |
+| JSON | JSONB | - | JSON形式データ |
+| BINARY | BYTEA | - | バイナリデータ |
+
+### 実装ガイドライン
+
+1. **NOT NULL制約**: Parasol型の必須フィールドは`NOT NULL`制約を付与
+2. **CHECK制約**: 長さ制約、範囲制約を`CHECK`で実装
+3. **インデックス**: 検索頻度の高いカラムには適切なインデックスを作成
+4. **デフォルト値**: `TIMESTAMP`は`DEFAULT CURRENT_TIMESTAMP`を推奨
+5. **列挙型**: Parasol型の`STRING_XX` (enum値) は`VARCHAR + CHECK`または`ENUM`型で実装
+
+### BC固有の型定義
+
+**セキュリティ特化型**:
+- `PASSWORD_HASH`: bcrypt, cost=12 → `VARCHAR(60)` (bcryptハッシュ長)
+- `MFA_SECRET`: AES-256-GCM暗号化 → `BYTEA` (pgcrypto使用)
+- `SESSION_TOKEN`: JWT RS256署名 → `TEXT` (JWT文字列)
+- `HASH_CHAIN`: SHA-256ハッシュ → `VARCHAR(64)` (16進数表現)
+
+**監査ログ型**:
+- `AUDIT_ACTION`: 操作種別 → `VARCHAR(50) CHECK (action IN (...))`
+- `IP_ADDRESS`: IPv4/IPv6 → `INET`型
+- `USER_AGENT`: UAデータ → `TEXT`
+
+---
+
 ## ER図 {#er-diagram}
 
 ```mermaid

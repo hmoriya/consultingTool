@@ -203,13 +203,13 @@ Accept-Language: ja
 ```json
 {
   "data": {
-    "id": "uuid",
-    "name": "組織名",
+    "id": "uuid",                                 // UUID
+    "name": "組織名",                             // STRING_200
     ...
   },
   "meta": {
-    "timestamp": "2025-11-03T12:00:00Z",
-    "requestId": "req-uuid"
+    "timestamp": "2025-11-03T12:00:00Z",         // TIMESTAMP
+    "requestId": "req-uuid"                       // UUID
   }
 }
 ```
@@ -239,15 +239,15 @@ Accept-Language: ja
 ```json
 {
   "error": {
-    "code": "BC004_ERR_101",
-    "message": "Organization not found",
+    "code": "BC004_ERR_101",                      // STRING_50
+    "message": "Organization not found",          // STRING_200
     "details": {
-      "organizationId": "org-uuid"
+      "organizationId": "org-uuid"                // UUID
     }
   },
   "meta": {
-    "timestamp": "2025-11-03T12:00:00Z",
-    "requestId": "req-uuid"
+    "timestamp": "2025-11-03T12:00:00Z",         // TIMESTAMP
+    "requestId": "req-uuid"                       // UUID
   }
 }
 ```

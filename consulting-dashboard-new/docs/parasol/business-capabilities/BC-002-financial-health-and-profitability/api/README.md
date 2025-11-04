@@ -143,29 +143,29 @@ BC-002は**ロールベースアクセス制御（RBAC）**を採用。
 **リクエスト**:
 ```json
 {
-  "name": "2025年度Q1予算",
-  "fiscalYear": 2025,
-  "fiscalQuarter": 1,
-  "totalAmount": 50000000.00,
-  "currency": "JPY",
+  "name": "2025年度Q1予算",                        // STRING_200
+  "fiscalYear": 2025,                             // INTEGER
+  "fiscalQuarter": 1,                             // INTEGER
+  "totalAmount": 50000000.00,                     // DECIMAL
+  "currency": "JPY",                              // STRING_20
   "items": [
     {
-      "category": "PERSONNEL",
-      "allocatedAmount": 30000000.00,
-      "description": "人件費"
+      "category": "PERSONNEL",                    // STRING_50
+      "allocatedAmount": 30000000.00,             // DECIMAL
+      "description": "人件費"                      // TEXT
     },
     {
-      "category": "INFRASTRUCTURE",
-      "allocatedAmount": 15000000.00,
-      "description": "インフラコスト"
+      "category": "INFRASTRUCTURE",               // STRING_50
+      "allocatedAmount": 15000000.00,             // DECIMAL
+      "description": "インフラコスト"              // TEXT
     },
     {
-      "category": "MARKETING",
-      "allocatedAmount": 5000000.00,
-      "description": "マーケティング費用"
+      "category": "MARKETING",                    // STRING_50
+      "allocatedAmount": 5000000.00,              // DECIMAL
+      "description": "マーケティング費用"          // TEXT
     }
   ],
-  "responsibleUserId": "uuid-of-budget-manager"
+  "responsibleUserId": "uuid-of-budget-manager"   // UUID
 }
 ```
 
@@ -472,17 +472,17 @@ BC-002は**ロールベースアクセス制御（RBAC）**を採用。
 **リクエスト**:
 ```json
 {
-  "projectId": "uuid-of-project",
-  "category": "PERSONNEL",
-  "subCategory": "DEVELOPER_SALARY",
-  "amount": 800000.00,
-  "currency": "JPY",
-  "incurredDate": "2025-10-31",
-  "description": "エンジニアA 10月分給与",
-  "budgetItemId": "uuid-of-budget-item",
-  "invoiceNumber": "INV-2025-10-001",
-  "vendor": "社内（給与）",
-  "tags": ["personnel", "development"]
+  "projectId": "uuid-of-project",                 // UUID
+  "category": "PERSONNEL",                        // STRING_50
+  "subCategory": "DEVELOPER_SALARY",              // STRING_50
+  "amount": 800000.00,                            // DECIMAL
+  "currency": "JPY",                              // STRING_20
+  "incurredDate": "2025-10-31",                   // DATE
+  "description": "エンジニアA 10月分給与",         // TEXT
+  "budgetItemId": "uuid-of-budget-item",          // UUID
+  "invoiceNumber": "INV-2025-10-001",             // STRING_100
+  "vendor": "社内（給与）",                        // STRING_200
+  "tags": ["personnel", "development"]            // ARRAY<STRING_50>
 }
 ```
 

@@ -318,17 +318,17 @@ erDiagram
 | プロパティ | Parasol言語 | 英語名 | 型 | 制約 | 説明 |
 |-----------|------------|--------|-----|------|------|
 | プロジェクトID | ProjectID | PROJECT_ID | UUID | PK, NOT NULL | 一意識別子 |
-| プロジェクト名 | ProjectName | PROJECT_NAME | String(200) | NOT NULL, UNIQUE | プロジェクト名 |
-| 説明 | Description | DESCRIPTION | Text | | プロジェクトの詳細説明 |
-| 状態 | Status | STATUS | Enum | NOT NULL | planning/executing/completed/cancelled |
-| 開始日 | StartDate | START_DATE | Date | NOT NULL | 計画開始日 |
-| 終了日 | EndDate | END_DATE | Date | NOT NULL | 計画終了日 |
-| 実績開始日 | ActualStartDate | ACTUAL_START_DATE | Date | | 実際の開始日 |
-| 実績終了日 | ActualEndDate | ACTUAL_END_DATE | Date | | 実際の終了日 |
-| 予算 | Budget | BUDGET | Decimal(15,2) | ≥ 0 | プロジェクト予算（通貨単位） |
+| プロジェクト名 | ProjectName | PROJECT_NAME | STRING_200 | NOT NULL, UNIQUE | プロジェクト名 |
+| 説明 | Description | DESCRIPTION | TEXT | | プロジェクトの詳細説明 |
+| 状態 | Status | STATUS | STRING_50 | NOT NULL | planning/executing/completed/cancelled |
+| 開始日 | StartDate | START_DATE | DATE | NOT NULL | 計画開始日 |
+| 終了日 | EndDate | END_DATE | DATE | NOT NULL | 計画終了日 |
+| 実績開始日 | ActualStartDate | ACTUAL_START_DATE | DATE | | 実際の開始日 |
+| 実績終了日 | ActualEndDate | ACTUAL_END_DATE | DATE | | 実際の終了日 |
+| 予算 | Budget | BUDGET | DECIMAL | ≥ 0 | プロジェクト予算（通貨単位） |
 | オーナーID | OwnerID | OWNER_ID | UUID | FK → User, NOT NULL | プロジェクト責任者 |
-| 作成日時 | CreatedAt | CREATED_AT | Timestamp | NOT NULL | レコード作成日時 |
-| 更新日時 | UpdatedAt | UPDATED_AT | Timestamp | NOT NULL | 最終更新日時 |
+| 作成日時 | CreatedAt | CREATED_AT | TIMESTAMP | NOT NULL | レコード作成日時 |
+| 更新日時 | UpdatedAt | UPDATED_AT | TIMESTAMP | NOT NULL | 最終更新日時 |
 
 #### ライフサイクル
 ```
@@ -347,18 +347,18 @@ erDiagram
 | タスクID | TaskID | TASK_ID | UUID | PK, NOT NULL | 一意識別子 |
 | プロジェクトID | ProjectID | PROJECT_ID | UUID | FK → Project, NOT NULL | 所属プロジェクト |
 | 親タスクID | ParentTaskID | PARENT_TASK_ID | UUID | FK → Task | 親タスク（WBS階層） |
-| タスク名 | TaskName | TASK_NAME | String(200) | NOT NULL | タスク名 |
-| 説明 | Description | DESCRIPTION | Text | | タスクの詳細説明 |
-| 状態 | Status | STATUS | Enum | NOT NULL | not_started/in_progress/completed/on_hold |
-| 優先度 | Priority | PRIORITY | Enum | NOT NULL | high/medium/low |
-| 見積工数 | EstimatedHours | ESTIMATED_HOURS | Decimal(8,2) | > 0 | 見積工数（時間） |
-| 実績工数 | ActualHours | ACTUAL_HOURS | Decimal(8,2) | ≥ 0 | 実績工数（時間） |
+| タスク名 | TaskName | TASK_NAME | STRING_200 | NOT NULL | タスク名 |
+| 説明 | Description | DESCRIPTION | TEXT | | タスクの詳細説明 |
+| 状態 | Status | STATUS | STRING_50 | NOT NULL | not_started/in_progress/completed/on_hold |
+| 優先度 | Priority | PRIORITY | STRING_20 | NOT NULL | high/medium/low |
+| 見積工数 | EstimatedHours | ESTIMATED_HOURS | DECIMAL | > 0 | 見積工数（時間） |
+| 実績工数 | ActualHours | ACTUAL_HOURS | DECIMAL | ≥ 0 | 実績工数（時間） |
 | 担当者ID | AssigneeID | ASSIGNEE_ID | UUID | FK → User | 担当者 |
-| 開始日 | StartDate | START_DATE | Date | | 計画開始日 |
-| 期限 | DueDate | DUE_DATE | Date | | 完了期限 |
-| 完了日 | CompletedDate | COMPLETED_DATE | Date | | 実際の完了日 |
-| 作成日時 | CreatedAt | CREATED_AT | Timestamp | NOT NULL | レコード作成日時 |
-| 更新日時 | UpdatedAt | UPDATED_AT | Timestamp | NOT NULL | 最終更新日時 |
+| 開始日 | StartDate | START_DATE | DATE | | 計画開始日 |
+| 期限 | DueDate | DUE_DATE | DATE | | 完了期限 |
+| 完了日 | CompletedDate | COMPLETED_DATE | DATE | | 実際の完了日 |
+| 作成日時 | CreatedAt | CREATED_AT | TIMESTAMP | NOT NULL | レコード作成日時 |
+| 更新日時 | UpdatedAt | UPDATED_AT | TIMESTAMP | NOT NULL | 最終更新日時 |
 
 #### ライフサイクル
 ```
@@ -380,16 +380,16 @@ erDiagram
 | 成果物ID | DeliverableID | DELIVERABLE_ID | UUID | PK, NOT NULL | 一意識別子 |
 | プロジェクトID | ProjectID | PROJECT_ID | UUID | FK → Project, NOT NULL | 所属プロジェクト |
 | タスクID | TaskID | TASK_ID | UUID | FK → Task | 関連タスク |
-| 成果物名 | DeliverableName | DELIVERABLE_NAME | String(200) | NOT NULL | 成果物名 |
-| 説明 | Description | DESCRIPTION | Text | | 成果物の詳細説明 |
-| 品質状態 | QualityStatus | QUALITY_STATUS | Enum | NOT NULL | not_reviewed/in_review/approved/rejected |
-| バージョン | Version | VERSION | String(20) | NOT NULL | バージョン番号（SemVer） |
-| ファイルパス | FilePath | FILE_PATH | String(500) | | ファイル保存場所 |
-| レビュー期限 | ReviewDeadline | REVIEW_DEADLINE | Date | | レビュー完了期限 |
+| 成果物名 | DeliverableName | DELIVERABLE_NAME | STRING_200 | NOT NULL | 成果物名 |
+| 説明 | Description | DESCRIPTION | TEXT | | 成果物の詳細説明 |
+| 品質状態 | QualityStatus | QUALITY_STATUS | STRING_50 | NOT NULL | not_reviewed/in_review/approved/rejected |
+| バージョン | Version | VERSION | STRING_20 | NOT NULL | バージョン番号（SemVer） |
+| ファイルパス | FilePath | FILE_PATH | STRING_255 | | ファイル保存場所 |
+| レビュー期限 | ReviewDeadline | REVIEW_DEADLINE | DATE | | レビュー完了期限 |
 | 作成者ID | CreatedByID | CREATED_BY_ID | UUID | FK → User, NOT NULL | 作成者 |
 | レビュアーID | ReviewedByID | REVIEWED_BY_ID | UUID | FK → User | レビュー担当者 |
-| 作成日時 | CreatedAt | CREATED_AT | Timestamp | NOT NULL | レコード作成日時 |
-| 更新日時 | UpdatedAt | UPDATED_AT | Timestamp | NOT NULL | 最終更新日時 |
+| 作成日時 | CreatedAt | CREATED_AT | TIMESTAMP | NOT NULL | レコード作成日時 |
+| 更新日時 | UpdatedAt | UPDATED_AT | TIMESTAMP | NOT NULL | 最終更新日時 |
 
 #### ライフサイクル
 ```
@@ -410,17 +410,17 @@ erDiagram
 |-----------|------------|--------|-----|------|------|
 | リスクID | RiskID | RISK_ID | UUID | PK, NOT NULL | 一意識別子 |
 | プロジェクトID | ProjectID | PROJECT_ID | UUID | FK → Project, NOT NULL | 所属プロジェクト |
-| リスク名 | RiskName | RISK_NAME | String(200) | NOT NULL | リスク名 |
-| 説明 | Description | DESCRIPTION | Text | NOT NULL | リスクの詳細説明 |
-| 影響度 | Impact | IMPACT | Enum | NOT NULL | high/medium/low |
-| 発生確率 | Probability | PROBABILITY | Enum | NOT NULL | high/medium/low |
-| リスクスコア | RiskScore | RISK_SCORE | Integer | 1-9 | 影響度×発生確率 |
-| 状態 | Status | STATUS | Enum | NOT NULL | identified/assessed/in_mitigation/resolved/materialized |
+| リスク名 | RiskName | RISK_NAME | STRING_200 | NOT NULL | リスク名 |
+| 説明 | Description | DESCRIPTION | TEXT | NOT NULL | リスクの詳細説明 |
+| 影響度 | Impact | IMPACT | STRING_20 | NOT NULL | high/medium/low |
+| 発生確率 | Probability | PROBABILITY | STRING_20 | NOT NULL | high/medium/low |
+| リスクスコア | RiskScore | RISK_SCORE | INTEGER | 1-9 | 影響度×発生確率 |
+| 状態 | Status | STATUS | STRING_50 | NOT NULL | identified/assessed/in_mitigation/resolved/materialized |
 | 識別者ID | IdentifiedByID | IDENTIFIED_BY_ID | UUID | FK → User, NOT NULL | リスク識別者 |
-| 識別日 | IdentifiedDate | IDENTIFIED_DATE | Date | NOT NULL | リスク識別日 |
-| 解決日 | ResolvedDate | RESOLVED_DATE | Date | | リスク解決日 |
-| 作成日時 | CreatedAt | CREATED_AT | Timestamp | NOT NULL | レコード作成日時 |
-| 更新日時 | UpdatedAt | UPDATED_AT | Timestamp | NOT NULL | 最終更新日時 |
+| 識別日 | IdentifiedDate | IDENTIFIED_DATE | DATE | NOT NULL | リスク識別日 |
+| 解決日 | ResolvedDate | RESOLVED_DATE | DATE | | リスク解決日 |
+| 作成日時 | CreatedAt | CREATED_AT | TIMESTAMP | NOT NULL | レコード作成日時 |
+| 更新日時 | UpdatedAt | UPDATED_AT | TIMESTAMP | NOT NULL | 最終更新日時 |
 
 #### ライフサイクル
 ```
@@ -439,9 +439,9 @@ erDiagram
 #### プロパティ
 | プロパティ | Parasol言語 | 英語名 | 型 | 説明 |
 |-----------|------------|--------|-----|------|
-| 開始日 | startDate | START_DATE | Date | スケジュール開始日 |
-| 終了日 | endDate | END_DATE | Date | スケジュール終了日 |
-| 期間日数 | durationDays | DURATION_DAYS | Integer | 期間（営業日ベース） |
+| 開始日 | startDate | START_DATE | DATE | スケジュール開始日 |
+| 終了日 | endDate | END_DATE | DATE | スケジュール終了日 |
+| 期間日数 | durationDays | DURATION_DAYS | INTEGER | 期間（営業日ベース） |
 
 #### 不変条件
 - endDate ≥ startDate
@@ -471,8 +471,8 @@ class ProjectSchedule {
 |-----------|------------|--------|-----|------|
 | 先行タスクID | predecessorTaskId | PREDECESSOR_TASK_ID | UUID | 先行タスク |
 | 後続タスクID | successorTaskId | SUCCESSOR_TASK_ID | UUID | 後続タスク |
-| 依存タイプ | dependencyType | DEPENDENCY_TYPE | Enum | FS/SS/FF/SF |
-| ラグ日数 | lagDays | LAG_DAYS | Integer | 遅延日数（負の値可） |
+| 依存タイプ | dependencyType | DEPENDENCY_TYPE | STRING_20 | FS/SS/FF/SF |
+| ラグ日数 | lagDays | LAG_DAYS | INTEGER | 遅延日数（負の値可） |
 
 #### 依存タイプ定義
 - **FS (Finish-to-Start)**: 先行タスク完了後、後続タスク開始可能（最も一般的）
@@ -505,10 +505,10 @@ class TaskDependency {
 #### プロパティ
 | プロパティ | Parasol言語 | 英語名 | 型 | 説明 |
 |-----------|------------|--------|-----|------|
-| 基準名 | criteriaName | CRITERIA_NAME | String(100) | 品質基準の名前 |
-| 基準値 | criteriaValue | CRITERIA_VALUE | String(200) | 満たすべき基準値 |
-| 必須フラグ | isMandatory | IS_MANDATORY | Boolean | 必須基準かどうか |
-| 基準タイプ | criteriaType | CRITERIA_TYPE | Enum | format/completeness/accuracy/consistency |
+| 基準名 | criteriaName | CRITERIA_NAME | STRING_100 | 品質基準の名前 |
+| 基準値 | criteriaValue | CRITERIA_VALUE | STRING_200 | 満たすべき基準値 |
+| 必須フラグ | isMandatory | IS_MANDATORY | BOOLEAN | 必須基準かどうか |
+| 基準タイプ | criteriaType | CRITERIA_TYPE | STRING_50 | format/completeness/accuracy/consistency |
 
 #### 使用例
 ```typescript

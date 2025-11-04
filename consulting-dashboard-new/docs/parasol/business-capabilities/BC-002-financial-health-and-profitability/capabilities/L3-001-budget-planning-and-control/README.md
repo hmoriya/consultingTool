@@ -51,6 +51,249 @@
 
 ---
 
+## 🛠️ 実装アプローチ
+
+### 技術的実現方法
+
+#### アルゴリズム・パターン
+- **予算配分最適化**: 線形計画法（LP）によるリソース配分最適化
+- **予算差異分析**: 実績vs予算の差異計算（変動率・絶対値分析）
+- **予算予測**: 時系列分析（移動平均、指数平滑化法）によるトレンド予測
+- **デザインパターン**:
+  - State Pattern（予算ステータス遷移: draft → pending → approved）
+  - Strategy Pattern（異なる予算策定方式の切り替え: ゼロベース/増分予算）
+  - Template Method（予算承認ワークフロー）
+
+#### 実装要件
+- **財務計算**: 高精度数値計算エンジン（浮動小数点誤差回避）
+- **予算可視化**: 可視化機能（予算vs実績グラフ、予算消化率チャート）
+- **予測分析**: 統計処理エンジン（統計分析、トレンド予測）
+- **Excel出入力**: スプレッドシート入出力機能（予算テンプレートのインポート/エクスポート）
+- **承認ワークフロー**: メッセージング機構（承認プロセスの非同期処理）
+
+### パフォーマンス考慮事項
+
+#### スケーラビリティ
+- **予算項目数上限**: 1予算あたり最大500項目
+- **会計年度**: 過去5年間 + 現在 + 未来3年間のデータ保持
+- **予算バージョン管理**: 1予算あたり最大20リビジョン
+
+#### キャッシュ戦略
+- **予算サマリー**: キャッシュ機構（TTL: 15分、予算更新時に無効化）
+- **差異分析結果**: メモリキャッシュ（予算/実績更新時に再計算）
+- **承認待ち一覧**: 5分間隔でキャッシュ更新
+
+#### 最適化ポイント
+- **集計クエリ最適化**: Materialized View（月次予算集計）の活用
+- **バッチ更新**: 予算項目の一括更新を1トランザクションで処理
+- **インデックス活用**: `budgets(fiscal_year, approval_status)`, `budget_lines(budget_id, category)`
+
+---
+
+## ⚠️ 前提条件と制約
+
+### BC間連携
+
+#### 依存BC
+- **BC-001: Project Delivery & Quality** - プロジェクト予算の連携
+  - 使用API: `GET /api/bc-001/projects/{projectId}/budget-requirements` - プロジェクト予算要件取得
+  - 使用API: `POST /api/bc-001/projects/{projectId}/budget-allocation` - プロジェクト予算配分
+- **BC-003: Secure Access & Governance** - 予算承認権限の検証
+  - 使用API: `POST /api/bc-003/permissions/validate` - 承認権限検証
+  - 使用API: `GET /api/bc-003/approval-workflows/{workflowId}` - 承認ワークフロー取得
+- **BC-007: Team Communication & Collaboration** - 予算アラート通知
+  - 使用API: `POST /api/bc-007/notifications` - 予算超過アラート通知
+  - 使用API: `POST /api/bc-007/alerts` - 予算承認依頼通知
+
+#### 提供API（他BCから利用）
+- **BC-001, BC-005**: 予算残高確認、予算消化状況の参照
+
+### データ整合性要件
+
+#### トランザクション境界
+- **予算承認**: 予算ステータス更新 + 予算配分確定 + 承認ログ記録 + 通知送信（BC-007）
+- **予算消化記録**: 予算残高更新 + 消化履歴記録 + 差異分析 + アラート判定（閾値超過時）
+- **整合性レベル**: 強整合性（予算残高更新）、結果整合性（通知送信）
+
+#### データ制約
+- 予算項目配分総額 = 総予算額（100%配分必須）
+- 予算消化額 ≤ 予算配分額（超過時は承認必須）
+- 会計年度一意性: 同一会計年度に複数の承認済み予算は存在不可
+
+### セキュリティ要件
+
+#### 認証・認可
+- **認証**: JWT Bearer Token（BC-003発行）
+- **必要権限**:
+  - 予算策定: `budget:create` + 財務担当者権限
+  - 予算承認: `budget:approve` + 承認者権限（金額に応じた階層承認）
+  - 予算見直し: `budget:revise` + 予算管理者権限
+
+#### データ保護
+- **機密度**: 予算情報はConfidential（経営層・財務担当のみ）
+- **監査ログ**: 予算作成・承認・変更は全て記録（改ざん防止）
+- **暗号化**: 予算金額は保存時暗号化（AES-256）
+
+### スケーラビリティ制約
+
+#### 最大同時処理
+- **予算差異分析**: 同時50リクエスト/秒
+- **予算承認処理**: 同時10承認/秒
+- **予算再計算**: 会計年度あたり最大5回/分
+
+#### データ量上限
+- **予算履歴**: 承認済み予算は10年間保持
+- **予算リビジョン**: 予算あたり最大20バージョン
+- **差異分析履歴**: 日次保存（完了後5年保持）
+
+---
+
+## 🔗 BC設計との統合
+
+### 使用ドメインオブジェクト
+
+#### Aggregates
+- **Budget Aggregate** ([../../domain/README.md#budget-aggregate](../../domain/README.md#budget-aggregate))
+  - Budget（集約ルート）: 予算のライフサイクル管理
+  - BudgetItem: 予算項目別内訳
+  - BudgetAllocation: 予算配分履歴
+  - BudgetRevision: 予算見直し履歴
+
+#### Value Objects
+- **Amount**: 金額（通貨単位付き）
+- **BudgetStatus**: 予算ステータス（draft, pending, approved, rejected）
+- **Period**: 会計期間（開始日・終了日）
+- **Variance**: 予算差異（実績-予算、変動率）
+- **FiscalYear**: 会計年度（YYYY形式）
+
+#### Domain Events
+- **BudgetCreated**: 予算作成イベント
+- **BudgetSubmittedForApproval**: 予算承認申請イベント → BC-007通知送信
+- **BudgetApproved**: 予算承認イベント → BC-001プロジェクト予算連携
+- **BudgetThresholdExceeded**: 予算超過閾値イベント → BC-007アラート通知
+- **BudgetReallocated**: 予算再配分イベント → 差異分析再計算
+
+### 呼び出すAPI例
+
+#### 予算作成
+```http
+POST /api/v1/bc-002/budgets
+Content-Type: application/json
+Authorization: Bearer {token}
+
+{
+  "fiscalYear": 2025,
+  "totalAmount": 50000000,
+  "currency": "JPY",
+  "budgetItems": [
+    {
+      "category": "labor",
+      "allocatedAmount": 30000000,
+      "description": "人件費"
+    },
+    {
+      "category": "outsource",
+      "allocatedAmount": 15000000,
+      "description": "外注費"
+    },
+    {
+      "category": "equipment",
+      "allocatedAmount": 5000000,
+      "description": "設備費"
+    }
+  ]
+}
+```
+
+#### 予算承認
+```http
+PUT /api/v1/bc-002/budgets/{budgetId}/approve
+Content-Type: application/json
+
+{
+  "approvedBy": "user-uuid-123",
+  "comments": "2025年度予算承認",
+  "approvedAt": "2025-11-05T10:00:00Z"
+}
+```
+
+#### 予算監視（差異分析）
+```http
+GET /api/v1/bc-002/budgets/{budgetId}/variance-analysis?period=2025-Q1
+```
+
+#### BC連携: 予算アラート通知（BC-007）
+```http
+POST /api/v1/bc-007/notifications
+Content-Type: application/json
+
+{
+  "type": "budget_threshold_exceeded",
+  "recipientId": "finance-manager-uuid",
+  "priority": "high",
+  "content": {
+    "budgetId": "budget-uuid",
+    "budgetItemId": "budget-item-uuid",
+    "category": "外注費",
+    "threshold": 90,
+    "currentConsumption": 92,
+    "fiscalYear": 2025
+  }
+}
+```
+
+### データアクセスパターン
+
+#### 読み取り
+- **budgets テーブル**:
+  - インデックス: `idx_budgets_fiscal_year`（会計年度別予算取得）
+  - インデックス: `idx_budgets_approval_status`（承認待ち予算一覧）
+  - クエリ: 承認済み予算の検索（fiscal_year, approval_status = 'approved'）
+- **budget_lines テーブル**:
+  - インデックス: `idx_budget_lines_budget_category`（カテゴリ別集計）
+  - 集計クエリ: カテゴリ別配分額・消化額の集計
+- **budget_allocations テーブル**:
+  - インデックス: `idx_budget_alloc_date`（時系列配分履歴）
+
+#### 書き込み
+- **予算承認トランザクション**:
+  ```sql
+  BEGIN;
+  UPDATE budgets SET approval_status = 'approved', approved_by = ?, approved_date = NOW() WHERE id = ?;
+  INSERT INTO budget_approvals (budget_id, approver_id, approved_at, comments) VALUES (?, ?, NOW(), ?);
+  -- イベント発行: BudgetApproved
+  COMMIT;
+  ```
+- **予算消化記録**:
+  ```sql
+  UPDATE budget_lines SET consumed_amount = consumed_amount + ?, updated_at = NOW()
+  WHERE id = ?;
+
+  INSERT INTO budget_consumption_history (budget_line_id, consumed_amount, consumed_at, source)
+  VALUES (?, ?, NOW(), ?);
+
+  -- 閾値チェック: consumed_amount / allocated_amount
+  -- 90%超過時: BudgetThresholdExceeded イベント発行
+  ```
+
+#### キャッシュアクセス
+- **予算サマリー**:
+  ```
+  Key: `budget:summary:{fiscalYear}`
+  Value: { totalBudget: 50000000, totalConsumed: 35000000, consumptionRate: 70 }
+  TTL: 900秒（15分）
+  Invalidation: 予算消化記録時
+  ```
+- **カテゴリ別予算残高**:
+  ```
+  Key: `budget:balance:{budgetId}:category:{category}`
+  Value: { allocated: 30000000, consumed: 28000000, remaining: 2000000 }
+  TTL: 300秒（5分）
+  Invalidation: 予算消化時
+  ```
+
+---
+
 ## ⚙️ Operations: この能力を実現する操作
 
 | Operation | 説明 | UseCases | V2移行元 |

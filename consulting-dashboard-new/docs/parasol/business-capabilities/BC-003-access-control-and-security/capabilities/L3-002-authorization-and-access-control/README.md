@@ -51,6 +51,241 @@
 
 ---
 
+## 🛠️ 実装アプローチ
+
+### 技術的実現方法
+
+#### アルゴリズム・パターン
+- **RBAC実装**: ロール階層とPermission継承
+- **権限チェック**: ビットマスク方式による高速権限判定
+- **ACL（Access Control List）**: リソースレベルのきめ細かい権限制御
+- **デザインパターン**:
+  - Strategy Pattern（権限チェック戦略の切り替え）
+  - Composite Pattern（ロール階層構造）
+  - Decorator Pattern（追加権限の動的付与）
+
+#### 実装要件
+- **RBAC**: ロールベースアクセス制御機能（ロール階層サポート）
+- **ABAC**: 属性ベースアクセス制御機能（動的権限判定）
+- **権限管理**: 権限管理機構（ロール階層サポート）
+
+### パフォーマンス考慮事項
+
+#### スケーラビリティ
+- **権限チェック**: 平均5ms以内（メモリキャッシュ活用）
+- **ロール割り当て**: 最大1,000ユーザー/分
+- **権限更新**: リアルタイム反映（既存セッションは5分以内に反映）
+
+#### キャッシュ戦略
+- **ユーザー権限**: キャッシュ機構（TTL: 15分、ロール変更時に無効化）
+- **ロール定義**: アプリケーションメモリ（起動時ロード、変更時リロード）
+- **リソースACL**: キャッシュ機構（TTL: 10分）
+
+#### 最適化ポイント
+- **権限ツリー事前計算**: ロール階層の権限を事前に計算してキャッシュ
+- **バッチ権限チェック**: 複数リソースの権限を一括チェック
+- **インデックス活用**: `user_roles(user_id)`, `role_permissions(role_id)`, `permissions(resource, action)`
+
+---
+
+## ⚠️ 前提条件と制約
+
+### BC間連携
+
+#### 依存BC
+- **BC-003: Access Control & Security（認証部分）** - ユーザー認証情報
+  - 使用API: `GET /api/bc-003/users/{userId}` - ユーザー情報取得
+  - 使用API: `GET /api/bc-003/sessions/{sessionId}` - セッション検証
+- **BC-004: Organizational Structure & Governance** - 組織階層に基づく権限スコープ
+  - 使用API: `GET /api/bc-004/organizations/{orgId}/hierarchy` - 組織階層
+
+#### 提供API（他BCから利用）
+- **全BC**: 権限チェック・ロール管理機能を提供
+  - `POST /api/bc-003/authorize` - 権限チェック
+  - `GET /api/bc-003/roles/{roleId}/permissions` - ロール権限一覧
+  - `GET /api/bc-003/users/{userId}/permissions` - ユーザー権限一覧
+
+### データ整合性要件
+
+#### トランザクション境界
+- **ロール作成**: Role + 初期Permission を1トランザクションで作成
+- **権限付与/削除**: RolePermission 更新 + 影響ユーザーのキャッシュ無効化を原子的に実行
+- **整合性レベル**: 強整合性（ACID準拠）
+
+#### データ制約
+- ロール名の一意性（組織内で一意）
+- システムロールの削除・変更禁止（is_system_role = true）
+- 循環ロール階層の禁止（親子関係でサイクル形成不可）
+
+### セキュリティ要件
+
+#### 認証・認可
+- **認証**: JWT Bearer Token（BC-003認証機能）
+- **必要権限**:
+  - ロール作成: `role:create`
+  - 権限付与: `permission:grant`
+  - ユーザーロール割り当て: `user:role:assign`
+
+#### データ保護
+- **機密度**: 権限情報はInternal（社内限定）
+- **監査ログ**: 全ての権限変更を記録（誰が・いつ・何を変更したか）
+- **最小権限の原則**: デフォルトは最小権限、必要に応じて追加
+
+### スケーラビリティ制約
+
+#### 最大同時処理
+- **権限チェック**: 10,000リクエスト/秒
+- **ロール割り当て**: 1,000リクエスト/秒
+- **権限変更反映**: 5分以内に全セッションに反映
+
+#### データ量上限
+- **ロール数**: 1,000ロール
+- **権限数**: 10,000権限（リソース × アクション）
+- **ユーザーロール割り当て**: 1ユーザーあたり最大10ロール
+
+---
+
+## 🔗 BC設計との統合
+
+### 使用ドメインオブジェクト
+
+#### Aggregates
+- **AccessControl Aggregate** ([../../domain/README.md#access-control-aggregate](../../domain/README.md#access-control-aggregate))
+  - Role（集約ルート）: ロール定義
+  - Permission: 個別権限
+  - RolePermission: ロール-権限マッピング
+  - UserRole: ユーザー-ロール割り当て
+
+#### Value Objects
+- **AccessLevel**: アクセスレベル（read/write/delete/admin）
+- **PermissionScope**: 権限スコープ（global/organization/team/resource）
+- **ResourceType**: リソースタイプ（project/user/document）
+
+### 呼び出すAPI例
+
+#### ロール作成
+```http
+POST /api/v1/bc-003/roles
+Content-Type: application/json
+Authorization: Bearer {token}
+
+{
+  "name": "PROJECT_MANAGER",
+  "description": "プロジェクトマネージャーロール",
+  "parentRoleId": null,
+  "permissions": [
+    { "resource": "project", "action": "read" },
+    { "resource": "project", "action": "write" },
+    { "resource": "task", "action": "admin" }
+  ]
+}
+```
+
+#### 権限チェック
+```http
+POST /api/v1/bc-003/authorize
+Content-Type: application/json
+Authorization: Bearer {token}
+
+{
+  "userId": "user-uuid",
+  "resource": "project:project-123",
+  "action": "write"
+}
+
+Response:
+{
+  "authorized": true,
+  "matchedPermissions": ["project:write", "project:admin"],
+  "reason": "User has PROJECT_MANAGER role"
+}
+```
+
+#### ユーザーにロール割り当て
+```http
+POST /api/v1/bc-003/users/{userId}/roles
+Content-Type: application/json
+
+{
+  "roleId": "role-uuid",
+  "assignedBy": "admin-uuid",
+  "scope": {
+    "type": "organization",
+    "scopeId": "org-123"
+  }
+}
+```
+
+#### ユーザー権限一覧取得
+```http
+GET /api/v1/bc-003/users/{userId}/permissions
+
+Response:
+{
+  "userId": "user-uuid",
+  "roles": [
+    {
+      "roleId": "role-uuid",
+      "roleName": "PROJECT_MANAGER",
+      "permissions": [
+        { "resource": "project", "action": "read" },
+        { "resource": "project", "action": "write" }
+      ]
+    }
+  ],
+  "effectivePermissions": [
+    "project:read",
+    "project:write",
+    "task:read",
+    "task:write"
+  ]
+}
+```
+
+### データアクセスパターン
+
+#### 読み取り
+- **roles テーブル**:
+  - インデックス: `idx_roles_name`（ロール名検索）
+  - インデックス: `idx_roles_parent_role_id`（階層検索）
+- **permissions テーブル**:
+  - インデックス: `idx_permissions_resource_action`（権限検索）
+- **user_roles テーブル**:
+  - インデックス: `idx_user_roles_user_id`（ユーザー別ロール）
+  - インデックス: `idx_user_roles_role_id`（ロール別ユーザー）
+
+#### 書き込み
+- **ロール作成トランザクション**:
+  ```sql
+  BEGIN;
+  INSERT INTO roles (...) VALUES (...);
+  INSERT INTO role_permissions (...) VALUES (...), (...);
+  COMMIT;
+  ```
+- **権限変更時のキャッシュ無効化**:
+  ```
+  UPDATE role_permissions SET ...;
+  -- 影響を受けるユーザーのキャッシュ削除
+  DELETE FROM cache WHERE key LIKE 'user:*:permissions';
+  ```
+
+#### キャッシュアクセス
+- **ユーザー権限キャッシュ**:
+  ```
+  Key: `user:{userId}:permissions`
+  Value: JSON（権限リスト）
+  TTL: 900秒（15分）
+  Invalidation: ロール変更時
+  ```
+- **ロール定義キャッシュ**:
+  ```
+  Key: `role:{roleId}:definition`
+  Value: JSON（ロール + 権限）
+  TTL: 永続（変更時のみ更新）
+  ```
+
+---
+
 ## ⚙️ Operations: この能力を実現する操作
 
 | Operation | 説明 | UseCases | V2移行元 |

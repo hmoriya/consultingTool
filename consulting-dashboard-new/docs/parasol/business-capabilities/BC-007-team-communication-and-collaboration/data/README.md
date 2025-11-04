@@ -1,160 +1,739 @@
-# BC-007: データ設計
+# BC-007: データ層設計 [Data Layer Design]
 
-**BC**: Team Communication & Collaboration
+**BC**: Team Communication & Collaboration [チームコミュニケーションとコラボレーション] [BC_007]
 **作成日**: 2025-10-31
+**最終更新**: 2025-11-03
 **V2移行元**: services/collaboration-facilitation-service/database-design.md
 
 ---
 
-## 概要
+## 目次
 
-このドキュメントは、BC-007（チームコミュニケーションとコラボレーション）のデータモデルとデータベース設計を定義します。
-
----
-
-## 主要テーブル
-
-### messages
-メッセージ
-
-| カラム | 型 | 制約 | 説明 |
-|--------|-----|------|------|
-| id | UUID | PK | メッセージID |
-| sender_id | UUID | FK → users（BC-003）, NOT NULL | 送信者ID |
-| content | TEXT | NOT NULL | 内容 |
-| channel | VARCHAR(20) | NOT NULL | チャネル（chat/email/sms） |
-| status | VARCHAR(20) | NOT NULL | 状態（draft/sent/delivered/read） |
-| sent_at | TIMESTAMP | | 送信日時 |
-| created_at | TIMESTAMP | NOT NULL | 作成日時 |
-
-**インデックス**: sender_id, channel, sent_at
+1. [概要](#overview)
+2. [データベーステーブル](#tables)
+3. [インデックス戦略](#indexes)
+4. [パーティショニング戦略](#partitioning)
+5. [データフロー](#data-flow)
 
 ---
 
-### notifications
-通知
+## 概要 {#overview}
 
-| カラム | 型 | 制約 | 説明 |
-|--------|-----|------|------|
-| id | UUID | PK | 通知ID |
-| title | VARCHAR(200) | NOT NULL | タイトル |
-| message | TEXT | NOT NULL | メッセージ |
-| priority | VARCHAR(20) | NOT NULL | 優先度（low/normal/high/urgent） |
-| type | VARCHAR(50) | NOT NULL | タイプ |
-| status | VARCHAR(20) | NOT NULL | 状態（pending/sent/delivered/read） |
-| source_bc | VARCHAR(50) | | 発信元BC |
-| created_at | TIMESTAMP | NOT NULL | 作成日時 |
-| sent_at | TIMESTAMP | | 送信日時 |
+BC-007のデータ層は、メッセージング、通知、会議、コラボレーションの4つのコンテキストに対応する28テーブルで構成されます。
 
-**インデックス**: priority, status, created_at
+### データベース構成
 
----
+- **RDBMS**: PostgreSQL 14+
+- **テーブル数**: 28
+- **推定データ量**: 100 GB（1年間）
+- **パーティショニング**: messages、notifications テーブルは月次パーティション
+- **全文検索**: PostgreSQL Full Text Search + Elasticsearch連携
+- **キャッシュ**: Redis（プレゼンス情報、リアルタイムデータ）
 
-### notification_recipients
-通知受信者
+### テーブルカテゴリ
 
-| カラム | 型 | 制約 | 説明 |
-|--------|-----|------|------|
-| id | UUID | PK | 受信者ID |
-| notification_id | UUID | FK → notifications, NOT NULL | 通知ID |
-| recipient_id | UUID | FK → users（BC-003）, NOT NULL | 受信者ID |
-| read_at | TIMESTAMP | | 既読日時 |
-| created_at | TIMESTAMP | NOT NULL | 作成日時 |
-
-**インデックス**: notification_id, recipient_id
+| カテゴリ | テーブル数 | 主要テーブル |
+|---------|-----------|-------------|
+| **Messaging** | 10 | channels, messages, reactions, read_receipts |
+| **Notification** | 6 | notifications, notification_delivery_attempts, preferences |
+| **Meeting** | 7 | meetings, participants, meeting_minutes, action_items |
+| **Collaboration** | 5 | workspaces, documents, document_versions, comments |
 
 ---
 
-### meetings
+## 🔄 Parasol型マッピング定義
+
+このBCで使用するParasol Domain Language型とPostgreSQL型の対応表。
+
+### 基本型マッピング
+
+| Parasol型 | PostgreSQL型 | 制約例 | 説明 |
+|-----------|-------------|--------|------|
+| UUID | UUID | PRIMARY KEY, NOT NULL | UUID v4形式の一意識別子 |
+| STRING_20 | VARCHAR(20) | NOT NULL, CHECK(length(...) <= 20) | 最大20文字の文字列 |
+| STRING_50 | VARCHAR(50) | NOT NULL, CHECK(length(...) <= 50) | 最大50文字の文字列 |
+| STRING_100 | VARCHAR(100) | NOT NULL, CHECK(length(...) <= 100) | 最大100文字の文字列 |
+| STRING_200 | VARCHAR(200) | NOT NULL, CHECK(length(...) <= 200) | 最大200文字の文字列 |
+| STRING_255 | VARCHAR(255) | NOT NULL, CHECK(length(...) <= 255) | 最大255文字の文字列 |
+| TEXT | TEXT | - | 長文（制限なし） |
+| INTEGER | INTEGER | CHECK(value > 0) | 整数 |
+| DECIMAL | NUMERIC | CHECK(value >= 0) | 小数（金額、工数等） |
+| PERCENTAGE | NUMERIC(5,2) | CHECK(value BETWEEN 0 AND 100) | パーセンテージ（0-100） |
+| BOOLEAN | BOOLEAN | NOT NULL DEFAULT false | 真偽値 |
+| DATE | DATE | NOT NULL | YYYY-MM-DD形式の日付 |
+| TIMESTAMP | TIMESTAMP WITH TIME ZONE | NOT NULL DEFAULT CURRENT_TIMESTAMP | ISO8601形式のタイムスタンプ |
+| EMAIL | VARCHAR(255) | CHECK(email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z\|a-z]{2,}$') | RFC5322準拠メールアドレス |
+| URL | TEXT | CHECK(url ~* '^https?://') | RFC3986準拠URL |
+| MONEY | JSONB or (NUMERIC + VARCHAR(3)) | CHECK(amount >= 0), CHECK(currency ~ '^[A-Z]{3}$') | 金額（通貨付き） |
+| JSON | JSONB | - | JSON形式データ |
+| BINARY | BYTEA | - | バイナリデータ |
+
+### 実装ガイドライン
+
+1. **NOT NULL制約**: Parasol型の必須フィールドは`NOT NULL`制約を付与
+2. **CHECK制約**: 長さ制約、範囲制約を`CHECK`で実装
+3. **インデックス**: 検索頻度の高いカラムには適切なインデックスを作成
+4. **デフォルト値**: `TIMESTAMP`は`DEFAULT CURRENT_TIMESTAMP`を推奨
+5. **列挙型**: Parasol型の`STRING_XX` (enum値) は`VARCHAR + CHECK`または`ENUM`型で実装
+
+### BC固有の型定義
+
+**メッセージ型**:
+- `MESSAGE_TYPE`: メッセージ種別 → `VARCHAR(30) CHECK (type IN ('text', 'image', 'file', 'video', 'audio', 'system'))`
+- `CONTENT_SEARCH`: 全文検索ベクトル → `TSVECTOR`
+- `RECIPIENT_INFO`: 受信者情報 → `JSONB` (複数受信者対応)
+
+**通知型**:
+- `PRIORITY`: 優先度 → `VARCHAR(20) CHECK (priority IN ('urgent', 'high', 'normal', 'low'))`
+- `NOTIFICATION_STATUS`: 通知状態 → `VARCHAR(30) CHECK (status IN ('pending', 'scheduled', 'delivered', 'failed', 'cancelled'))`
+- `DELIVERY_CHANNEL`: 配信チャネル → `VARCHAR(20) CHECK (channel IN ('push', 'email', 'sms', 'in_app'))`
+
+**会議型**:
+- `MEETING_TYPE`: 会議種別 → `VARCHAR(30)`
+- `LOCATION_TYPE`: 開催形式 → `VARCHAR(20) CHECK (location_type IN ('physical', 'online', 'hybrid'))`
+- `ATTENDANCE_STATUS`: 出席状況 → `VARCHAR(20) CHECK (attendance_status IN ('pending', 'accepted', 'declined', 'tentative', 'attended', 'absent'))`
+- `DURATION_MINUTES`: 会議時間 → `INTEGER CHECK (duration_minutes > 0)`
+
+**コラボレーション型**:
+- `WORKSPACE_TYPE`: ワークスペース種別 → `VARCHAR(30) CHECK (type IN ('project', 'team', 'department', 'personal'))`
+- `PERMISSION_LEVEL`: 権限レベル → `VARCHAR(20) CHECK (permission IN ('owner', 'admin', 'editor', 'commenter', 'viewer'))`
+- `FILE_SIZE`: ファイルサイズ → `BIGINT CHECK (file_size > 0)` (バイト単位)
+- `MIME_TYPE`: MIMEタイプ → `VARCHAR(100)`
+
+---
+
+## データベーステーブル {#tables}
+
+### Messaging Context
+
+#### channels
+チャネル
+
+```sql
+CREATE TABLE channels (
+  id UUID PRIMARY KEY,
+  workspace_id UUID NOT NULL REFERENCES workspaces(id),
+  name VARCHAR(50) NOT NULL,
+  description TEXT,
+  type VARCHAR(20) NOT NULL CHECK (type IN ('public', 'private')),
+  topic VARCHAR(500),
+  created_by UUID NOT NULL,
+  archived_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT unique_channel_name_per_workspace UNIQUE (workspace_id, name)
+);
+
+CREATE INDEX idx_channels_workspace ON channels(workspace_id) WHERE archived_at IS NULL;
+CREATE INDEX idx_channels_type ON channels(type);
+```
+
+---
+
+#### channel_members
+チャネルメンバー
+
+```sql
+CREATE TABLE channel_members (
+  id UUID PRIMARY KEY,
+  channel_id UUID NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL,
+  role VARCHAR(20) NOT NULL CHECK (role IN ('owner', 'admin', 'member')),
+  joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_accessed_at TIMESTAMPTZ,
+
+  CONSTRAINT unique_channel_member UNIQUE (channel_id, user_id)
+);
+
+CREATE INDEX idx_channel_members_channel ON channel_members(channel_id);
+CREATE INDEX idx_channel_members_user ON channel_members(user_id);
+```
+
+---
+
+#### messages
+メッセージ（月次パーティション）
+
+```sql
+CREATE TABLE messages (
+  id UUID NOT NULL,
+  channel_id UUID,
+  sender_id UUID NOT NULL,
+  recipient_info JSONB NOT NULL,
+  content TEXT NOT NULL,
+  content_search TSVECTOR,
+  type VARCHAR(30) NOT NULL DEFAULT 'text',
+  thread_id UUID,
+  parent_message_id UUID,
+  is_pinned BOOLEAN DEFAULT false,
+  pinned_by UUID,
+  pinned_at TIMESTAMPTZ,
+  deleted_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  PRIMARY KEY (id, created_at)
+) PARTITION BY RANGE (created_at);
+
+-- 月次パーティション作成
+CREATE TABLE messages_2025_11 PARTITION OF messages
+  FOR VALUES FROM ('2025-11-01') TO ('2025-12-01');
+
+-- インデックス
+CREATE INDEX idx_messages_channel ON messages(channel_id, created_at DESC) WHERE deleted_at IS NULL;
+CREATE INDEX idx_messages_sender ON messages(sender_id, created_at DESC);
+CREATE INDEX idx_messages_thread ON messages(thread_id, created_at) WHERE thread_id IS NOT NULL;
+CREATE INDEX idx_messages_search ON messages USING GIN(content_search);
+```
+
+---
+
+#### message_attachments
+メッセージ添付ファイル
+
+```sql
+CREATE TABLE message_attachments (
+  id UUID PRIMARY KEY,
+  message_id UUID NOT NULL,
+  file_name VARCHAR(255) NOT NULL,
+  file_size BIGINT NOT NULL,
+  mime_type VARCHAR(100) NOT NULL,
+  storage_url TEXT NOT NULL,
+  thumbnail_url TEXT,
+  uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_attachments_message ON message_attachments(message_id);
+```
+
+---
+
+#### reactions
+リアクション
+
+```sql
+CREATE TABLE reactions (
+  id UUID PRIMARY KEY,
+  message_id UUID NOT NULL,
+  user_id UUID NOT NULL,
+  emoji VARCHAR(50) NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT unique_reaction UNIQUE (message_id, user_id, emoji)
+);
+
+CREATE INDEX idx_reactions_message ON reactions(message_id);
+```
+
+---
+
+#### read_receipts
+既読情報
+
+```sql
+CREATE TABLE read_receipts (
+  id UUID PRIMARY KEY,
+  message_id UUID NOT NULL,
+  user_id UUID NOT NULL,
+  read_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT unique_read_receipt UNIQUE (message_id, user_id)
+);
+
+CREATE INDEX idx_read_receipts_message ON read_receipts(message_id);
+CREATE INDEX idx_read_receipts_user ON read_receipts(user_id, read_at DESC);
+```
+
+---
+
+#### direct_conversations
+ダイレクト会話
+
+```sql
+CREATE TABLE direct_conversations (
+  id UUID PRIMARY KEY,
+  participant1_id UUID NOT NULL,
+  participant2_id UUID NOT NULL,
+  participant1_unread_count INT DEFAULT 0,
+  participant2_unread_count INT DEFAULT 0,
+  last_message_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT unique_dm_participants UNIQUE (participant1_id, participant2_id),
+  CHECK (participant1_id < participant2_id)
+);
+
+CREATE INDEX idx_dm_conv_participant1 ON direct_conversations(participant1_id, last_message_at DESC);
+CREATE INDEX idx_dm_conv_participant2 ON direct_conversations(participant2_id, last_message_at DESC);
+```
+
+---
+
+### Notification Context
+
+#### notifications
+通知（月次パーティション）
+
+```sql
+CREATE TABLE notifications (
+  id UUID NOT NULL,
+  recipient_id UUID NOT NULL,
+  priority VARCHAR(20) NOT NULL CHECK (priority IN ('urgent', 'high', 'normal', 'low')),
+  type VARCHAR(50) NOT NULL,
+  title VARCHAR(200) NOT NULL,
+  body TEXT NOT NULL,
+  data JSONB,
+  action_url TEXT,
+  image_url TEXT,
+  status VARCHAR(30) NOT NULL DEFAULT 'pending',
+  scheduled_at TIMESTAMPTZ,
+  first_attempt_at TIMESTAMPTZ,
+  delivered_at TIMESTAMPTZ,
+  expires_at TIMESTAMPTZ NOT NULL,
+  read_at TIMESTAMPTZ,
+  cancelled_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  PRIMARY KEY (id, created_at)
+) PARTITION BY RANGE (created_at);
+
+CREATE TABLE notifications_2025_11 PARTITION OF notifications
+  FOR VALUES FROM ('2025-11-01') TO ('2025-12-01');
+
+CREATE INDEX idx_notif_recipient ON notifications(recipient_id, created_at DESC);
+CREATE INDEX idx_notif_status ON notifications(status, priority);
+CREATE INDEX idx_notif_scheduled ON notifications(scheduled_at) WHERE status = 'pending';
+```
+
+---
+
+#### notification_delivery_attempts
+通知配信試行
+
+```sql
+CREATE TABLE notification_delivery_attempts (
+  id UUID PRIMARY KEY,
+  notification_id UUID NOT NULL,
+  channel VARCHAR(20) NOT NULL CHECK (channel IN ('push', 'email', 'sms', 'in_app')),
+  attempt_number INT NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'pending',
+  external_id VARCHAR(255),
+  error_message TEXT,
+  attempted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  completed_at TIMESTAMPTZ
+);
+
+CREATE INDEX idx_delivery_attempts_notif ON notification_delivery_attempts(notification_id);
+```
+
+---
+
+#### notification_preferences
+通知設定
+
+```sql
+CREATE TABLE notification_preferences (
+  user_id UUID PRIMARY KEY,
+  channel_push_enabled BOOLEAN DEFAULT true,
+  channel_email_enabled BOOLEAN DEFAULT true,
+  channel_sms_enabled BOOLEAN DEFAULT false,
+  channel_in_app_enabled BOOLEAN DEFAULT true,
+  type_settings JSONB,
+  quiet_hours_enabled BOOLEAN DEFAULT false,
+  quiet_hours_start_hour INT CHECK (quiet_hours_start_hour BETWEEN 0 AND 23),
+  quiet_hours_end_hour INT CHECK (quiet_hours_end_hour BETWEEN 0 AND 23),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+---
+
+### Meeting Context
+
+#### meetings
 会議
 
-| カラム | 型 | 制約 | 説明 |
-|--------|-----|------|------|
-| id | UUID | PK | 会議ID |
-| title | VARCHAR(200) | NOT NULL | タイトル |
-| start_time | TIMESTAMP | NOT NULL | 開始時刻 |
-| end_time | TIMESTAMP | NOT NULL | 終了時刻 |
-| location | VARCHAR(200) | | 場所 |
-| online_url | VARCHAR(500) | | オンラインURL |
-| status | VARCHAR(20) | NOT NULL | 状態（scheduled/in_progress/completed/cancelled） |
-| organizer_id | UUID | FK → users（BC-003）, NOT NULL | 主催者ID |
-| created_at | TIMESTAMP | NOT NULL | 作成日時 |
+```sql
+CREATE TABLE meetings (
+  id UUID PRIMARY KEY,
+  title VARCHAR(200) NOT NULL,
+  description TEXT,
+  type VARCHAR(30) NOT NULL,
+  organizer_id UUID NOT NULL,
+  start_time TIMESTAMPTZ NOT NULL,
+  end_time TIMESTAMPTZ NOT NULL,
+  timezone VARCHAR(50) NOT NULL DEFAULT 'UTC',
+  duration_minutes INT NOT NULL,
+  location_type VARCHAR(20) NOT NULL CHECK (location_type IN ('physical', 'online', 'hybrid')),
+  physical_location VARCHAR(200),
+  room_id UUID,
+  online_meeting_provider VARCHAR(30),
+  online_meeting_url TEXT,
+  online_meeting_id VARCHAR(100),
+  online_meeting_password VARCHAR(100),
+  status VARCHAR(30) NOT NULL DEFAULT 'scheduled',
+  recurrence_rule JSONB,
+  parent_meeting_id UUID REFERENCES meetings(id),
+  recording_url TEXT,
+  cancelled_at TIMESTAMPTZ,
+  cancellation_reason TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
-**インデックス**: start_time, organizer_id, status
+CREATE INDEX idx_meetings_start_time ON meetings(start_time);
+CREATE INDEX idx_meetings_organizer ON meetings(organizer_id, start_time);
+CREATE INDEX idx_meetings_status ON meetings(status, start_time);
+```
 
 ---
 
-### meeting_participants
+#### meeting_participants
 会議参加者
 
-| カラム | 型 | 制約 | 説明 |
-|--------|-----|------|------|
-| id | UUID | PK | 参加者ID |
-| meeting_id | UUID | FK → meetings, NOT NULL | 会議ID |
-| participant_id | UUID | FK → users（BC-003）, NOT NULL | 参加者ID |
-| response_status | VARCHAR(20) | NOT NULL | 返答状態（accepted/declined/tentative/no_response） |
-| attended | BOOLEAN | DEFAULT false | 出席フラグ |
-| created_at | TIMESTAMP | NOT NULL | 作成日時 |
+```sql
+CREATE TABLE meeting_participants (
+  id UUID PRIMARY KEY,
+  meeting_id UUID NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL,
+  role VARCHAR(20) NOT NULL CHECK (role IN ('organizer', 'required', 'optional', 'attendee')),
+  attendance_status VARCHAR(20) NOT NULL DEFAULT 'pending',
+  invited_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  responded_at TIMESTAMPTZ,
 
-**インデックス**: meeting_id, participant_id
+  CONSTRAINT unique_meeting_participant UNIQUE (meeting_id, user_id)
+);
+
+CREATE INDEX idx_meeting_participants_meeting ON meeting_participants(meeting_id);
+CREATE INDEX idx_meeting_participants_user ON meeting_participants(user_id, invited_at DESC);
+```
 
 ---
 
-### workspaces
+#### meeting_minutes
+会議議事録
+
+```sql
+CREATE TABLE meeting_minutes (
+  id UUID PRIMARY KEY,
+  meeting_id UUID NOT NULL UNIQUE REFERENCES meetings(id) ON DELETE CASCADE,
+  content TEXT NOT NULL,
+  created_by UUID NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_by UUID,
+  updated_at TIMESTAMPTZ
+);
+```
+
+---
+
+#### action_items
+アクションアイテム
+
+```sql
+CREATE TABLE action_items (
+  id UUID PRIMARY KEY,
+  meeting_id UUID NOT NULL REFERENCES meetings(id),
+  minutes_id UUID REFERENCES meeting_minutes(id),
+  description TEXT NOT NULL,
+  assignee_id UUID NOT NULL,
+  due_date DATE,
+  is_completed BOOLEAN DEFAULT false,
+  completed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_action_items_meeting ON action_items(meeting_id);
+CREATE INDEX idx_action_items_assignee ON action_items(assignee_id, is_completed, due_date);
+```
+
+---
+
+### Collaboration Context
+
+#### workspaces
 ワークスペース
 
-| カラム | 型 | 制約 | 説明 |
-|--------|-----|------|------|
-| id | UUID | PK | ワークスペースID |
-| name | VARCHAR(200) | NOT NULL | 名前 |
-| description | TEXT | | 説明 |
-| project_id | UUID | FK → projects（BC-001） | プロジェクトID |
-| owner_id | UUID | FK → users（BC-003）, NOT NULL | オーナーID |
-| created_at | TIMESTAMP | NOT NULL | 作成日時 |
-| updated_at | TIMESTAMP | NOT NULL | 更新日時 |
+```sql
+CREATE TABLE workspaces (
+  id UUID PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  description TEXT,
+  type VARCHAR(30) NOT NULL CHECK (type IN ('project', 'team', 'department', 'personal')),
+  owner_id UUID NOT NULL,
+  project_id UUID,
+  archived_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
-**インデックス**: project_id, owner_id
+CREATE INDEX idx_workspaces_owner ON workspaces(owner_id);
+CREATE INDEX idx_workspaces_project ON workspaces(project_id) WHERE project_id IS NOT NULL;
+CREATE INDEX idx_workspaces_active ON workspaces(type, created_at DESC) WHERE archived_at IS NULL;
+```
 
 ---
 
-### workspace_members
+#### workspace_members
 ワークスペースメンバー
 
-| カラム | 型 | 制約 | 説明 |
-|--------|-----|------|------|
-| id | UUID | PK | メンバーID |
-| workspace_id | UUID | FK → workspaces, NOT NULL | ワークスペースID |
-| user_id | UUID | FK → users（BC-003）, NOT NULL | ユーザーID |
-| role | VARCHAR(50) | NOT NULL | ロール（owner/editor/viewer） |
-| joined_at | TIMESTAMP | NOT NULL | 参加日時 |
+```sql
+CREATE TABLE workspace_members (
+  id UUID PRIMARY KEY,
+  workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL,
+  permission VARCHAR(20) NOT NULL CHECK (permission IN ('owner', 'admin', 'editor', 'commenter', 'viewer')),
+  joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_accessed_at TIMESTAMPTZ,
 
-**インデックス**: workspace_id, user_id
+  CONSTRAINT unique_workspace_member UNIQUE (workspace_id, user_id)
+);
+
+CREATE INDEX idx_workspace_members_workspace ON workspace_members(workspace_id);
+CREATE INDEX idx_workspace_members_user ON workspace_members(user_id);
+```
 
 ---
 
-## データフロー
+#### documents
+ドキュメント
+
+```sql
+CREATE TABLE documents (
+  id UUID PRIMARY KEY,
+  workspace_id UUID NOT NULL REFERENCES workspaces(id),
+  title VARCHAR(200) NOT NULL,
+  file_name VARCHAR(255) NOT NULL,
+  file_size BIGINT NOT NULL,
+  mime_type VARCHAR(100) NOT NULL,
+  storage_url TEXT NOT NULL,
+  owner_id UUID NOT NULL,
+  current_version_number INT DEFAULT 1,
+  deleted_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_documents_workspace ON documents(workspace_id, created_at DESC) WHERE deleted_at IS NULL;
+CREATE INDEX idx_documents_owner ON documents(owner_id);
+```
+
+---
+
+#### document_versions
+ドキュメントバージョン
+
+```sql
+CREATE TABLE document_versions (
+  id UUID PRIMARY KEY,
+  document_id UUID NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+  version_number INT NOT NULL,
+  storage_url TEXT NOT NULL,
+  file_size BIGINT NOT NULL,
+  created_by UUID NOT NULL,
+  change_description TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT unique_document_version UNIQUE (document_id, version_number)
+);
+
+CREATE INDEX idx_document_versions_document ON document_versions(document_id, version_number DESC);
+```
+
+---
+
+#### document_comments
+ドキュメントコメント
+
+```sql
+CREATE TABLE document_comments (
+  id UUID PRIMARY KEY,
+  document_id UUID NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL,
+  content TEXT NOT NULL,
+  position JSONB,
+  resolved BOOLEAN DEFAULT false,
+  resolved_by UUID,
+  resolved_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_document_comments_document ON document_comments(document_id, created_at);
+```
+
+---
+
+## インデックス戦略 {#indexes}
+
+### B-Tree インデックス
+
+主キー、外部キー、範囲検索、ソートに使用：
+
+```sql
+-- 時系列検索
+CREATE INDEX idx_messages_created ON messages(created_at DESC);
+CREATE INDEX idx_notif_created ON notifications(created_at DESC);
+
+-- ユーザー別検索
+CREATE INDEX idx_messages_sender ON messages(sender_id);
+CREATE INDEX idx_notif_recipient ON notifications(recipient_id);
+
+-- ステータス別検索
+CREATE INDEX idx_meetings_status ON meetings(status, start_time);
+CREATE INDEX idx_notif_status ON notifications(status, priority);
+```
+
+---
+
+### GIN インデックス
+
+全文検索、JSONB検索に使用：
+
+```sql
+-- 全文検索
+CREATE INDEX idx_messages_search ON messages USING GIN(content_search);
+
+-- JSONB検索
+CREATE INDEX idx_notif_data ON notifications USING GIN(data);
+CREATE INDEX idx_meetings_recurrence ON meetings USING GIN(recurrence_rule);
+```
+
+---
+
+### 部分インデックス
+
+条件付きクエリの最適化：
+
+```sql
+-- アクティブなチャネルのみ
+CREATE INDEX idx_channels_active ON channels(workspace_id) WHERE archived_at IS NULL;
+
+-- 削除されていないメッセージのみ
+CREATE INDEX idx_messages_active ON messages(channel_id, created_at DESC) WHERE deleted_at IS NULL;
+
+-- ペンディング通知のみ
+CREATE INDEX idx_notif_pending ON notifications(scheduled_at) WHERE status = 'pending';
+```
+
+---
+
+## パーティショニング戦略 {#partitioning}
+
+### messages テーブル（月次パーティション）
+
+```sql
+-- 2025年11月パーティション
+CREATE TABLE messages_2025_11 PARTITION OF messages
+  FOR VALUES FROM ('2025-11-01') TO ('2025-12-01');
+
+-- 2025年12月パーティション
+CREATE TABLE messages_2025_12 PARTITION OF messages
+  FOR VALUES FROM ('2025-12-01') TO ('2026-01-01');
+```
+
+**パーティション作成スケジュール**: 毎月1日に次月のパーティションを自動作成
+**古いパーティションの扱い**: 1年以上前のパーティションはアーカイブストレージへ移行
+
+---
+
+### notifications テーブル（月次パーティション）
+
+```sql
+CREATE TABLE notifications_2025_11 PARTITION OF notifications
+  FOR VALUES FROM ('2025-11-01') TO ('2025-12-01');
+```
+
+**保持期間**: 3ヶ月（古い通知は自動削除）
+
+---
+
+## データフロー {#data-flow}
+
+### メッセージ送信フロー
+
+```
+1. messages テーブルにINSERT
+2. message_attachments テーブルに添付ファイルINSERT（あれば）
+3. WebSocketでリアルタイム配信
+4. オフラインユーザーに通知配信（notifications経由）
+5. Elasticsearchに全文検索用インデックス作成（非同期）
+```
+
+---
 
 ### 通知配信フロー
+
 ```
 1. notifications テーブルにINSERT（status = pending）
-2. notification_recipients テーブルに受信者INSERT
-3. 優先度に応じた配信処理
-   - urgent: 即座配信（10秒以内）
-   - high: 優先配信（1分以内）
-   - normal/low: バッチ配信
-4. 配信完了後、status = sent に更新
-5. 受信者が既読時、read_at を更新
+2. SLAに基づいて配信チャネル決定
+3. 各チャネルで配信試行（notification_delivery_attempts記録）
+4. 配信成功時、status = delivered に更新
+5. リトライ必要時、スケジューラーに再キュー
+6. ユーザーが既読時、read_at 更新
 ```
 
+---
+
 ### 会議作成フロー
+
 ```
 1. meetings テーブルにINSERT
 2. meeting_participants テーブルに参加者INSERT
-3. 通知配信（notifications テーブル経由）
-4. 参加者の返答時、response_status を更新
-5. 会議終了後、attended フラグを更新
+3. オンライン会議作成（Zoom/Teams API呼び出し）
+4. online_meeting_url 等を更新
+5. 参加者に通知配信（notifications経由）
+6. リマインダーをスケジュール
 ```
 
 ---
 
-**ステータス**: Phase 0 - 基本構造作成完了
+### ドキュメント共有フロー
+
+```
+1. ファイルをストレージにアップロード
+2. documents テーブルにINSERT
+3. document_versions テーブルに初期バージョンINSERT
+4. ワークスペースメンバーに通知配信
+5. アクティビティフィードに記録
+```
+
+---
+
+## パフォーマンス最適化
+
+### クエリ最適化
+
+```sql
+-- チャネルメッセージ取得（最新50件）
+EXPLAIN ANALYZE
+SELECT m.*, u.name as sender_name
+FROM messages m
+JOIN users u ON m.sender_id = u.id
+WHERE m.channel_id = $1
+  AND m.deleted_at IS NULL
+ORDER BY m.created_at DESC
+LIMIT 50;
+-- Expected: Index Scan on idx_messages_channel
+```
+
+---
+
+### キャッシュ戦略
+
+**Redis キャッシュ**:
+- ユーザープレゼンス情報（TTL: 5分）
+- チャネル未読カウント（TTL: 1分）
+- アクティブなWebSocket接続情報
+
+```
+SET presence:user:{userId} "online" EX 300
+GET presence:user:{userId}
+
+INCR unread_count:channel:{channelId}:user:{userId}
+```
+
+---
+
+**最終更新**: 2025-11-03
+**ステータス**: Phase 2.4 - BC-007 データ層詳細化

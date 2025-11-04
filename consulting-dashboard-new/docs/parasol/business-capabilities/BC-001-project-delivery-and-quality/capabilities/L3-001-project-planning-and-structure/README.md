@@ -51,6 +51,214 @@
 
 ---
 
+## 🛠️ 実装アプローチ
+
+### 技術的実現方法
+
+#### アルゴリズム・パターン
+- **WBS作成**: 再帰的タスク分解アルゴリズム（トップダウン分解）
+- **リソース見積もり**: PERT法（3点見積もり: 楽観値・最頻値・悲観値）
+- **スケジューリング**: クリティカルパス法（CPM）による依存関係解析
+- **デザインパターン**:
+  - Composite Pattern（WBS階層構造）
+  - Strategy Pattern（見積もり手法の切り替え）
+  - Builder Pattern（プロジェクト計画の段階的構築）
+
+#### 実装要件
+- **スケジューリング**: ガントチャート可視化機能
+- **依存関係解析**: DAGグラフ処理エンジン
+- **見積もり計算**: PERT計算ロジック
+- **WBS可視化**: 階層ツリー表示機能
+
+### パフォーマンス考慮事項
+
+#### スケーラビリティ
+- **タスク数上限**: 1プロジェクトあたり最大10,000タスク（階層深さ10レベルまで）
+- **依存関係最大数**: 1タスクあたり先行/後続それぞれ最大50関係
+- **並行プロジェクト計画**: 最大100プロジェクトの同時編集をサポート
+
+#### キャッシュ戦略
+- **WBS構造**: キャッシュ機構（TTL: 1時間、プロジェクト更新時に無効化）
+- **クリティカルパス計算結果**: メモリキャッシュ（依存関係変更時に再計算）
+- **リソース可用性**: 15分間隔でキャッシュ更新
+
+#### 最適化ポイント
+- **遅延読み込み**: WBSツリーの深い階層は必要時のみロード
+- **バッチ処理**: タスク一括作成時はイベント発行をバッチ化
+- **インデックス活用**: `projects(id)`, `tasks(project_id, parent_task_id)`, `task_dependencies(predecessor_id, successor_id)`
+
+---
+
+## ⚠️ 前提条件と制約
+
+### BC間連携
+
+#### 依存BC
+- **BC-005: Team & Resource Optimization** - リソース可用性の取得、スキルマッチング
+  - 使用API: `GET /api/bc-005/resources/availability` - リソースカレンダー
+  - 使用API: `GET /api/bc-005/skills` - スキル一覧とマッチング
+- **BC-002: Financial Health & Profitability** - 予算枠の確認
+  - 使用API: `GET /api/bc-002/budgets/{projectId}` - プロジェクト予算情報
+- **BC-003: Access Control & Security** - プロジェクト作成権限の検証
+  - 使用API: `POST /api/bc-003/authorize` - 権限チェック
+
+#### 提供API（他BCから利用）
+- **BC-006, BC-007**: プロジェクト基本情報の参照
+
+### データ整合性要件
+
+#### トランザクション境界
+- **プロジェクト作成**: Project + 初期Milestone + ProjectSchedule を1トランザクションで作成
+- **WBS作成**: タスク階層 + 依存関係グラフを原子的に作成（循環依存チェック含む）
+- **整合性レベル**: 強整合性（ACID準拠）
+
+#### データ制約
+- プロジェクト開始日 ≤ 終了日
+- タスク依存グラフに循環（サイクル）を含まない
+- 親タスク期間 ≥ 全子タスク期間の和
+
+### セキュリティ要件
+
+#### 認証・認可
+- **認証**: JWT Bearer Token（BC-003発行）
+- **必要権限**:
+  - プロジェクト作成: `project:create`
+  - WBS編集: `project:edit` または `project:owner`
+  - スケジュール変更: `project:schedule:edit`
+
+#### データ保護
+- **機密度**: プロジェクト情報はInternal（社内限定）
+- **暗号化**: プロジェクト名・説明は平文保存（検索性重視）
+- **監査ログ**: プロジェクト作成・変更は全て監査ログに記録
+
+### スケーラビリティ制約
+
+#### 最大同時処理
+- **プロジェクト計画同時編集**: 同一プロジェクト最大10ユーザー
+- **WBS一括作成**: 1リクエストあたり最大500タスク
+- **依存関係一括登録**: 1リクエストあたり最大1,000関係
+
+#### データ量上限
+- **アクティブプロジェクト数**: 10,000プロジェクト
+- **総タスク数**: 10M タスク（全プロジェクト合計）
+- **履歴保持期間**: プロジェクト完了後3年間
+
+---
+
+## 🔗 BC設計との統合
+
+### 使用ドメインオブジェクト
+
+#### Aggregates
+- **Project Aggregate** ([../../domain/README.md#project-aggregate](../../domain/README.md#project-aggregate))
+  - Project（集約ルート）: プロジェクトライフサイクル管理
+  - Milestone: 主要マイルストーン
+  - ProjectSchedule: スケジュール情報
+
+- **Task Aggregate** ([../../domain/README.md#task-aggregate](../../domain/README.md#task-aggregate))
+  - Task（集約ルート）: タスク実行管理
+  - SubTask: サブタスク階層
+  - TaskDependency: 依存関係
+
+#### Value Objects
+- **Duration**: 期間（startDate, endDate）
+- **EstimatedEffort**: 見積工数（optimistic, mostLikely, pessimistic）
+- **SkillRequirement**: 必要スキル（skillId, proficiencyLevel）
+
+### 呼び出すAPI例
+
+#### プロジェクト作成
+```http
+POST /api/v1/bc-001/projects
+Content-Type: application/json
+Authorization: Bearer {token}
+
+{
+  "name": "新製品開発プロジェクト",
+  "description": "Q2新製品のMVPリリース",
+  "ownerId": "user-uuid-123",
+  "startDate": "2025-11-10",
+  "endDate": "2026-02-28",
+  "budget": 5000000,
+  "milestones": [
+    { "name": "要件定義完了", "dueDate": "2025-12-15" },
+    { "name": "設計完了", "dueDate": "2026-01-31" },
+    { "name": "MVP リリース", "dueDate": "2026-02-28" }
+  ]
+}
+```
+
+#### WBS作成
+```http
+POST /api/v1/bc-001/projects/{projectId}/wbs
+Content-Type: application/json
+
+{
+  "tasks": [
+    {
+      "name": "要件定義フェーズ",
+      "estimatedHours": 160,
+      "subtasks": [
+        { "name": "ユーザーインタビュー", "estimatedHours": 40 },
+        { "name": "要件仕様書作成", "estimatedHours": 80 }
+      ]
+    },
+    {
+      "name": "設計フェーズ",
+      "estimatedHours": 240,
+      "dependencies": ["要件定義フェーズ"]
+    }
+  ]
+}
+```
+
+#### リソース見積もり連携（BC-005）
+```http
+GET /api/v1/bc-005/resources/availability?skillId=typescript&startDate=2025-11-10&endDate=2026-02-28
+```
+
+### データアクセスパターン
+
+#### 読み取り
+- **projects テーブル**:
+  - インデックス: `idx_projects_owner_id`（オーナー別プロジェクト一覧）
+  - インデックス: `idx_projects_status`（ステータス別フィルタ）
+- **tasks テーブル**:
+  - インデックス: `idx_tasks_project_id`（プロジェクト配下タスク取得）
+  - インデックス: `idx_tasks_parent_task_id`（WBS階層取得）
+- **task_dependencies テーブル**:
+  - インデックス: `idx_task_dep_predecessor`（先行タスク検索）
+  - クエリ: クリティカルパス計算時に依存グラフ全体をロード
+
+#### 書き込み
+- **プロジェクト作成トランザクション**:
+  ```sql
+  BEGIN;
+  INSERT INTO projects (...) VALUES (...);
+  INSERT INTO project_schedules (...) VALUES (...);
+  INSERT INTO milestones (...) VALUES (...);
+  COMMIT;
+  ```
+- **WBS一括作成**:
+  - バルクインサート使用（`INSERT INTO tasks VALUES (...), (...), ...`）
+  - 依存関係検証後に一括コミット
+
+#### キャッシュアクセス
+- **WBS構造キャッシュ**:
+  ```
+  Key: `wbs:project:{projectId}`
+  Value: JSON（タスク階層ツリー）
+  TTL: 3600秒
+  ```
+- **クリティカルパス**:
+  ```
+  Key: `critical_path:{projectId}`
+  Value: タスクIDリスト
+  Invalidation: 依存関係変更時
+  ```
+
+---
+
 ## ⚙️ Operations: この能力を実現する操作
 
 | Operation | 説明 | UseCases | V2移行元 |

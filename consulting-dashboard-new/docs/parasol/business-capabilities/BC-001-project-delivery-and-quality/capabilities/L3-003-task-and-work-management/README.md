@@ -51,6 +51,234 @@
 
 ---
 
+## 🛠️ 実装アプローチ
+
+### 技術的実現方法
+
+#### アルゴリズム・パターン
+- **タスクアサイン最適化**: リソース可用性とスキルマッチングアルゴリズム（ハンガリアン法）
+- **進捗追跡**: リアルタイム進捗計算（タスク完了率 × 工数比重）
+- **依存関係解決**: トポロジカルソート（タスク実行順序の最適化）
+- **デザインパターン**:
+  - Observer Pattern（タスクステータス変更通知）
+  - Strategy Pattern（異なる進捗計算方式の切り替え）
+  - Chain of Responsibility（タスク承認フロー）
+
+#### 実装要件
+- **タスクボード**: ドラッグ&ドロップ対応カンバンボード
+- **依存関係可視化**: タスク依存グラフ表示機能
+- **進捗追跡**: バーンダウンチャート、進捗グラフ表示
+- **リアルタイム更新**: リアルタイム通信機構（タスクステータス変更時の即座反映）
+
+### パフォーマンス考慮事項
+
+#### スケーラビリティ
+- **タスク数上限**: 1プロジェクトあたり最大10,000タスク
+- **同時実行タスク**: 1ユーザーあたり最大50タスクを同時進行
+- **依存関係**: 1タスクあたり先行/後続それぞれ最大20関係
+
+#### キャッシュ戦略
+- **タスクリスト**: キャッシュ機構（TTL: 5分、タスク更新時に無効化）
+- **進捗集計**: メモリキャッシュ（タスク完了時に再計算）
+- **ユーザーアサインメント**: 10分間隔でキャッシュ更新
+
+#### 最適化ポイント
+- **遅延読み込み**: タスク詳細は必要時のみロード
+- **バッチ更新**: 複数タスクステータス変更を1トランザクションで処理
+- **インデックス活用**: `tasks(project_id, assignee_id, status)`, `task_dependencies(predecessor_id)`
+
+---
+
+## ⚠️ 前提条件と制約
+
+### BC間連携
+
+#### 依存BC
+- **BC-005: Team & Resource Optimization** - リソースアサインとスキルマッチング
+  - 使用API: `GET /api/bc-005/resources/{resourceId}/availability` - リソース可用性確認
+  - 使用API: `POST /api/bc-005/resources/{resourceId}/assign` - タスクへのリソース割当
+  - 使用API: `PUT /api/bc-005/resources/{resourceId}/workload` - 作業負荷更新
+- **BC-007: Team Communication & Collaboration** - タスク通知とコラボレーション
+  - 使用API: `POST /api/bc-007/notifications` - タスクアサイン通知
+  - 使用API: `POST /api/bc-007/alerts` - ブロッカー・遅延アラート
+- **BC-002: Financial Health & Profitability** - タスク工数実績による コスト計算
+  - 使用API: `POST /api/bc-002/costs/task-effort` - タスク工数コスト記録
+
+#### 提供API（他BCから利用）
+- **BC-001 L3-001, L3-002**: タスク進捗情報の参照
+
+### データ整合性要件
+
+#### トランザクション境界
+- **タスクアサイン**: タスク割当 + リソース可用性更新（BC-005） + 通知送信（BC-007）
+- **タスク完了**: ステータス更新 + 進捗再計算 + 工数記録（BC-002）
+- **整合性レベル**: 結果整合性（イベント駆動、Saga Pattern）
+
+#### データ制約
+- タスク開始前提: 先行タスクが全て完了済み
+- 実績工数 ≤ 見積工数 × 2.0（警告レベル）
+- タスクステータス: not_started → in_progress → completed/on_hold
+
+### セキュリティ要件
+
+#### 認証・認可
+- **認証**: JWT Bearer Token（BC-003発行）
+- **必要権限**:
+  - タスクアサイン: `task:assign` + プロジェクトメンバー権限
+  - タスク実行更新: `task:update` + タスク担当者
+  - タスク完了: `task:complete` + タスク担当者
+
+#### データ保護
+- **機密度**: タスク情報はInternal（プロジェクトメンバーのみ）
+- **監査ログ**: タスクステータス変更、アサインは全て記録
+
+### スケーラビリティ制約
+
+#### 最大同時処理
+- **タスクステータス更新**: 同時200更新/秒
+- **一括アサイン**: 1リクエストあたり最大100タスク
+- **進捗再計算**: プロジェクトあたり最大10回/分
+
+#### データ量上限
+- **アクティブタスク**: 1ユーザーあたり最大200タスク
+- **タスク履歴**: 完了後1年間保持
+- **進捗スナップショット**: 日次保存（無制限、完了後1年保持）
+
+---
+
+## 🔗 BC設計との統合
+
+### 使用ドメインオブジェクト
+
+#### Aggregates
+- **Task Aggregate** ([../../domain/README.md#task-aggregate](../../domain/README.md#task-aggregate))
+  - Task（集約ルート）: タスク実行管理
+  - SubTask: サブタスク階層
+  - TaskDependency: 依存関係
+  - TaskAssignment: 担当者割当
+  - TaskProgress: 進捗履歴
+
+#### Value Objects
+- **TaskStatus**: ステータス（not_started, in_progress, completed, on_hold）
+- **Priority**: 優先度（high, medium, low）
+- **EstimatedEffort**: 見積工数（時間）
+- **ActualEffort**: 実績工数（時間）
+- **CompletionRate**: 完了率（0-100%）
+
+#### Domain Events
+- **TaskAssigned**: タスク割当イベント → BC-007通知, BC-005リソース更新
+- **TaskStarted**: タスク開始イベント → BC-007通知
+- **TaskCompleted**: タスク完了イベント → BC-002コスト記録, BC-005実績更新, 進捗再計算
+- **TaskBlocked**: タスクブロックイベント → BC-007アラート通知
+
+### 呼び出すAPI例
+
+#### タスクアサイン
+```http
+PUT /api/v1/bc-001/tasks/{taskId}/assign
+Content-Type: application/json
+Authorization: Bearer {token}
+
+{
+  "assigneeId": "user-uuid-123",
+  "startDate": "2025-11-10",
+  "dueDate": "2025-11-15",
+  "priority": "high",
+  "notifyAssignee": true
+}
+```
+
+#### タスク実行更新
+```http
+PUT /api/v1/bc-001/tasks/{taskId}/execute
+Content-Type: application/json
+
+{
+  "status": "in_progress",
+  "actualHours": 8.5,
+  "progressPercentage": 35,
+  "notes": "基本実装完了、レビュー待ち",
+  "blockers": []
+}
+```
+
+#### タスク進捗追跡
+```http
+GET /api/v1/bc-001/tasks/progress?projectId={projectId}&assigneeId={userId}&status=in_progress
+```
+
+#### BC連携: リソース可用性確認（BC-005）
+```http
+GET /api/v1/bc-005/resources/{resourceId}/availability?startDate=2025-11-10&endDate=2025-11-15
+```
+
+#### BC連携: タスクアサイン通知（BC-007）
+```http
+POST /api/v1/bc-007/notifications
+Content-Type: application/json
+
+{
+  "type": "task_assigned",
+  "recipientId": "user-uuid-123",
+  "priority": "normal",
+  "content": {
+    "taskId": "task-uuid",
+    "taskName": "API実装",
+    "dueDate": "2025-11-15",
+    "projectName": "新製品開発"
+  }
+}
+```
+
+### データアクセスパターン
+
+#### 読み取り
+- **tasks テーブル**:
+  - インデックス: `idx_tasks_project_id`（プロジェクト配下タスク取得）
+  - インデックス: `idx_tasks_assignee_status`（担当者別進行中タスク）
+  - インデックス: `idx_tasks_due_date`（期限順ソート）
+- **task_dependencies テーブル**:
+  - インデックス: `idx_task_dep_predecessor`（先行タスク検索）
+  - クエリ: 実行可能タスク抽出（先行タスク全完了）
+- **task_progress テーブル**:
+  - インデックス: `idx_task_progress_task_date`（進捗履歴時系列取得）
+
+#### 書き込み
+- **タスクアサイントランザクション**:
+  ```sql
+  BEGIN;
+  UPDATE tasks SET assignee_id = ?, status = 'not_started', assigned_at = NOW() WHERE id = ?;
+  INSERT INTO task_assignments (task_id, assignee_id, assigned_at) VALUES (?, ?, NOW());
+  -- イベント発行: TaskAssigned
+  COMMIT;
+  ```
+- **タスク実行更新**:
+  ```sql
+  UPDATE tasks SET status = ?, actual_hours = ?, progress_percentage = ?, updated_at = NOW()
+  WHERE id = ?;
+
+  INSERT INTO task_progress (task_id, recorded_at, progress_percentage, actual_hours)
+  VALUES (?, NOW(), ?, ?);
+  ```
+
+#### キャッシュアクセス
+- **ユーザータスクリスト**:
+  ```
+  Key: `tasks:user:{userId}:active`
+  Value: JSON（タスクID配列）
+  TTL: 300秒
+  Invalidation: タスクステータス変更時
+  ```
+- **プロジェクト進捗集計**:
+  ```
+  Key: `project:progress:{projectId}`
+  Value: { totalTasks: 100, completedTasks: 35, progressRate: 35 }
+  TTL: 300秒
+  Invalidation: タスク完了時
+  ```
+
+---
+
 ## ⚙️ Operations: この能力を実現する操作
 
 | Operation | 説明 | UseCases | V2移行元 |

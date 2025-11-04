@@ -43,11 +43,11 @@
 | clientId | UUID | ○ | クライアントID | Client存在確認 |
 | invoiceAmount | Money | ○ | 請求金額 | Decimal.js、≥0、収益認識額と一致 |
 | currency | Currency | ○ | 通貨コード | ISO 4217 (JPY/USD/EUR) |
-| invoiceDate | Date | ○ | 請求日 | 収益認識日以降、未来日不可 |
+| invoiceDate | DATE | ○ | 請求日 | 収益認識日以降、未来日不可 |
 | paymentTerms | PaymentTerms | ○ | 支払条件 | NET30/NET45/NET60/IMMEDIATE |
-| dueDate | Date | ○ | 支払期限 | 請求日+支払条件期間 |
+| dueDate | DATE | ○ | 支払期限 | 請求日+支払条件期間 |
 | invoiceItems | InvoiceItem[] | ○ | 請求明細 | 1件以上、合計=請求金額 |
-| taxRate | Decimal | ○ | 消費税率 | 0-100、通常10% |
+| taxRate | DECIMAL | ○ | 消費税率 | 0-100、通常10% |
 | taxAmount | Money | ○ | 消費税額 | Decimal.js計算、請求金額×税率 |
 | totalAmount | Money | ○ | 税込合計 | 請求金額+消費税額 |
 | billingAddress | Address | ○ | 請求先住所 | 必須項目全て埋まっている |

@@ -36,8 +36,8 @@
 | パラメータ名 | 型 | 必須 | デフォルト | バリデーション | 説明 |
 |-------------|-----|------|-----------|--------------|------|
 | taskId | UUID | Yes | - | UUID形式 | タスクID |
-| actualHours | Decimal | Yes | - | > 0 | 実績工数（時間） |
-| progressPercentage | Decimal | No | null | 0-100 | 進捗率（%） |
+| actualHours | DECIMAL | Yes | - | > 0 | 実績工数（時間） |
+| progressPercentage | DECIMAL | No | null | 0-100 | 進捗率（%） |
 
 ### バリデーションルール
 1. 全UUIDパラメータ: 対応するエンティティが存在すること

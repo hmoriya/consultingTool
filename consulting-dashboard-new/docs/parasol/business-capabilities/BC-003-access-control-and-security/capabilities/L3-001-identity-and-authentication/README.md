@@ -65,11 +65,11 @@
   - Factory Pattern（トークン生成）
   - Decorator Pattern（MFA層の追加）
 
-#### 推奨ライブラリ・フレームワーク
-- **JWT処理**: [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken) - JWT生成・検証
-- **パスワードハッシュ**: [bcryptjs](https://github.com/dcodeIO/bcrypt.js) - ハッシュ生成
-- **MFA**: [speakeasy](https://github.com/speakeasyjs/speakeasy) - TOTP実装
-- **OAuth2/OIDC**: [passport](http://www.passportjs.org/) - 統合認証戦略
+#### 実装要件
+- **JWT処理**: トークン生成・検証機能（JWT生成・検証）
+- **パスワードハッシュ**: パスワードハッシュ化機構（ハッシュ生成）
+- **MFA**: 二要素認証機能（TOTP実装）
+- **OAuth2/OIDC**: 統合認証機能（OAuth2/OIDC対応）
 
 ### パフォーマンス考慮事項
 
@@ -79,7 +79,7 @@
 - **トークン検証**: 平均10ms以内（キャッシュ活用）
 
 #### キャッシュ戦略
-- **ユーザー情報**: Redis cache（TTL: 15分、ユーザー更新時に無効化）
+- **ユーザー情報**: キャッシュ機構（TTL: 15分、ユーザー更新時に無効化）
 - **ロール・権限**: メモリキャッシュ（ロール変更時に即座に無効化）
 - **JWT公開鍵**: アプリケーションメモリに永続保持
 

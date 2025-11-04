@@ -59,54 +59,54 @@
 - **会議スケジューリング**: カレンダー統合（iCal/CalDAV）
 
 ### 主要技術スタック
-- **WebSocket サーバー**: Socket.io / WS
+- **WebSocketサーバー**: リアルタイム通信機構
   - リアルタイムメッセージング
   - タイピング通知・既読状態同期
   - プレゼンス（オンライン/オフライン）配信
   - 自動再接続・ハートビート
-- **WebRTC インフラ**: Janus / Mediasoup / Twilio
+- **WebRTCインフラ**: ビデオ会議機能
   - ビデオ・音声通話（1対1、グループ）
   - 画面共有
   - SFU（Selective Forwarding Unit）による多人数会議
   - TURN/STUN サーバー（NAT traversal）
-- **メッセージキュー**: Redis Pub/Sub / RabbitMQ
+- **メッセージキュー**: メッセージング機構
   - メッセージ配信保証
-  - スケールアウト対応（複数WebSocketサーバー間同期）
-  - メッセージ永続化（RabbitMQ Durable Queue）
-- **リアルタイムDB**: Redis / Firestore
+  - スケールアウト対応（複数サーバー間同期）
+  - メッセージ永続化
+- **リアルタイムDB**: リアルタイムデータベース
   - プレゼンス情報管理
   - 未読カウント同期
   - タイピングインジケーター
-- **会議管理**: カレンダーAPI統合
-  - Google Calendar API
-  - Microsoft Graph API (Outlook)
+- **会議管理**: カレンダー統合機能
+  - カレンダーAPI統合
+  - スケジューリング機能
   - CalDAV プロトコル対応
 
 ### 実装パターン
 
-#### WebSocket メッセージング
+#### リアルタイム通信機構 メッセージング
 ```typescript
-// サーバー側: Socket.io
-io.on('connection', (socket) => {
+// サーバー側: リアルタイム通信機構
+server.on('connection', (connection) => {
   // 認証・プレゼンス登録
-  socket.on('authenticate', async (token) => {
+  connection.on('authenticate', async (token) => {
     const user = await authenticateToken(token)
-    socket.userId = user.id
+    connection.userId = user.id
     await updatePresence(user.id, 'online')
   })
 
   // メッセージ送信
-  socket.on('send_message', async (data) => {
+  connection.on('send_message', async (data) => {
     const message = await createMessage(data)
     // 受信者へリアルタイム配信
-    io.to(data.recipientId).emit('new_message', message)
+    server.to(data.recipientId).emit('new_message', message)
     // DB永続化
     await saveMessage(message)
   })
 
   // 切断時プレゼンス更新
-  socket.on('disconnect', async () => {
-    await updatePresence(socket.userId, 'offline')
+  connection.on('disconnect', async () => {
+    await updatePresence(connection.userId, 'offline')
   })
 })
 ```
@@ -142,7 +142,7 @@ socket.on('offer', async (offer) => {
 
 #### 会議スケジューリング統合
 ```typescript
-// Google Calendar API 統合
+// カレンダー統合機能
 async function scheduleMeeting(meeting) {
   const event = {
     summary: meeting.title,
@@ -153,34 +153,34 @@ async function scheduleMeeting(meeting) {
     conferenceData: {
       createRequest: {
         requestId: uuid(),
-        conferenceSolutionKey: { type: 'hangoutsMeet' }
+        conferenceSolutionKey: { type: 'videoConference' }
       }
     }
   }
 
-  const result = await calendar.events.insert({
+  const result = await calendarService.events.insert({
     calendarId: 'primary',
     resource: event,
     conferenceDataVersion: 1
   })
 
-  return result.data.hangoutLink // ビデオ会議URL
+  return result.data.conferenceLink // ビデオ会議URL
 }
 ```
 
 ### パフォーマンス最適化
-- **WebSocket スケーリング**:
-  - 水平スケーリング: 複数WebSocketサーバー（ロードバランサー + Sticky Session）
-  - Redis Pub/Sub による サーバー間メッセージ同期
+- **リアルタイム通信機構 スケーリング**:
+  - 水平スケーリング: 複数サーバー（ロードバランサー + Sticky Session）
+  - メッセージング機構によるサーバー間メッセージ同期
   - 接続数上限: 10,000接続/サーバー
-- **WebRTC 最適化**:
+- **ビデオ会議 最適化**:
   - SFU使用: 帯域幅削減（N-1接続 → 1接続）
-  - VP9/H.264コーデック選択
+  - 最適コーデック選択
   - Simulcast: 複数ビットレート配信
 - **レイテンシ削減**:
   - CDN: 地理的分散配置
   - HTTP/2: 多重化による高速化
-  - gRPC: 低レイテンシ通信
+  - 低レイテンシ通信プロトコル
 
 ---
 
@@ -188,17 +188,17 @@ async function scheduleMeeting(meeting) {
 
 ### 技術的前提条件
 - **インフラ要件**:
-  - WebSocket サーバー（Node.js: 2GB RAM/サーバー）
-  - Redis クラスタ（プレゼンス・Pub/Sub用）
-  - TURN/STUN サーバー（WebRTC NAT traversal）
-  - メディアサーバー（SFU: Janus/Mediasoup）
+  - リアルタイム通信サーバー（2GB RAM/サーバー）
+  - キャッシュ機構クラスタ（プレゼンス・メッセージング用）
+  - TURN/STUN サーバー（NAT traversal）
+  - メディアサーバー（SFU）
 - **ネットワーク要件**:
-  - WebSocket: ポート443（WSS over TLS）
-  - WebRTC: UDP 10000-20000（メディアストリーム）
+  - リアルタイム通信: ポート443（TLS）
+  - ビデオ会議: UDP 10000-20000（メディアストリーム）
   - TURN: TCP/UDP 3478（フォールバック）
 - **クライアント要件**:
   - モダンブラウザ（Chrome 90+, Firefox 88+, Safari 14+）
-  - WebRTC サポート必須
+  - ビデオ会議機能サポート必須
   - カメラ・マイク権限
 
 ### ビジネス制約
@@ -296,10 +296,10 @@ async function scheduleMeeting(meeting) {
   - BC-006 `KnowledgeArticlePublishedEvent`
 
 ### リアルタイム技術スタック統合
-- **WebSocket プロトコル**: Socket.io v4（自動再接続、Room管理）
-- **メッセージフォーマット**: JSON（軽量）、MessagePack（バイナリ高速化）
-- **認証**: JWT トークン（WebSocket handshake時検証）
-- **スケーリング**: Redis Adapter（複数サーバー間同期）
+- **リアルタイム通信プロトコル**: リアルタイム通信機構（自動再接続、Room管理）
+- **メッセージフォーマット**: JSON（軽量）、バイナリフォーマット（高速化）
+- **認証**: JWT トークン（handshake時検証）
+- **スケーリング**: メッセージング機構（複数サーバー間同期）
 
 ---
 

@@ -38,10 +38,10 @@
 | projectId | UUID | Yes | - | UUID形式 | リソース配分対象プロジェクトID |
 | taskId | UUID | Yes | - | UUID形式 | リソース配分対象タスクID |
 | userId | UUID | Yes | - | UUID形式 | 配分するリソース（ユーザー）ID |
-| allocatedHours | Decimal | Yes | - | > 0, 最大9999.99 | 配分工数（時間） |
-| allocationStartDate | Date | Yes | - | YYYY-MM-DD形式 | 配分開始日 |
-| allocationEndDate | Date | Yes | - | YYYY-MM-DD形式、startDate以降 | 配分終了日 |
-| utilizationRate | Decimal | No | 1.0 | 0.0-1.0 | 稼働率（0.5=50%稼働） |
+| allocatedHours | DECIMAL | Yes | - | > 0, 最大9999.99 | 配分工数（時間） |
+| allocationStartDate | DATE | Yes | - | YYYY-MM-DD形式 | 配分開始日 |
+| allocationEndDate | DATE | Yes | - | YYYY-MM-DD形式、startDate以降 | 配分終了日 |
+| utilizationRate | DECIMAL | No | 1.0 | 0.0-1.0 | 稼働率（0.5=50%稼働） |
 
 ### バリデーションルール
 1. **projectId**: プロジェクトが存在し、status='planning'または'executing'であること

@@ -36,9 +36,9 @@
 | パラメータ名 | 型 | 必須 | デフォルト | バリデーション | 説明 |
 |-------------|-----|------|-----------|--------------|------|
 | projectId | UUID | Yes | - | UUID形式 | プロジェクトID |
-| riskName | String | Yes | - | 1-200文字 | リスク名 |
-| impact | Enum | Yes | - | high/medium/low | 影響度 |
-| probability | Enum | Yes | - | high/medium/low | 発生確率 |
+| riskName | STRING_200 | Yes | - | 1-200文字 | リスク名 |
+| impact | STRING_20 | Yes | - | high/medium/low | 影響度 |
+| probability | STRING_20 | Yes | - | high/medium/low | 発生確率 |
 
 ### バリデーションルール
 1. 全UUIDパラメータ: 対応するエンティティが存在すること

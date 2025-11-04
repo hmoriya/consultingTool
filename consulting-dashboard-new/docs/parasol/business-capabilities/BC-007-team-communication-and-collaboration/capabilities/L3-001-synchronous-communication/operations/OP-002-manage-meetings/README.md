@@ -36,19 +36,19 @@
 | パラメータ名 | 型 | 必須 | デフォルト | バリデーション | 説明 |
 |-------------|-----|------|-----------|--------------|------|
 | organizerId | UUID | Yes | - | UUID形式、BC-003 User参照 | 主催者ID |
-| meetingTitle | String | Yes | - | 1-200文字 | 会議タイトル |
-| meetingType | Enum | Yes | - | scheduled/recurring/instant | 会議タイプ |
+| meetingTitle | STRING_200 | Yes | - | 1-200文字 | 会議タイトル |
+| meetingType | STRING_20 | Yes | - | scheduled/recurring/instant | 会議タイプ |
 | startTime | DateTime | Yes | - | ISO8601形式、現在時刻以降 | 開始時刻 |
-| duration | Integer | Yes | - | 15-480分 | 所要時間（分） |
+| duration | INTEGER | Yes | - | 15-480分 | 所要時間（分） |
 | participantIds | Array<UUID> | Yes | - | UUID配列、1-100件 | 参加者ID配列 |
-| location | String | No | "Online" | 1-500文字 | 開催場所 |
-| onlineMeetingUrl | String | No | null | URL形式 | オンライン会議URL |
-| agenda | Text | No | "" | 最大5000文字 | 議題 |
+| location | STRING_100 | No | "Online" | 1-500文字 | 開催場所 |
+| onlineMeetingUrl | STRING_100 | No | null | URL形式 | オンライン会議URL |
+| agenda | TEXT | No | "" | 最大5000文字 | 議題 |
 | recurrenceRule | Object | No | null | RRULE形式（recurring時必須） | 繰り返しルール |
-| ├─ frequency | Enum | Yes | - | daily/weekly/monthly | 繰り返し頻度 |
-| ├─ interval | Integer | No | 1 | 1-99 | 間隔 |
-| ├─ endDate | Date | No | null | YYYY-MM-DD形式 | 終了日 |
-| └─ occurrences | Integer | No | null | 1-365 | 繰り返し回数 |
+| ├─ frequency | STRING_20 | Yes | - | daily/weekly/monthly | 繰り返し頻度 |
+| ├─ interval | INTEGER | No | 1 | 1-99 | 間隔 |
+| ├─ endDate | DATE | No | null | YYYY-MM-DD形式 | 終了日 |
+| └─ occurrences | INTEGER | No | null | 1-365 | 繰り返し回数 |
 | reminders | Array | No | [15] | 分単位、最大5件 | リマインダー時刻配列 |
 | webrtcConfig | Object | No | null | WebRTC設定 | WebRTC設定 |
 

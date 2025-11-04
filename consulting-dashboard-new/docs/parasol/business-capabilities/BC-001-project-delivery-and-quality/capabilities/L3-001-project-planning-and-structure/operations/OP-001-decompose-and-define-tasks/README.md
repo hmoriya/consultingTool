@@ -37,12 +37,12 @@
 |-------------|-----|------|-----------|--------------|------|
 | projectId | UUID | Yes | - | UUID形式 | タスクを作成するプロジェクトID |
 | parentTaskId | UUID | No | null | UUID形式またはnull | 親タスクID（WBS階層構造用） |
-| taskName | String | Yes | - | 1-200文字 | タスク名 |
-| description | Text | No | "" | 最大5000文字 | タスクの詳細説明 |
-| estimatedHours | Decimal | Yes | - | > 0, 最大99999.99 | 見積工数（時間） |
-| priority | Enum | No | 'medium' | high/medium/low | 優先度 |
-| startDate | Date | No | null | YYYY-MM-DD形式 | 計画開始日 |
-| dueDate | Date | No | null | YYYY-MM-DD形式、startDate以降 | 完了期限 |
+| taskName | STRING_200 | Yes | - | 1-200文字 | タスク名 |
+| description | TEXT | No | "" | 最大5000文字 | タスクの詳細説明 |
+| estimatedHours | DECIMAL | Yes | - | > 0, 最大99999.99 | 見積工数（時間） |
+| priority | STRING_20 | No | 'medium' | high/medium/low | 優先度 |
+| startDate | DATE | No | null | YYYY-MM-DD形式 | 計画開始日 |
+| dueDate | DATE | No | null | YYYY-MM-DD形式、startDate以降 | 完了期限 |
 | assigneeId | UUID | No | null | UUID形式、User存在確認 | 担当者ID |
 | predecessorTaskIds | Array<UUID> | No | [] | UUID配列、循環依存チェック | 先行タスクID配列 |
 

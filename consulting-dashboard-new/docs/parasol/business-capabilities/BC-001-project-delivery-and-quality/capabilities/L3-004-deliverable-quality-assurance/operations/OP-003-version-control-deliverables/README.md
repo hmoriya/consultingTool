@@ -36,8 +36,8 @@
 | パラメータ名 | 型 | 必須 | デフォルト | バリデーション | 説明 |
 |-------------|-----|------|-----------|--------------|------|
 | deliverableId | UUID | Yes | - | UUID形式 | 成果物ID |
-| versionType | Enum | Yes | - | major/minor/patch | バージョン種別 |
-| changes | Text | No | "" | 最大5000文字 | 変更内容 |
+| versionType | STRING_20 | Yes | - | major/minor/patch | バージョン種別 |
+| changes | TEXT | No | "" | 最大5000文字 | 変更内容 |
 
 ### バリデーションルール
 1. 全UUIDパラメータ: 対応するエンティティが存在すること

@@ -36,25 +36,25 @@
 | パラメータ名 | 型 | 必須 | デフォルト | バリデーション | 説明 |
 |-------------|-----|------|-----------|--------------|------|
 | ownerId | UUID | Yes | - | UUID形式、BC-003 User参照 | ワークスペース所有者ID |
-| workspaceName | String | Yes | - | 1-200文字 | ワークスペース名 |
-| workspaceType | Enum | Yes | - | project/team/department/private | ワークスペースタイプ |
-| description | Text | No | \"\" | 最大5000文字 | ワークスペース説明 |
-| visibility | Enum | No | 'private' | private/internal/public | 公開範囲 |
+| workspaceName | STRING_200 | Yes | - | 1-200文字 | ワークスペース名 |
+| workspaceType | STRING_20 | Yes | - | project/team/department/private | ワークスペースタイプ |
+| description | TEXT | No | \"\" | 最大5000文字 | ワークスペース説明 |
+| visibility | STRING_20 | No | 'private' | private/internal/public | 公開範囲 |
 | memberIds | Array<UUID> | Yes | - | UUID配列、1-500件 | 初期メンバーID配列 |
 | memberRoles | Array | Yes | - | メンバー数と同数 | メンバーロール配列 |
 | ├─ memberId | UUID | Yes | - | UUID形式 | メンバーID |
-| ├─ role | Enum | Yes | - | owner/admin/editor/viewer | ロール |
+| ├─ role | STRING_20 | Yes | - | owner/admin/editor/viewer | ロール |
 | └─ permissions | Array<Enum> | No | ロール別デフォルト | read/write/delete/share/invite | 個別権限 |
 | features | Object | No | 全有効 | 機能設定オブジェクト | ワークスペース機能設定 |
-| ├─ documentSharing | Boolean | No | true | - | ドキュメント共有機能 |
-| ├─ realTimeEditing | Boolean | No | true | - | リアルタイム編集機能 |
-| ├─ videoConference | Boolean | No | true | - | ビデオ会議機能 |
-| ├─ taskManagement | Boolean | No | true | - | タスク管理機能 |
-| └─ activityTracking | Boolean | No | true | - | アクティビティ追跡 |
-| storageQuota | Integer | No | 10GB | 1GB-1TB | ストレージ容量（バイト） |
+| ├─ documentSharing | BOOLEAN | No | true | - | ドキュメント共有機能 |
+| ├─ realTimeEditing | BOOLEAN | No | true | - | リアルタイム編集機能 |
+| ├─ videoConference | BOOLEAN | No | true | - | ビデオ会議機能 |
+| ├─ taskManagement | BOOLEAN | No | true | - | タスク管理機能 |
+| └─ activityTracking | BOOLEAN | No | true | - | アクティビティ追跡 |
+| storageQuota | INTEGER | No | 10GB | 1GB-1TB | ストレージ容量（バイト） |
 | externalIntegrations | Array | No | [] | 最大10件 | 外部連携設定 |
-| ├─ serviceName | Enum | Yes | - | slack/github/jira/gdrive | サービス名 |
-| ├─ enabled | Boolean | No | true | - | 有効/無効 |
+| ├─ serviceName | STRING_20 | Yes | - | slack/github/jira/gdrive | サービス名 |
+| ├─ enabled | BOOLEAN | No | true | - | 有効/無効 |
 | └─ config | Object | No | {} | JSON形式 | サービス固有設定 |
 
 ### バリデーションルール

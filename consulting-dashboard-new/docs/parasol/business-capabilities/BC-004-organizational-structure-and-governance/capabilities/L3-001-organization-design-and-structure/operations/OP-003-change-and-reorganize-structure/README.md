@@ -37,16 +37,16 @@
 | パラメータ名 | 型 | 必須 | デフォルト | バリデーション | 説明 |
 |-------------|-----|------|-----------|--------------|------|
 | unitId | UUID | Yes | - | UUID形式 | 変更対象単位ID |
-| changeType | Enum | Yes | - | move/rename/merge/split/delete | 変更タイプ |
+| changeType | STRING_20 | Yes | - | move/rename/merge/split/delete | 変更タイプ |
 | newParentUnitId | UUID | No | null | UUID形式（move時必須） | 新親単位ID |
-| newName | String | No | null | 1-200文字（rename時必須） | 新単位名 |
+| newName | STRING_200 | No | null | 1-200文字（rename時必須） | 新単位名 |
 | mergeTargetUnitId | UUID | No | null | UUID形式（merge時必須） | 統合先単位ID |
 | splitUnits | Array | No | [] | 最大10件（split時必須） | 分割後単位配列 |
-| ├─ unitName | String | Yes | - | 1-200文字 | 分割単位名 |
-| ├─ unitType | Enum | Yes | - | division/department/section/team | 分割単位タイプ |
+| ├─ unitName | STRING_200 | Yes | - | 1-200文字 | 分割単位名 |
+| ├─ unitType | STRING_20 | Yes | - | division/department/section/team | 分割単位タイプ |
 | └─ memberIds | Array<UUID> | No | [] | UUID配列 | 移動メンバーID配列 |
-| reason | Text | Yes | - | 10-5000文字 | 変更理由 |
-| effectiveDate | Date | No | today | YYYY-MM-DD形式 | 変更有効日 |
+| reason | TEXT | Yes | - | 10-5000文字 | 変更理由 |
+| effectiveDate | DATE | No | today | YYYY-MM-DD形式 | 変更有効日 |
 | changedBy | UUID | Yes | - | UUID形式、BC-003 User参照 | 変更者ID |
 
 ### バリデーションルール

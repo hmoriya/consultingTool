@@ -36,18 +36,18 @@
 | パラメータ名 | 型 | 必須 | デフォルト | バリデーション | 説明 |
 |-------------|-----|------|-----------|--------------|------|
 | senderId | UUID | Yes | - | UUID形式、BC-003 User参照 | 送信者ID |
-| channelType | Enum | Yes | - | direct/channel/group | チャネルタイプ |
+| channelType | STRING_20 | Yes | - | direct/channel/group | チャネルタイプ |
 | recipientIds | Array<UUID> | Yes | - | UUID配列、1-100件 | 受信者ID配列 |
 | channelId | UUID | No | null | UUID形式（channel時必須） | チャネルID |
-| messageContent | Text | Yes | - | 1-10000文字 | メッセージ内容 |
-| contentType | Enum | No | 'text' | text/markdown/html | コンテンツタイプ |
+| messageContent | TEXT | Yes | - | 1-10000文字 | メッセージ内容 |
+| contentType | STRING_20 | No | 'text' | text/markdown/html | コンテンツタイプ |
 | attachments | Array | No | [] | 最大10件、合計100MB | 添付ファイル配列 |
-| ├─ fileName | String | Yes | - | 1-255文字 | ファイル名 |
-| ├─ fileSize | Integer | Yes | - | > 0、最大10MB | ファイルサイズ（バイト） |
-| ├─ mimeType | String | Yes | - | MIME形式 | MIMEタイプ |
-| └─ fileUrl | String | Yes | - | URL形式 | ファイルURL（S3等） |
+| ├─ fileName | STRING_100 | Yes | - | 1-255文字 | ファイル名 |
+| ├─ fileSize | INTEGER | Yes | - | > 0、最大10MB | ファイルサイズ（バイト） |
+| ├─ mimeType | STRING_100 | Yes | - | MIME形式 | MIMEタイプ |
+| └─ fileUrl | STRING_100 | Yes | - | URL形式 | ファイルURL（S3等） |
 | mentions | Array<UUID> | No | [] | UUID配列、最大20件 | メンション対象ユーザーID |
-| priority | Enum | No | 'normal' | normal/high | 優先度 |
+| priority | STRING_20 | No | 'normal' | normal/high | 優先度 |
 | threadId | UUID | No | null | UUID形式 | 返信スレッドID |
 
 ### バリデーションルール

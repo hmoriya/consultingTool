@@ -37,13 +37,13 @@
 | パラメータ名 | 型 | 必須 | デフォルト | バリデーション | 説明 |
 |-------------|-----|------|-----------|--------------|------|
 | organizationId | UUID | Yes | - | UUID形式 | 組織ID |
-| displayLevel | Integer | No | null | 0-10、null=全階層 | 表示階層レベル |
+| displayLevel | INTEGER | No | null | 0-10、null=全階層 | 表示階層レベル |
 | unitTypeFilter | Array<Enum> | No | [] | division/department/section/team | 表示単位タイプフィルタ |
-| includeMembers | Boolean | No | false | true/false | メンバー情報含める |
-| includeMemberCount | Boolean | No | true | true/false | メンバー数表示 |
+| includeMembers | BOOLEAN | No | false | true/false | メンバー情報含める |
+| includeMemberCount | BOOLEAN | No | true | true/false | メンバー数表示 |
 | startUnitId | UUID | No | null | UUID形式 | 開始単位ID（部分ツリー表示） |
-| format | Enum | Yes | - | tree/list/json/mermaid | 出力形式 |
-| exportFormat | Enum | No | null | pdf/png/svg/json | エクスポート形式 |
+| format | STRING_20 | Yes | - | tree/list/json/mermaid | 出力形式 |
+| exportFormat | STRING_20 | No | null | pdf/png/svg/json | エクスポート形式 |
 | userId | UUID | Yes | - | UUID形式、BC-003 User参照 | リクエストユーザーID |
 
 ### バリデーションルール

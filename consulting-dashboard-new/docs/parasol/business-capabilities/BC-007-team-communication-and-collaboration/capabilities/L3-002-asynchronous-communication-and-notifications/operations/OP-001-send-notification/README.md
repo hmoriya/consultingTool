@@ -37,12 +37,12 @@
 |-------------|-----|------|-----------|--------------|------|
 | senderId | UUID | Yes | - | UUID形式、BC-003 User参照 | 送信者ID（システムの場合はnull） |
 | recipientIds | Array<UUID> | Yes | - | UUID配列、1-10000件 | 受信者ID配列 |
-| notificationType | Enum | Yes | - | task/project/system/custom | 通知タイプ |
-| priority | Enum | Yes | - | urgent/high/normal/low | 優先度（SLA決定） |
-| title | String | Yes | - | 1-200文字 | 通知タイトル |
-| message | Text | Yes | - | 1-5000文字 | 通知本文 |
-| actionUrl | String | No | null | URL形式 | アクションURL（クリック時の遷移先） |
-| actionLabel | String | No | null | 1-50文字 | アクションボタンラベル |
+| notificationType | STRING_20 | Yes | - | task/project/system/custom | 通知タイプ |
+| priority | STRING_20 | Yes | - | urgent/high/normal/low | 優先度（SLA決定） |
+| title | STRING_200 | Yes | - | 1-200文字 | 通知タイトル |
+| message | TEXT | Yes | - | 1-5000文字 | 通知本文 |
+| actionUrl | STRING_100 | No | null | URL形式 | アクションURL（クリック時の遷移先） |
+| actionLabel | STRING_50 | No | null | 1-50文字 | アクションボタンラベル |
 | channels | Array<Enum> | No | ['push'] | push/email/sms | 配信チャネル配列 |
 | expiresAt | DateTime | No | null | ISO8601形式 | 有効期限 |
 | metadata | Object | No | {} | JSON形式、最大1KB | メタデータ（カスタム情報） |

@@ -60,23 +60,23 @@
 
 ### 主要技術スタック
 - **リアルタイム同期**: CRDT (Conflict-free Replicated Data Types)
-  - Yjs / Automerge（CRDT実装）
-  - WebSocket による変更配信
+  - CRDT実装エンジン
+  - リアルタイム通信機構による変更配信
   - 自動マージ（競合なし）
   - オフライン対応（後で同期）
-- **OT (Operational Transformation)**: ShareDB
-  - Google Docs スタイルの同時編集
+- **OT (Operational Transformation)**: OT実装エンジン
+  - リアルタイム同時編集機能
   - 変更操作の変換・適用
   - 一貫性保証
-- **ドキュメントストレージ**: S3/MinIO + PostgreSQL
+- **ドキュメントストレージ**: オブジェクトストレージ + リレーショナルデータベース
   - ドキュメント本体: オブジェクトストレージ
-  - メタデータ: PostgreSQL
+  - メタデータ: リレーショナルデータベース
   - バージョン履歴: 差分保存
-- **検索・インデックス**: Elasticsearch
+- **検索・インデックス**: 全文検索エンジン
   - ドキュメント全文検索
   - メタデータ検索
   - ファセット検索（ワークスペース別）
-- **WebSocket サーバー**: Socket.io / Y-WebSocket
+- **リアルタイム通信サーバー**: リアルタイム通信機構
   - リアルタイム編集同期
   - カーソル位置共有
   - 編集中ユーザー表示
@@ -86,39 +86,39 @@
 
 #### CRDT によるリアルタイム同期
 ```typescript
-// Yjs CRDT 実装例
-import * as Y from 'yjs'
-import { WebsocketProvider } from 'y-websocket'
+// CRDT実装例
+import * as CRDT from 'crdt-engine'
+import { RealtimeProvider } from 'realtime-sync'
 
 // ドキュメント初期化
-const ydoc = new Y.Doc()
-const ytext = ydoc.getText('content') // 共有テキスト
+const doc = new CRDT.Doc()
+const text = doc.getText('content') // 共有テキスト
 
-// WebSocket接続（リアルタイム同期）
-const wsProvider = new WebsocketProvider(
-  'ws://localhost:1234',
+// リアルタイム通信接続（リアルタイム同期）
+const provider = new RealtimeProvider(
+  'wss://server:1234',
   'document-123',
-  ydoc
+  doc
 )
 
 // ローカル編集
-ytext.insert(0, 'Hello ')
-ytext.insert(6, 'World')
+text.insert(0, 'Hello ')
+text.insert(6, 'World')
 
 // 他ユーザーの変更を自動マージ
-ydoc.on('update', (update) => {
+doc.on('update', (update) => {
   // 変更を自動反映（競合なし）
-  const currentText = ytext.toString()
+  const currentText = text.toString()
   console.log('Current text:', currentText)
 })
 ```
 
 #### OT によるリアルタイム編集
 ```typescript
-// ShareDB OT 実装例
-import ShareDB from 'sharedb'
+// OT実装例
+import OTEngine from 'ot-engine'
 
-const connection = new ShareDB.Connection(socket)
+const connection = new OTEngine.Connection(socket)
 const doc = connection.get('documents', 'doc-123')
 
 // ドキュメント購読
@@ -211,17 +211,17 @@ async function checkPermission(userId, workspaceId, action) {
 ### パフォーマンス最適化
 - **リアルタイム同期最適化**:
   - 変更バッチング: 複数変更を100msごとにまとめて送信
-  - 圧縮: WebSocket メッセージの gzip 圧縮
+  - 圧縮: リアルタイム通信メッセージの圧縮
   - Debounce: 高頻度変更の間引き
 - **ドキュメント読み込み**:
   - 遅延読み込み: 大ドキュメントの段階的ロード
-  - キャッシュ: Redis による頻繁アクセスドキュメントキャッシュ
+  - キャッシュ: キャッシュ機構による頻繁アクセスドキュメントキャッシュ
   - CDN: 静的ファイルの配信
 - **バージョン履歴**:
   - 差分圧縮: 古いバージョンの圧縮保存
   - アーカイブ: 90日以上の履歴をアーカイブストレージへ
 - **スケーリング**:
-  - 水平スケーリング: 複数WebSocketサーバー + Redis Pub/Sub
+  - 水平スケーリング: 複数リアルタイム通信サーバー + メッセージング機構
   - 読み取り分散: ドキュメント読み取りレプリカ
 
 ---
@@ -230,14 +230,14 @@ async function checkPermission(userId, workspaceId, action) {
 
 ### 技術的前提条件
 - **インフラ要件**:
-  - WebSocket サーバー（Node.js: 4GB RAM/サーバー）
-  - Redis（CRDT/OT 状態同期）
-  - PostgreSQL（メタデータ・権限管理）
-  - S3/MinIO（ドキュメントストレージ）
-  - Elasticsearch（全文検索）
+  - リアルタイム通信サーバー（4GB RAM/サーバー）
+  - キャッシュ機構（CRDT/OT 状態同期）
+  - リレーショナルデータベース（メタデータ・権限管理）
+  - オブジェクトストレージ（ドキュメントストレージ）
+  - 全文検索エンジン
 - **クライアント要件**:
   - モダンブラウザ（Chrome 90+, Firefox 88+, Safari 14+）
-  - WebSocket サポート必須
+  - リアルタイム通信サポート必須
   - JavaScript 有効
 - **リソース要件**:
   - 最低: 8GB RAM, 4 vCPU（同期サーバー）
@@ -357,11 +357,11 @@ async function checkPermission(userId, workspaceId, action) {
   - BC-006: `KnowledgeArticlePublishedEvent`
 
 ### リアルタイムコラボレーション技術統合
-- **CRDT統合**: Yjs v13+（JSON, Text, Array, Map対応）
-- **WebSocket同期**: Y-WebSocket Provider（スケーラブル）
-- **オフライン対応**: IndexedDB によるローカル永続化
+- **CRDT統合**: CRDT実装エンジン（JSON, Text, Array, Map対応）
+- **リアルタイム同期**: リアルタイム通信機構（スケーラブル）
+- **オフライン対応**: ローカルストレージによるローカル永続化
 - **競合解決**: CRDT 自動マージ（Last-Write-Wins セマンティクス）
-- **カーソル同期**: Awareness Protocol（Yjs組み込み）
+- **カーソル同期**: プレゼンス機構（組み込み）
 
 ### セキュリティ統合
 - **暗号化**: E2E暗号化（オプション、鍵管理はクライアント側）

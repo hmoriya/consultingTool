@@ -36,8 +36,8 @@
 | パラメータ名 | 型 | 必須 | デフォルト | バリデーション | 説明 |
 |-------------|-----|------|-----------|--------------|------|
 | projectId | UUID | Yes | - | UUID形式 | 完了対象プロジェクトID |
-| actualEndDate | Date | Yes | - | YYYY-MM-DD形式 | 実績終了日 |
-| evaluation | Text | No | "" | 最大5000文字 | 評価コメント |
+| actualEndDate | DATE | Yes | - | YYYY-MM-DD形式 | 実績終了日 |
+| evaluation | TEXT | No | "" | 最大5000文字 | 評価コメント |
 
 ### バリデーションルール
 1. 全UUIDパラメータ: 対応するエンティティが存在すること

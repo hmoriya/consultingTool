@@ -36,8 +36,8 @@
 | パラメータ名 | 型 | 必須 | デフォルト | バリデーション | 説明 |
 |-------------|-----|------|-----------|--------------|------|
 | riskId | UUID | Yes | - | UUID形式 | リスクID |
-| strategy | Enum | Yes | - | avoid/mitigate/transfer/accept | 対応戦略 |
-| actionPlan | Text | Yes | - | 1-5000文字 | 対応計画 |
+| strategy | STRING_20 | Yes | - | avoid/mitigate/transfer/accept | 対応戦略 |
+| actionPlan | TEXT | Yes | - | 1-5000文字 | 対応計画 |
 
 ### バリデーションルール
 1. 全UUIDパラメータ: 対応するエンティティが存在すること

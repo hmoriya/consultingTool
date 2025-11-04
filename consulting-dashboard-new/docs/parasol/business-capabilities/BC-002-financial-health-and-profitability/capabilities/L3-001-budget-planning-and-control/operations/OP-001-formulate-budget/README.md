@@ -37,15 +37,15 @@
 | パラメータ名 | 型 | 必須 | デフォルト | バリデーション | 説明 |
 |-------------|-----|------|-----------|--------------|------|
 | fiscalYear | INTEGER | Yes | - | YYYY形式、現在年度±3年以内 | 会計年度 |
-| budgetType | ENUM | Yes | - | PROJECT/DEPARTMENT/ORGANIZATION | 予算種別 |
+| budgetType | STRING_50 | Yes | - | PROJECT/DEPARTMENT/ORGANIZATION | 予算種別 |
 | targetId | UUID | Yes | - | UUID形式、対象エンティティ存在確認 | 対象ID（プロジェクト/部門/組織） |
 | totalAmount | DECIMAL | Yes | - | > 0、Decimal.js使用 | 総予算額 |
-| currency | STRING | Yes | JPY | ISO 4217通貨コード | 通貨 |
+| currency | STRING_20 | Yes | JPY | ISO 4217通貨コード | 通貨 |
 | budgetItems | ARRAY | Yes | - | 最低1項目、合計=totalAmount | 予算項目配列 |
-| budgetItems[].category | ENUM | Yes | - | PERSONNEL/EQUIPMENT/OUTSOURCING/OTHER | 費目カテゴリ |
+| budgetItems[].category | STRING_50 | Yes | - | PERSONNEL/EQUIPMENT/OUTSOURCING/OTHER | 費目カテゴリ |
 | budgetItems[].amount | DECIMAL | Yes | - | > 0、Decimal.js使用 | 項目金額 |
-| budgetItems[].description | STRING | No | - | 最大500文字 | 項目説明 |
-| approvalWorkflow | ENUM | No | STANDARD | STANDARD/FAST_TRACK/EXECUTIVE | 承認フロー種別 |
+| budgetItems[].description | STRING_500 | No | - | 最大500文字 | 項目説明 |
+| approvalWorkflow | STRING_50 | No | STANDARD | STANDARD/FAST_TRACK/EXECUTIVE | 承認フロー種別 |
 | notes | TEXT | No | - | 最大2000文字 | 備考 |
 
 ### バリデーションルール

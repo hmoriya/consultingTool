@@ -36,7 +36,7 @@
 | パラメータ名 | 型 | 必須 | デフォルト | バリデーション | 説明 |
 |-------------|-----|------|-----------|--------------|------|
 | projectId | UUID | Yes | - | UUID形式 | プロジェクトID |
-| deliverableName | String | Yes | - | 1-200文字 | 成果物名 |
+| deliverableName | STRING_200 | Yes | - | 1-200文字 | 成果物名 |
 | taskId | UUID | No | null | UUID形式 | 関連タスクID |
 
 ### バリデーションルール

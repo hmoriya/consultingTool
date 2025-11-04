@@ -37,7 +37,7 @@
 |-------------|-----|------|-----------|--------------|------|
 | taskId | UUID | Yes | - | UUID形式 | タスクID |
 | assigneeId | UUID | Yes | - | UUID形式 | 担当者ID |
-| startDate | Date | No | null | YYYY-MM-DD形式 | 開始日 |
+| startDate | DATE | No | null | YYYY-MM-DD形式 | 開始日 |
 
 ### バリデーションルール
 1. 全UUIDパラメータ: 対応するエンティティが存在すること

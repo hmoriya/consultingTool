@@ -37,7 +37,7 @@
 |-------------|-----|------|-----------|--------------|------|
 | deliverableId | UUID | Yes | - | UUID形式 | 成果物ID |
 | reviewerId | UUID | Yes | - | UUID形式 | レビュアーID |
-| reviewStatus | Enum | Yes | - | approved/rejected | レビュー結果 |
+| reviewStatus | STRING_20 | Yes | - | approved/rejected | レビュー結果 |
 
 ### バリデーションルール
 1. 全UUIDパラメータ: 対応するエンティティが存在すること

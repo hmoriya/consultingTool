@@ -36,17 +36,17 @@
 
 | パラメータ名 | 型 | 必須 | デフォルト | バリデーション | 説明 |
 |-------------|-----|------|-----------|--------------|------|
-| organizationName | String | Yes | - | 1-200文字 | 組織名 |
-| organizationCode | String | Yes | - | 3-50文字、英数字とハイフン | 組織コード（一意） |
-| organizationType | Enum | Yes | - | headquarters/branch/division/subsidiary | 組織タイプ |
-| description | Text | No | "" | 最大5000文字 | 組織説明 |
-| rootUnitName | String | Yes | - | 1-200文字 | ルート組織単位名 |
-| rootUnitType | Enum | Yes | - | root/division/department | ルート単位タイプ |
+| organizationName | STRING_200 | Yes | - | 1-200文字 | 組織名 |
+| organizationCode | STRING_100 | Yes | - | 3-50文字、英数字とハイフン | 組織コード（一意） |
+| organizationType | STRING_20 | Yes | - | headquarters/branch/division/subsidiary | 組織タイプ |
+| description | TEXT | No | "" | 最大5000文字 | 組織説明 |
+| rootUnitName | STRING_200 | Yes | - | 1-200文字 | ルート組織単位名 |
+| rootUnitType | STRING_20 | Yes | - | root/division/department | ルート単位タイプ |
 | organizationalUnits | Array | No | [] | 最大100件 | 初期組織単位配列 |
-| ├─ unitName | String | Yes | - | 1-200文字 | 単位名 |
-| ├─ unitType | Enum | Yes | - | division/department/section/team | 単位タイプ |
-| ├─ parentUnitPath | String | No | null | パス形式 | 親単位パス |
-| └─ description | Text | No | "" | 最大5000文字 | 単位説明 |
+| ├─ unitName | STRING_200 | Yes | - | 1-200文字 | 単位名 |
+| ├─ unitType | STRING_20 | Yes | - | division/department/section/team | 単位タイプ |
+| ├─ parentUnitPath | STRING_100 | No | null | パス形式 | 親単位パス |
+| └─ description | TEXT | No | "" | 最大5000文字 | 単位説明 |
 | createdBy | UUID | Yes | - | UUID形式、BC-003 User参照 | 作成者ID |
 
 ### バリデーションルール

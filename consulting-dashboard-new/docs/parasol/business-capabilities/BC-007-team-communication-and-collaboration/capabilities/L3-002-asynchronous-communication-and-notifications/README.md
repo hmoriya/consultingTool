@@ -59,22 +59,22 @@
 - **リトライ機構**: 指数バックオフによる再配信
 
 ### 主要技術スタック
-- **メッセージキュー**: RabbitMQ / Apache Kafka
+- **メッセージキュー**: メッセージング機構
   - 優先度キュー（urgent, high, normal, low）
-  - Durable Queue（配信保証）
+  - 永続化キュー（配信保証）
   - Dead Letter Queue（失敗メッセージ処理）
   - メッセージTTL（有効期限）
-- **配信チャネル管理**: Redis / PostgreSQL
-  - プッシュ通知（FCM/APNs）
-  - Email（SMTP/SendGrid/SES）
-  - SMS（Twilio/AWS SNS）
+- **配信チャネル管理**: キャッシュ機構 / リレーショナルデータベース
+  - プッシュ通知機能
+  - Email送信機能
+  - SMS送信機能
   - Webhook（カスタム連携）
-- **SLA管理**: Priority Queue + Worker Pool
+- **SLA管理**: 優先度キュー + ワーカープール
   - urgent: 10秒以内配信開始（専用Worker）
   - high: 1分以内配信開始（高優先Worker）
   - normal: 5分以内配信開始（通常Worker）
   - low: Best Effort（バッチ処理）
-- **配信追跡**: Elasticsearch / TimescaleDB
+- **配信追跡**: 全文検索エンジン / 時系列データベース
   - 配信ステータス管理（pending → sending → delivered/failed）
   - 配信ログの永続化
   - 配信失敗分析
@@ -83,8 +83,8 @@
 
 #### 優先度別メッセージキュー
 ```typescript
-// RabbitMQ 優先度キュー設定
-await channel.assertQueue('notifications', {
+// メッセージング機構 優先度キュー設定
+await queue.assertQueue('notifications', {
   durable: true,
   arguments: {
     'x-max-priority': 10, // 0-10の優先度
@@ -102,7 +102,7 @@ async function publishNotification(notification) {
     low: 1
   }[notification.priority]
 
-  await channel.publish('notifications', '',
+  await queue.publish('notifications', '',
     Buffer.from(JSON.stringify(notification)),
     {
       priority,
@@ -194,7 +194,7 @@ async function scheduleRetry(notification, attempt) {
   }
 
   const delay = config.intervals[attempt]
-  await channel.publish('notifications.retry', '',
+  await queue.publish('notifications.retry', '',
     Buffer.from(JSON.stringify(notification)),
     {
       headers: { 'x-delay': delay },
@@ -224,14 +224,14 @@ async function scheduleRetry(notification, attempt) {
 
 ### 技術的前提条件
 - **インフラ要件**:
-  - RabbitMQ/Kafka クラスタ（3ノード以上）
-  - Redis（配信状態キャッシュ）
-  - PostgreSQL/Elasticsearch（配信ログ）
+  - メッセージング機構クラスタ（3ノード以上）
+  - キャッシュ機構（配信状態キャッシュ）
+  - リレーショナルデータベース/全文検索エンジン（配信ログ）
   - Worker Server（4GB RAM, 2 vCPU × 台数）
 - **外部サービス**:
-  - プッシュ通知: FCM（Android）, APNs（iOS）
-  - Email: SendGrid / AWS SES / SMTP
-  - SMS: Twilio / AWS SNS
+  - プッシュ通知機能
+  - Email送信機能
+  - SMS送信機能
 - **リソース要件**:
   - 最低: 8GB RAM, 4 vCPU（Worker Pool）
   - 推奨: 16GB RAM, 8 vCPU（高負荷環境）

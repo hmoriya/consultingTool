@@ -44,11 +44,11 @@
 | currency | Currency | ○ | 通貨コード | ISO 4217 (JPY/USD/EUR) |
 | projectIds | UUID[] | △ | 対象プロジェクトID | BC-001 Project存在確認 |
 | pipelineIncluded | BOOLEAN | ○ | パイプライン含む | true/false |
-| pipelineConfidenceThreshold | Decimal | △ | パイプライン信頼度閾値 | 0-100、パイプライン含む場合必須 |
+| pipelineConfidenceThreshold | DECIMAL | △ | パイプライン信頼度閾値 | 0-100、パイプライン含む場合必須 |
 | forecastModel | ForecastModel | ○ | 予測モデル | LINEAR/EXPONENTIAL/SEASONAL/ML |
 | seasonalityFactors | SeasonalityFactor[] | △ | 季節性要因 | ML/SEASONALモデル時必須 |
-| growthRate | Decimal | △ | 成長率仮定 | -100～+500、LINEARモデル時 |
-| confidenceLevel | Decimal | ○ | 信頼区間 | 90/95/99 |
+| growthRate | DECIMAL | △ | 成長率仮定 | -100～+500、LINEARモデル時 |
+| confidenceLevel | DECIMAL | ○ | 信頼区間 | 90/95/99 |
 | scenarioCount | INTEGER | △ | シナリオ数 | 1-10、デフォルト3 |
 | optimizationGoals | OptimizationGoal[] | ○ | 最適化目標 | MAXIMIZE_REVENUE/MINIMIZE_RISK/BALANCE |
 

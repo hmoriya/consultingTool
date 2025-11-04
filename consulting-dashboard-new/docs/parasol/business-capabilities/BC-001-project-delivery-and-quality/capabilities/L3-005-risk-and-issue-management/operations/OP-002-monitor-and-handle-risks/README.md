@@ -36,8 +36,8 @@
 | パラメータ名 | 型 | 必須 | デフォルト | バリデーション | 説明 |
 |-------------|-----|------|-----------|--------------|------|
 | riskId | UUID | Yes | - | UUID形式 | リスクID |
-| status | Enum | Yes | - | in_mitigation/resolved/materialized | ステータス |
-| notes | Text | No | "" | 最大5000文字 | 監視メモ |
+| status | STRING_20 | Yes | - | in_mitigation/resolved/materialized | ステータス |
+| notes | TEXT | No | "" | 最大5000文字 | 監視メモ |
 
 ### バリデーションルール
 1. 全UUIDパラメータ: 対応するエンティティが存在すること

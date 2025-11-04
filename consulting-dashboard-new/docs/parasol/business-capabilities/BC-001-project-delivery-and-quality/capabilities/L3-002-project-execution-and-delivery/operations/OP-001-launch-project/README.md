@@ -35,12 +35,12 @@
 
 | パラメータ名 | 型 | 必須 | デフォルト | バリデーション | 説明 |
 |-------------|-----|------|-----------|--------------|------|
-| projectName | String | Yes | - | 1-200文字、プロジェクト名一意性 | プロジェクト名 |
-| description | Text | No | "" | 最大5000文字 | プロジェクト説明 |
+| projectName | STRING_200 | Yes | - | 1-200文字、プロジェクト名一意性 | プロジェクト名 |
+| description | TEXT | No | "" | 最大5000文字 | プロジェクト説明 |
 | ownerId | UUID | Yes | - | UUID形式、User存在確認 | プロジェクトオーナー（責任者）ID |
-| startDate | Date | Yes | - | YYYY-MM-DD形式 | 計画開始日 |
-| endDate | Date | Yes | - | YYYY-MM-DD形式、startDate以降 | 計画終了日 |
-| budget | Decimal | No | null | ≥ 0, 最大999999999.99 | 予算額 |
+| startDate | DATE | Yes | - | YYYY-MM-DD形式 | 計画開始日 |
+| endDate | DATE | Yes | - | YYYY-MM-DD形式、startDate以降 | 計画終了日 |
+| budget | DECIMAL | No | null | ≥ 0, 最大999999999.99 | 予算額 |
 | initialMilestones | Array<Object> | No | [] | 最大10件 | 初期マイルストーン定義 |
 
 ### バリデーションルール

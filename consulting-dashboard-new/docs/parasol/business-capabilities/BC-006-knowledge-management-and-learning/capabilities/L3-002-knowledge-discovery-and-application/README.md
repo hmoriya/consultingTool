@@ -59,16 +59,16 @@
 - **活用追跡**: イベントソーシングによる利用履歴管理
 
 ### 主要技術スタック
-- **検索基盤**: Elasticsearch/OpenSearch
+- **検索基盤**: 全文検索機能
   - BM25スコアリングによるキーワード検索
   - Vector検索による意味的類似性検索
   - ハイブリッドスコア統合（RRF: Reciprocal Rank Fusion）
   - ファセット検索・フィルタリング
 - **ベクトル検索・埋め込み**:
-  - OpenAI Embeddings API / Sentence-BERT
-  - Pinecone / Weaviate / Milvus（ベクトルDB）
+  - ベクトル埋め込み機能
+  - ベクトルデータベース
   - 多言語対応埋め込みモデル
-- **知識グラフ**: Neo4j / Amazon Neptune
+- **知識グラフ**: グラフデータベース
   - エンティティ関連性の可視化
   - 関連知識の探索的発見
   - パス検索による知識連鎖
@@ -86,14 +86,14 @@
 #### ハイブリッド検索フロー
 ```typescript
 // 1. キーワード検索（BM25）
-const keywordResults = await elasticsearch.search({
+const keywordResults = await searchEngine.search({
   query: userQuery,
   fields: ['title^3', 'content', 'tags^2'],
   size: 100
 })
 
 // 2. セマンティック検索（Vector）
-const queryEmbedding = await openai.embeddings.create(userQuery)
+const queryEmbedding = await embeddingService.create(userQuery)
 const vectorResults = await vectorDb.search({
   vector: queryEmbedding,
   topK: 100
@@ -131,17 +131,17 @@ recommendKnowledge(userId, context) {
 
 ### パフォーマンス最適化
 - **キャッシュ戦略**:
-  - Redis: 人気検索クエリ結果キャッシュ（TTL: 1時間）
+  - キャッシュ機構: 人気検索クエリ結果キャッシュ（TTL: 1時間）
   - CDN: 頻繁アクセス記事の配信
 - **検索最適化**:
-  - Elasticsearch シャーディング・レプリケーション
+  - 全文検索エンジン シャーディング・レプリケーション
   - インデックス最適化（分析器チューニング）
 - **推奨生成**:
   - バッチ処理: 推奨リストの事前計算（日次）
   - リアルタイム補正: ユーザー行動による動的調整
 - **スケーリング**:
   - 読み取り負荷分散（レプリカ増設）
-  - 非同期処理（メッセージキュー）
+  - 非同期処理（メッセージング機構）
 
 ---
 
@@ -149,12 +149,12 @@ recommendKnowledge(userId, context) {
 
 ### 技術的前提条件
 - **インフラ要件**:
-  - Elasticsearch クラスタ（検索用: 3ノード以上）
-  - ベクトルDB（Pinecone/Weaviate or Elasticsearch Vector機能）
-  - Neo4j（知識グラフ用: オプション）
-  - Redis（キャッシュ・セッション: 必須）
+  - 全文検索エンジン（検索用: 3ノード以上）
+  - ベクトルデータベース
+  - グラフデータベース（知識グラフ用: オプション）
+  - キャッシュ機構（キャッシュ・セッション: 必須）
 - **外部サービス**:
-  - OpenAI API / Sentence-BERT（埋め込み生成）
+  - AI API（埋め込み生成）
   - ML推論サーバー（推奨モデルホスティング）
 - **リソース要件**:
   - 最低: 16GB RAM, 8 vCPU（検索+推奨）

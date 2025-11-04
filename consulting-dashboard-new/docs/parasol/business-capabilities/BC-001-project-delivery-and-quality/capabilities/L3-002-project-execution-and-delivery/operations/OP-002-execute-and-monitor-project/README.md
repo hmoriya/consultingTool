@@ -36,8 +36,8 @@
 | パラメータ名 | 型 | 必須 | デフォルト | バリデーション | 説明 |
 |-------------|-----|------|-----------|--------------|------|
 | projectId | UUID | Yes | - | UUID形式 | 監視対象プロジェクトID |
-| progressPercentage | Decimal | No | null | 0-100 | 進捗率（%） |
-| actualStartDate | Date | No | null | YYYY-MM-DD形式 | 実績開始日 |
+| progressPercentage | DECIMAL | No | null | 0-100 | 進捗率（%） |
+| actualStartDate | DATE | No | null | YYYY-MM-DD形式 | 実績開始日 |
 
 ### バリデーションルール
 1. 全UUIDパラメータ: 対応するエンティティが存在すること

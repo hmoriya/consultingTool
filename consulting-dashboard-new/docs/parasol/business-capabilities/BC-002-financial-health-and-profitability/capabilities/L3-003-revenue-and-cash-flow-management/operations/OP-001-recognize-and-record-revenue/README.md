@@ -42,9 +42,9 @@
 | contractId | UUID | ○ | 契約識別子 | Contract存在確認、有効性確認 |
 | recognitionAmount | Money | ○ | 認識金額 | Decimal.js、≥0、通貨一致 |
 | currency | Currency | ○ | 通貨コード | ISO 4217 (JPY/USD/EUR) |
-| recognitionDate | Date | ○ | 収益認識日 | 契約期間内、未来日不可 |
+| recognitionDate | DATE | ○ | 収益認識日 | 契約期間内、未来日不可 |
 | recognitionBasis | RevenueRecognitionBasis | ○ | 認識基準 | PERCENTAGE_OF_COMPLETION/MILESTONE/DELIVERY |
-| completionPercentage | Decimal | △ | 進捗度 | 0-100、認識基準=進捗度の場合必須 |
+| completionPercentage | DECIMAL | △ | 進捗度 | 0-100、認識基準=進捗度の場合必須 |
 | milestoneId | UUID | △ | マイルストーン識別子 | 認識基準=マイルストーンの場合必須 |
 | deliverableId | UUID | △ | 成果物識別子 | 認識基準=納品の場合必須 |
 | invoiceableAmount | Money | △ | 請求可能金額 | Decimal.js、≤認識金額 |

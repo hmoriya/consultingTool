@@ -2,8 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   eslint: {
-    // ビルド時のESLintを無効化（Vercelビルドエラー回避）
-    ignoreDuringBuilds: true,
+    // ESLintを有効化（主要なエラーは修正済み）
+    ignoreDuringBuilds: false,
   },
   images: {
     unoptimized: true, // 開発環境では画像最適化を無効化

@@ -2,6 +2,7 @@ import '@testing-library/jest-dom'
 
 // Prismaモックのセットアップ
 jest.mock('@/lib/db', () => ({
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   db: require('./app/__mocks__/db').prismaMock
 }))
 

@@ -115,7 +115,7 @@ export function ProjectListHeader() {
             <span>フィルター:</span>
             {filters.searchQuery && (
               <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-md">
-                検索: "{filters.searchQuery}"
+                検索: &quot;{filters.searchQuery}&quot;
               </span>
             )}
             {filters.statusFilter !== 'all' && (

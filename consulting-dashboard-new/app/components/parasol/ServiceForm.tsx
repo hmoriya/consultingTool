@@ -29,14 +29,14 @@ export function ServiceForm({ service, onClose, onSuccess }: ServiceFormProps) {
     try {
       const data = {
         ...formData,
-        domainLanguage: service?.domainLanguage || {
+        domainLanguage: (service?.domainLanguage || {
           entities: [],
           valueObjects: [],
           domainServices: [],
           version: '1.0.0',
           lastModified: new Date().toISOString()
         }) as DomainLanguageDefinition,
-        apiSpecification: service?.apiSpecification || {
+        apiSpecification: (service?.apiSpecification || {
           openapi: '3.0.0',
           info: {
             title: formData.displayName + ' API',
@@ -45,7 +45,7 @@ export function ServiceForm({ service, onClose, onSuccess }: ServiceFormProps) {
           },
           paths: {}
         }) as ApiSpecification,
-        dbSchema: service?.dbSchema || {
+        dbSchema: (service?.dbSchema || {
           tables: [],
           relations: [],
           indexes: []

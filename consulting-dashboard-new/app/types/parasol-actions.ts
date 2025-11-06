@@ -22,7 +22,7 @@ export interface CreateServiceData {
   dbSchema: DbDesign;
 }
 
-export interface UpdateServiceData extends CreateServiceData {}
+export type UpdateServiceData = CreateServiceData
 
 export interface SaveServiceData {
   domainLanguage?: DomainLanguageDefinition;
@@ -64,7 +64,7 @@ export interface CreateBusinessOperationData {
   robustnessModel?: RobustnessModel;
 }
 
-export interface UpdateBusinessOperationData extends CreateBusinessOperationData {}
+export type UpdateBusinessOperationData = CreateBusinessOperationData
 
 // Business capability action types
 export interface CreateBusinessCapabilityData {

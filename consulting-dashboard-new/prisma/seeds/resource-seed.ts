@@ -1,4 +1,5 @@
 import { PrismaClient as ResourcePrismaClient } from '@prisma/resource-client'
+import type { SeedUserWithDetails, SeedSkill } from '@/app/types/seed-types'
 
 const resourceDb = new ResourcePrismaClient({
   datasources: {
@@ -8,7 +9,7 @@ const resourceDb = new ResourcePrismaClient({
   }
 })
 
-export async function seedResources(users?: any) {
+export async function seedResources(users?: SeedUserWithDetails): Promise<void> {
   console.log('🌱 Seeding Resource Service...')
   
   try {
@@ -129,7 +130,7 @@ export async function seedResources(users?: any) {
   }
 }
 
-async function seedUserSkills(users: any, skills?: any[]) {
+async function seedUserSkills(users: SeedUserWithDetails, skills?: SeedSkill[]): Promise<void> {
   try {
     // スキルがまだ取得されていない場合は取得
     if (!skills) {
@@ -162,7 +163,7 @@ async function seedUserSkills(users: any, skills?: any[]) {
     
     // その他のコンサルタント
     if (users.allUsers) {
-      const consultants = users.allUsers.filter((u: any) => u.email.includes('consultant'))
+      const consultants = users.allUsers.filter((u) => u.email.includes('consultant'))
       for (const consultant of consultants) {
         const randomSkills = skills.sort(() => 0.5 - Math.random()).slice(0, 3 + Math.floor(Math.random() * 3))
         for (const skill of randomSkills) {

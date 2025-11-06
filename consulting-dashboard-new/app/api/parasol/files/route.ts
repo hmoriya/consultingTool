@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
+import type { FileSystemError } from '@/app/types/parasol-api';
 
 interface FileMetadata {
   title: string;
@@ -63,8 +64,8 @@ export async function GET(request: NextRequest) {
       };
 
       return NextResponse.json(response);
-    } catch (error: any) {
-      if (error.code === 'ENOENT') {
+    } catch (error) {
+      if ((error as FileSystemError).code === 'ENOENT') {
         // ファイルが存在しない場合
         const response: FileData = {
           content: '',
@@ -172,8 +173,8 @@ export async function DELETE(request: NextRequest) {
     try {
       await fs.unlink(fullPath);
       return NextResponse.json({ success: true });
-    } catch (error: any) {
-      if (error.code === 'ENOENT') {
+    } catch (error) {
+      if ((error as FileSystemError).code === 'ENOENT') {
         // ファイルが存在しない場合は成功とみなす
         return NextResponse.json({ success: true });
       }

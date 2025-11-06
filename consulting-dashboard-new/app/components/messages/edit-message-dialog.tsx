@@ -48,7 +48,7 @@ export function EditMessageDialog({
       } else {
         toast.error(result.error || 'メッセージの編集に失敗しました')
       }
-    } catch (error) {
+    } catch {
       toast.error('エラーが発生しました')
     } finally {
       setIsSubmitting(false)

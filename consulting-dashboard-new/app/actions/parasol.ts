@@ -3,6 +3,29 @@
 import { parasolDb } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import type {
+  CreateServiceData,
+  UpdateServiceData,
+  SaveServiceData,
+  CreateBusinessOperationData,
+  UpdateBusinessOperationData,
+  CreateBusinessCapabilityData,
+  UpdateBusinessCapabilityData,
+  CreateUseCaseData,
+  UpdateUseCaseData,
+  CreateRobustnessDiagramData,
+  UpdateRobustnessDiagramData,
+  ActionResponse,
+  ServiceResponse,
+  ServiceWithMappedRelations,
+  MappedBusinessOperation,
+  MappedBusinessCapability,
+  MappedUseCase,
+  MappedRobustnessDiagram,
+  ServiceUpdateData,
+  UseCaseUpdateData,
+  RobustnessDiagramUpdateData,
+} from '@/app/types/parasol-actions';
 
 // バリデーションスキーマ
 const ServiceSchema = z.object({
@@ -64,14 +87,7 @@ const RobustnessDiagramSchema = z.object({
 });
 
 // サービス関連のアクション
-export async function createService(data: {
-  name: string;
-  displayName: string;
-  description?: string;
-  domainLanguage: any;
-  apiSpecification: any;
-  dbSchema: any;
-}) {
+export async function createService(data: CreateServiceData): Promise<ActionResponse<ServiceResponse>> {
   try {
     const result = ServiceSchema.parse({
       ...data,
@@ -104,7 +120,7 @@ export async function createService(data: {
   }
 }
 
-export async function getServices() {
+export async function getServices(): Promise<ActionResponse<ServiceWithMappedRelations[]>> {
   try {
     console.log('Fetching services from Parasol DB...');
     const services = await parasolDb.service.findMany({
@@ -227,7 +243,7 @@ export async function getServices() {
   }
 }
 
-export async function getService(id: string) {
+export async function getService(id: string): Promise<ServiceResponse | null> {
   try {
     const service = await parasolDb.service.findUnique({
       where: { id },
@@ -260,14 +276,7 @@ export async function getService(id: string) {
   }
 }
 
-export async function updateService(id: string, data: {
-  name: string;
-  displayName: string;
-  description?: string;
-  domainLanguage: any;
-  apiSpecification: any;
-  dbSchema: any;
-}) {
+export async function updateService(id: string, data: UpdateServiceData): Promise<ActionResponse<ServiceResponse>> {
   try {
     const result = ServiceSchema.parse({
       ...data,
@@ -310,7 +319,7 @@ export async function updateService(id: string, data: {
   }
 }
 
-export async function deleteService(id: string) {
+export async function deleteService(id: string): Promise<ActionResponse<void>> {
   try {
     await parasolDb.service.delete({
       where: { id },
@@ -325,21 +334,7 @@ export async function deleteService(id: string) {
 }
 
 // ビジネスオペレーション関連のアクション
-export async function createBusinessOperation(data: {
-  serviceId: string;
-  capabilityId?: string;
-  name: string;
-  displayName: string;
-  pattern: 'CRUD' | 'Workflow' | 'Analytics' | 'Communication' | 'Administration';
-  goal: string;
-  roles: any;
-  operations: any;
-  businessStates: any;
-  useCases: any;
-  uiDefinitions: any;
-  testCases: any;
-  robustnessModel?: any;
-}) {
+export async function createBusinessOperation(data: CreateBusinessOperationData): Promise<ActionResponse<MappedBusinessOperation>> {
   try {
     const result = BusinessOperationSchema.parse({
       ...data,
@@ -376,7 +371,7 @@ export async function createBusinessOperation(data: {
   }
 }
 
-export async function getBusinessOperations(serviceId: string) {
+export async function getBusinessOperations(serviceId: string): Promise<MappedBusinessOperation[]> {
   try {
     const operations = await parasolDb.businessOperation.findMany({
       where: { serviceId },
@@ -401,21 +396,7 @@ export async function getBusinessOperations(serviceId: string) {
   }
 }
 
-export async function updateBusinessOperation(id: string, data: {
-  serviceId: string;
-  capabilityId?: string;
-  name: string;
-  displayName: string;
-  pattern: 'CRUD' | 'Workflow' | 'Analytics' | 'Communication' | 'Administration';
-  goal: string;
-  roles: any;
-  operations: any;
-  businessStates: any;
-  useCases: any;
-  uiDefinitions: any;
-  testCases: any;
-  robustnessModel?: any;
-}) {
+export async function updateBusinessOperation(id: string, data: UpdateBusinessOperationData): Promise<ActionResponse<MappedBusinessOperation>> {
   try {
     const result = BusinessOperationSchema.parse({
       ...data,
@@ -453,7 +434,7 @@ export async function updateBusinessOperation(id: string, data: {
   }
 }
 
-export async function deleteBusinessOperation(id: string) {
+export async function deleteBusinessOperation(id: string): Promise<ActionResponse<void>> {
   try {
     await parasolDb.businessOperation.delete({
       where: { id },
@@ -468,17 +449,9 @@ export async function deleteBusinessOperation(id: string) {
 }
 
 // データ保存用の簡易アクション（エディタから直接使用）
-export async function saveServiceData(serviceId: string, data: {
-  domainLanguage?: any;
-  apiSpecification?: any;
-  dbSchema?: any;
-  serviceDescription?: string;
-  domainLanguageDefinition?: string;
-  apiSpecificationDefinition?: string;
-  databaseDesignDefinition?: string;
-}) {
+export async function saveServiceData(serviceId: string, data: SaveServiceData): Promise<ActionResponse<ServiceResponse>> {
   try {
-    const updateData: any = {};
+    const updateData: ServiceUpdateData = {};
     
     // MD形式のフィールド
     if (data.serviceDescription !== undefined) {
@@ -527,13 +500,7 @@ export async function saveServiceData(serviceId: string, data: {
 }
 
 // ビジネスケーパビリティ関連のアクション
-export async function createBusinessCapability(data: {
-  serviceId: string;
-  name: string;
-  displayName: string;
-  description?: string;
-  category: 'Core' | 'Supporting' | 'Generic';
-}) {
+export async function createBusinessCapability(data: CreateBusinessCapabilityData): Promise<ActionResponse<MappedBusinessCapability>> {
   try {
     const result = BusinessCapabilitySchema.parse(data);
 
@@ -567,7 +534,7 @@ export async function createBusinessCapability(data: {
   }
 }
 
-export async function getBusinessCapabilities(serviceId: string) {
+export async function getBusinessCapabilities(serviceId: string): Promise<MappedBusinessCapability[]> {
   try {
     const capabilities = await parasolDb.businessCapability.findMany({
       where: { serviceId },
@@ -598,12 +565,7 @@ export async function getBusinessCapabilities(serviceId: string) {
   }
 }
 
-export async function updateBusinessCapability(id: string, data: {
-  name: string;
-  displayName: string;
-  description?: string;
-  category: 'Core' | 'Supporting' | 'Generic';
-}) {
+export async function updateBusinessCapability(id: string, data: UpdateBusinessCapabilityData): Promise<ActionResponse<MappedBusinessCapability>> {
   try {
     const capability = await parasolDb.businessCapability.update({
       where: { id },
@@ -636,7 +598,7 @@ export async function updateBusinessCapability(id: string, data: {
   }
 }
 
-export async function deleteBusinessCapability(id: string) {
+export async function deleteBusinessCapability(id: string): Promise<ActionResponse<void>> {
   try {
     await parasolDb.businessCapability.delete({
       where: { id },
@@ -654,20 +616,7 @@ export async function deleteBusinessCapability(id: string) {
 // UseCase CRUD Operations
 // ========================
 
-export async function createUseCase(data: {
-  operationId: string;
-  name: string;
-  displayName: string;
-  description?: string;
-  definition?: string;
-  order?: number;
-  actors?: any;
-  preconditions?: any;
-  postconditions?: any;
-  basicFlow?: any;
-  alternativeFlow?: any;
-  exceptionFlow?: any;
-}) {
+export async function createUseCase(data: CreateUseCaseData): Promise<ActionResponse<MappedUseCase>> {
   try {
     const result = UseCaseSchema.parse({
       ...data,
@@ -706,21 +655,9 @@ export async function createUseCase(data: {
   }
 }
 
-export async function updateUseCase(id: string, data: {
-  name?: string;
-  displayName?: string;
-  description?: string;
-  definition?: string;
-  order?: number;
-  actors?: any;
-  preconditions?: any;
-  postconditions?: any;
-  basicFlow?: any;
-  alternativeFlow?: any;
-  exceptionFlow?: any;
-}) {
+export async function updateUseCase(id: string, data: UpdateUseCaseData): Promise<ActionResponse<MappedUseCase>> {
   try {
-    const updateData: any = {};
+    const updateData: UseCaseUpdateData = {};
 
     if (data.name !== undefined) updateData.name = data.name;
     if (data.displayName !== undefined) updateData.displayName = data.displayName;
@@ -762,7 +699,7 @@ export async function updateUseCase(id: string, data: {
   }
 }
 
-export async function deleteUseCase(id: string) {
+export async function deleteUseCase(id: string): Promise<ActionResponse<void>> {
   try {
     await parasolDb.useCase.delete({
       where: { id },
@@ -780,15 +717,7 @@ export async function deleteUseCase(id: string) {
 // RobustnessDiagram CRUD Operations
 // ==============================
 
-export async function createRobustnessDiagram(data: {
-  useCaseId: string;
-  content: string;
-  boundaryObjects?: any;
-  controlObjects?: any;
-  entityObjects?: any;
-  diagram?: string;
-  interactions?: any;
-}) {
+export async function createRobustnessDiagram(data: CreateRobustnessDiagramData): Promise<ActionResponse<MappedRobustnessDiagram>> {
   try {
     const result = RobustnessDiagramSchema.parse({
       ...data,
@@ -819,16 +748,9 @@ export async function createRobustnessDiagram(data: {
   }
 }
 
-export async function updateRobustnessDiagram(id: string, data: {
-  content?: string;
-  boundaryObjects?: any;
-  controlObjects?: any;
-  entityObjects?: any;
-  diagram?: string;
-  interactions?: any;
-}) {
+export async function updateRobustnessDiagram(id: string, data: UpdateRobustnessDiagramData): Promise<ActionResponse<MappedRobustnessDiagram>> {
   try {
-    const updateData: any = {};
+    const updateData: RobustnessDiagramUpdateData = {};
 
     if (data.content !== undefined) updateData.content = data.content;
     if (data.diagram !== undefined) updateData.diagram = data.diagram;
@@ -859,7 +781,7 @@ export async function updateRobustnessDiagram(id: string, data: {
   }
 }
 
-export async function deleteRobustnessDiagram(id: string) {
+export async function deleteRobustnessDiagram(id: string): Promise<ActionResponse<void>> {
   try {
     await parasolDb.robustnessDiagram.delete({
       where: { id },
@@ -874,7 +796,7 @@ export async function deleteRobustnessDiagram(id: string) {
 }
 
 // Get UseCases for a specific Business Operation
-export async function getUseCasesForOperation(operationId: string) {
+export async function getUseCasesForOperation(operationId: string): Promise<ActionResponse<MappedUseCase[]>> {
   try {
     const useCases = await parasolDb.useCase.findMany({
       where: { operationId },

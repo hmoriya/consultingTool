@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { ChevronRight, ChevronDown, Folder, FolderOpen, Package, Code, FileText, Layout, FileCheck, Maximize2, Minimize2, GitBranch, File, FileCode, Settings } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ChevronRight, ChevronDown, Folder, FolderOpen, Package, Code, FileText, Layout, FileCheck, Maximize2, Minimize2, GitBranch, FileCode, Settings } from 'lucide-react';
 import { TreeNode, ParasolService, BusinessCapability, BusinessOperation } from '@/types/parasol';
 import { buildUnifiedTreeFromServices, searchNodes, flattenTree } from '@/lib/parasol/tree-utils';
 import { cn } from '@/lib/utils';

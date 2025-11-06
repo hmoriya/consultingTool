@@ -2,6 +2,13 @@ import { NextResponse } from 'next/server'
 import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 import fs from 'fs/promises'
 import path from 'path'
+import type { 
+  PageImport, 
+  DuplicationResolutionResult, 
+  ImportResult,
+  PageClassifier,
+  PageLayerClassification 
+} from '@/app/types/parasol-api'
 
 const parasolDb = new ParasolPrismaClient()
 
@@ -81,8 +88,8 @@ class Layer3PageClassifier {
 
 // 重複解決ロジック
 class DuplicationResolver {
-  async resolveDuplication(pages: any[], conflictResolution: string = 'merge') {
-    const duplicateGroups = new Map<string, any[]>()
+  async resolveDuplication(pages: PageImport[], conflictResolution: string = 'merge') {
+    const duplicateGroups = new Map<string, PageImport[]>()
 
     // グループ化
     for (const page of pages) {
@@ -94,10 +101,10 @@ class DuplicationResolver {
     }
 
     const plan = {
-      merge: [] as any[],
-      layer1Candidates: [] as any[],
-      layer2Candidates: [] as any[],
-      conflicts: [] as any[]
+      merge: [] as PageImport[],
+      layer1Candidates: [] as PageImport[],
+      layer2Candidates: [] as PageImport[],
+      conflicts: [] as PageImport[][]
     }
 
     for (const [name, group] of duplicateGroups.entries()) {
@@ -119,7 +126,7 @@ class DuplicationResolver {
     return plan
   }
 
-  private isGlobalCandidate(pages: any[]): boolean {
+  private isGlobalCandidate(pages: PageImport[]): boolean {
     // 全サービスで共通利用される可能性のあるページ
     const globalKeywords = ['ログイン', 'ダッシュボード', '通知', 'エラー']
     return pages.some(page =>
@@ -129,7 +136,7 @@ class DuplicationResolver {
     )
   }
 
-  private isOperationCandidate(pages: any[]): boolean {
+  private isOperationCandidate(pages: PageImport[]): boolean {
     // 複数オペレーションで共有される可能性のあるページ
     const operationKeywords = ['一覧', '検索', '成果物提出', '請求書', 'コスト']
     return pages.some(page =>
@@ -139,7 +146,7 @@ class DuplicationResolver {
     )
   }
 
-  private selectCanonical(pages: any[], resolution: string): any {
+  private selectCanonical(pages: PageImport[], resolution: string): PageImport {
     switch (resolution) {
       case 'merge':
         // 最も包括的なコンテンツを持つページを選択
@@ -200,7 +207,7 @@ async function scan3LayerStructure(basePath: string) {
   return pages
 }
 
-async function scanServicePages(servicePath: string, serviceId: string, classifier: any, pages: any[]) {
+async function scanServicePages(servicePath: string, serviceId: string, classifier: Layer3PageClassifier, pages: PageImport[]) {
   try {
     const capabilitiesPath = path.join(servicePath, 'capabilities')
     const capabilityDirs = await fs.readdir(capabilitiesPath)
@@ -250,7 +257,7 @@ async function scanPagesDirectory(
   layer: 'global' | 'operation' | 'usecase',
   serviceId: string,
   operationId: string,
-  pages: any[],
+  pages: PageImport[],
   usecaseId?: string
 ) {
   try {

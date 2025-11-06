@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 import { format, isToday, isYesterday } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import { sendMessage, addReaction, deleteMessage, pinMessage, markChannelAsRead, toggleMessageFlag } from '@/actions/messages'
+import { sendMessage, addReaction, pinMessage, markChannelAsRead, toggleMessageFlag } from '@/actions/messages'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { MessageItem } from '@/components/messages/message-item'

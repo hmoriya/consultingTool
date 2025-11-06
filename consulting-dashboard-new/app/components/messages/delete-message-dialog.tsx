@@ -40,7 +40,7 @@ export function DeleteMessageDialog({
       } else {
         toast.error(result.error || 'メッセージの削除に失敗しました')
       }
-    } catch (error) {
+    } catch {
       toast.error('エラーが発生しました')
     } finally {
       setIsDeleting(false)

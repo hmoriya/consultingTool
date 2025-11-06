@@ -9,10 +9,9 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { updateTaskStatus } from '@/actions/consultant-dashboard'
 import { useRouter } from 'next/navigation'
+import type { TaskListProps } from '@/app/types/parasol-components'
 
-interface TaskListProps {
-  tasks: any[]
-}
+// Types imported from parasol-components.ts
 
 const statusConfig = {
   todo: { label: '未着手', color: 'bg-gray-500', icon: Clock },
@@ -28,7 +27,7 @@ export function TaskList({ tasks }: TaskListProps) {
   const handleStatusChange = async (taskId: string, status: string) => {
     setUpdatingTask(taskId)
     try {
-      await updateTaskStatus(taskId, status as any)
+      await updateTaskStatus(taskId, status as 'todo' | 'in_progress' | 'in_review' | 'completed')
       router.refresh()
     } catch (error) {
       console.error('Failed to update task status:', error)

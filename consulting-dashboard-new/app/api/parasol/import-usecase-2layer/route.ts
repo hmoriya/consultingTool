@@ -2,6 +2,12 @@ import { NextResponse } from 'next/server'
 import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 import fs from 'fs/promises'
 import path from 'path'
+import type { 
+  UseCaseImport,
+  UseCaseLayerClassification,
+  ImportResult,
+  UseCaseClassifier
+} from '@/app/types/parasol-api'
 
 const parasolDb = new ParasolPrismaClient()
 
@@ -12,10 +18,7 @@ interface UseCaseCentric2LayerImportRequest {
   dryRun?: boolean
 }
 
-interface UseCaseLayerClassification {
-  shared: any[]
-  individual: any[]
-}
+// Using imported type from parasol-api.ts
 
 interface UseCaseMigrationSummary {
   sharedUseCases: number
@@ -77,8 +80,8 @@ class UseCaseCentric2LayerClassifier {
 
 // 重複解決ロジック (ユースケース中心)
 class UseCaseDuplicationResolver {
-  async resolveDuplication(useCases: any[], conflictResolution: string = 'merge') {
-    const duplicateGroups = new Map<string, any[]>()
+  async resolveDuplication(useCases: UseCaseImport[], conflictResolution: string = 'merge') {
+    const duplicateGroups = new Map<string, UseCaseImport[]>()
 
     // グループ化
     for (const useCase of useCases) {
@@ -90,10 +93,10 @@ class UseCaseDuplicationResolver {
     }
 
     const plan = {
-      merge: [] as any[],
-      sharedCandidates: [] as any[],
-      individualCandidates: [] as any[],
-      conflicts: [] as any[]
+      merge: [] as UseCaseImport[],
+      sharedCandidates: [] as UseCaseImport[],
+      individualCandidates: [] as UseCaseImport[],
+      conflicts: [] as UseCaseImport[][]
     }
 
     for (const [name, group] of duplicateGroups.entries()) {
@@ -113,7 +116,7 @@ class UseCaseDuplicationResolver {
     return plan
   }
 
-  private isSharedCandidate(useCases: any[]): boolean {
+  private isSharedCandidate(useCases: UseCaseImport[]): boolean {
     // オペレーション共有候補（複数オペレーションで利用される可能性）
     const sharedKeywords = ['成果物提出', 'メンバー検索', '承認', '進捗報告']
     return useCases.some(useCase =>
@@ -123,7 +126,7 @@ class UseCaseDuplicationResolver {
     )
   }
 
-  private selectCanonical(useCases: any[], resolution: string): any {
+  private selectCanonical(useCases: UseCaseImport[], resolution: string): UseCaseImport {
     switch (resolution) {
       case 'merge':
         // 最も包括的なコンテンツを持つユースケースを選択

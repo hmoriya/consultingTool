@@ -248,7 +248,7 @@ CRUD（作成・読取・更新・削除）- 知識の体系的な管理
 }
 
 // ビジネスオペレーションの作成
-export async function createBusinessOperations(capabilities: any[]) {
+export async function createBusinessOperations(capabilities: Array<{ id: string; serviceId: string; name: string }>) {
   console.log('  Creating business operations...')
 
   const operations = []

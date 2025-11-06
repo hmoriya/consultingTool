@@ -2,34 +2,22 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
 import { Progress } from '@/components/ui/progress'
 import {
   Send,
   Paperclip,
-  MoreVertical,
-  Hash,
-  Lock,
-  MessageCircle,
   Smile,
-  ArrowLeft,
-  Users,
   X,
   File,
   FileText,
-  Image,
-  Download
+  Image
 } from 'lucide-react'
-import { format, formatDistanceToNow, isSameDay, isToday, isYesterday } from 'date-fns'
+import { format, isToday, isYesterday } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import { sendMessage, markMessageAsRead, addReaction, editMessage, deleteMessage, pinMessage, markChannelAsRead, toggleMessageFlag } from '@/actions/messages'
+import { sendMessage, addReaction, deleteMessage, pinMessage, markChannelAsRead, toggleMessageFlag } from '@/actions/messages'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { MessageItem } from '@/components/messages/message-item'
@@ -38,7 +26,6 @@ import { ThreadView } from '@/components/messages/thread-view'
 import { EditMessageDialog } from '@/components/messages/edit-message-dialog'
 import { DeleteMessageDialog } from '@/components/messages/delete-message-dialog'
 import { sendThreadMessage, getThreadMessages } from '@/actions/messages'
-import { updateMessage } from '@/actions/messages'
 
 interface Message {
   id: string
@@ -259,18 +246,6 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
     }
   }, [])
 
-  // ファイル選択ハンドラ
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      // ファイルサイズチェック（10MB）
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error('ファイルサイズが大きすぎます（10MB以下にしてください）')
-        return
-      }
-      setSelectedFile(file)
-    }
-  }
 
   // ファイルアップロードとメッセージ送信
   const handleFileUpload = async () => {

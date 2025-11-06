@@ -7,7 +7,7 @@
  * 3. ユースケースから最終確定
  */
 
-import { BusinessCapability, BusinessOperation } from '@/types/parasol';
+import { BusinessCapability, BusinessOperation, DomainEntity, ValueObject, DomainService, State, DomainEvent } from '@/app/types/parasol';
 
 /**
  * ケーパビリティ定義から初期ドメイン言語を生成
@@ -217,7 +217,7 @@ ${existingContent.match(/- \d{4}-\d{2}-\d{2}.*$/gm)?.join('\n') || ''}`);
 
 // ヘルパー関数群
 
-function extractEntitiesFromText(text: string): any[] {
+function extractEntitiesFromText(text: string): DomainEntity[] {
   // テキストからエンティティ候補を抽出（簡易実装）
   const entityPatterns = [
     /(\w+)\s*\[([A-Z_]+)\]\s*\[([A-Z_]+)\]/g,
@@ -231,7 +231,7 @@ function extractEntitiesFromText(text: string): any[] {
   return entities;
 }
 
-function extractEntitiesFromOperations(operations: BusinessOperation[]): any {
+function extractEntitiesFromOperations(operations: BusinessOperation[]): DomainEntity[] {
   // オペレーションからエンティティを抽出
   const entities = new Map();
   
@@ -244,12 +244,12 @@ function extractEntitiesFromOperations(operations: BusinessOperation[]): any {
   return Array.from(entities.values());
 }
 
-function extractStatesFromOperations(operations: BusinessOperation[]): any[] {
+function extractStatesFromOperations(operations: BusinessOperation[]): State[] {
   // オペレーションから状態を抽出
   return [];
 }
 
-function extractValueObjectsFromOperations(operations: BusinessOperation[]): any {
+function extractValueObjectsFromOperations(operations: BusinessOperation[]): ValueObject[] {
   // オペレーションから値オブジェクトを抽出
   return {
     common: [],
@@ -257,17 +257,17 @@ function extractValueObjectsFromOperations(operations: BusinessOperation[]): any
   };
 }
 
-function extractAggregatesFromOperations(operations: BusinessOperation[]): any[] {
+function extractAggregatesFromOperations(operations: BusinessOperation[]): string[] {
   // オペレーションから集約を抽出
   return [];
 }
 
-function extractDomainEventsFromOperations(operations: BusinessOperation[]): any[] {
+function extractDomainEventsFromOperations(operations: BusinessOperation[]): DomainEvent[] {
   // オペレーションからドメインイベントを抽出
   return [];
 }
 
-function groupOperationsByCapability(operations: BusinessOperation[], capabilities: BusinessCapability[]): any[] {
+function groupOperationsByCapability(operations: BusinessOperation[], capabilities: BusinessCapability[]): { capability: BusinessCapability; operations: BusinessOperation[] }[] {
   // オペレーションをケーパビリティごとにグループ化
   const groups = [];
   
@@ -292,7 +292,7 @@ function groupOperationsByCapability(operations: BusinessOperation[], capabiliti
   return groups;
 }
 
-function deriveServiceNameFromCapability(capability: BusinessCapability): any {
+function deriveServiceNameFromCapability(capability: BusinessCapability): DomainService {
   // ケーパビリティからサービス名を導出
   const baseName = capability.name.replace(/Capability$/, '');
   return {

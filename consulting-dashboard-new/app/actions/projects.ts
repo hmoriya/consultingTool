@@ -131,7 +131,7 @@ export async function createProject(data: {
   const now = new Date()
   const yearMonth = now.getFullYear().toString().slice(-2) + (now.getMonth() + 1).toString().padStart(2, '0')
   const namePrefix = data.name.slice(0, 3).toUpperCase()
-  let code = `${namePrefix}${yearMonth}${Math.floor(Math.random() * 100).toString().padStart(2, '0')}`
+  const code = `${namePrefix}${yearMonth}${Math.floor(Math.random() * 100).toString().padStart(2, '0')}`
 
   // プロジェクトサービスを使用してプロジェクトを作成
   try {

@@ -29,8 +29,8 @@ async function main() {
     const userSkillData = [
       // 鈴木花子（PM）のスキル
       {
-        userId: users.find(u => u.email === 'pm@example.com')?.id!,
-        skillId: skills.find(s => s.name === 'プロジェクト管理')?.id!,
+        userId: users.find(u => u.email === 'pm@example.com')?.id || '',
+        skillId: skills.find(s => s.name === 'プロジェクト管理')?.id || '',
         level: 5,
         experienceYears: 10,
         selfAssessment: 5,
@@ -39,8 +39,8 @@ async function main() {
         notes: '大規模プロジェクトの経験豊富'
       },
       {
-        userId: users.find(u => u.email === 'pm@example.com')?.id!,
-        skillId: skills.find(s => s.name === '英語')?.id!,
+        userId: users.find(u => u.email === 'pm@example.com')?.id || '',
+        skillId: skills.find(s => s.name === '英語')?.id || '',
         level: 4,
         experienceYears: 8,
         selfAssessment: 4,
@@ -51,8 +51,8 @@ async function main() {
 
       // 佐藤次郎（コンサルタント）のスキル
       {
-        userId: users.find(u => u.email === 'consultant@example.com')?.id!,
-        skillId: skills.find(s => s.name === 'JavaScript')?.id!,
+        userId: users.find(u => u.email === 'consultant@example.com')?.id || '',
+        skillId: skills.find(s => s.name === 'JavaScript')?.id || '',
         level: 5,
         experienceYears: 8,
         selfAssessment: 5,
@@ -61,8 +61,8 @@ async function main() {
         notes: 'フルスタック開発可能'
       },
       {
-        userId: users.find(u => u.email === 'consultant@example.com')?.id!,
-        skillId: skills.find(s => s.name === 'React')?.id!,
+        userId: users.find(u => u.email === 'consultant@example.com')?.id || '',
+        skillId: skills.find(s => s.name === 'React')?.id || '',
         level: 5,
         experienceYears: 6,
         selfAssessment: 5,
@@ -70,8 +70,8 @@ async function main() {
         projectCount: 10
       },
       {
-        userId: users.find(u => u.email === 'consultant@example.com')?.id!,
-        skillId: skills.find(s => s.name === 'Node.js')?.id!,
+        userId: users.find(u => u.email === 'consultant@example.com')?.id || '',
+        skillId: skills.find(s => s.name === 'Node.js')?.id || '',
         level: 4,
         experienceYears: 5,
         selfAssessment: 4,
@@ -81,8 +81,8 @@ async function main() {
 
       // 高橋愛（コンサルタント）のスキル
       {
-        userId: users.find(u => u.email === 'consultant2@example.com')?.id!,
-        skillId: skills.find(s => s.name === 'React')?.id!,
+        userId: users.find(u => u.email === 'consultant2@example.com')?.id || '',
+        skillId: skills.find(s => s.name === 'React')?.id || '',
         level: 4,
         experienceYears: 4,
         selfAssessment: 4,
@@ -90,8 +90,8 @@ async function main() {
         projectCount: 6
       },
       {
-        userId: users.find(u => u.email === 'consultant2@example.com')?.id!,
-        skillId: skills.find(s => s.name === 'JavaScript')?.id!,
+        userId: users.find(u => u.email === 'consultant2@example.com')?.id || '',
+        skillId: skills.find(s => s.name === 'JavaScript')?.id || '',
         level: 4,
         experienceYears: 5,
         selfAssessment: 4,

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 import fs from 'fs'
 import path from 'path'
+import { FileMapping, RestructureResult } from '@/app/types/parasol'
 
 const parasolDb = new ParasolPrismaClient()
 
@@ -649,7 +650,7 @@ export async function POST(request: Request) {
   }
 }
 
-async function applyRestructure(operationId: string, mappings: any[]): Promise<any> {
+async function applyRestructure(operationId: string, mappings: FileMapping[]): Promise<RestructureResult[]> {
   const results = []
   let successCount = 0
   let errorCount = 0

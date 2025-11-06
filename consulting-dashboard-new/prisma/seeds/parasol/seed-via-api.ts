@@ -7,6 +7,40 @@
 
 const API_URL = process.env.API_URL || 'http://localhost:3000'
 
+interface CheckResponse {
+  servicesFound: number
+  services?: Array<{
+    name: string
+    displayName: string
+    capabilities: number
+    operations: number
+  }>
+}
+
+interface ImportResponse {
+  success: boolean
+  message: string
+  details?: Array<{
+    serviceName: string
+    status: 'created' | 'updated' | 'skipped'
+    capabilities: number
+    operations: number
+  }>
+}
+
+interface VerifyResponse {
+  totalServices: number
+  totalCapabilities: number
+  totalOperations: number
+  totalUseCases: number
+  services: Array<{
+    name: string
+    displayName: string
+    capabilities: number
+    operations: number
+  }>
+}
+
 async function seedParasolData() {
   console.log('🚀 Starting Parasol data seeding via API...')
   console.log(`📡 API URL: ${API_URL}`)
@@ -25,12 +59,12 @@ async function seedParasolData() {
       throw new Error(`Failed to check MD files: ${checkResponse.statusText}`)
     }
 
-    const checkData: any = await checkResponse.json()
+    const checkData = await checkResponse.json() as CheckResponse
     console.log('✅ Found MD files:')
     console.log(`   - Services: ${checkData.servicesFound}`)
 
     if (checkData.services && checkData.services.length > 0) {
-      checkData.services.forEach((service: any) => {
+      checkData.services.forEach((service) => {
         console.log(`   - ${service.displayName}: ${service.capabilities} capabilities, ${service.operations} operations`)
       })
     }
@@ -55,7 +89,7 @@ async function seedParasolData() {
       throw new Error(`Failed to import data: ${errorText}`)
     }
 
-    const importData: any = await importResponse.json()
+    const importData = await importResponse.json() as ImportResponse
 
     if (importData.success) {
       console.log('\n✨ Import completed successfully!')
@@ -66,7 +100,7 @@ async function seedParasolData() {
 
       if (importData.details && importData.details.length > 0) {
         console.log('\n📝 Details by service:')
-        importData.details.forEach((detail: any) => {
+        importData.details.forEach((detail) => {
           console.log(`   - ${detail.service}:`)
           console.log(`     - Capabilities: ${detail.capabilities}`)
           console.log(`     - Operations: ${detail.operations}`)
@@ -87,7 +121,7 @@ async function seedParasolData() {
     })
 
     if (verifyResponse.ok) {
-      const verifyData: any = await verifyResponse.json()
+      const verifyData = await verifyResponse.json() as VerifyResponse
       console.log('✅ Verification complete:')
       console.log(`   - Active services in MD files: ${verifyData.servicesFound}`)
     }

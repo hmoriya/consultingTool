@@ -18,13 +18,13 @@ export interface ParsedEndpoint {
   }[]
   requestBody?: {
     contentType: string
-    schema: any
+    schema: Record<string, any>
     example?: string
   }
   responses: {
     status: number
     description: string
-    schema?: any
+    schema?: Record<string, any>
     example?: string
   }[]
 }

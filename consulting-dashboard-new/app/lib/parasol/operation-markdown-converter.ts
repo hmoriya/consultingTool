@@ -1,4 +1,4 @@
-import { BusinessOperation } from '@/types/parasol';
+import { BusinessOperation, UseCase, PageDefinition, TestDefinition, PageField } from '@/app/types/parasol';
 
 /**
  * ビジネスオペレーションをMarkdown形式に変換
@@ -92,7 +92,7 @@ export function operationToMarkdown(operation: BusinessOperation): string {
       ? JSON.parse(operation.useCases)
       : operation.useCases;
     
-    useCases.forEach((useCase: any, index: number) => {
+    useCases.forEach((useCase: UseCase, index: number) => {
       sections.push(`#### ${index + 1}. ${useCase.title || 'ユースケース' + (index + 1)}`);
       if (useCase.description) {
         sections.push(useCase.description);
@@ -123,7 +123,7 @@ export function operationToMarkdown(operation: BusinessOperation): string {
       ? JSON.parse(operation.uiDefinitions)
       : operation.uiDefinitions;
     
-    uiDefs.forEach((ui: any) => {
+    uiDefs.forEach((ui: PageDefinition) => {
       sections.push(`#### ${ui.screenName || '画面'}`);
       if (ui.description) {
         sections.push(ui.description);
@@ -134,7 +134,7 @@ export function operationToMarkdown(operation: BusinessOperation): string {
         sections.push('');
         sections.push('| フィールド名 | 型 | 必須 | 説明 |');
         sections.push('|------------|---|------|------|');
-        ui.fields.forEach((field: any) => {
+        ui.fields?.forEach((field: PageField) => {
           const required = field.required ? '✓' : '-';
           sections.push(`| ${field.name} | ${field.type} | ${required} | ${field.description || ''} |`);
         });
@@ -151,7 +151,7 @@ export function operationToMarkdown(operation: BusinessOperation): string {
       ? JSON.parse(operation.testCases)
       : operation.testCases;
     
-    testCases.forEach((test: any, index: number) => {
+    testCases.forEach((test: TestDefinition, index: number) => {
       sections.push(`#### ${index + 1}. ${test.name || 'テストケース' + (index + 1)}`);
       if (test.scenario) {
         sections.push('');
@@ -191,7 +191,7 @@ export function markdownToOperation(
   };
   
   let currentSection: string | null = null;
-  let currentSubSection: any = null;
+  const currentSubSection: { name: string; content: string[] } | null = null;
   let inTable = false;
   let skipNextLine = false;
   

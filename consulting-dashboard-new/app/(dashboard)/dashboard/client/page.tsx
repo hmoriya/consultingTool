@@ -1,7 +1,7 @@
 import { getCurrentUser } from '@/actions/auth'
 import { redirect } from 'next/navigation'
 import { getClientPortalData } from '@/actions/client-portal'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ProjectOverview } from '@/components/dashboard/client/project-overview'
 import { RecentActivities } from '@/components/dashboard/client/recent-activities'
 import { ProjectStats } from '@/components/dashboard/client/project-stats'

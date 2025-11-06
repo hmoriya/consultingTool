@@ -266,9 +266,67 @@ export interface BusinessOperation {
   roles: string[] | string;
   operations: string[] | string;
   businessStates: string[] | string;
-  useCases?: any[] | string;
-  uiDefinitions?: any[] | string;
-  testCases?: any[] | string;
+  useCases?: UseCase[] | string;
+  uiDefinitions?: PageDefinition[] | string;
+  testCases?: TestDefinition[] | string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+// ユースケース定義
+export interface UseCase {
+  id: string;
+  operationId: string;
+  name: string;
+  displayName: string;
+  description?: string | null;
+  definition?: string | null;
+  actors?: string[] | string | null;
+  preconditions?: string[] | string | null;
+  postconditions?: string[] | string | null;
+  basicFlow?: string[] | string | null;
+  alternativeFlow?: string[] | string | null;
+  exceptionFlow?: string[] | string | null;
+  order?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+// ページ定義
+export interface PageDefinition {
+  id: string;
+  operationId?: string;
+  useCaseId?: string;
+  name: string;
+  displayName: string;
+  content?: string | null;
+  fields?: PageField[] | null;
+  layout?: string | null;
+  order?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+// ページフィールド定義
+export interface PageField {
+  name: string;
+  type: string;
+  label: string;
+  required?: boolean;
+  validation?: string;
+  options?: string[];
+}
+
+// テスト定義
+export interface TestDefinition {
+  id: string;
+  operationId?: string;
+  useCaseId?: string;
+  name: string;
+  displayName: string;
+  content?: string | null;
+  type?: 'unit' | 'integration' | 'acceptance' | null;
+  order?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -336,4 +394,102 @@ export interface DbConstraint {
   type: string;
   definition: string;
   description?: string;
+}
+
+// API route response types
+export interface FileMapping {
+  action: 'delete_duplicate' | 'consolidate' | 'merge';
+  filePath: string;
+  targetPath?: string;
+  reason?: string;
+}
+
+export interface RestructureResult {
+  action: string;
+  file: string;
+  status: 'success' | 'skip' | 'error';
+  message: string;
+}
+
+// Parser types
+export interface ParsedContent {
+  content: string;
+  metadata?: Record<string, any>;
+}
+
+export interface APIEndpoint {
+  path: string;
+  method: string;
+  description?: string;
+  parameters?: APIParameter[];
+  requestBody?: {
+    schema: any;
+  };
+  responses?: Record<string, {
+    schema?: any;
+  }>;
+}
+
+export interface APIParameter {
+  name: string;
+  in: 'path' | 'query' | 'header';
+  required?: boolean;
+  schema: {
+    type: string;
+    format?: string;
+  };
+  description?: string;
+}
+
+// Domain event types
+export interface DomainEvent {
+  name: string;
+  payload: Record<string, any>;
+  aggregateId?: string;
+  timestamp?: Date;
+}
+
+// Seed data types
+export interface SeedService {
+  name: string;
+  displayName: string;
+  description?: string;
+  capabilities?: SeedCapability[];
+}
+
+export interface SeedCapability {
+  name: string;
+  displayName: string;
+  category: 'Core' | 'Supporting' | 'Generic';
+  description?: string;
+  businessOperations?: SeedOperation[];
+}
+
+export interface SeedOperation {
+  name: string;
+  displayName: string;
+  pattern: string;
+  goal?: string;
+  roles?: string[];
+  operations?: string[];
+  businessStates?: string[];
+}
+
+// Service with relations
+export interface ServiceWithRelations extends ParasolService {
+  capabilities?: BusinessCapabilityWithRelations[];
+  businessOperations?: BusinessOperationWithRelations[];
+}
+
+export interface BusinessCapabilityWithRelations extends BusinessCapability {
+  service?: ParasolService;
+  businessOperations?: BusinessOperationWithRelations[];
+}
+
+export interface BusinessOperationWithRelations extends BusinessOperation {
+  service?: ParasolService;
+  capability?: BusinessCapability;
+  useCaseModels?: UseCase[];
+  pageDefinitions?: PageDefinition[];
+  testDefinitions?: TestDefinition[];
 }

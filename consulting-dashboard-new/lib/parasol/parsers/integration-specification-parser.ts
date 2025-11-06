@@ -15,7 +15,7 @@ export interface ParsedDomainEvent {
   eventType: string
   description: string
   occurredAt: string
-  payload?: any
+  payload?: Record<string, any>
   subscribers?: string[]
 }
 

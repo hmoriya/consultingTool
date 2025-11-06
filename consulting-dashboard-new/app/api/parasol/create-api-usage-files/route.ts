@@ -20,8 +20,8 @@ export async function POST(request: NextRequest) {
     const templatePath = path.join(process.cwd(), 'templates', 'dx-api-usage.md')
     const template = await fs.readFile(templatePath, 'utf-8')
 
-    let createdFiles: string[] = []
-    let errors: string[] = []
+    const createdFiles: string[] = []
+    const errors: string[] = []
 
     if (action === 'create_all_missing' || files === 'all') {
       // 全不足ファイルの作成
@@ -196,7 +196,18 @@ async function getMissingFileInfo(filePath: string) {
   }
 }
 
-async function generateApiUsageContent(template: string, fileInfo: any): Promise<string> {
+interface FileInfo {
+  serviceName: string
+  serviceDisplayName: string
+  capabilityName: string
+  capabilityDisplayName: string
+  operationName: string
+  operationDisplayName: string
+  usecaseName: string
+  usecaseDisplayName: string
+}
+
+async function generateApiUsageContent(template: string, fileInfo: FileInfo): Promise<string> {
   // テンプレートの動的置換
   let content = template
 

@@ -22,7 +22,7 @@ const categoryIcons = {
 export default function HelpPage() {
   const [selectedUseCase, setSelectedUseCase] = useState<UseCase | null>(null)
   const [expandedImage, setExpandedImage] = useState<string | null>(null)
-  const [imageLoadingStates, setImageLoadingStates] = useState<Record<string, boolean>>({})
+  const [, setImageLoadingStates] = useState<Record<string, boolean>>({})
   const [expandedSteps, setExpandedSteps] = useState<Record<number, boolean>>({})
 
   const toggleStepDetails = (stepIndex: number) => {
@@ -178,7 +178,6 @@ export default function HelpPage() {
                   {selectedUseCase.steps.map((step, index) => {
                     // PNGを優先、なければSVG
                     const pngPath = `/captures/${selectedUseCase.category}/${selectedUseCase.id}/step-${index + 1}.png`
-                    const svgPath = `/captures/${selectedUseCase.category}/${selectedUseCase.id}/step-${index + 1}.svg`
                     const imagePath = pngPath // PNGを使用
                     const hasImage = true // すべてのステップで画像を表示
                     const detailedStep = getUseCaseDetails(selectedUseCase.id, index + 1)

@@ -14,14 +14,18 @@ interface Entity {
   }>;
 }
 
+interface Column {
+  name: string;
+  type: string;
+  primaryKey?: boolean;
+  foreignKey?: { table: string; column: string };
+  unique?: boolean;
+  nullable?: boolean;
+}
+
 interface Table {
   name: string;
-  columns: Array<{
-    name: string;
-    type: string;
-    primaryKey?: boolean;
-    foreignKey?: { table: string; column: string };
-  }>;
+  columns: Column[];
 }
 
 interface Relationship {
@@ -349,7 +353,7 @@ export class DiagramConverter {
       mermaid += `  ${table.name} {\n`;
       table.columns.forEach(col => {
         // Mermaidでは型名を小文字にする必要がある
-        let type = col.type.toLowerCase();
+        const type = col.type.toLowerCase();
         let constraint = '';
 
         if (col.primaryKey) {
@@ -920,7 +924,7 @@ export class DiagramConverter {
     let inAggregateEntities = false;
     let inAttributeSection = false;
     let currentAttributeName: string | null = null;
-    let currentAttributeType: string | null = null;
+    const currentAttributeType: string | null = null;
     const processedEntities = new Set<string>();
     
     lines.forEach((line, index) => {
@@ -1757,7 +1761,7 @@ export class DiagramConverter {
           const columnMatch = trimmed.match(/^(\w+)\s+(\w+)(?:\s+(PK|UK|FK))?$/);
           if (columnMatch) {
             const [, type, columnName, constraint] = columnMatch;
-            const column: any = {
+            const column: Partial<Column> = {
               name: columnName,
               type: type,
             };
@@ -1839,7 +1843,7 @@ export class DiagramConverter {
         const parts = trimmed.split('|').map(p => p.trim()).filter(p => p);
         // ヘッダー行をスキップ
         if (parts.length >= 2 && parts[0] !== 'カラム名' && parts[0] !== 'カラム' && parts[0] !== '属性名' && parts[0] !== 'データ種別') {
-          const column: any = {
+          const column: Partial<Column> = {
             name: parts[0],
             type: parts[1],
           };

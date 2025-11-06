@@ -16,9 +16,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { action = 'sync_all' } = body
 
-    let syncedFiles: string[] = []
-    let errors: string[] = []
-    let stats = {
+    const syncedFiles: string[] = []
+    const errors: string[] = []
+    const stats = {
       found: 0,
       synced: 0,
       errors: 0,

@@ -53,7 +53,7 @@ export interface ParsedDomainEvent {
   name: string
   description: string
   occurredWhen: string
-  payload: any
+  payload: Record<string, any>
 }
 
 export interface ParsedBusinessRule {

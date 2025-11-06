@@ -18,18 +18,18 @@ import { BusinessCapabilityEditor } from './BusinessCapabilityEditor';
 import { BusinessOperationEditor } from './BusinessOperationEditor';
 import { CodeGenerationPanel } from './CodeGenerationPanel';
 import { useToast } from '@/hooks/use-toast';
-import { DomainLanguageDefinition, APISpecification, DBSchema } from '@/types/parasol';
+import { DomainLanguageDefinition, APISpecification, DBSchema, BusinessCapability, BusinessOperation, UseCase, PageDefinition, TestDefinition } from '@/app/types/parasol';
 
 interface Service {
   id: string;
   name: string;
   displayName: string;
   description?: string | null;
-  domainLanguage: any;
-  apiSpecification: any;
-  dbSchema: any;
-  capabilities?: any[];
-  businessOperations: any[];
+  domainLanguage: DomainLanguageDefinition | null;
+  apiSpecification: APISpecification | null;
+  dbSchema: DBSchema | null;
+  capabilities?: BusinessCapability[];
+  businessOperations: BusinessOperation[];
 }
 
 interface ParasolSettingsPageProps {
@@ -47,8 +47,8 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
   
   // オペレーション編集モーダルの状態
   const [operationModalOpen, setOperationModalOpen] = useState(false);
-  const [editingOperation, setEditingOperation] = useState<any>(null);
-  const [editingCapability, setEditingCapability] = useState<any>(null);
+  const [editingOperation, setEditingOperation] = useState<BusinessOperation | null>(null);
+  const [editingCapability, setEditingCapability] = useState<BusinessCapability | null>(null);
   
   // デバッグ用ログ
   useEffect(() => {
@@ -178,19 +178,19 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
   };
 
   // オペレーション操作のハンドラー
-  const handleAddOperation = (capability: any) => {
+  const handleAddOperation = (capability: BusinessCapability) => {
     setEditingCapability(capability);
     setEditingOperation(null);
     setOperationModalOpen(true);
   };
 
-  const handleEditOperation = (capability: any, operation: any) => {
+  const handleEditOperation = (capability: BusinessCapability, operation: BusinessOperation) => {
     setEditingCapability(capability);
     setEditingOperation(operation);
     setOperationModalOpen(true);
   };
 
-  const handleDeleteOperation = async (capability: any, operation: any) => {
+  const handleDeleteOperation = async (capability: BusinessCapability, operation: BusinessOperation) => {
     if (!operation.id) return;
 
     try {
@@ -232,7 +232,7 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
     }
   };
 
-  const handleOperationSave = async (operation: any) => {
+  const handleOperationSave = async (operation: BusinessOperation) => {
     try {
       if (editingOperation?.id) {
         // 更新
@@ -313,7 +313,7 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
   };
 
   // ケーパビリティとオペレーションからドメイン言語を自動生成
-  const generateDomainLanguageFromCapabilities = (capabilities: any[]) => {
+  const generateDomainLanguageFromCapabilities = (capabilities: BusinessCapability[]) => {
     if (!selectedService) return;
     
     const domainLanguage: DomainLanguageDefinition = {
@@ -357,8 +357,8 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
       
       // オペレーションパターンに基づいてプロパティを追加
       if (capability.businessOperations) {
-        const hasWorkflow = capability.businessOperations.some((op: any) => op.pattern === 'Workflow');
-        const hasCRUD = capability.businessOperations.some((op: any) => op.pattern === 'CRUD');
+        const hasWorkflow = capability.businessOperations.some((op: BusinessOperation) => op.pattern === 'Workflow');
+        const hasCRUD = capability.businessOperations.some((op: BusinessOperation) => op.pattern === 'CRUD');
         
         if (hasWorkflow) {
           entity.properties.push({
@@ -386,7 +386,7 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
         }
         
         // オペレーションからドメインイベントを生成
-        capability.businessOperations.forEach((op: any) => {
+        capability.businessOperations.forEach((op: BusinessOperation) => {
           if (op.pattern === 'CRUD' && op.name.startsWith('create')) {
             entity.domainEvents.push({
               name: `${capability.name}Created`,
@@ -412,7 +412,7 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
           name: `${capability.name}Service`,
           displayName: `${capability.displayName}サービス`,
           description: `${capability.displayName}に関するビジネスロジックを提供`,
-          methods: capability.businessOperations?.map((op: any) => ({
+          methods: capability.businessOperations?.map((op: BusinessOperation) => ({
             name: op.name,
             displayName: op.displayName,
             parameters: [],

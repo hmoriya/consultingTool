@@ -30,7 +30,7 @@ export default function MarkdownPreview({
       try {
         setIsLoading(true);
 
-        let processor = remark()
+        const processor = remark()
           .use(remarkGfm) // GitHub Flavored Markdown
           .use(remarkHtml, { sanitize: false }); // HTMLに変換
 

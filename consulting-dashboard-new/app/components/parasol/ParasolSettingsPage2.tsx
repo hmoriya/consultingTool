@@ -9,7 +9,7 @@ import { Search, Plus, Save, FolderTree, Code } from 'lucide-react';
 import { saveServiceData, createBusinessOperation, createBusinessCapability, updateBusinessOperation, deleteBusinessOperation, getUseCasesForOperation } from '@/app/actions/parasol';
 import { ParasolTreeView } from './ParasolTreeView';
 import { UnifiedTreeView } from './UnifiedTreeView';
-import { TreeNode, ParasolService } from '@/types/parasol';
+import { TreeNode, ParasolService, BusinessCapability, BusinessOperation, BusinessOperationWithRelations, UseCase, PageDefinition, TestDefinition, DomainLanguageDefinition, ApiSpecification, DbDesign } from '@/app/types/parasol';
 import { buildTreeFromParasolData, flattenTree } from '@/app/lib/parasol/tree-utils';
 import { UnifiedDesignEditor, DesignType } from './UnifiedDesignEditor';
 import { UnifiedMDEditor, MDEditorType } from './UnifiedMDEditor';
@@ -19,7 +19,6 @@ import { BusinessOperationEditor } from './BusinessOperationEditor';
 import { UseCaseDialog } from './UseCaseDialog';
 import { UseCaseListView } from './UseCaseListView';
 import { CodeGenerationPanel } from './CodeGenerationPanel';
-import { DomainLanguageDefinition, APISpecification, DBSchema } from '@/types/parasol';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/app/hooks/use-toast';
@@ -32,6 +31,10 @@ import DesignQualityDashboard from './DesignQualityDashboard';
 import DesignRestructureDashboard from './DesignRestructureDashboard';
 import APIUsageManagementPanel from './APIUsageManagementPanel';
 
+interface ServiceWithOperations extends Omit<Service, 'businessOperations'> {
+  businessOperations: BusinessOperationWithRelations[];
+}
+
 interface Service {
   id: string;
   name: string;
@@ -41,11 +44,11 @@ interface Service {
   domainLanguageDefinition?: string; // MD形式のドメイン言語定義
   apiSpecificationDefinition?: string; // MD形式のAPI仕様
   databaseDesignDefinition?: string; // MD形式のDB設計
-  domainLanguage: any; // 既存のJSON形式（後で廃止予定）
-  apiSpecification: any; // 既存のJSON形式（後で廃止予定）
-  dbSchema: any; // 既存のJSON形式（後で廃止予定）
-  capabilities?: any[];
-  businessOperations: any[];
+  domainLanguage: DomainLanguageDefinition | null;
+  apiSpecification: ApiSpecification | null;
+  dbSchema: DbDesign | null;
+  capabilities?: BusinessCapability[];
+  businessOperations: BusinessOperationWithRelations[];
 }
 
 interface ParasolSettingsPageProps {
@@ -124,7 +127,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
               allNodeIds.add(operation.id);
               // ユースケースのIDも追加
               if (operation.useCaseModels) {
-                operation.useCaseModels.forEach((uc: any) => {
+                operation.useCaseModels.forEach((uc: UseCase) => {
                   allNodeIds.add(uc.id);
                 });
               }
@@ -137,7 +140,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
         uncategorizedOps.forEach(operation => {
           allNodeIds.add(operation.id);
           if (operation.useCaseModels) {
-            operation.useCaseModels.forEach((uc: any) => {
+            operation.useCaseModels.forEach((uc: UseCase) => {
               allNodeIds.add(uc.id);
             });
           }
@@ -328,7 +331,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
       }
 
       // 階層情報の取得（親ノードを辿る）
-      let currentNode = fileNode;
+      const currentNode = fileNode;
       let usecaseNode: TreeNode | null = null;
       let operationNode: TreeNode | null = null;
       let capabilityNode: TreeNode | null = null;
@@ -460,15 +463,15 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
           }
           // ユースケースをチェック（オペレーション内）
           for (const op of service.businessOperations || []) {
-            if (op.useCaseModels?.some((uc: any) => uc.id === nodeId)) {
+            if (op.useCaseModels?.some((uc: UseCase) => uc.id === nodeId)) {
               return service;
             }
             // ページ定義とテスト定義をチェック（ユースケース内）
             for (const uc of op.useCaseModels || []) {
-              if (uc.pageDefinitions?.some((pd: any) => pd.id === nodeId)) {
+              if (uc.pageDefinitions?.some((pd: PageDefinition) => pd.id === nodeId)) {
                 return service;
               }
-              if (uc.testDefinitions?.some((td: any) => td.id === nodeId)) {
+              if (uc.testDefinitions?.some((td: TestDefinition) => td.id === nodeId)) {
                 return service;
               }
             }
@@ -1051,7 +1054,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                 <TabsContent value="tests" className="mt-4 flex flex-col flex-1 min-h-0">
                   <div className="space-y-4 flex-1 overflow-auto">
                     {useCaseData?.testDefinitions && useCaseData.testDefinitions.length > 0 ? (
-                      useCaseData.testDefinitions.map((test: any, index: number) => (
+                      useCaseData.testDefinitions.map((test: TestDefinition, index: number) => (
                         <Card key={test.id || index}>
                           <CardHeader>
                             <CardTitle className="text-base">{test.displayName || test.name}</CardTitle>
@@ -1298,7 +1301,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                                   allNodeIds.add(operation.id);
                                   // ユースケースのIDも追加
                                   if (operation.useCaseModels) {
-                                    operation.useCaseModels.forEach((uc: any) => {
+                                    operation.useCaseModels.forEach((uc: UseCase) => {
                                       allNodeIds.add(uc.id);
                                     });
                                   }

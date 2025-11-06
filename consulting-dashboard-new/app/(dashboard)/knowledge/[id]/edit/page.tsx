@@ -20,7 +20,7 @@ export default async function KnowledgeEditPage({ params }: { params: Promise<{ 
   const article = articleResult.data
 
   // 作成者またはエグゼクティブのみ編集可能
-  const userRole = typeof user.role === 'object' ? (user.role as any).name : user.role
+  const userRole = typeof user.role === 'object' ? (user.role as { name: string }).name : user.role
   if (article.authorId !== user.id && userRole !== 'Executive') {
     redirect(`/knowledge/${id}`)
   }

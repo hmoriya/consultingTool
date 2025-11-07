@@ -2,6 +2,7 @@
  * API仕様書パーサー
  * MD形式のAPI仕様書からJSON構造を抽出
  */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export interface ParsedEndpoint {
   path: string

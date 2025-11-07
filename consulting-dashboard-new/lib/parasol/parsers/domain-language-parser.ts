@@ -2,6 +2,7 @@
  * パラソルドメイン言語パーサー
  * MD形式のドメイン言語定義からJSON構造を抽出
  */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export interface ParsedProperty {
   name: string

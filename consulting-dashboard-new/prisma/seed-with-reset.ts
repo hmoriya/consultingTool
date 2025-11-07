@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { PrismaClient } from '@prisma/client'
 import { PrismaClient as AuthPrismaClient } from '@prisma/auth-client'
 import { PrismaClient as ProjectPrismaClient } from '@prisma/project-client'

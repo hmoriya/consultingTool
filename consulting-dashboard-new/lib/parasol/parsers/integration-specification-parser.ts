@@ -2,6 +2,7 @@
  * 統合仕様書パーサー
  * MD形式の統合仕様書からJSON構造を抽出
  */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export interface ParsedDependency {
   serviceName: string

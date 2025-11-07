@@ -40,7 +40,7 @@ export async function getApiUsageFromDatabase(
     })
 
     return usecase?.apiUsageDefinition || null
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to get API usage from database:', error)
     return null
   }
@@ -83,7 +83,7 @@ export async function saveApiUsageToDatabase(
     })
 
     return true
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to save API usage to database:', error)
     return false
   }
@@ -128,7 +128,7 @@ export async function getApiUsageStatus() {
         apiUsageLength: uc.apiUsageDefinition?.length || 0
       }))
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to get API usage status:', error)
     return {
       totalUsecases: 0,

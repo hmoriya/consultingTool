@@ -420,7 +420,7 @@ export function validateDomainLanguageMarkdown(markdown: string): {
       }
     });
     
-  } catch (error) {
+  } catch (_error) {
     errors.push('Markdownの解析中にエラーが発生しました');
   }
   

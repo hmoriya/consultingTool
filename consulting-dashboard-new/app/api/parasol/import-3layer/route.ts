@@ -3,11 +3,7 @@ import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 import fs from 'fs/promises'
 import path from 'path'
 import type { 
-  PageImport, 
-  DuplicationResolutionResult, 
-  ImportResult,
-  PageClassifier,
-  PageLayerClassification 
+  PageImport
 } from '@/app/types/parasol-api'
 
 const parasolDb = new ParasolPrismaClient()
@@ -69,7 +65,7 @@ class Layer3PageClassifier {
       usecase: ['ウィザード', '詳細設定', '専用', '固有']
     }
 
-    const lowerContent = content.toLowerCase()
+    const _lowerContent = content.toLowerCase()
 
     // Global indicators
     if (indicators.global.some(term => content.includes(term))) {
@@ -107,7 +103,7 @@ class DuplicationResolver {
       conflicts: [] as PageImport[][]
     }
 
-    for (const [name, group] of duplicateGroups.entries()) {
+    for (const [_name, group] of duplicateGroups.entries()) {
       if (group.length === 1) {
         plan.merge.push(group[0])
         continue
@@ -190,7 +186,7 @@ async function scan3LayerStructure(basePath: string) {
           name: file.replace('.md', '')
         })
       }
-    } catch (error) {
+    } catch {
       // global-shared-pages が存在しない場合はスキップ
     }
 
@@ -199,7 +195,7 @@ async function scan3LayerStructure(basePath: string) {
     for (const serviceDir of serviceDirs.filter(d => d !== 'global-shared-pages')) {
       await scanServicePages(path.join(servicesPath, serviceDir), serviceDir, classifier, pages)
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('MDファイルスキャンエラー:', error)
     throw error
   }
@@ -247,7 +243,7 @@ async function scanServicePages(servicePath: string, serviceId: string, classifi
         }
       }
     }
-  } catch (error) {
+  } catch (_error) {
     console.error(`サービス ${serviceId} のスキャンエラー:`, error)
   }
 }
@@ -276,7 +272,7 @@ async function scanPagesDirectory(
         usecaseId
       })
     }
-  } catch (error) {
+  } catch {
     // ディレクトリが存在しない場合はスキップ
   }
 }
@@ -371,7 +367,7 @@ export async function POST(request: Request) {
         })
         migrationSummary.globalSharedPages++
         layerClassification.layer1.push(page.displayName)
-      } catch (error) {
+      } catch (_error) {
         migrationSummary.errors.push(`Layer 1 ページ作成エラー: ${page.displayName} - ${error}`)
       }
     }
@@ -392,7 +388,7 @@ export async function POST(request: Request) {
         })
         migrationSummary.operationSharedPages++
         layerClassification.layer2.push(page.displayName)
-      } catch (error) {
+      } catch (_error) {
         migrationSummary.errors.push(`Layer 2 ページ作成エラー: ${page.displayName} - ${error}`)
       }
     }
@@ -413,7 +409,7 @@ export async function POST(request: Request) {
         })
         migrationSummary.usecaseDedicatedPages++
         layerClassification.layer3.push(page.displayName)
-      } catch (error) {
+      } catch (_error) {
         migrationSummary.errors.push(`Layer 3 ページ作成エラー: ${page.displayName} - ${error}`)
       }
     }
@@ -432,7 +428,7 @@ export async function POST(request: Request) {
       layerClassification
     })
 
-  } catch (error) {
+  } catch (_error) {
     console.error('3層分離インポートエラー:', error)
     return NextResponse.json({
       success: false,

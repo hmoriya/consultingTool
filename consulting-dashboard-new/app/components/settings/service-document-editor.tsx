@@ -1,20 +1,20 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { MarkdownRenderer } from '@/components/markdown-renderer'
 import {
-  Save,
   Layers,
   Code2,
   Database,
   Eye,
   Edit,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Save
 } from 'lucide-react'
 import {
   getDomainContent,
@@ -89,7 +89,7 @@ export function ServiceDocumentEditor({ service, domain }: ServiceDocumentEditor
         setSchemaContent(getDefaultSchemaTemplate())
         setOriginalSchemaContent(getDefaultSchemaTemplate())
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to load content:', error)
       setSaveMessage({ type: 'error', message: 'コンテンツの読み込みに失敗しました' })
     } finally {
@@ -148,7 +148,7 @@ export function ServiceDocumentEditor({ service, domain }: ServiceDocumentEditor
       } else {
         setSaveMessage({ type: 'error', message: result?.error || '保存に失敗しました' })
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to save content:', error)
       setSaveMessage({ type: 'error', message: '保存中にエラーが発生しました' })
     } finally {

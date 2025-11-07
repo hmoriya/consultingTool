@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronRight, Folder, FolderOpen, FileText, Image, Settings } from 'lucide-react';
+import { ChevronDown, ChevronRight, Folder, FolderOpen, Image, Settings, FileText } from 'lucide-react';
 
 interface FileNode {
   id: string;
@@ -200,7 +200,7 @@ export function DirectoryPanel({ currentPath, onFileSelect, className = '' }: Di
 
         setExpandedNodes(expandedPaths);
 
-      } catch (error) {
+      } catch (_error) {
         console.error('Failed to load file tree:', error);
       } finally {
         setIsLoading(false);

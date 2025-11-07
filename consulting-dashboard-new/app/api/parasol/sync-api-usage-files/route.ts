@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
           syncedFiles.push(fileInfo.relativePath)
           stats.synced++
 
-        } catch (error) {
+        } catch (_error) {
           console.error(`Failed to sync ${fileInfo.relativePath}:`, error)
           errors.push(`${fileInfo.relativePath}: ${error}`)
           stats.errors++
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       errors: errors.length > 0 ? errors : undefined
     })
 
-  } catch (error) {
+  } catch (_error) {
     console.error('API usage files sync error:', error)
     return NextResponse.json({
       success: false,

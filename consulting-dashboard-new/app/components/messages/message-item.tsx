@@ -1,6 +1,6 @@
 'use client'
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
@@ -144,7 +144,7 @@ export function MessageItem({ message, isOwn, showAvatar, currentUserId, onReact
                             link.click()
                             document.body.removeChild(link)
                             window.URL.revokeObjectURL(url)
-                          } catch (error) {
+                          } catch (_error) {
                             console.error('Download error:', error)
                           }
                         }}
@@ -201,7 +201,7 @@ export function MessageItem({ message, isOwn, showAvatar, currentUserId, onReact
                         link.click()
                         document.body.removeChild(link)
                         window.URL.revokeObjectURL(url)
-                      } catch (error) {
+                      } catch (_error) {
                         console.error('Download error:', error)
                       }
                     }}

@@ -11,8 +11,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { Search, Users } from 'lucide-react'
@@ -91,7 +90,7 @@ export function SkillSearch({ skills, categories }: SkillSearchProps) {
         if (results.length === 0) {
           toast.info('条件に合うメンバーが見つかりませんでした')
         }
-      } catch (error) {
+      } catch (_error) {
         toast.error(error instanceof Error ? error.message : '検索に失敗しました')
       }
     })

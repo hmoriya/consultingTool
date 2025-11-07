@@ -1,11 +1,11 @@
 import { getUserProjectExperience } from '../../../actions/project-experience'
 import { getCurrentUser } from '../../../actions/auth'
 import { getSkills } from '../../../actions/skills'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { ProjectExperienceList } from './project-experience-list'
 import { ProjectExperienceSearch } from './project-experience-search'
-import { Briefcase, Users, Calendar, TrendingUp } from 'lucide-react'
+import { Briefcase, Calendar, TrendingUp, Users } from 'lucide-react'
 
 export default async function ProjectExperiencePage() {
   const [user, myExperiences, allSkills] = await Promise.all([

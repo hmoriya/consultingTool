@@ -90,7 +90,7 @@ class ParasolStructureMigrator {
             result.operationsProcessed++
             console.log(`✅ 移行完了: ${path.basename(operationPath)}`)
           }
-        } catch (error) {
+        } catch (_error) {
           const errorMsg = `❌ 移行エラー (${path.basename(operationPath)}): ${error}`
           result.errors.push(errorMsg)
           console.error(errorMsg)
@@ -100,7 +100,7 @@ class ParasolStructureMigrator {
       result.success = result.errors.length === 0
       console.log(`🎉 移行処理完了: ${result.operationsProcessed}/${operationPaths.length} オペレーション`)
 
-    } catch (error) {
+    } catch (_error) {
       const errorMsg = `💥 移行処理中に致命的エラー: ${error}`
       result.errors.push(errorMsg)
       console.error(errorMsg)

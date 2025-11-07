@@ -31,7 +31,7 @@ async function checkAllocations() {
         console.log('');
       }
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('Error:', error);
   } finally {
     await authDb.$disconnect();

@@ -7,10 +7,10 @@ import {
   Calendar, 
   Clock, 
   DollarSign, 
-  Edit, 
-  Trash2,
+  Edit,
   Check,
-  X 
+  X,
+  Trash2
 } from 'lucide-react'
 import {
   Table,
@@ -18,8 +18,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+  TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -31,8 +30,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
+  AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { deleteTimeEntry, updateTimeEntry } from '@/actions/timesheet-new'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
@@ -120,7 +118,7 @@ export function TimesheetList({
           variant: 'destructive',
         })
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'エラー',
         description: '予期しないエラーが発生しました',

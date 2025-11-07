@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       message: 'Use case created successfully'
     }, { status: 201 });
 
-  } catch (error) {
+  } catch (_error) {
     console.error('Error creating use case:', error);
 
     if (error instanceof z.ZodError) {
@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
       data: useCases
     });
 
-  } catch (error) {
+  } catch (_error) {
     console.error('Error fetching use cases:', error);
     return NextResponse.json({
       success: false,

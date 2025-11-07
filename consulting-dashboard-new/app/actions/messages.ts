@@ -97,7 +97,7 @@ export async function createChannel(data: z.infer<typeof createChannelSchema>) {
 
     revalidatePath('/messages')
     return { success: true, data: channel }
-  } catch (error) {
+  } catch (_error) {
     console.error('createChannel error:', error)
     if (error instanceof z.ZodError) {
       return { success: false, error: error.errors[0].message }
@@ -166,7 +166,7 @@ export async function sendMessage(data: z.infer<typeof sendMessageSchema>) {
     revalidatePath('/messages')
     revalidatePath(`/messages/${validated.channelId}`)
     return { success: true, data: message }
-  } catch (error) {
+  } catch (_error) {
     console.error('sendMessage error:', error)
     if (error instanceof z.ZodError) {
       return { success: false, error: error.errors[0].message }
@@ -256,7 +256,7 @@ export async function getUserChannels() {
     )
 
     return { success: true, data: channelsWithUnread }
-  } catch (error) {
+  } catch (_error) {
     console.error('getUserChannels error:', error)
     return { success: false, error: 'チャンネル一覧の取得に失敗しました' }
   }
@@ -347,7 +347,7 @@ export async function getChannelMessages(channelId: string, limit = 50, cursor?:
     }))
 
     return { success: true, data: messagesWithSender.reverse() }
-  } catch (error) {
+  } catch (_error) {
     console.error('getChannelMessages error:', error)
     return { success: false, error: 'メッセージの取得に失敗しました' }
   }
@@ -378,7 +378,7 @@ export async function markMessageAsRead(messageId: string) {
     })
 
     return { success: true }
-  } catch (error) {
+  } catch (_error) {
     console.error('markMessageAsRead error:', error)
     return { success: false, error: '既読の更新に失敗しました' }
   }
@@ -417,7 +417,7 @@ export async function toggleReaction(messageId: string, emoji: string) {
     }
 
     return { success: true }
-  } catch (error) {
+  } catch (_error) {
     console.error('toggleReaction error:', error)
     return { success: false, error: 'リアクションの更新に失敗しました' }
   }
@@ -454,7 +454,7 @@ export async function getChannelDetails(channelId: string) {
     }
 
     return { success: true, data: channel }
-  } catch (error) {
+  } catch (_error) {
     console.error('getChannelDetails error:', error)
     return { success: false, error: 'チャンネル情報の取得に失敗しました' }
   }
@@ -496,7 +496,7 @@ export async function markChannelAsRead(channelId: string) {
     revalidatePath('/messages')
     revalidatePath(`/messages/${channelId}`)
     return { success: true, data: { lastReadAt: member.lastReadAt } }
-  } catch (error) {
+  } catch (_error) {
     console.error('markChannelAsRead error:', error)
     return { success: false, error: '既読の更新に失敗しました' }
   }
@@ -519,7 +519,7 @@ export async function updateChannelReadStatus(channelId: string, userId: string)
     })
 
     return { success: true, data: { lastReadAt: member.lastReadAt } }
-  } catch (error) {
+  } catch (_error) {
     console.error('updateChannelReadStatus error:', error)
     return { success: false, error: '既読の更新に失敗しました' }
   }
@@ -573,7 +573,7 @@ export async function addReaction(messageId: string, emoji: string) {
 
       return { success: true, data: { action: 'added' } }
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('addReaction error:', error)
     return { success: false, error: 'リアクションの追加に失敗しました' }
   }
@@ -614,7 +614,7 @@ export async function sendThreadMessage({
     })
 
     return { success: true, data: threadMessage }
-  } catch (error) {
+  } catch (_error) {
     console.error('sendThreadMessage error:', error)
     return { success: false, error: 'スレッドメッセージの送信に失敗しました' }
   }
@@ -649,7 +649,7 @@ export async function getThreadMessages(messageId: string) {
     }))
 
     return { success: true, data: messagesWithSender }
-  } catch (error) {
+  } catch (_error) {
     console.error('getThreadMessages error:', error)
     return { success: false, error: 'スレッドメッセージの取得に失敗しました' }
   }
@@ -686,7 +686,7 @@ export async function editMessage(messageId: string, content: string) {
     })
 
     return { success: true, data: updated }
-  } catch (error) {
+  } catch (_error) {
     console.error('editMessage error:', error)
     return { success: false, error: 'メッセージの編集に失敗しました' }
   }
@@ -723,7 +723,7 @@ export async function updateMessage(messageId: string, content: string) {
     }
 
     // メッセージを更新
-    const updated = await notificationDb.message.update({
+    await notificationDb.message.update({
       where: { id: messageId },
       data: {
         content,
@@ -762,7 +762,7 @@ export async function updateMessage(messageId: string, content: string) {
     })
 
     return { success: true, data: messageWithSender }
-  } catch (error) {
+  } catch (_error) {
     console.error('updateMessage error:', error)
     return { success: false, error: 'メッセージの編集に失敗しました' }
   }
@@ -812,7 +812,7 @@ export async function deleteMessage(messageId: string) {
     })
 
     return { success: true }
-  } catch (error) {
+  } catch (_error) {
     console.error('deleteMessage error:', error)
     return { success: false, error: 'メッセージの削除に失敗しました' }
   }
@@ -844,7 +844,7 @@ export async function pinMessage(messageId: string, channelId: string) {
     // 現在のスキーマにピン留め用のフィールドがないため、スキーマ更新が必要
 
     return { success: true }
-  } catch (error) {
+  } catch (_error) {
     console.error('pinMessage error:', error)
     return { success: false, error: 'メッセージのピン留めに失敗しました' }
   }
@@ -906,7 +906,7 @@ export async function toggleMessageFlag(messageId: string) {
       })
       return { success: true, data: { flagged: true } }
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('toggleMessageFlag error:', error)
     return { success: false, error: 'フラグの設定に失敗しました' }
   }
@@ -967,7 +967,7 @@ export async function getFlaggedMessages() {
     }))
 
     return { success: true, data: messagesWithSender }
-  } catch (error) {
+  } catch (_error) {
     console.error('getFlaggedMessages error:', error)
     return { success: false, error: 'フラグ付きメッセージの取得に失敗しました' }
   }

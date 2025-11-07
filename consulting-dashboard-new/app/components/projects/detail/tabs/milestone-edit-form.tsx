@@ -15,17 +15,15 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
+  DialogFooter } from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  SelectValue } from '@/components/ui/select'
 import { MilestoneItem, MilestoneStatus, updateMilestone } from '@/actions/milestones'
-import { X, Save, Target, Clock, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Target, Clock, CheckCircle2, AlertCircle, X, Save } from 'lucide-react'
 import { format } from 'date-fns'
 
 const milestoneSchema = z.object({
@@ -95,7 +93,7 @@ export function MilestoneEditForm({ milestone, onClose, onMilestoneUpdated }: Mi
       })
       onMilestoneUpdated()
       onClose()
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to update milestone:', error)
       alert('マイルストーンの更新に失敗しました')
     } finally {

@@ -9,8 +9,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  SelectValue } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface TaskFiltersProps {
@@ -34,7 +33,7 @@ export function TaskFilters({ onFiltersChange, projects, initialStatus = 'active
     projectId: 'all'
   })
 
-  const updateFilter = (key: keyof TaskFilterState, value: string) => {
+  const updateFilter = (key: keyof TaskFilterState,_value) => {
     const newFilters = { ...filters, [key]: value }
     setFilters(newFilters)
     onFiltersChange(newFilters)

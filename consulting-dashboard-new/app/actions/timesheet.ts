@@ -8,6 +8,7 @@ import { z } from 'zod'
 import { hasAnyUserRole } from '@/lib/auth/role-check'
 
 // 工数入力スキーマ
+type TimeEntryData = z.infer<typeof timeEntrySchema>
 const timeEntrySchema = z.object({
   projectId: z.string(),
   taskId: z.string().optional(),
@@ -18,7 +19,7 @@ const timeEntrySchema = z.object({
 })
 
 // 工数記録を作成
-export async function createTimeEntry(data: z.infer<typeof timeEntrySchema>) {
+export async function createTimeEntry(data: TimeEntryData) {
   const user = await getCurrentUser()
   if (!user) {
     redirect('/login')
@@ -77,7 +78,7 @@ export async function createTimeEntry(data: z.infer<typeof timeEntrySchema>) {
       success: true,
       data: timeEntry,
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('Time entry creation error:', error)
     return {
       success: false,
@@ -89,7 +90,7 @@ export async function createTimeEntry(data: z.infer<typeof timeEntrySchema>) {
 // 工数記録を更新
 export async function updateTimeEntry(
   id: string,
-  data: Partial<z.infer<typeof timeEntrySchema>>
+  data: Partial<TimeEntryData>
 ) {
   const user = await getCurrentUser()
   if (!user) {
@@ -133,7 +134,7 @@ export async function updateTimeEntry(
       success: true,
       data: updated,
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('Time entry update error:', error)
     return {
       success: false,
@@ -182,7 +183,7 @@ export async function deleteTimeEntry(id: string) {
     return {
       success: true,
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('Time entry deletion error:', error)
     return {
       success: false,
@@ -384,7 +385,7 @@ export async function approveTimeEntries(ids: string[]) {
     return {
       success: true,
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('Time entries approval error:', error)
     return {
       success: false,

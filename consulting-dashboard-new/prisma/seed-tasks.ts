@@ -271,7 +271,7 @@ async function main() {
 
     console.log('\n✅ Task data seeding completed')
 
-  } catch (error) {
+  } catch (_error) {
     console.error('Error seeding task data:', error)
     throw error
   } finally {

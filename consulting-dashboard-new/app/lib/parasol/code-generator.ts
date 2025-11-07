@@ -99,7 +99,7 @@ export async function generateCode(
       warnings
     };
     
-  } catch (error) {
+  } catch (_error) {
     errors.push(`生成中にエラーが発生しました: ${error}`);
     return { success: false, generatedFiles, errors, warnings };
   }
@@ -721,7 +721,7 @@ export async function GET(request: NextRequest) {
   try {
     // TODO: 実装
     return NextResponse.json({ message: 'Not implemented' });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
@@ -731,7 +731,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     // TODO: 実装
     return NextResponse.json({ message: 'Not implemented' }, { status: 201 });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

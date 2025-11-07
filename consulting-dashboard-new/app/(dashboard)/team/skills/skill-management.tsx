@@ -12,15 +12,13 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+  DialogTrigger } from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { Plus, Settings } from 'lucide-react'
 import { createSkillCategory, createSkill } from '../../../actions/skills'
@@ -71,7 +69,7 @@ export function SkillManagement({ categories }: SkillManagementProps) {
         setCategoryOpen(false)
         setCategoryName('')
         setCategoryOrder('')
-      } catch (error) {
+      } catch (_error) {
         toast.error(error instanceof Error ? error.message : 'カテゴリの作成に失敗しました')
       }
     })
@@ -93,7 +91,7 @@ export function SkillManagement({ categories }: SkillManagementProps) {
         setSkillOpen(false)
         setSkillName('')
         setSelectedCategoryId('')
-      } catch (error) {
+      } catch (_error) {
         toast.error(error instanceof Error ? error.message : 'スキルの作成に失敗しました')
       }
     })

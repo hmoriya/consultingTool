@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { TimesheetForm } from '@/components/timesheet/timesheet-form'
 import { TimesheetList } from '@/components/timesheet/timesheet-list'
 import { WeeklySummary } from '@/components/timesheet/weekly-summary'

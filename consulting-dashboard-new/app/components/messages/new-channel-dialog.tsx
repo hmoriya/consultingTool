@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { createChannel } from '@/actions/messages'
 import { getAllUsers } from '@/actions/users'
 import { getActiveProjects } from '@/actions/projects'
@@ -89,7 +89,7 @@ export function NewChannelDialog({ open, onClose, onSuccess }: NewChannelDialogP
       } else {
         toast.error(result.error || '作成に失敗しました')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('エラーが発生しました')
     } finally {
       setIsSubmitting(false)

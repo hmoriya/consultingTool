@@ -9,7 +9,6 @@ import {
   Calendar,
   Clock,
   User,
-  MoreVertical,
   Plus
 } from 'lucide-react'
 import { TaskItem, TaskStatus, TaskPriority } from '@/actions/tasks'

@@ -77,7 +77,7 @@ async function main() {
 
     console.log('✅ Project member assignment completed')
 
-  } catch (error) {
+  } catch (_error) {
     console.error('Error seeding project members:', error)
     throw error
   } finally {

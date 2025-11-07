@@ -1397,7 +1397,7 @@ export class DiagramConverter {
           if (!exists) {
             entity.relationships?.push({
               target: valueObject.name,
-              type: 'value-object' as any
+              type: 'value-object'
             });
             console.log(`    ✓ Added value object relationship: ${entity.name} -> ${valueObject.name}`);
           }

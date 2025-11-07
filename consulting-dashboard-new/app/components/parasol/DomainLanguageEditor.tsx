@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, Trash2, Edit2, Save, X } from 'lucide-react';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { DomainLanguageDefinition, DomainEntity, ValueObject, DomainService } from '@/types/parasol';
 import { EntityEditor } from './EntityEditor';
 import { ValueObjectEditor } from './ValueObjectEditor';
@@ -77,7 +77,7 @@ export function DomainLanguageEditor({
     setEditMode('valueObject');
   };
 
-  const handleUpdateValueObject = (index: number, valueObject: ValueObject) => {
+  const handleUpdateValueObject = (index: number,_value) => {
     const newValueObjects = [...value.valueObjects];
     newValueObjects[index] = valueObject;
     onChange({

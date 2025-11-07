@@ -9,16 +9,14 @@ import type {
   DomainLanguageDefinition,
   ApiSpecification,
   DbDesign,
-  TreeNode,
-} from './parasol';
+  TreeNode } from './parasol';
 
 import type {
   ServiceResponse,
   ServiceWithMappedRelations,
   MappedBusinessOperation,
   MappedBusinessCapability,
-  MappedUseCase,
-} from './parasol-actions';
+  MappedUseCase } from './parasol-actions';
 
 // Service Form Component Types
 export interface ServiceFormProps {

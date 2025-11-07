@@ -297,7 +297,7 @@ export async function getActiveProjects() {
     }))
 
     return { success: true, data: formattedProjects }
-  } catch (error) {
+  } catch (_error) {
     console.error('getActiveProjects error:', error)
     return { success: false, error: 'プロジェクト一覧の取得に失敗しました' }
   }

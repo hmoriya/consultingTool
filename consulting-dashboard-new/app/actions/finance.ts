@@ -7,6 +7,7 @@ import { startOfMonth, endOfMonth, subMonths } from 'date-fns'
 import { z } from 'zod'
 
 // 収益記録スキーマ
+type RevenueData = z.infer<typeof revenueSchema>
 const revenueSchema = z.object({
   projectId: z.string(),
   date: z.date(),
@@ -18,6 +19,7 @@ const revenueSchema = z.object({
 })
 
 // コスト記録スキーマ
+type CostData = z.infer<typeof costSchema>
 const costSchema = z.object({
   projectId: z.string(),
   date: z.date(),
@@ -28,7 +30,7 @@ const costSchema = z.object({
 })
 
 // 収益記録を作成
-export async function createRevenue(data: z.infer<typeof revenueSchema>) {
+export async function createRevenue(data: RevenueData) {
   const user = await getCurrentUser()
   if (!user) {
     redirect('/login')
@@ -71,7 +73,7 @@ export async function createRevenue(data: z.infer<typeof revenueSchema>) {
       success: true,
       data: revenue,
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('Revenue creation error:', error)
     return {
       success: false,
@@ -81,7 +83,7 @@ export async function createRevenue(data: z.infer<typeof revenueSchema>) {
 }
 
 // コスト記録を作成
-export async function createCost(data: z.infer<typeof costSchema>) {
+export async function createCost(data: CostData) {
   const user = await getCurrentUser()
   if (!user) {
     redirect('/login')
@@ -124,7 +126,7 @@ export async function createCost(data: z.infer<typeof costSchema>) {
       success: true,
       data: cost,
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('Cost creation error:', error)
     return {
       success: false,
@@ -252,18 +254,6 @@ export async function getProjectFinancials(projectId: string, month: Date) {
       },
     })
 
-    const prevCosts = await prisma.cost.aggregate({
-      where: {
-        projectId,
-        date: {
-          gte: prevMonthStart,
-          lte: prevMonthEnd,
-        },
-      },
-      _sum: {
-        amount: true,
-      },
-    })
 
     const prevRevenueTotal = prevRevenues._sum.amount || 0
     const revenueChange = prevRevenueTotal > 0 
@@ -284,7 +274,7 @@ export async function getProjectFinancials(projectId: string, month: Date) {
         revenueChange,
       },
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('Project financials error:', error)
     return {
       success: false,
@@ -460,7 +450,7 @@ export async function getCompanyFinancialSummary(month: Date) {
       },
       projectRevenues: projectData.sort((a, b) => b.revenue - a.revenue),
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('Company financial summary error:', error)
     return {
       success: false,

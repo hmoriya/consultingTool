@@ -8,8 +8,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+  AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { deleteMessage } from '@/actions/messages'
 import { toast } from 'sonner'
 import { useState } from 'react'

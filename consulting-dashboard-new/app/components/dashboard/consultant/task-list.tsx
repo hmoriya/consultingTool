@@ -1,6 +1,6 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -29,7 +29,7 @@ export function TaskList({ tasks }: TaskListProps) {
     try {
       await updateTaskStatus(taskId, status as 'todo' | 'in_progress' | 'in_review' | 'completed')
       router.refresh()
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to update task status:', error)
     } finally {
       setUpdatingTask(null)

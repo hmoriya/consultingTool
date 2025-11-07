@@ -69,7 +69,7 @@ export function ServiceForm({ service, onClose, onSuccess }: ServiceFormProps) {
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'エラー',
         description: 'サービスの保存中にエラーが発生しました',

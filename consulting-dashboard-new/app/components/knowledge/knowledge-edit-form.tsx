@@ -13,19 +13,17 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+  FormMessage } from '@/components/ui/form'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
-import { Loader2, Save, X } from 'lucide-react'
+import { Loader2, X, Save } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { updateArticle } from '@/actions/knowledge'
 
@@ -113,7 +111,7 @@ export function KnowledgeEditForm({ article }: KnowledgeEditFormProps) {
       })
 
       router.push(`/knowledge/${article.id}`)
-    } catch (error) {
+    } catch (_error) {
       console.error('Error updating knowledge:', error)
       toast({
         title: 'エラー',

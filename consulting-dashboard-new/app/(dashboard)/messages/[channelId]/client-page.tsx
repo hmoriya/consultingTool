@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -10,10 +10,10 @@ import {
   Send,
   Paperclip,
   Smile,
-  X,
   File,
+  Image as ImageIcon,
   FileText,
-  Image as ImageIcon
+  X
 } from 'lucide-react'
 import { format, isToday, isYesterday } from 'date-fns'
 import { ja } from 'date-fns/locale'
@@ -208,7 +208,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
         console.log('Calling markChannelAsRead for channel:', channel.id)
         const result = await markChannelAsRead(channel.id)
         console.log('markChannelAsRead result:', result)
-      } catch (error) {
+      } catch (_error) {
         console.error('Failed to mark channel as read:', error)
       }
     }, 500)
@@ -313,7 +313,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
       } else {
         throw new Error(result.error || 'メッセージの送信に失敗しました')
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('File upload error:', error)
       toast.error(error instanceof Error ? error.message : 'ファイルの送信に失敗しました')
     } finally {

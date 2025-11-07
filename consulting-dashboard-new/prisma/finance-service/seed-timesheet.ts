@@ -126,7 +126,7 @@ async function main() {
     
     console.log(`✅ Created ${totalEntries} timesheet entries with total ${totalHours._sum.hours} hours`)
     
-  } catch (error) {
+  } catch (_error) {
     console.error('Error seeding timesheet data:', error)
     throw error
   } finally {

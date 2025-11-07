@@ -85,7 +85,7 @@ export function WeeklySummary({ weekStart, weekEnd, timesheet }: WeeklySummaryPr
           variant: 'destructive',
         })
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'エラー',
         description: '予期しないエラーが発生しました',

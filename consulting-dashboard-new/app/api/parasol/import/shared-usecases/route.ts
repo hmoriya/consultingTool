@@ -67,7 +67,7 @@ export async function POST(request: Request) {
           scanErrors
         )
       }
-    } catch (error) {
+    } catch (_error) {
       return NextResponse.json({
         success: false,
         error: 'サービスディレクトリのスキャンに失敗しました',
@@ -156,7 +156,7 @@ export async function POST(request: Request) {
           })
           processed.push({ ...useCase, action: 'created' })
         }
-      } catch (error) {
+      } catch (_error) {
         errors.push({
           useCase: useCase.name,
           error: error instanceof Error ? error.message : '未知のエラー'
@@ -191,7 +191,7 @@ export async function POST(request: Request) {
       scanErrors
     })
 
-  } catch (error) {
+  } catch (_error) {
     console.error('共有ユースケースインポートエラー:', error)
     return NextResponse.json({
       success: false,
@@ -250,7 +250,7 @@ async function scanServiceSharedUseCases(
                 pages
               })
             }
-          } catch (error) {
+          } catch (_error) {
             // shared-usecases ディレクトリが存在しない場合はスキップ
             scanErrors.push({
               serviceId,
@@ -259,7 +259,7 @@ async function scanServiceSharedUseCases(
             })
           }
         }
-      } catch (error) {
+      } catch (_error) {
         scanErrors.push({
           serviceId,
           capabilityId: capabilityDir,
@@ -267,7 +267,7 @@ async function scanServiceSharedUseCases(
         })
       }
     }
-  } catch (error) {
+  } catch (_error) {
     scanErrors.push({
       serviceId,
       error: `サービススキャンエラー: ${error}`
@@ -443,7 +443,7 @@ async function analyzeOperationImpact(useCases: unknown[], targetOperationId?: s
         ]
       }
     }
-  } catch (error) {
+  } catch (_error) {
     return {
       impactScope: 'unknown',
       error: error instanceof Error ? error.message : '影響分析に失敗しました',

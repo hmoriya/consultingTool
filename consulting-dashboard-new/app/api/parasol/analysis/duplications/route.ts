@@ -214,7 +214,7 @@ class PageDuplicationAnalyzer {
   }
 }
 
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
     console.log('重複分析API開始')
 
@@ -250,7 +250,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(result)
 
-  } catch (error) {
+  } catch (_error) {
     console.error('重複分析エラー:', error)
     return NextResponse.json({
       error: 'Duplication analysis failed',

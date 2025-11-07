@@ -151,7 +151,7 @@ async function collectServiceData(serviceName) {
                 });
               }
             }
-          } catch (error) {
+          } catch {
             // usecasesディレクトリがない場合はスキップ
           }
 
@@ -180,7 +180,7 @@ async function collectServiceData(serviceName) {
                 });
               }
             }
-          } catch (error) {
+          } catch {
             // pagesディレクトリがない場合はスキップ
           }
 
@@ -209,7 +209,7 @@ async function collectServiceData(serviceName) {
                 });
               }
             }
-          } catch (error) {
+          } catch {
             // testsディレクトリがない場合はスキップ
           }
 
@@ -224,11 +224,11 @@ async function collectServiceData(serviceName) {
 
           console.log(`📋 収集: ${serviceName}/${capabilityName}/${operationName} - ユースケース:${usecases.length}件, ページ:${pages.length}件, テスト:${tests.length}件`);
         }
-      } catch (error) {
+      } catch {
         // operationsディレクトリがない場合はスキップ
       }
     }
-  } catch (error) {
+  } catch {
     console.log(`⚠️  ケーパビリティディレクトリが見つかりません: ${serviceName}`);
   }
 

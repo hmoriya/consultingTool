@@ -8,8 +8,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
+  DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { updateTaskStatus } from '@/actions/tasks'
@@ -42,7 +41,7 @@ export function TaskStatusDialog({ taskId, currentStatus, isOpen, onClose }: Tas
       await updateTaskStatus(taskId, selectedStatus, comment)
       router.refresh()
       onClose()
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to update task status:', error)
     } finally {
       setIsLoading(false)

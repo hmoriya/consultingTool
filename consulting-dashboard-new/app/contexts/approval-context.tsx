@@ -33,7 +33,7 @@ export function ApprovalProvider({ children }: { children: React.ReactNode }) {
     //     const data = await response.json()
     //     setPendingCount(data.count || 0)
     //   }
-    // } catch (error) {
+    // } catch (_error) {
     //   console.error('Failed to fetch pending count:', error)
     //   setPendingCount(0)
     // }

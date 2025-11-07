@@ -161,7 +161,7 @@ async function captureUseCase(browser: Browser, useCase: typeof USE_CASES[0]) {
       console.log(`Captured: ${useCase.title} - Step ${i + 1}`)
     }
     
-  } catch (error) {
+  } catch (_error) {
     console.error(`Error capturing ${useCase.id}:`, error)
   } finally {
     await context.close()

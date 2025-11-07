@@ -4,17 +4,17 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 import {
   ArrowLeft,
-  Save,
   Eye,
   BarChart3,
   Settings,
-  FileText,
   Layout,
   Code,
   Maximize2,
   Minimize2,
   Folder,
-  FolderOpen
+  FolderOpen,
+  Save,
+  FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -125,7 +125,7 @@ export default function ParasolEnhancedEditPage() {
       const data: FileData = await response.json();
       setFileData(data);
       setIsModified(false);
-    } catch (error) {
+    } catch (_error) {
       console.error('Error loading file:', error);
       toast.error('ファイルの読み込みに失敗しました');
 
@@ -174,7 +174,7 @@ export default function ParasolEnhancedEditPage() {
       setFileData(prev => prev ? { ...prev, lastModified: new Date() } : null);
       setIsModified(false);
       toast.success('ファイルを保存しました');
-    } catch (error) {
+    } catch (_error) {
       console.error('Error saving file:', error);
       toast.error('ファイルの保存に失敗しました');
     } finally {

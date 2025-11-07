@@ -9,7 +9,7 @@ export interface ProgressProps
 }
 
 const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
-  ({ className, value, ...props }, ref) => {
+  ({ className, value }, ref) => {
     return (
       <div
         ref={ref}

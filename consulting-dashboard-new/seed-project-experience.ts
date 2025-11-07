@@ -94,7 +94,7 @@ async function main() {
 
           const skill = skills.find(s => s.id === userSkill.skillId)
           console.log(`  - スキル「${skill?.name}」を追加（レベル: ${usageLevel}）`)
-        } catch (error) {
+        } catch (_error) {
           // 既に存在する場合はスキップ
           if (error instanceof Error && 'code' in error && error.code === 'P2002') {
             console.log(`  - スキル「${skills.find(s => s.id === userSkill.skillId)?.name}」は既に登録済み`)
@@ -107,7 +107,7 @@ async function main() {
 
     console.log('\n✅ プロジェクト経験データの投入が完了しました！')
 
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ エラー:', error)
   } finally {
     await projectDb.$disconnect()

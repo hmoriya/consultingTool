@@ -5,16 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import {
   AlertTriangle,
   CheckCircle,
-  FileText,
   Plus,
   RefreshCw,
   BarChart3,
   Target,
-  TrendingUp
+  TrendingUp,
+  FileText
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -62,7 +62,7 @@ export default function APIUsageManagementPanel() {
 
       setStats(data.stats)
       setMissingFiles(data.missingFiles || [])
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to load API usage data:', error)
       // フォールバック用のモックデータ
       setStats({
@@ -130,7 +130,7 @@ export default function APIUsageManagementPanel() {
       if (response.ok) {
         await loadData() // データを再読み込み
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to create API usage files:', error)
     } finally {
       setCreating(false)

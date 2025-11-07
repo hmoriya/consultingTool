@@ -1,9 +1,9 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Briefcase, Users, Calendar, Target } from 'lucide-react'
+import { Briefcase, Calendar, Target, Users } from 'lucide-react'
 import Link from 'next/link'
 
 interface ProjectCardsProps {

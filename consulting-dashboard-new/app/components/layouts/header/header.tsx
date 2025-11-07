@@ -21,7 +21,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
     try {
       await logout()
       // logout() already handles redirect, no need for router.push
-    } catch (error) {
+    } catch (_error) {
       console.error('Logout failed:', error)
       // Fallback redirect if server action fails
       router.push('/login')

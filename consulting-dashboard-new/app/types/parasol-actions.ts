@@ -9,8 +9,7 @@ import type {
   DomainLanguageDefinition,
   ApiSpecification,
   DbDesign,
-  OperationPattern,
-} from './parasol';
+  OperationPattern } from './parasol';
 
 // Service action types
 export interface CreateServiceData {

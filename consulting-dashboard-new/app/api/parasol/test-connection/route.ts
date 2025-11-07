@@ -3,7 +3,7 @@ import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 
 const parasolDb = new ParasolPrismaClient()
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     console.log('Testing Parasol database connection...')
 
@@ -52,7 +52,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(result)
 
-  } catch (error) {
+  } catch (_error) {
     console.error('Parasol database test error:', error)
     return NextResponse.json({
       status: 'error',

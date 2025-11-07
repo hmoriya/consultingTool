@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useState, useEffect } from 'react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+// import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
   GitBranch,
@@ -15,7 +15,6 @@ import {
   Copy,
   Download,
   Plus,
-  Trash2,
   Eye,
   Code
 } from 'lucide-react';
@@ -191,7 +190,7 @@ export default function DiagramEditor({
             mermaidRef.current.innerHTML = diagramCode;
             mermaid.run();
           }
-        } catch (error) {
+        } catch (_error) {
           console.error('Mermaid rendering error:', error);
           if (mermaidRef.current) {
             mermaidRef.current.innerHTML = '<p class="text-red-500">図表の描画中にエラーが発生しました。</p>';
@@ -241,7 +240,7 @@ export default function DiagramEditor({
     try {
       await navigator.clipboard.writeText(diagramCode);
       toast.success('図表コードをコピーしました');
-    } catch (error) {
+    } catch (_error) {
       toast.error('コピーに失敗しました');
     }
   };
@@ -276,7 +275,7 @@ export default function DiagramEditor({
 
           img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
         }
-      } catch (error) {
+      } catch (_error) {
         toast.error('画像のダウンロードに失敗しました');
       }
     }

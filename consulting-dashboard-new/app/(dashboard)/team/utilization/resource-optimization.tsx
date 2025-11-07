@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 // import { Alert, AlertDescription } from '@/components/ui/alert'
-import { ArrowRight, Users, AlertTriangle, TrendingDown } from 'lucide-react'
+import { ArrowRight, AlertTriangle, TrendingDown, Users } from 'lucide-react'
 import type { MemberUtilization } from '../../../actions/utilization'
 
 interface Recommendation {

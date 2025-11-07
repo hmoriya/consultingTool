@@ -27,7 +27,7 @@ async function seedService<T>(
     const data = await seedFunction()
     console.log(`✅ ${serviceName} seeded successfully`)
     return { service: serviceName, success: true, data }
-  } catch (error) {
+  } catch (_error) {
     const errorMessage = `❌ Failed to seed ${serviceName}: ${error instanceof Error ? error.message : String(error)}`
     console.error(errorMessage)
     
@@ -139,7 +139,7 @@ async function main() {
     )
     results.push(parasolResult)
     
-  } catch (error) {
+  } catch (_error) {
     console.error('\n💥 Critical error during seeding process:')
     console.error(error instanceof Error ? error.message : String(error))
     

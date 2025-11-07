@@ -1,23 +1,23 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts'
 import {
   AlertTriangle,
   CheckCircle,
-  Info,
   RefreshCw,
   Download,
   Merge,
   Eye,
-  Settings
+  Settings,
+  Info
 } from 'lucide-react'
 
 interface DuplicationGroup {
@@ -81,7 +81,7 @@ export default function DuplicationAnalysisDashboard() {
 
       const data = await response.json()
       setAnalysisData(data)
-    } catch (error) {
+    } catch (_error) {
       setError(error instanceof Error ? error.message : '不明なエラーが発生しました')
     } finally {
       setIsLoading(false)
@@ -90,7 +90,7 @@ export default function DuplicationAnalysisDashboard() {
 
   useEffect(() => {
     fetchAnalysis()
-  }, [])
+  }, [fetchAnalysis])
 
   const handleApplySuggestion = async (group: DuplicationGroup) => {
     try {
@@ -114,7 +114,7 @@ export default function DuplicationAnalysisDashboard() {
       // Show success message or details
       alert(`統合提案が正常に処理されました。\n統合予定: ${result.appliedChanges?.merged || 0}件`)
 
-    } catch (error) {
+    } catch (_error) {
       console.error('統合提案エラー:', error)
       alert('統合提案の処理中にエラーが発生しました')
     }

@@ -15,15 +15,13 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+  FormMessage } from '@/components/ui/form'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Calendar } from '@/components/ui/calendar'
@@ -31,8 +29,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+  PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 import { createTimeEntry, updateTimeEntry } from '@/actions/timesheet-new'
 import { useToast } from '@/hooks/use-toast'
@@ -145,7 +142,7 @@ export function TimesheetForm({ projects, defaultDate, onSuccess, onCancel, edit
           variant: 'destructive',
         })
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'エラー',
         description: '予期しないエラーが発生しました',

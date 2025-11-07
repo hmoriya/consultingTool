@@ -4,7 +4,6 @@ import { db } from '@/lib/db'
 import { projectDb } from '@/lib/db/project-db'
 import { getCurrentUser } from './auth'
 import { z } from 'zod'
-import { ProjectMember } from '@prisma/project-client'
 import { TeamMemberRole, teamMemberRoleUtils, teamMemberRoleSchema } from '@/types/team-member'
 
 export type TeamMemberItem = {

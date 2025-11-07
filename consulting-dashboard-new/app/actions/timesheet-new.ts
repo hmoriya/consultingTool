@@ -93,7 +93,7 @@ export async function createTimeEntry(data: z.infer<typeof timeEntrySchema>) {
 
     revalidatePath('/timesheet')
     return { success: true, data: timeEntry }
-  } catch (error) {
+  } catch (_error) {
     console.error('createTimeEntry error:', error)
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace')
     if (error instanceof z.ZodError) {
@@ -134,7 +134,7 @@ export async function updateTimeEntry(id: string, data: Partial<z.infer<typeof t
 
     revalidatePath('/timesheet')
     return { success: true, data: updated }
-  } catch (error) {
+  } catch (_error) {
     console.error('updateTimeEntry error:', error)
     return { 
       success: false, 
@@ -170,7 +170,7 @@ export async function deleteTimeEntry(id: string) {
 
     revalidatePath('/timesheet')
     return { success: true }
-  } catch (error) {
+  } catch (_error) {
     console.error('deleteTimeEntry error:', error)
     return { 
       success: false, 

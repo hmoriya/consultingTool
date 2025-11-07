@@ -1,5 +1,4 @@
 'use client'
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,15 +7,16 @@ import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import {
   Plus,
-  MoreVertical,
   Edit,
-  Trash2,
   Calendar,
   Target,
   CheckCircle2,
   Clock,
   AlertCircle,
-  BarChart3
+  BarChart3,
+  MoreVertical,
+  Trash2,
+  Users
 } from 'lucide-react'
 import {
   MilestoneItem,
@@ -32,8 +32,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+  DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 
@@ -64,7 +63,15 @@ const statusIcons: Record<MilestoneStatus | 'inProgress', React.ComponentType<{ 
 
 export function ProjectMilestones({ project }: ProjectMilestonesProps) {
   const [milestones, setMilestones] = useState<MilestoneItem[]>([])
-  const [stats, setStats] = useState<any>(null)
+  const [stats, setStats] = useState<{
+    totalMilestones: number;
+    completedMilestones: number;
+    delayedMilestones: number;
+    pendingMilestones: number;
+    overdueMilestones: number;
+    overallProgress: number;
+    completionRate: number;
+  } | null>(null)
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingMilestone, setEditingMilestone] = useState<MilestoneItem | null>(null)
@@ -82,7 +89,7 @@ export function ProjectMilestones({ project }: ProjectMilestonesProps) {
       ])
       setMilestones(milestoneData)
       setStats(statsData)
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to load milestone data:', error)
     } finally {
       setLoading(false)
@@ -95,7 +102,7 @@ export function ProjectMilestones({ project }: ProjectMilestonesProps) {
     try {
       await deleteMilestone(milestoneId)
       await loadMilestoneData()
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to delete milestone:', error)
       alert('マイルストーンの削除に失敗しました')
     }

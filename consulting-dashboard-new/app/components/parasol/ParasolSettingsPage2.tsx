@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
-import { Search, Plus, Save, FolderTree, Code } from 'lucide-react';
+import { Search, Plus, FolderTree, Code, Save } from 'lucide-react';
 import { saveServiceData, createBusinessOperation, createBusinessCapability, updateBusinessOperation, deleteBusinessOperation, getUseCasesForOperation } from '@/app/actions/parasol';
 import { ParasolTreeView } from './ParasolTreeView';
 import { UnifiedTreeView } from './UnifiedTreeView';
@@ -19,8 +19,8 @@ import { BusinessOperationEditor } from './BusinessOperationEditor';
 import { UseCaseDialog } from './UseCaseDialog';
 import { UseCaseListView } from './UseCaseListView';
 import { CodeGenerationPanel } from './CodeGenerationPanel';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/app/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -69,13 +69,13 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
 
   // オペレーション編集モーダルの状態
   const [operationModalOpen, setOperationModalOpen] = useState(false);
-  const [editingOperation, setEditingOperation] = useState<any>(null);
-  const [editingCapability, setEditingCapability] = useState<any>(null);
+  const [editingOperation, setEditingOperation] = useState<unknown>(null);
+  const [editingCapability, setEditingCapability] = useState<unknown>(null);
   const [showUseCaseDialog, setShowUseCaseDialog] = useState(false);
   const [currentOperationForUseCase, setCurrentOperationForUseCase] = useState<string | null>(null);
-  const [editingUseCase, setEditingUseCase] = useState<any>(null);
-  const [operationUseCases, setOperationUseCases] = useState<any[]>([]);
-  const [servicesWithUseCases, setServicesWithUseCases] = useState<any[]>([]);
+  const [editingUseCase, setEditingUseCase] = useState<unknown>(null);
+  const [operationUseCases, setOperationUseCases] = useState<unknown[]>([]);
+  const [servicesWithUseCases, setServicesWithUseCases] = useState<unknown[]>([]);
 
   const { toast } = useToast();
 
@@ -95,7 +95,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
             console.error('Failed to load usecases:', result.error);
             setOperationUseCases([]);
           }
-        } catch (error) {
+        } catch (_error) {
           console.error('Error loading usecases:', error);
           setOperationUseCases([]);
         }
@@ -167,7 +167,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                   };
                   return operationWithUseCases;
                 }
-              } catch (error) {
+              } catch (_error) {
                 console.error(`Error loading usecases for operation ${operation.id}:`, error);
               }
               return {
@@ -520,7 +520,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'エラー',
         description: '保存中にエラーが発生しました',
@@ -1389,7 +1389,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                 if (result.success) {
                   setOperationUseCases(result.data || []);
                 }
-              } catch (error) {
+              } catch (_error) {
                 console.error('Error refreshing usecases:', error);
               }
             }

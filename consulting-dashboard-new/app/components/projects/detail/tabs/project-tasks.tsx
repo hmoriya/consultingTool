@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import {
   Plus,
   Filter,
@@ -13,13 +13,11 @@ import {
   Clock,
   User,
   ChevronDown,
-  MoreVertical,
   Edit,
-  Trash2,
   CheckCircle2
 } from 'lucide-react'
 import { TaskItem, TaskStatus, TaskPriority, getProjectTasks, updateTaskStatus } from '@/actions/tasks'
-import { getProjectMilestones } from '@/actions/milestones'
+import { getProjectMilestones, MilestoneItem } from '@/actions/milestones'
 import { TaskCreateForm } from './task-create-form'
 import { TaskCard } from './task-card'
 import { TaskKanban } from './task-kanban'
@@ -28,15 +26,13 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+  DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  SelectValue } from '@/components/ui/select'
 
 interface ProjectTasksProps {
   project: unknown
@@ -65,7 +61,7 @@ const priorityColors: Record<TaskPriority, string> = {
 
 export function ProjectTasks({ project }: ProjectTasksProps) {
   const [tasks, setTasks] = useState<TaskItem[]>([])
-  const [milestones, setMilestones] = useState<any[]>([])
+  const [milestones, setMilestones] = useState<MilestoneItem[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list')
@@ -86,7 +82,7 @@ export function ProjectTasks({ project }: ProjectTasksProps) {
       ])
       setTasks(projectTasks)
       setMilestones(projectMilestones)
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to load tasks:', error)
     } finally {
       setLoading(false)
@@ -97,7 +93,7 @@ export function ProjectTasks({ project }: ProjectTasksProps) {
     try {
       await updateTaskStatus(taskId, status)
       await loadTasks() // リロード
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to update task status:', error)
     }
   }

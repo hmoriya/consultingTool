@@ -128,7 +128,7 @@ async function updateAllocations() {
       });
     }
 
-  } catch (error) {
+  } catch (_error) {
     console.error('Error:', error);
   } finally {
     await authDb.$disconnect();

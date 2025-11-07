@@ -1,9 +1,9 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Users, TrendingUp, AlertCircle } from 'lucide-react'
+import { TrendingUp, AlertCircle, Users } from 'lucide-react'
 
 interface ResourceData {
   members: {

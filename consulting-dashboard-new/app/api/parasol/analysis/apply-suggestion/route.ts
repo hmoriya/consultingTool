@@ -160,7 +160,7 @@ class UseCaseConsolidator {
         result.appliedChanges.deleted = toMerge.length
       })
 
-    } catch (error) {
+    } catch (_error) {
       result.success = false
       result.errors.push(error instanceof Error ? error.message : 'Unknown error')
     }
@@ -331,7 +331,7 @@ class PageConsolidator {
         result.appliedChanges.deleted = toMerge.length
       })
 
-    } catch (error) {
+    } catch (_error) {
       result.success = false
       result.errors.push(error instanceof Error ? error.message : 'Unknown error')
     }
@@ -362,7 +362,7 @@ export async function POST(request: Request) {
     const body: ApplySuggestionRequest = await request.json()
     const {
       type,
-      suggestionId,
+      suggestionId: _suggestionId,
       action,
       targetName,
       duplicateIds,
@@ -402,7 +402,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result)
 
-  } catch (error) {
+  } catch (_error) {
     console.error('統合提案適用エラー:', error)
     return NextResponse.json({
       success: false,

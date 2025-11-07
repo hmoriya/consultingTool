@@ -130,7 +130,7 @@ async function main() {
 
     console.log(`\n✅ Successfully created ${successCount} user skill records!`)
 
-  } catch (error) {
+  } catch (_error) {
     console.error('Error seeding skills:', error)
   } finally {
     await authDb.$disconnect()

@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import {
   LineChart,
   Line,
@@ -13,7 +13,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   RadarChart,
   PolarGrid,
@@ -21,15 +20,16 @@ import {
   PolarRadiusAxis,
   Radar,
   Area,
-  AreaChart
+  AreaChart,
+  Legend
 } from 'recharts'
 import {
   TrendingUp,
   TrendingDown,
   Activity,
-  Users,
   DollarSign,
-  Target
+  Target,
+  Users
 } from 'lucide-react'
 
 interface ProjectMetricsProps {

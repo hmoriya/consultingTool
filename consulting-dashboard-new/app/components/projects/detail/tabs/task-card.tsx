@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -10,13 +10,13 @@ import {
   Calendar,
   Clock,
   User,
-  MoreVertical,
   Edit,
-  Trash2,
   CheckCircle2,
   Play,
   Pause,
-  Eye
+  Eye,
+  Trash2,
+  MoreVertical
 } from 'lucide-react'
 import { TaskItem, TaskStatus, TaskPriority, updateTaskStatus, deleteTask } from '@/actions/tasks'
 import {
@@ -24,15 +24,13 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+  DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  SelectValue } from '@/components/ui/select'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 
@@ -84,7 +82,7 @@ export function TaskCard({ task, onStatusChange, onTaskUpdate }: TaskCardProps) 
       setIsDeleting(true)
       await deleteTask(task.id)
       onTaskUpdate()
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to delete task:', error)
     } finally {
       setIsDeleting(false)

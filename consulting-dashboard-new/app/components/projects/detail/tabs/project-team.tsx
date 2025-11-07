@@ -8,13 +8,13 @@ import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import {
   Plus,
-  MoreVertical,
   Edit,
-  Trash2,
-  Users,
   TrendingUp,
   Calendar,
-  UserCheck
+  UserCheck,
+  Users,
+  MoreVertical,
+  Trash2
 } from 'lucide-react'
 import {
   TeamMemberItem,
@@ -35,8 +35,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+  DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 
@@ -46,7 +45,16 @@ interface ProjectTeamProps {
 
 export function ProjectTeam({ project }: ProjectTeamProps) {
   const [members, setMembers] = useState<TeamMemberItem[]>([])
-  const [stats, setStats] = useState<any>(null)
+  const [stats, setStats] = useState<{
+    totalMembers: number;
+    averageAllocation: number;
+    totalFTE: number;
+    requiredFTE: number;
+    fteUtilization: number;
+    roleDistribution: Record<string, number>;
+    pmCount: number;
+    totalAllocation: number;
+  } | null>(null)
   const [loading, setLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingMember, setEditingMember] = useState<TeamMemberItem | null>(null)
@@ -64,7 +72,7 @@ export function ProjectTeam({ project }: ProjectTeamProps) {
       ])
       setMembers(teamMembers)
       setStats(teamStats)
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to load team data:', error)
     } finally {
       setLoading(false)
@@ -77,7 +85,7 @@ export function ProjectTeam({ project }: ProjectTeamProps) {
     try {
       await removeTeamMember(memberId)
       await loadTeamData()
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to remove member:', error)
       alert('メンバーの削除に失敗しました')
     }

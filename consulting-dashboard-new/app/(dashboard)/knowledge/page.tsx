@@ -1,11 +1,11 @@
 import { getCurrentUser } from '@/actions/auth'
 import { getArticles } from '@/actions/knowledge'
 import { redirect } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { FileText, BookOpen, Lightbulb, Search, Plus } from 'lucide-react'
+import { BookOpen, Lightbulb, Search, Plus } from 'lucide-react'
 import Link from 'next/link'
 
 // ユーザー名を取得するダミー関数

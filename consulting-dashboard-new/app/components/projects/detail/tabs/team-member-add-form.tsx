@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { X, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -15,22 +16,20 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
+  DialogFooter } from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  SelectValue } from '@/components/ui/select'
 import { addTeamMember, getAvailableUsers, AvailableUser } from '@/actions/project-team'
 import { 
   TeamMemberRole, 
   teamMemberRoleSchema,
   teamMemberRoleUtils 
 } from '@/types/team-member'
-import { X, Save, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 
 const memberSchema = z.object({
   userId: z.string().min(1, 'ユーザーを選択してください'),
@@ -81,7 +80,7 @@ export function TeamMemberAddForm({ projectId, onClose, onMemberAdded }: TeamMem
       setUsersLoading(true)
       const users = await getAvailableUsers()
       setAvailableUsers(users)
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to load available users:', error)
     } finally {
       setUsersLoading(false)
@@ -101,7 +100,7 @@ export function TeamMemberAddForm({ projectId, onClose, onMemberAdded }: TeamMem
       await addTeamMember(memberData)
       onMemberAdded()
       onClose()
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to add team member:', error)
       alert('メンバーの追加に失敗しました')
     } finally {

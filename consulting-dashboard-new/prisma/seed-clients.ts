@@ -37,7 +37,7 @@ async function main() {
 
     console.log('✅ Client organizations seeding completed')
 
-  } catch (error) {
+  } catch (_error) {
     console.error('Error seeding clients:', error)
     throw error
   } finally {

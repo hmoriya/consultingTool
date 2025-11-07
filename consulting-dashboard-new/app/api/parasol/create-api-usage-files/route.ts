@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
           await fs.writeFile(filePath, content, 'utf-8')
           createdFiles.push(missingFile.filePath)
 
-        } catch (error) {
+        } catch (_error) {
           console.error(`Failed to create ${missingFile.filePath}:`, error)
           errors.push(`${missingFile.filePath}: ${error}`)
         }
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
           await fs.writeFile(fullPath, content, 'utf-8')
           createdFiles.push(filePath)
 
-        } catch (error) {
+        } catch (_error) {
           console.error(`Failed to create ${filePath}:`, error)
           errors.push(`${filePath}: ${error}`)
         }
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       errors: errors.length > 0 ? errors : undefined
     })
 
-  } catch (error) {
+  } catch (_error) {
     console.error('API usage files creation error:', error)
     return NextResponse.json({
       success: false,
@@ -140,7 +140,7 @@ async function getMissingApiUsageFiles() {
           try {
             await fs.access(apiUsagePath)
             console.log(`        ✅ File exists`)
-          } catch (error) {
+          } catch {
             console.log(`        ❌ File missing`)
             missingFiles.push({
               serviceName: service.name,
@@ -242,7 +242,7 @@ HOW（どう使うか）: このファイル（実装エンジニア向け）
   return content
 }
 
-function getServiceSpecificContent(serviceName: string, usecaseName: string) {
+function getServiceSpecificContent(serviceName: string, _usecaseName: string) {
   // サービス別のAPI利用パターンを定義
   const patterns: Record<string, unknown> = {
     'secure-access-service': {

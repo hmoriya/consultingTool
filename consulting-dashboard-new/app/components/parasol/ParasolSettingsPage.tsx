@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Plus, Search, Save } from 'lucide-react';
 import { saveServiceData, createBusinessOperation, createBusinessCapability, updateBusinessOperation, deleteBusinessOperation } from '@/app/actions/parasol';
@@ -151,7 +151,7 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'エラー',
         description: '保存中にエラーが発生しました',
@@ -223,7 +223,7 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'エラー',
         description: '削除中にエラーが発生しました',
@@ -303,7 +303,7 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
       }
       
       setOperationModalOpen(false);
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'エラー',
         description: '保存中にエラーが発生しました',
@@ -656,7 +656,7 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
                           
                           // ドメイン言語を自動生成
                           generateDomainLanguageFromCapabilities(updatedCapabilities);
-                        } catch (error) {
+                        } catch (_error) {
                           console.error('Error generating operations:', error);
                           toast({
                             title: 'エラー',

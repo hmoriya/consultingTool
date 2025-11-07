@@ -7,10 +7,10 @@ import {
   Hash, 
   Lock, 
   MessageCircle,
-  Users,
-  Info,
   Phone,
   Video,
+  Users,
+  Info,
   MoreVertical
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -19,8 +19,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+  DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
 interface ChannelHeaderProps {
   channel: {
@@ -39,7 +38,7 @@ interface ChannelHeaderProps {
 export function ChannelHeader({ channel }: ChannelHeaderProps) {
   const router = useRouter()
 
-  const getChannelIcon = () => {
+  const _getChannelIcon = () => {
     if (channel.type === 'DIRECT') {
       return <MessageCircle className="h-5 w-5" />
     }

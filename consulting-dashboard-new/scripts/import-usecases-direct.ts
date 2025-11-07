@@ -60,7 +60,7 @@ async function importUseCase(usecase: typeof usecases[0]) {
 
     console.log(`✓ Successfully imported: ${usecase.displayName} (ID: ${result.id})`);
     return result;
-  } catch (error) {
+  } catch (_error) {
     console.error(`✗ Failed to import: ${usecase.displayName}`, error);
     return null;
   }

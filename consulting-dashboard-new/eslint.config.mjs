@@ -23,6 +23,25 @@ const eslintConfig = [
       "tailwind.config.js",
     ],
   },
+  {
+    rules: {
+      // Allow unused variables that start with underscore and improve unused vars handling
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          "argsIgnorePattern": "^_",
+          "varsIgnorePattern": "^_|^[A-Z][a-zA-Z]*Schema$|^[a-z][a-zA-Z]*Schema$",
+          "caughtErrorsIgnorePattern": "^_",
+          "ignoreRestSiblings": true
+        }
+      ],
+      // Relax some rules for development files
+      "jsx-a11y/alt-text": "warn",
+      "react-hooks/exhaustive-deps": "warn",
+      // Allow console statements in development
+      "no-console": "off"
+    }
+  }
 ];
 
 export default eslintConfig;

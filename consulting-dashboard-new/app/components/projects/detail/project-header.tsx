@@ -8,22 +8,21 @@ import { Button } from '@/components/ui/button'
 import {
   ArrowLeft,
   Edit,
-  MoreVertical,
   Calendar,
   DollarSign,
-  Users,
   CheckCircle,
   Archive,
   Pause,
-  Play
+  Play,
+  MoreVertical,
+  Users
 } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+  DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import { useUser } from '@/contexts/user-context'

@@ -127,7 +127,7 @@ async function simpleSeed() {
     console.log('✅ Created sample tasks')
     console.log('✅ Simple seed completed successfully!')
 
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error:', error)
     throw error
   } finally {

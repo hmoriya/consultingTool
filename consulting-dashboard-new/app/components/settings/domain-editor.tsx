@@ -6,9 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { Card } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { MarkdownRenderer } from '@/components/markdown-renderer'
-import { Save, FileText, Eye, Edit, AlertCircle, CheckCircle } from 'lucide-react'
+import { Eye, Edit, AlertCircle, CheckCircle, Save } from 'lucide-react'
 import { getDomainContent, saveDomainContent } from '@/actions/settings'
 
 const domains = [
@@ -124,7 +124,7 @@ interface Repository {
         setContent(template)
         setOriginalContent(template)
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to load content:', error)
       setSaveMessage({ type: 'error', message: 'コンテンツの読み込みに失敗しました' })
     } finally {
@@ -144,7 +144,7 @@ interface Repository {
       } else {
         setSaveMessage({ type: 'error', message: result.error || '保存に失敗しました' })
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to save content:', error)
       setSaveMessage({ type: 'error', message: '保存中にエラーが発生しました' })
     } finally {

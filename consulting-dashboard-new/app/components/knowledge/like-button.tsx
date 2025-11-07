@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Heart } from 'lucide-react'
 import { likeArticle } from '@/actions/knowledge'
@@ -51,7 +51,7 @@ export function LikeButton({
         // ページをリフレッシュして最新のカウントを取得
         router.refresh()
       }
-    } catch (error) {
+    } catch (_error) {
       // エラーの場合は元に戻す
       setIsLiked(isLiked)
       setLikeCount(initialLikeCount)

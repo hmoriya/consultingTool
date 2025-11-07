@@ -249,7 +249,7 @@ async function main() {
 
     console.log('✅ Resource database seeding completed!')
 
-  } catch (error) {
+  } catch (_error) {
     console.error('Error seeding database:', error)
     throw error
   } finally {

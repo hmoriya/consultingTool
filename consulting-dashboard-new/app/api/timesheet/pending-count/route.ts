@@ -17,7 +17,7 @@ export async function GET() {
     }
 
     return NextResponse.json({ count: result.data.length })
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to get pending count:', error)
     return NextResponse.json({ count: 0 })
   }

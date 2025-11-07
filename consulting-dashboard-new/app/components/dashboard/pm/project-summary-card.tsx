@@ -1,9 +1,9 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
-import { Briefcase, Users, CheckCircle, Calendar } from 'lucide-react'
+import { CheckCircle, Calendar, Users } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { getProjectProgress } from '@/actions/pm-dashboard'
@@ -14,7 +14,14 @@ interface ProjectSummaryCardProps {
 }
 
 export function ProjectSummaryCard({ project }: ProjectSummaryCardProps) {
-  const [progress, setProgress] = useState<any>(null)
+  const [progress, setProgress] = useState<{
+    taskProgress: number;
+    milestoneProgress: number;
+    completedTasks: number;
+    totalTasks: number;
+    completedMilestones: number;
+    totalMilestones: number;
+  } | null>(null)
   
   useEffect(() => {
     getProjectProgress(project.id).then(setProgress).catch(console.error)

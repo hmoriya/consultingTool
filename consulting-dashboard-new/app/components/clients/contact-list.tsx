@@ -10,8 +10,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+  TableRow } from '@/components/ui/table'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,8 +19,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+  AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { ContactCreateDialog } from './contact-create-dialog'
 import { ContactEditDialog } from './contact-edit-dialog'
 import { 
@@ -32,11 +30,11 @@ import {
 import { 
   UserPlus, 
   Edit3, 
-  Trash2, 
   Star, 
   Mail, 
   Phone, 
-  Smartphone 
+  Smartphone,
+  Trash2 
 } from 'lucide-react'
 
 interface ContactListProps {

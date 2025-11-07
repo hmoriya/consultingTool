@@ -5,17 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+  TableRow } from '@/components/ui/table'
 import {
-  FileText,
   FileSpreadsheet,
   FileImage,
   FileArchive,
@@ -26,9 +24,10 @@ import {
   FolderOpen,
   File,
   Eye,
-  Trash2,
   Edit,
-  Share2
+  Share2,
+  FileText,
+  Trash2
 } from 'lucide-react'
 
 interface ProjectDocumentsProps {

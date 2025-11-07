@@ -57,7 +57,7 @@ export async function POST(request: Request) {
           scanErrors
         )
       }
-    } catch (error) {
+    } catch (_error) {
       return NextResponse.json({
         success: false,
         error: 'サービスディレクトリのスキャンに失敗しました',
@@ -146,7 +146,7 @@ export async function POST(request: Request) {
           })
           processed.push({ ...page, action: 'created' })
         }
-      } catch (error) {
+      } catch (_error) {
         errors.push({
           page: page.name,
           error: error instanceof Error ? error.message : '未知のエラー'
@@ -180,7 +180,7 @@ export async function POST(request: Request) {
       scanErrors
     })
 
-  } catch (error) {
+  } catch (_error) {
     console.error('Layer 2 インポートエラー:', error)
     return NextResponse.json({
       success: false,
@@ -234,7 +234,7 @@ async function scanServiceSharedPages(
                 layerType: 'operation'
               })
             }
-          } catch (error) {
+          } catch (_error) {
             // shared-pages ディレクトリが存在しない場合はスキップ
             scanErrors.push({
               serviceId,
@@ -243,7 +243,7 @@ async function scanServiceSharedPages(
             })
           }
         }
-      } catch (error) {
+      } catch (_error) {
         scanErrors.push({
           serviceId,
           capabilityId: capabilityDir,
@@ -251,7 +251,7 @@ async function scanServiceSharedPages(
         })
       }
     }
-  } catch (error) {
+  } catch (_error) {
     scanErrors.push({
       serviceId,
       error: `サービススキャンエラー: ${error}`
@@ -405,7 +405,7 @@ async function analyzeOperationImpact(pages: PageInfo[], targetOperationId?: str
         ]
       }
     }
-  } catch (error) {
+  } catch (_error) {
     return {
       impactScope: 'unknown',
       error: error instanceof Error ? error.message : '影響分析に失敗しました',

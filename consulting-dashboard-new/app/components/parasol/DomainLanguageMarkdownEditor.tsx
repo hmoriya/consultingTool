@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, FileText, Eye } from 'lucide-react';
+import { AlertCircle, Eye, FileText } from 'lucide-react';
 import { DomainLanguageDefinition } from '@/types/parasol';
 import { 
   domainLanguageToMarkdown, 
@@ -50,7 +50,7 @@ export function DomainLanguageMarkdownEditor({
         const parsed = markdownToDomainLanguage(newMarkdown);
         onChange(parsed);
       }
-    } catch (error) {
+    } catch (_error) {
       // パースエラーは無視（バリデーションエラーで表示）
     }
   };

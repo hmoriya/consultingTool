@@ -14,15 +14,13 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
+  DialogFooter } from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  SelectValue } from '@/components/ui/select'
 import { createTask, TaskPriority } from '@/actions/tasks'
 import { X, Save } from 'lucide-react'
 
@@ -100,7 +98,7 @@ export function TaskCreateForm({
       await createTask(taskData)
       onTaskCreated()
       onClose()
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to create task:', error)
     } finally {
       setIsLoading(false)

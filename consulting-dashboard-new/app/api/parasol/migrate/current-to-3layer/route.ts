@@ -3,7 +3,7 @@ import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 import fs from 'fs/promises'
 import path from 'path'
 
-const parasolDb = new ParasolPrismaClient()
+const _parasolDb = new ParasolPrismaClient()
 
 interface MigrationRequest {
   sourceDirectory?: string
@@ -76,7 +76,7 @@ class Current3LayerMigrator {
         const servicePath = path.join(servicesPath, serviceDir)
         await this.scanServiceStructure(servicePath, serviceDir, pages)
       }
-    } catch (error) {
+    } catch (_error) {
       throw new Error(`現在の構造のスキャンに失敗: ${error}`)
     }
 
@@ -112,7 +112,7 @@ class Current3LayerMigrator {
           }
         }
       }
-    } catch (error) {
+    } catch (_error) {
       console.error(`サービス ${serviceId} のスキャンエラー:`, error)
     }
   }
@@ -138,13 +138,13 @@ class Current3LayerMigrator {
           currentLocation: sourceType === 'current' ? 'pages' : 'usecases/pages'
         })
       }
-    } catch (error) {
+    } catch {
       // ディレクトリが存在しない場合はスキップ
     }
   }
 
   analyzeDuplicates(pages: unknown[]) {
-    const duplicateMap = new Map<string, any[]>()
+    const duplicateMap = new Map<string, unknown[]>()
 
     for (const page of pages) {
       const key = page.displayName
@@ -230,7 +230,7 @@ class Current3LayerMigrator {
     }
   }
 
-  determineDuplicateMigrationStrategy(displayName: string, pages: unknown[]) {
+  determineDuplicateMigrationStrategy(displayName: string, _pages: unknown[]) {
     // 成果物提出画面の場合 -> Layer 2 に統合
     if (displayName.includes('成果物提出')) {
       return {
@@ -262,7 +262,7 @@ class Current3LayerMigrator {
 
   calculateMigrationComplexity(layerClassification: unknown, duplicateAnalysis: unknown) {
     const { layer1, layer2, layer3 } = layerClassification
-    const totalPages = layer1.length + layer2.length + layer3.length
+    const _totalPages = layer1.length + layer2.length + layer3.length
     const duplicateCount = duplicateAnalysis.duplicates.length
 
     let complexityScore = 0
@@ -449,7 +449,7 @@ export async function POST(request: Request) {
       implementationStatus: 'analysis-complete-implementation-pending'
     })
 
-  } catch (error) {
+  } catch (_error) {
     console.error('3層分離移行エラー:', error)
     return NextResponse.json({
       success: false,

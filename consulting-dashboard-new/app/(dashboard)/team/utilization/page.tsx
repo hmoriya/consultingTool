@@ -1,7 +1,7 @@
 import { getTeamUtilization, getUtilizationRecommendations } from '../../../actions/utilization'
 import { getCurrentUser } from '../../../actions/auth'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
 // import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Activity, AlertCircle, TrendingUp, TrendingDown, Users } from 'lucide-react'

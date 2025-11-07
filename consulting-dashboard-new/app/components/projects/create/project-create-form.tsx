@@ -16,10 +16,9 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  SelectValue } from '@/components/ui/select'
 import { createProject } from '@/actions/projects'
-import { Save, ArrowLeft, Plus, X, Building2 } from 'lucide-react'
+import { ArrowLeft, Plus, Building2, Save, X } from 'lucide-react'
 import { ClientSelectDialog } from '@/components/clients/client-select-dialog'
 
 const projectSchema = z.object({
@@ -99,7 +98,7 @@ export function ProjectCreateForm() {
       
       const project = await createProject(projectData)
       router.push(`/projects/${project.id}`)
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to create project:', error)
     } finally {
       setIsLoading(false)

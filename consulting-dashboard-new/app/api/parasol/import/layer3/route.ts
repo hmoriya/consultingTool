@@ -69,7 +69,7 @@ export async function POST(request: Request) {
           scanErrors
         )
       }
-    } catch (error) {
+    } catch (_error) {
       return NextResponse.json({
         success: false,
         error: 'サービスディレクトリのスキャンに失敗しました',
@@ -169,7 +169,7 @@ export async function POST(request: Request) {
             })
             return { ...page, action: 'created' }
           }
-        } catch (error) {
+        } catch (_error) {
           throw {
             page: page.name,
             error: error instanceof Error ? error.message : '未知のエラー'
@@ -180,7 +180,7 @@ export async function POST(request: Request) {
       try {
         const batchResults = await Promise.all(batchPromises)
         processed.push(...batchResults)
-      } catch (error) {
+      } catch (_error) {
         errors.push(error)
       }
     }
@@ -219,7 +219,7 @@ export async function POST(request: Request) {
       }
     })
 
-  } catch (error) {
+  } catch (_error) {
     console.error('Layer 3 インポートエラー:', error)
     return NextResponse.json({
       success: false,
@@ -286,7 +286,7 @@ async function scanServiceDedicatedPages(
                     layerType: 'usecase'
                   })
                 }
-              } catch (error) {
+              } catch (_error) {
                 // dedicated-pages ディレクトリが存在しない場合はスキップ
                 scanErrors.push({
                   serviceId,
@@ -296,7 +296,7 @@ async function scanServiceDedicatedPages(
                 })
               }
             }
-          } catch (error) {
+          } catch (_error) {
             // usecases ディレクトリが存在しない場合はスキップ
             scanErrors.push({
               serviceId,
@@ -305,7 +305,7 @@ async function scanServiceDedicatedPages(
             })
           }
         }
-      } catch (error) {
+      } catch (_error) {
         scanErrors.push({
           serviceId,
           capabilityId: capabilityDir,
@@ -313,7 +313,7 @@ async function scanServiceDedicatedPages(
         })
       }
     }
-  } catch (error) {
+  } catch (_error) {
     scanErrors.push({
       serviceId,
       error: `サービススキャンエラー: ${error}`

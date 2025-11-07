@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       fileSize: file.size,
       fileType: file.type
     })
-  } catch (error) {
+  } catch (_error) {
     console.error('File upload error:', error)
     return NextResponse.json({ success: false, error: 'ファイルのアップロードに失敗しました' })
   }

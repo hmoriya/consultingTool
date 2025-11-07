@@ -4,9 +4,7 @@ import fs from 'fs/promises'
 import path from 'path'
 import type { 
   UseCaseImport,
-  UseCaseLayerClassification,
-  ImportResult,
-  UseCaseClassifier
+  UseCaseLayerClassification
 } from '@/app/types/parasol-api'
 
 const parasolDb = new ParasolPrismaClient()
@@ -61,7 +59,7 @@ class UseCaseCentric2LayerClassifier {
       'ウィザード', '専用', '固有', '特別', 'カスタム', '個別', '特殊'
     ]
 
-    const lowerContent = content.toLowerCase()
+    const _lowerContent = content.toLowerCase()
 
     // Shared indicators (オペレーション共有ユースケース)
     if (sharedIndicators.some(term => content.includes(term))) {
@@ -99,7 +97,7 @@ class UseCaseDuplicationResolver {
       conflicts: [] as UseCaseImport[][]
     }
 
-    for (const [name, group] of duplicateGroups.entries()) {
+    for (const [_name, group] of duplicateGroups.entries()) {
       if (group.length === 1) {
         plan.merge.push(group[0])
         continue
@@ -160,7 +158,7 @@ async function scanUseCaseCentric2LayerStructure(basePath: string) {
     for (const serviceDir of serviceDirs.filter(d => d !== 'global-shared-pages')) {
       await scanServiceUseCases(path.join(servicesPath, serviceDir), serviceDir, classifier, useCases)
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('ユースケースファイルスキャンエラー:', error)
     throw error
   }
@@ -227,7 +225,7 @@ async function scanServiceUseCases(servicePath: string, serviceId: string, class
         }
       }
     }
-  } catch (error) {
+  } catch (_error) {
     console.error(`サービス ${serviceId} のユースケーススキャンエラー:`, error)
   }
 }
@@ -259,7 +257,7 @@ async function scanUseCasesDirectory(
         pages: await scanUseCasePages(path.join(useCasesPath, useCaseDir, 'pages'))
       })
     }
-  } catch (error) {
+  } catch {
     // ディレクトリが存在しない場合はスキップ
   }
 }
@@ -377,7 +375,7 @@ export async function POST(request: Request) {
         })
         migrationSummary.sharedUseCases++
         layerClassification.shared.push(useCase.displayName)
-      } catch (error) {
+      } catch (_error) {
         migrationSummary.errors.push(`共有ユースケース作成エラー: ${useCase.displayName} - ${error}`)
       }
     }
@@ -399,7 +397,7 @@ export async function POST(request: Request) {
         })
         migrationSummary.individualUseCases++
         layerClassification.individual.push(useCase.displayName)
-      } catch (error) {
+      } catch (_error) {
         migrationSummary.errors.push(`個別ユースケース作成エラー: ${useCase.displayName} - ${error}`)
       }
     }
@@ -415,7 +413,7 @@ export async function POST(request: Request) {
       layerClassification
     })
 
-  } catch (error) {
+  } catch (_error) {
     console.error('ユースケース中心2層分離インポートエラー:', error)
     return NextResponse.json({
       success: false,

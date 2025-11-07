@@ -71,7 +71,7 @@ export function ContactCreateDialog({
       })
       onContactCreated(newContact)
       onClose()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to create contact:', error)
       alert(error.message || '担当者の作成に失敗しました')
     } finally {

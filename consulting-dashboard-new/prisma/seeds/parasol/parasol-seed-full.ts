@@ -135,9 +135,9 @@ async function main() {
     }
 
     console.log('\n✅ Parasol full seed completed successfully!')
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error seeding Parasol data:', error)
-    throw error
+    throw _error
   }
 }
 

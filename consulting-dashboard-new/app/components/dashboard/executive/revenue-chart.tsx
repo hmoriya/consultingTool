@@ -72,7 +72,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
                 tickFormatter={formatPercent}
               />
               <Tooltip 
-                formatter={(value: any, name: string) => {
+                formatter={(value: unknown, name: string) => {
                   if (name === '利益率') {
                     return formatPercent(value)
                   }

@@ -29,7 +29,7 @@ interface TimesheetData {
   submittedAt?: Date
   approvedAt?: Date
   entries: { id: string }[]
-  approvalHistory: any[]
+  approvalHistory: unknown[]
 }
 
 interface MyTimesheetsProps {

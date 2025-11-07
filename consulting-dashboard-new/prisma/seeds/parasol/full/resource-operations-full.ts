@@ -4,7 +4,7 @@ import { seedBuildAndEmpowerTeams } from './resource-operations/03-build-and-emp
 import { seedEvaluatePerformance } from './resource-operations/04-evaluate-performance'
 import { seedDevelopAndSupportCareers } from './resource-operations/05-develop-and-support-careers'
 
-export async function seedResourceOperationsFull(service: any, capability: any) {
+export async function seedResourceOperationsFull(service: unknown, capability: unknown) {
   console.log('  Seeding resource operations full data...')
   
   // 1. リソースを最適配置する

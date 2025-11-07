@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+import { chromium } from 'playwright';
 
 async function captureScreenshots() {
   const browser = await chromium.launch({ headless: false });

@@ -34,7 +34,7 @@ export default function FileTestPage() {
     setLastEvent(`Direct input trigger ${clickCount + 1} times`)
     const input = document.createElement('input')
     input.type = 'file'
-    input.onchange = (e: any) => {
+    input.onchange = (e: Event) => {
       const file = e.target.files?.[0]
       if (file) {
         setSelectedFile(file)

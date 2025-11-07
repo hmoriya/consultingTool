@@ -39,7 +39,7 @@ import {
 } from '@/components/ui/select'
 
 interface ProjectTasksProps {
-  project: any
+  project: unknown
 }
 
 const statusLabels: Record<TaskStatus, string> = {
@@ -210,7 +210,7 @@ export function ProjectTasks({ project }: ProjectTasksProps) {
             </p>
           </div>
           <div className="flex gap-2">
-            <Tabs value={viewMode} onValueChange={(value: any) => setViewMode(value)}>
+            <Tabs value={viewMode} onValueChange={(value: unknown) => setViewMode(value)}>
               <TabsList>
                 <TabsTrigger value="list">リスト</TabsTrigger>
                 <TabsTrigger value="kanban">カンバン</TabsTrigger>

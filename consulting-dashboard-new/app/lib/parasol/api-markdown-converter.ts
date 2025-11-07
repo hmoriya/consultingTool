@@ -109,7 +109,7 @@ export function apiSpecToMarkdown(apiSpec: ApiSpecification): string {
             sections.push('**レスポンス**:');
             sections.push('');
             
-            Object.entries(operation.responses).forEach(([statusCode, response]: [string, any]) => {
+            Object.entries(operation.responses).forEach(([statusCode, response]: [string, unknown]) => {
               sections.push(`- **${statusCode}**: ${response.description || ''}`);
               
               const content = response.content;
@@ -135,7 +135,7 @@ export function apiSpecToMarkdown(apiSpec: ApiSpecification): string {
     sections.push('## スキーマ定義');
     sections.push('');
     
-    Object.entries(apiSpec.components.schemas).forEach(([schemaName, schema]: [string, any]) => {
+    Object.entries(apiSpec.components.schemas).forEach(([schemaName, schema]: [string, unknown]) => {
       sections.push(`### ${schemaName}`);
       sections.push('');
       
@@ -148,7 +148,7 @@ export function apiSpecToMarkdown(apiSpec: ApiSpecification): string {
         sections.push('| プロパティ | 型 | 必須 | 説明 |');
         sections.push('|------------|-----|------|------|');
         
-        Object.entries(schema.properties).forEach(([prop, propSchema]: [string, any]) => {
+        Object.entries(schema.properties).forEach(([prop, propSchema]: [string, unknown]) => {
           const required = schema.required?.includes(prop) ? '✓' : '-';
           const type = propSchema.type || '-';
           sections.push(`| ${prop} | ${type} | ${required} | ${propSchema.description || ''} |`);
@@ -311,13 +311,13 @@ export function validateApiSpecMarkdown(markdown: string): {
 /**
  * スキーマから例を生成するヘルパー関数
  */
-function generateExampleFromSchema(schema: Record<string, any>): Record<string, any> {
+function generateExampleFromSchema(schema: Record<string, unknown>): Record<string, unknown> {
   if (schema.example) {
     return schema.example;
   }
   
   if (schema.type === 'object' && schema.properties) {
-    const example: Record<string, any> = {};
+    const example: Record<string, unknown> = {};
     Object.entries(schema.properties).forEach(([key, prop]) => {
       example[key] = generateExampleFromSchema(prop);
     });

@@ -19,7 +19,7 @@ export async function getSchemaContent(service: string) {
     }
   } catch (error) {
     // ファイルが存在しない場合
-    if ((error as any).code === 'ENOENT') {
+    if ((error as unknown).code === 'ENOENT') {
       return {
         success: true,
         data: null
@@ -69,7 +69,7 @@ export async function getApiContent(service: string) {
     }
   } catch (error) {
     // ファイルが存在しない場合
-    if ((error as any).code === 'ENOENT') {
+    if ((error as unknown).code === 'ENOENT') {
       return {
         success: true,
         data: null
@@ -119,7 +119,7 @@ export async function getDomainContent(domain: string) {
     }
   } catch (error) {
     // ファイルが存在しない場合
-    if ((error as any).code === 'ENOENT') {
+    if ((error as unknown).code === 'ENOENT') {
       return {
         success: true,
         data: null

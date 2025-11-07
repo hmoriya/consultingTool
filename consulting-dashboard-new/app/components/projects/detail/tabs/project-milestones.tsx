@@ -37,7 +37,7 @@ import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 
 interface ProjectMilestonesProps {
-  project: any
+  project: unknown
 }
 
 const statusLabels: Record<MilestoneStatus | 'inProgress', string> = {

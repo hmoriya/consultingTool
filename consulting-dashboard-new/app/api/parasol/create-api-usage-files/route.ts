@@ -244,7 +244,7 @@ HOW（どう使うか）: このファイル（実装エンジニア向け）
 
 function getServiceSpecificContent(serviceName: string, usecaseName: string) {
   // サービス別のAPI利用パターンを定義
-  const patterns: Record<string, any> = {
+  const patterns: Record<string, unknown> = {
     'secure-access-service': {
       apiTable: `| 認証API | POST /api/auth/authenticate | ユーザー認証実行 | \`username\`, \`password\`, \`mfaToken\` |
 | 権限検証API | POST /api/auth/validate-permission | 操作権限確認 | \`userId\`, \`resource\`, \`action\` |

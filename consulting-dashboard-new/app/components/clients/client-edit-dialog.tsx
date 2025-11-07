@@ -75,7 +75,7 @@ export function ClientEditDialog({ client, onClose, onClientUpdated }: ClientEdi
         activeProjectCount: client.activeProjectCount
       })
       onClose()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to update client:', error)
       alert(error.message || 'クライアントの更新に失敗しました')
     } finally {

@@ -41,8 +41,8 @@ type TaskFormData = z.infer<typeof taskSchema>
 
 interface TaskCreateFormProps {
   projectId: string
-  projectMembers: any[]
-  milestones: any[]
+  projectMembers: unknown[]
+  milestones: unknown[]
   onClose: () => void
   onTaskCreated: () => void
 }
@@ -145,7 +145,7 @@ export function TaskCreateForm({
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="priority">優先度 *</Label>
-                <Select value={watchedPriority} onValueChange={(value) => setValue('priority', value as any)}>
+                <Select value={watchedPriority} onValueChange={(value) => setValue('priority', value as unknown)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

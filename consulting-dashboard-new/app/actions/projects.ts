@@ -166,7 +166,7 @@ export async function createProject(data: {
     })
 
     return project
-  } catch (error: any) {
+  } catch (error: unknown) {
     // コードが重複している場合は再生成
     if (error.message?.includes('Unique constraint failed')) {
       return createProject(data)
@@ -244,7 +244,7 @@ export async function getProjectDetails(projectId: string) {
 
   // プロジェクトメトリクスを取得（現在は空配列を返す）
   // TODO: 将来的に財務サービスから取得
-  const projectMetrics: any[] = []
+  const projectMetrics: unknown[] = []
 
   // メンバーのロール情報を追加
   const memberUserIds = project.projectMembers.map(m => m.userId)

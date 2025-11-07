@@ -12,6 +12,18 @@ interface Layer2ImportRequest {
   dryRun?: boolean
 }
 
+interface PageInfo {
+  fileName: string
+  filePath: string
+  content: string
+  displayName: string
+  name: string
+  serviceId: string
+  capabilityId: string
+  operationId: string
+  layerType: string
+}
+
 // Layer 2 (オペレーション内共有) 専用インポート
 export async function POST(request: Request) {
   try {
@@ -29,8 +41,8 @@ export async function POST(request: Request) {
     const basePath = process.cwd()
     const servicesPath = path.join(basePath, 'docs', 'parasol', 'services')
 
-    const pages = []
-    const scanErrors = []
+    const pages: PageInfo[] = []
+    const scanErrors: { serviceId: string; operationId: string; error: string }[] = []
 
     // 各サービス内の shared-pages をスキャン
     try {
@@ -182,8 +194,8 @@ async function scanServiceSharedPages(
   servicePath: string,
   serviceId: string,
   targetOperationId: string | undefined,
-  pages: any[],
-  scanErrors: any[]
+  pages: unknown[],
+  scanErrors: unknown[]
 ) {
   try {
     const capabilitiesPath = path.join(servicePath, 'capabilities')
@@ -247,8 +259,8 @@ async function scanServiceSharedPages(
   }
 }
 
-function analyzeDuplication(pages: any[]) {
-  const duplicateMap = new Map<string, any[]>()
+function analyzeDuplication(pages: PageInfo[]) {
+  const duplicateMap = new Map<string, PageInfo[]>()
 
   // displayName でグループ化
   for (const page of pages) {
@@ -302,7 +314,7 @@ function detectConsolidationType(displayName: string): string {
   return 'general'
 }
 
-function validateLayer2Page(page: any, level: string) {
+function validateLayer2Page(page: unknown, level: string) {
   const errors = []
   const warnings = []
 
@@ -346,7 +358,7 @@ function validateLayer2Page(page: any, level: string) {
   }
 }
 
-async function analyzeOperationImpact(pages: any[], targetOperationId?: string) {
+async function analyzeOperationImpact(pages: PageInfo[], targetOperationId?: string) {
   try {
     if (targetOperationId) {
       // 特定オペレーション内の影響分析

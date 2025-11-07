@@ -8,7 +8,7 @@ import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 
 interface ApprovalHistoryProps {
-  history: any[]
+  history: unknown[]
 }
 
 export function ApprovalHistory({ history }: ApprovalHistoryProps) {

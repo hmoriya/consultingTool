@@ -74,7 +74,7 @@ export function ContactList({
       await deleteOrganizationContact(deletingContact.id)
       setContacts(prev => prev.filter(contact => contact.id !== deletingContact.id))
       setDeletingContact(null)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to delete contact:', error)
       alert(error.message || '担当者の削除に失敗しました')
     } finally {
@@ -89,7 +89,7 @@ export function ContactList({
         ...contact,
         isPrimary: contact.id === contactId
       })))
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to set primary contact:', error)
       alert(error.message || '主担当者の設定に失敗しました')
     }

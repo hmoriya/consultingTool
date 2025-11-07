@@ -10,7 +10,7 @@ import { getProjectProgress } from '@/actions/pm-dashboard'
 import { cn } from '@/lib/utils'
 
 interface ProjectSummaryCardProps {
-  project: any
+  project: unknown
 }
 
 export function ProjectSummaryCard({ project }: ProjectSummaryCardProps) {

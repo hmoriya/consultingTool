@@ -19,7 +19,18 @@ import { Loader2 } from 'lucide-react'
 interface NewChannelDialogProps {
   open: boolean
   onClose: () => void
-  onSuccess: (channel: any) => void
+  onSuccess: (channel: unknown) => void
+}
+
+interface User {
+  id: string
+  name: string
+  email: string
+}
+
+interface Project {
+  id: string
+  name: string
 }
 
 export function NewChannelDialog({ open, onClose, onSuccess }: NewChannelDialogProps) {
@@ -30,8 +41,8 @@ export function NewChannelDialog({ open, onClose, onSuccess }: NewChannelDialogP
   const [isPrivate, setIsPrivate] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [users, setUsers] = useState<any[]>([])
-  const [projects, setProjects] = useState<any[]>([])
+  const [users, setUsers] = useState<User[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
 
   useEffect(() => {
     if (open) {

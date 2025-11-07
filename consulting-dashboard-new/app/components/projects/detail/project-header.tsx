@@ -33,7 +33,7 @@ interface ProjectHeaderProps {
   project: ProjectWithRelations
 }
 
-const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: any }> = {
+const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: unknown }> = {
   planning: { label: '計画中', variant: 'outline', icon: null },
   active: { label: '進行中', variant: 'default', icon: Play },
   completed: { label: '完了', variant: 'secondary', icon: CheckCircle },
@@ -46,7 +46,7 @@ export function ProjectHeader({ project }: ProjectHeaderProps) {
   const [isLoading, setIsLoading] = useState(false)
 
   const canEdit = user?.role.name === 'executive' || 
-    project.projectMembers.some((m: any) => m.userId === user?.id && m.role === 'pm')
+    project.projectMembers.some((m: unknown) => m.userId === user?.id && m.role === 'pm')
 
   const handleBack = () => {
     router.push('/projects')

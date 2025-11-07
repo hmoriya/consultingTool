@@ -340,7 +340,7 @@ export function CodeGenerationPanel({
             <TabsContent value="db" className="space-y-2">
               <div>
                 <Label>データベースタイプ</Label>
-                <Select value={databaseType} onValueChange={(v) => setDatabaseType(v as any)}>
+                <Select value={databaseType} onValueChange={(v) => setDatabaseType(v as unknown)}>
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>

@@ -231,7 +231,7 @@ export async function updateArticle(
       }
     }
 
-    const updateData: any = {
+    const updateData: unknown = {
       ...data,
       updatedAt: new Date()
     }

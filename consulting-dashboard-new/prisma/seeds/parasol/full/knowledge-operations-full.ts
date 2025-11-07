@@ -4,7 +4,7 @@ import { seedShareKnowledge } from './knowledge-operations/03-share-knowledge'
 import { seedExtractBestPractices } from './knowledge-operations/04-extract-best-practices'
 
 // 知識管理サービスのビジネスオペレーション群
-export async function seedKnowledgeOperationsFull(service: any, capability: any) {
+export async function seedKnowledgeOperationsFull(service: unknown, capability: unknown) {
   console.log('  Creating knowledge business operations...')
   
   // 知識を収集・整理する

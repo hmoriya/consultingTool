@@ -239,7 +239,7 @@ export async function getWeeklyTimesheet(date: Date) {
     }
     acc[projectId].entries.push(entry)
     return acc
-  }, {} as Record<string, any>)
+  }, {} as Record<string, unknown>)
 
   return {
     weekStart,

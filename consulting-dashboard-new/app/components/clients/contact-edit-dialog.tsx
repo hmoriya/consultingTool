@@ -75,7 +75,7 @@ export function ContactEditDialog({
       const updatedContact = await updateOrganizationContact(contact.id, data)
       onContactUpdated(updatedContact)
       onClose()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to update contact:', error)
       alert(error.message || '担当者の更新に失敗しました')
     } finally {

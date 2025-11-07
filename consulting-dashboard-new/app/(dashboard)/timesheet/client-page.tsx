@@ -57,7 +57,16 @@ interface TimesheetClientPageProps {
     totalHours: number
     billableHours: number
   } | null
-  timesheets?: any[]
+  timesheets?: Array<{
+    id: string
+    weekStartDate: Date
+    weekEndDate: Date
+    totalHours: number
+    billableHours: number
+    status: string
+    submittedAt?: Date | null
+    approvedAt?: Date | null
+  }>
 }
 
 export function TimesheetClientPage({ 

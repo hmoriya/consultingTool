@@ -2,7 +2,7 @@ import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 
 const parasolDb = new ParasolPrismaClient()
 
-export async function seedResolveIssuesQuickly(service: any, capability: any) {
+export async function seedResolveIssuesQuickly(service: unknown, capability: unknown) {
   console.log('    Creating business operation: 課題を迅速に解決する...')
   
   const operation = await parasolDb.businessOperation.create({

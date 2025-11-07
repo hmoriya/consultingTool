@@ -320,7 +320,7 @@ function inferPropertiesFromCompound(words: string[]): Array<{ name: string; typ
 /**
  * ステートからエンティティを推論
  */
-function inferEntityFromState(state: any): InferredEntity | null {
+function inferEntityFromState(state: unknown): InferredEntity | null {
   if (!state.name || typeof state.name !== 'string') return null;
   
   // ステート遷移履歴エンティティ

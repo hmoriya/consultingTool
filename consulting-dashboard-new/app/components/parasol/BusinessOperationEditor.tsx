@@ -169,7 +169,7 @@ export function BusinessOperationEditor({
                   <Label htmlFor="op-pattern">パターン</Label>
                   <Select
                     value={formData.pattern}
-                    onValueChange={(value: any) => setFormData({ ...formData, pattern: value })}
+                    onValueChange={(value: unknown) => setFormData({ ...formData, pattern: value })}
                   >
                     <SelectTrigger id="op-pattern">
                       <SelectValue />

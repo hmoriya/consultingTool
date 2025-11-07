@@ -7,7 +7,7 @@ import { startOfWeek, addDays, format, isSameDay } from 'date-fns'
 import { ja } from 'date-fns/locale'
 
 interface WeeklyCalendarProps {
-  tasks: any[]
+  tasks: unknown[]
 }
 
 export function WeeklyCalendar({ tasks }: WeeklyCalendarProps) {

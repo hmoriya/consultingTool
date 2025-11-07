@@ -232,7 +232,7 @@ export function TimesheetList({
                     </TableCell>
                     <TableCell>
                       <Badge 
-                        variant={statusConfig[entry.status]?.variant as any || 'default'}
+                        variant={statusConfig[entry.status]?.variant as unknown || 'default'}
                         className={cn(
                           "text-xs font-medium",
                           statusConfig[entry.status]?.className

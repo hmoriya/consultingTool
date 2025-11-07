@@ -1624,9 +1624,9 @@ async function updateRemainingDomainLanguages() {
     console.log('  - DDD pattern checklist')
     console.log('  - All entities belong to aggregates')
     
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error updating domain languages:', error)
-    throw error
+    throw _error
   } finally {
     await prisma.$disconnect()
   }

@@ -7,7 +7,7 @@ import { Users } from 'lucide-react'
 import Link from 'next/link'
 
 interface TeamUtilizationProps {
-  members: any[]
+  members: unknown[]
 }
 
 export function TeamUtilization({ members }: TeamUtilizationProps) {
@@ -71,7 +71,7 @@ export function TeamUtilization({ members }: TeamUtilizationProps) {
                   </div>
                   <Progress value={Math.min(member.allocation, 100)} className="h-2" />
                   <div className="flex flex-wrap gap-1">
-                    {member.projects?.map((project: any) => (
+                    {member.projects?.map((project: unknown) => (
                       <Badge key={project.id} variant="outline" className="text-xs">
                         {project.name} ({project.allocation}%)
                       </Badge>

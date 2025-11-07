@@ -271,7 +271,7 @@ export async function getProjectResourceAllocation(projectId: string) {
     })
 
     return acc
-  }, {} as Record<string, any>)
+  }, {} as Record<string, unknown>)
 
   // 合計稼働率
   const totalAllocation = project.projectMembers.reduce((sum, pm) => sum + pm.allocation, 0)

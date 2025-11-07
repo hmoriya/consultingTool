@@ -10,7 +10,7 @@ export interface TreeNode {
   children?: TreeNode[];
   isExpanded?: boolean;
   isSelected?: boolean;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // サービス定義（最上位）
@@ -132,9 +132,9 @@ export interface APISpecification {
     version: string;
     description?: string;
   };
-  paths: Record<string, any>;
+  paths: Record<string, unknown>;
   components?: {
-    schemas?: Record<string, any>;
+    schemas?: Record<string, unknown>;
   };
 }
 
@@ -155,7 +155,7 @@ export interface DBColumn {
   type: string;
   nullable: boolean;
   unique?: boolean;
-  defaultValue?: any;
+  defaultValue?: unknown;
   foreignKey?: {
     table: string;
     column: string;
@@ -343,9 +343,9 @@ export interface ApiSpecification {
     url: string;
     description?: string;
   }>;
-  paths: Record<string, any>;
+  paths: Record<string, unknown>;
   components?: {
-    schemas?: Record<string, any>;
+    schemas?: Record<string, unknown>;
   };
 }
 
@@ -371,7 +371,7 @@ export interface DbColumn {
   nullable: boolean;
   primaryKey?: boolean;
   foreignKey?: boolean;
-  defaultValue?: any;
+  defaultValue?: unknown;
   description?: string;
 }
 
@@ -414,7 +414,7 @@ export interface RestructureResult {
 // Parser types
 export interface ParsedContent {
   content: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface APIEndpoint {
@@ -423,10 +423,10 @@ export interface APIEndpoint {
   description?: string;
   parameters?: APIParameter[];
   requestBody?: {
-    schema: any;
+    schema: unknown;
   };
   responses?: Record<string, {
-    schema?: any;
+    schema?: unknown;
   }>;
 }
 
@@ -444,7 +444,7 @@ export interface APIParameter {
 // Domain event types
 export interface DomainEvent {
   name: string;
-  payload: Record<string, any>;
+  payload: Record<string, unknown>;
   aggregateId?: string;
   timestamp?: Date;
 }

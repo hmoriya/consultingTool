@@ -71,7 +71,7 @@ export function KnowledgeEditForm({ article }: KnowledgeEditFormProps) {
     defaultValues: {
       title: article.title,
       content: article.content,
-      status: article.status as any,
+      status: article.status as unknown,
       tags: parsedTags,
     },
   })

@@ -199,7 +199,7 @@ export function ProjectCreateForm() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="status">ステータス *</Label>
-              <Select value={watchedStatus} onValueChange={(value) => setValue('status', value as any)}>
+              <Select value={watchedStatus} onValueChange={(value) => setValue('status', value as unknown)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -212,7 +212,7 @@ export function ProjectCreateForm() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="priority">優先度 *</Label>
-              <Select value={watchedPriority} onValueChange={(value) => setValue('priority', value as any)}>
+              <Select value={watchedPriority} onValueChange={(value) => setValue('priority', value as unknown)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

@@ -27,16 +27,43 @@ import { toast } from 'sonner'
 import { Plus, Trash2, Edit } from 'lucide-react'
 import { upsertUserSkill, deleteUserSkill } from '../../../actions/skills'
 
+interface Skill {
+  id: string
+  name: string
+  categoryId: string
+  category: {
+    id: string
+    name: string
+  }
+}
+
+interface UserSkill {
+  id: string
+  userId: string
+  skillId: string
+  level: number
+  experienceYears?: number | null
+  certifications?: string | null
+  lastUsedDate?: Date | null
+  skill: Skill
+}
+
+interface Category {
+  id: string
+  name: string
+  description?: string | null
+}
+
 interface MySkillsProps {
-  mySkills: any[]
-  categories: any[]
-  allSkills: any[]
+  mySkills: UserSkill[]
+  categories: Category[]
+  allSkills: Skill[]
 }
 
 export function MySkills({ mySkills, categories, allSkills }: MySkillsProps) {
   const [isPending, startTransition] = useTransition()
   const [open, setOpen] = useState(false)
-  const [editingSkill, setEditingSkill] = useState<any>(null)
+  const [editingSkill, setEditingSkill] = useState<UserSkill | null>(null)
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('')
   const [selectedSkillId, setSelectedSkillId] = useState<string>('')
   const [level, setLevel] = useState<number>(3)
@@ -98,7 +125,7 @@ export function MySkills({ mySkills, categories, allSkills }: MySkillsProps) {
     })
   }
 
-  const handleEdit = (userSkill: any) => {
+  const handleEdit = (userSkill: UserSkill) => {
     setEditingSkill(userSkill)
     setSelectedCategoryId(userSkill.skill.categoryId)
     setSelectedSkillId(userSkill.skillId)

@@ -180,9 +180,9 @@ export async function seedProjectSuccessComplete() {
       operations: totalOperations
     }
 
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error in seedProjectSuccessComplete:', error)
-    throw error
+    throw _error
   }
 }
 

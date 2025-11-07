@@ -10,7 +10,7 @@ import { useState } from 'react'
 import { ProjectDocuments } from './project-documents'
 
 interface ProjectOverviewProps {
-  projects: any[]
+  projects: unknown[]
 }
 
 export function ProjectOverview({ projects }: ProjectOverviewProps) {
@@ -151,7 +151,7 @@ export function ProjectOverview({ projects }: ProjectOverviewProps) {
                   <div className="space-y-3">
                     <h4 className="font-medium text-sm">マイルストーン</h4>
                     <div className="space-y-2">
-                      {project.milestones.map((milestone: any) => (
+                      {project.milestones.map((milestone: unknown) => (
                         <div
                           key={milestone.id}
                           className="flex items-center justify-between p-3 rounded-lg border bg-muted/50"

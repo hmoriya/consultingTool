@@ -116,9 +116,9 @@ describe('team actions', () => {
 
   describe('getTeamMembers', () => {
     test('エグゼクティブがチームメンバー一覧を取得できる', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockExecutiveUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockExecutiveUser as unknown)
 
-      prismaMock.user.findMany.mockResolvedValue(mockMembers as any)
+      prismaMock.user.findMany.mockResolvedValue(mockMembers as unknown)
 
       const result = await getTeamMembers()
 
@@ -138,9 +138,9 @@ describe('team actions', () => {
     })
 
     test('PMもチームメンバー一覧を取得できる', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as unknown)
 
-      prismaMock.user.findMany.mockResolvedValue(mockMembers as any)
+      prismaMock.user.findMany.mockResolvedValue(mockMembers as unknown)
 
       const result = await getTeamMembers()
 
@@ -148,7 +148,7 @@ describe('team actions', () => {
     })
 
     test('コンサルタントはチームメンバー一覧にアクセスできない', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockConsultantUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockConsultantUser as unknown)
 
       await expect(getTeamMembers()).rejects.toThrow('アクセス権限がありません')
     })
@@ -162,10 +162,10 @@ describe('team actions', () => {
 
   describe('searchTeamMembers', () => {
     test('名前でメンバーを検索できる', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as unknown)
 
       const searchResult = [mockConsultantUser]
-      prismaMock.user.findMany.mockResolvedValue(searchResult as any)
+      prismaMock.user.findMany.mockResolvedValue(searchResult as unknown)
 
       const result = await searchTeamMembers('コンサル')
 
@@ -189,7 +189,7 @@ describe('team actions', () => {
     })
 
     test('エグゼクティブも検索できる', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockExecutiveUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockExecutiveUser as unknown)
 
       prismaMock.user.findMany.mockResolvedValue([])
 
@@ -199,7 +199,7 @@ describe('team actions', () => {
     })
 
     test('コンサルタントは検索できない', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockConsultantUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockConsultantUser as unknown)
 
       await expect(searchTeamMembers('test')).rejects.toThrow('アクセス権限がありません')
     })
@@ -207,7 +207,7 @@ describe('team actions', () => {
 
   describe('createTeamMember', () => {
     test('エグゼクティブが新規メンバーを作成できる', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockExecutiveUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockExecutiveUser as unknown)
 
       prismaMock.user.findUnique.mockResolvedValue(null) // 重複なし
       prismaMock.user.create.mockResolvedValue({
@@ -224,7 +224,7 @@ describe('team actions', () => {
         organizationId: 'org-1',
         createdAt: new Date(),
         updatedAt: new Date()
-      } as any)
+      } as unknown)
 
       const result = await createTeamMember({
         email: 'new@example.com',
@@ -241,7 +241,7 @@ describe('team actions', () => {
     })
 
     test('PMも新規メンバーを作成できる', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as unknown)
 
       prismaMock.user.findUnique.mockResolvedValue(null)
       prismaMock.user.create.mockResolvedValue({
@@ -250,7 +250,7 @@ describe('team actions', () => {
         name: '新規メンバー',
         roleId: '550e8400-e29b-41d4-a716-446655440003',
         role: { name: 'consultant' }
-      } as any)
+      } as unknown)
 
       const result = await createTeamMember({
         email: 'new@example.com',
@@ -263,9 +263,9 @@ describe('team actions', () => {
     })
 
     test('メールアドレスが重複している場合はエラー', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockExecutiveUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockExecutiveUser as unknown)
 
-      prismaMock.user.findUnique.mockResolvedValue({ id: 'existing-user' } as any)
+      prismaMock.user.findUnique.mockResolvedValue({ id: 'existing-user' } as unknown)
 
       await expect(createTeamMember({
         email: 'existing@example.com',
@@ -276,7 +276,7 @@ describe('team actions', () => {
     })
 
     test('コンサルタントはメンバーを作成できない', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockConsultantUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockConsultantUser as unknown)
 
       await expect(createTeamMember({
         email: 'new@example.com',
@@ -289,15 +289,15 @@ describe('team actions', () => {
 
   describe('updateTeamMember', () => {
     test('エグゼクティブがメンバー情報を更新できる', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockExecutiveUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockExecutiveUser as unknown)
 
-      prismaMock.user.findFirst.mockResolvedValue(mockConsultantUser as any)
+      prismaMock.user.findFirst.mockResolvedValue(mockConsultantUser as unknown)
       prismaMock.user.update.mockResolvedValue({
         ...mockConsultantUser,
         name: '更新されたコンサルタント',
         roleId: '550e8400-e29b-41d4-a716-446655440002', // UUID形式
         role: { name: 'pm' }
-      } as any)
+      } as unknown)
 
       const result = await updateTeamMember('3', {
         name: '更新されたコンサルタント',
@@ -311,13 +311,13 @@ describe('team actions', () => {
     })
 
     test('PMもメンバー情報を更新できる', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as unknown)
 
-      prismaMock.user.findFirst.mockResolvedValue(mockConsultantUser as any)
+      prismaMock.user.findFirst.mockResolvedValue(mockConsultantUser as unknown)
       prismaMock.user.update.mockResolvedValue({
         ...mockConsultantUser,
         name: '更新名'
-      } as any)
+      } as unknown)
 
       const result = await updateTeamMember('3', {
         name: '更新名',
@@ -328,7 +328,7 @@ describe('team actions', () => {
     })
 
     test('他組織のメンバーは更新できない', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockExecutiveUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockExecutiveUser as unknown)
 
       prismaMock.user.findFirst.mockResolvedValue(null)
 
@@ -341,14 +341,14 @@ describe('team actions', () => {
 
   describe('deleteTeamMember', () => {
     test('エグゼクティブがメンバーを削除できる', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockExecutiveUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockExecutiveUser as unknown)
 
       prismaMock.user.findFirst.mockResolvedValue({
         ...mockConsultantUser,
         _count: { projectMembers: 0 }
-      } as any)
+      } as unknown)
       prismaMock.projectMember.count.mockResolvedValue(0)
-      prismaMock.user.delete.mockResolvedValue(mockConsultantUser as any)
+      prismaMock.user.delete.mockResolvedValue(mockConsultantUser as unknown)
 
       await deleteTeamMember('3')
 
@@ -358,15 +358,15 @@ describe('team actions', () => {
     })
 
     test('自分自身は削除できない', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockExecutiveUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockExecutiveUser as unknown)
 
       await expect(deleteTeamMember('1')).rejects.toThrow('自分自身は削除できません')
     })
 
     test('アクティブプロジェクトに参加中のメンバーは削除できない', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockExecutiveUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockExecutiveUser as unknown)
 
-      prismaMock.user.findFirst.mockResolvedValue(mockConsultantUser as any)
+      prismaMock.user.findFirst.mockResolvedValue(mockConsultantUser as unknown)
       prismaMock.projectMember.count.mockResolvedValue(2)
 
       await expect(deleteTeamMember('3')).rejects.toThrow(
@@ -375,7 +375,7 @@ describe('team actions', () => {
     })
 
     test('エグゼクティブ以外はメンバーを削除できない', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as unknown)
 
       await expect(deleteTeamMember('3')).rejects.toThrow(
         'エグゼクティブのみメンバーを削除できます'
@@ -385,7 +385,7 @@ describe('team actions', () => {
 
   describe('getMemberUtilization', () => {
     test('メンバーの稼働率を取得できる', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockExecutiveUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockExecutiveUser as unknown)
 
       const mockUtilizationData = [
         {
@@ -411,7 +411,7 @@ describe('team actions', () => {
         }
       ]
 
-      prismaMock.user.findMany.mockResolvedValue(mockUtilizationData as any)
+      prismaMock.user.findMany.mockResolvedValue(mockUtilizationData as unknown)
 
       const result = await getMemberUtilization()
 
@@ -429,14 +429,14 @@ describe('team actions', () => {
     })
 
     test('特定メンバーの稼働率を取得できる', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as unknown)
 
       prismaMock.user.findMany.mockResolvedValue([{
         id: '3',
         name: 'コンサルタント',
         email: 'consultant@example.com',
         projectMembers: []
-      }] as any)
+      }] as unknown)
 
       const result = await getMemberUtilization('3')
 
@@ -456,7 +456,7 @@ describe('team actions', () => {
     })
 
     test('コンサルタントは稼働率を確認できない', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockConsultantUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockConsultantUser as unknown)
 
       await expect(getMemberUtilization()).rejects.toThrow('アクセス権限がありません')
     })

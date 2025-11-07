@@ -55,7 +55,7 @@ const statusColors: Record<MilestoneStatus, string> = {
   delayed: 'bg-red-100 text-red-700'
 }
 
-const statusIcons: Record<MilestoneStatus, any> = {
+const statusIcons: Record<MilestoneStatus, unknown> = {
   pending: Clock,
   completed: CheckCircle2,
   delayed: AlertCircle
@@ -185,7 +185,7 @@ export function MilestoneEditForm({ milestone, onClose, onMilestoneUpdated }: Mi
 
               <div className="space-y-2">
                 <Label htmlFor="status">ステータス *</Label>
-                <Select value={watchedStatus} onValueChange={(value) => setValue('status', value as any)}>
+                <Select value={watchedStatus} onValueChange={(value) => setValue('status', value as unknown)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

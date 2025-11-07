@@ -284,7 +284,25 @@ export const useCaseDefinitions = {
 }
 
 // ユースケースの作成
-export async function createUseCases(operations: any[]) {
+interface OperationType {
+  id: string
+  name: string
+  description: string
+  serviceId: string
+  useCases?: Array<{
+    id: string
+    name: string
+    description: string
+    actors: string[]
+    preconditions: string[]
+    postconditions: string[]
+    mainFlow: string[]
+    alternativeFlows: string[]
+    exceptions: string[]
+  }>
+}
+
+export async function createUseCases(operations: OperationType[]) {
   console.log('  Creating use cases...')
 
   const useCases = []

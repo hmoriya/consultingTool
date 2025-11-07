@@ -252,7 +252,7 @@ export function ParasolFileEditor({
 }
 
 // パラソル専用スニペットの定義
-function getParasolSnippets(monaco: any, fileType: FileType) {
+function getParasolSnippets(monaco: unknown, fileType: FileType) {
   const baseSnippets = [
     {
       label: 'entity',

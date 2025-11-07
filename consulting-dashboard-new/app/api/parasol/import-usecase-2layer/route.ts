@@ -168,7 +168,7 @@ async function scanUseCaseCentric2LayerStructure(basePath: string) {
   return useCases
 }
 
-async function scanServiceUseCases(servicePath: string, serviceId: string, classifier: any, useCases: any[]) {
+async function scanServiceUseCases(servicePath: string, serviceId: string, classifier: unknown, useCases: unknown[]) {
   try {
     const capabilitiesPath = path.join(servicePath, 'capabilities')
     const capabilityDirs = await fs.readdir(capabilitiesPath)
@@ -237,7 +237,7 @@ async function scanUseCasesDirectory(
   layer: 'shared' | 'individual',
   serviceId: string,
   operationId: string,
-  useCases: any[]
+  useCases: unknown[]
 ) {
   try {
     const useCaseDirs = await fs.readdir(useCasesPath)

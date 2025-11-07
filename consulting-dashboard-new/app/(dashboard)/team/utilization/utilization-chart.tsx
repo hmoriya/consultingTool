@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { BarChart, Bar, LineChart, Line, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import type { MemberUtilization } from '../../../actions/utilization'
 
 interface UtilizationChartProps {
@@ -9,7 +9,7 @@ interface UtilizationChartProps {
   type: 'distribution' | 'by-role' | 'trend' | 'weekly' | 'monthly'
 }
 
-const COLORS = ['#0ea5e9', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6']
+// const COLORS = ['#0ea5e9', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6']
 
 export function UtilizationChart({ data, type }: UtilizationChartProps) {
   const chartData = useMemo(() => {

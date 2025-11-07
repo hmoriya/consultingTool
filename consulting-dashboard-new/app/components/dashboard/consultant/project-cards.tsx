@@ -7,7 +7,7 @@ import { Briefcase, Users, Calendar, Target } from 'lucide-react'
 import Link from 'next/link'
 
 interface ProjectCardsProps {
-  projects: any[]
+  projects: unknown[]
 }
 
 export function ProjectCards({ projects }: ProjectCardsProps) {
@@ -41,7 +41,7 @@ export function ProjectCards({ projects }: ProjectCardsProps) {
     }
   }
 
-  const calculateProgress = (project: any) => {
+  const calculateProgress = (project: unknown) => {
     if (!project._count.tasks) return 0
     // 簡易的な進捗計算（実際はタスクのステータスを考慮すべき）
     const progress = Math.random() * 100 // 仮の値

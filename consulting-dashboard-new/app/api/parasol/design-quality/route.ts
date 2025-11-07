@@ -212,7 +212,7 @@ class DesignQualityAnalyzer {
     return functionGroups
   }
 
-  private determineConsolidationStrategy(functionName: string, locations: any[]): string {
+  private determineConsolidationStrategy(functionName: string, locations: unknown[]): string {
     // 統合戦略の決定ロジック
     if (functionName.includes('notification')) {
       return '通知機能は communication-delivery ケーパビリティに統一することを推奨'

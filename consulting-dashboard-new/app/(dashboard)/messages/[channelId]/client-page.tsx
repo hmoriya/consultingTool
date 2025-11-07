@@ -13,7 +13,7 @@ import {
   X,
   File,
   FileText,
-  Image
+  Image as ImageIcon
 } from 'lucide-react'
 import { format, isToday, isYesterday } from 'date-fns'
 import { ja } from 'date-fns/locale'
@@ -105,7 +105,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
   const [mentionSearch, setMentionSearch] = useState('')
   const [mentionIndex, setMentionIndex] = useState(0)
   const [selectedThread, setSelectedThread] = useState<Message | null>(null)
-  const [threadMessages, setThreadMessages] = useState<any[]>([])
+  const [threadMessages, setThreadMessages] = useState<Message[]>([])
   const [editingMessage, setEditingMessage] = useState<{ id: string; content: string } | null>(null)
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -364,7 +364,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
         toast.error(result.error || 'メッセージの送信に失敗しました')
         setNewMessage(tempMessage) // 失敗時は復元
       }
-    } catch (error) {
+    } catch {
       toast.error('エラーが発生しました')
       setNewMessage(tempMessage)
     } finally {
@@ -616,7 +616,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {selectedFile.type.startsWith('image/') ? (
-                    <Image className="h-5 w-5 text-blue-500" />
+                    <ImageIcon className="h-5 w-5 text-blue-500" aria-hidden="true" />
                   ) : selectedFile.type === 'application/pdf' ? (
                     <FileText className="h-5 w-5 text-red-500" />
                   ) : (

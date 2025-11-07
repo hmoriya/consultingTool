@@ -71,7 +71,7 @@ export function TeamList({ initialMembers, currentUserRole }: TeamListProps) {
   const [editingMember, setEditingMember] = useState<TeamMemberItem | null>(null)
   const [loading, setLoading] = useState(false)
   const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set())
-  const [memberUtilization, setMemberUtilization] = useState<Record<string, any>>({})
+  const [memberUtilization, setMemberUtilization] = useState<Record<string, unknown>>({})
 
   const filteredMembers = members.filter(member =>
     member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -304,7 +304,7 @@ export function TeamList({ initialMembers, currentUserRole }: TeamListProps) {
                                 <p className="text-sm text-muted-foreground pl-6">現在プロジェクトに参加していません</p>
                               ) : (
                                 <div className="space-y-3">
-                                  {utilization.projects.map((project: any) => (
+                                  {utilization.projects.map((project: unknown) => (
                                     <div key={project.id} className="flex items-center justify-between pl-6 pr-4">
                                       <Link 
                                         href={`/projects/${project.id}`}

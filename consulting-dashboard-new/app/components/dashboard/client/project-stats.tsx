@@ -5,7 +5,7 @@ import { Progress } from '@/components/ui/progress'
 import { TrendingUp, TrendingDown, AlertCircle } from 'lucide-react'
 
 interface ProjectStatsProps {
-  projects: any[]
+  projects: unknown[]
 }
 
 export function ProjectStats({ projects }: ProjectStatsProps) {

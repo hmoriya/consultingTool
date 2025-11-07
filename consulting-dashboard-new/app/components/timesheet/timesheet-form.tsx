@@ -108,7 +108,7 @@ export function TimesheetForm({ projects, defaultDate, onSuccess, onCancel, edit
       hours: editingEntry.hours.toString(),
       description: editingEntry.description,
       billable: editingEntry.billable,
-      activityType: editingEntry.activityType as any,
+      activityType: editingEntry.activityType as unknown,
     } : {
       date: defaultDate || new Date(),
       hours: '1',

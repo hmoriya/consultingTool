@@ -470,7 +470,7 @@ export class ${capability.name}Service {
    * ${op.displayName}
    * ${op.goal || ''}
    */
-  async ${methodName}(params: any): Promise<void> {
+  async ${methodName}(params: unknown): Promise<void> {
     // TODO: ビジネスロジックを実装
     throw new Error('Not implemented');
   }
@@ -556,7 +556,7 @@ export class ${eventName}Event implements ${eventName} {
     public readonly eventId: string,
     public readonly aggregateId: string,
     public readonly occurredAt: Date,
-    public readonly payload: any
+    public readonly payload: unknown
   ) {}
 }
 `;
@@ -611,7 +611,7 @@ function generateOpenApiSpec(
   operations: BusinessOperation[],
   config: GenerationConfig
 ): string {
-  const spec: any = {
+  const spec: unknown = {
     openapi: '3.0.0',
     info: {
       title: 'Generated API',

@@ -33,12 +33,12 @@ import {
 } from 'lucide-react'
 
 interface ProjectMetricsProps {
-  project: any
+  project: unknown
 }
 
 export function ProjectMetrics({ project }: ProjectMetricsProps) {
   // メトリクスデータの準備
-  const monthlyData = project.projectMetrics?.map((metric: any) => ({
+  const monthlyData = project.projectMetrics?.map((metric: unknown) => ({
     month: new Date(metric.date).toLocaleDateString('ja-JP', { month: 'short' }),
     revenue: metric.revenue,
     cost: metric.cost,
@@ -170,7 +170,7 @@ export function ProjectMetrics({ project }: ProjectMetricsProps) {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
-                  <Tooltip formatter={(value: any) => formatCurrency(value)} />
+                  <Tooltip formatter={(value: unknown) => formatCurrency(value)} />
                   <Legend />
                   <Area
                     type="monotone"

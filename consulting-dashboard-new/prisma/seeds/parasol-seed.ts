@@ -88,9 +88,9 @@ async function main() {
     console.log('🎉 パラソルサービス用シードデータの投入が完了しました！')
     console.log(`📊 作成されたサービス数: ${services.length}`)
 
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ シードデータ投入中にエラーが発生しました:', error)
-    throw error
+    throw _error
   } finally {
     await parasolDb.$disconnect()
   }

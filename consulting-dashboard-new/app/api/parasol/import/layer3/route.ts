@@ -14,6 +14,19 @@ interface Layer3ImportRequest {
   dryRun?: boolean
 }
 
+interface PageInfo {
+  fileName: string
+  filePath: string
+  content: string
+  displayName: string
+  name: string
+  serviceId: string
+  capabilityId: string
+  operationId: string
+  useCaseId: string
+  layerType: string
+}
+
 // Layer 3 (ユースケース専用) 専用インポート
 export async function POST(request: Request) {
   try {
@@ -35,8 +48,8 @@ export async function POST(request: Request) {
     const basePath = process.cwd()
     const servicesPath = path.join(basePath, 'docs', 'parasol', 'services')
 
-    const pages = []
-    const scanErrors = []
+    const pages: PageInfo[] = []
+    const scanErrors: { serviceId: string; operationId: string; error: string }[] = []
 
     try {
       const serviceDirs = await fs.readdir(servicesPath)
@@ -221,8 +234,8 @@ async function scanServiceDedicatedPages(
   serviceId: string,
   targetOperationId: string | undefined,
   targetUseCaseId: string | undefined,
-  pages: any[],
-  scanErrors: any[]
+  pages: unknown[],
+  scanErrors: unknown[]
 ) {
   try {
     const capabilitiesPath = path.join(servicePath, 'capabilities')
@@ -308,7 +321,7 @@ async function scanServiceDedicatedPages(
   }
 }
 
-function validateLayer3Page(page: any, level: string) {
+function validateLayer3Page(page: unknown, level: string) {
   const errors = []
   const warnings = []
 
@@ -357,9 +370,9 @@ function validateLayer3Page(page: any, level: string) {
   }
 }
 
-function analyzePageIndependence(pages: any[]) {
-  const useCaseGroups = new Map<string, any[]>()
-  const operationGroups = new Map<string, any[]>()
+function analyzePageIndependence(pages: PageInfo[]) {
+  const useCaseGroups = new Map<string, PageInfo[]>()
+  const operationGroups = new Map<string, PageInfo[]>()
 
   // ユースケース別グループ化
   for (const page of pages) {

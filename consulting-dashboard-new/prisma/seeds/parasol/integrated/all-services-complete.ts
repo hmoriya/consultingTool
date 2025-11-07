@@ -177,7 +177,7 @@ async function seedAllServices() {
       let domainLanguage = ''
       try {
         domainLanguage = readFileSync(domainLanguagePath, 'utf-8')
-      } catch (error) {
+      } catch (_error) {
         console.warn(`  ⚠️ Domain language file not found: ${serviceConfig.domainLanguageFile}`)
         domainLanguage = '# Domain Language\nNot yet defined.'
       }
@@ -245,9 +245,9 @@ async function seedAllServices() {
 
     return { services: totalServices, capabilities: totalCapabilities, operations: totalOperations }
 
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error in seedAllServices:', error)
-    throw error
+    throw _error
   } finally {
     await parasolDb.$disconnect()
   }

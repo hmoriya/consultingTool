@@ -204,7 +204,7 @@ export async function updateTaskStatus(taskId: string, status: TaskStatus, comme
     throw new Error('タスクが見つからないか、権限がありません')
   }
 
-  const updateData: any = {
+  const updateData: unknown = {
     status,
     updatedAt: new Date()
   }
@@ -296,7 +296,7 @@ export async function updateTask(taskId: string, data: {
     throw new Error('タスクが見つからないか、権限がありません')
   }
 
-  const updateData: any = {
+  const updateData: unknown = {
     ...data,
     updatedAt: new Date()
   }

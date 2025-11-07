@@ -6,8 +6,8 @@
  * 全7サービスのAPI仕様とDB設計MDファイルをAPI経由でデータベースに投入します。
  */
 
-const fs = require('fs').promises;
-const path = require('path');
+import fs from 'fs/promises';
+import path from 'path';
 
 // 対象サービス一覧
 const SERVICES = [
@@ -53,7 +53,7 @@ async function uploadDocument(serviceId, docType, content) {
     });
 
     if (response.ok) {
-      const result = await response.json();
+      await response.json();
       console.log(`✅ ${serviceId}/${docType}: 成功 (${response.status})`);
       return true;
     } else {

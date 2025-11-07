@@ -1,7 +1,7 @@
 import { ProjectWithDetails, CreateProjectInput, UpdateProjectInput, ProjectMemberWithUser } from '@/types/project'
 
 // Mock data for testing
-const mockProjects: any[] = [
+const mockProjects: unknown[] = [
   {
     id: 'proj1',
     name: 'デジタル変革プロジェクト',

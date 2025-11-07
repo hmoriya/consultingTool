@@ -2,7 +2,7 @@ import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 
 const parasolDb = new ParasolPrismaClient()
 
-export async function seedExecuteAuthentication(service: any, capability: any) {
+export async function seedExecuteAuthentication(service: unknown, capability: unknown) {
   console.log('    Creating business operation: 認証を実行する...')
   
   const operation = await parasolDb.businessOperation.create({

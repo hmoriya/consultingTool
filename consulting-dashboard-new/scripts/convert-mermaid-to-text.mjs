@@ -7,9 +7,8 @@
  * Mermaidフローチャートを使用しているファイルをテキスト形式に変換します。
  */
 
-const fs = require('fs').promises;
-const path = require('path');
-const glob = require('glob');
+import fs from 'fs/promises';
+import { glob } from 'glob';
 
 // 変換対象から除外するファイル（既にテキスト形式）
 const EXCLUDED_FILES = [

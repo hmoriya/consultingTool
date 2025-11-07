@@ -6,8 +6,8 @@
  * MDファイルからAPI経由でユースケース定義をデータベースに投入します。
  */
 
-const fs = require('fs').promises;
-const path = require('path');
+import fs from 'fs/promises';
+import path from 'path';
 
 const BASE_DOCS_PATH = 'docs/parasol/services';
 
@@ -59,7 +59,7 @@ async function uploadParasolData(data) {
     });
 
     if (response.ok) {
-      const result = await response.json();
+      await response.json();
       console.log(`✅ インポート成功: ${data.length}件のサービス`);
       return true;
     } else {

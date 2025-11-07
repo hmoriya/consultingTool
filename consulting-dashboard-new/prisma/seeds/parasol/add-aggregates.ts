@@ -8,18 +8,17 @@ async function main() {
   console.log('🔍 Starting aggregate analysis for all services...\n')
   
   try {
-    const result = await addAggregatesToAllServices()
     
     if (result.success && result.results) {
       console.log('\n📊 Results by service:')
-      result.results.forEach((serviceResult: any) => {
-        console.log(`\n  ${serviceResult.serviceName}:`)
+      result.results.forEach((serviceResult: unknown) => {
+        console.log(`\n  ${serviceResult._serviceName}:`)
         if (serviceResult.success) {
           console.log(`    ✅ Success`)
           console.log(`       - Entities: ${serviceResult.entityCount}`)
           console.log(`       - Aggregates: ${serviceResult.aggregateCount}`)
           if (serviceResult.aggregates && serviceResult.aggregates.length > 0) {
-            serviceResult.aggregates.forEach((agg: any) => {
+            serviceResult.aggregates.forEach((agg: unknown) => {
               console.log(`       - ${agg.name}: ${agg.rootEntity} + ${agg.entityCount} entities`)
             })
           }
@@ -41,7 +40,7 @@ async function main() {
     
     console.log('\n✅ Aggregate analysis completed successfully!')
     
-  } catch (error) {
+  } catch (_error) {
     console.error('\n❌ Error during aggregate analysis:', error)
     process.exit(1)
   }
@@ -55,7 +54,7 @@ if (require.main === module) {
       process.exit(0)
     })
     .catch((error) => {
-      console.error('\nScript error:', error)
+      console.error('\nScript error)', error)
       process.exit(1)
     })
 }

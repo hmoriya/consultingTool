@@ -96,7 +96,7 @@ async function main() {
           console.log(`  - スキル「${skill?.name}」を追加（レベル: ${usageLevel}）`)
         } catch (error) {
           // 既に存在する場合はスキップ
-          if ((error as any).code === 'P2002') {
+          if (error instanceof Error && 'code' in error && error.code === 'P2002') {
             console.log(`  - スキル「${skills.find(s => s.id === userSkill.skillId)?.name}」は既に登録済み`)
           } else {
             throw error

@@ -22,7 +22,7 @@ const categoryIcons = {
 export default function HelpPage() {
   const [selectedUseCase, setSelectedUseCase] = useState<UseCase | null>(null)
   const [expandedImage, setExpandedImage] = useState<string | null>(null)
-  const [, setImageLoadingStates] = useState<Record<string, boolean>>({})
+  // const [imageLoadingStates, setImageLoadingStates] = useState<Record<string, boolean>>({})
   const [expandedSteps, setExpandedSteps] = useState<Record<number, boolean>>({})
 
   const toggleStepDetails = (stepIndex: number) => {

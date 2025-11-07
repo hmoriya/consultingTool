@@ -116,9 +116,9 @@ export interface SeedService {
   name: string;
   displayName: string;
   description?: string;
-  domainLanguage: Record<string, any>;
-  apiSpecification: Record<string, any>;
-  dbSchema: Record<string, any>;
+  domainLanguage: Record<string, unknown>;
+  apiSpecification: Record<string, unknown>;
+  dbSchema: Record<string, unknown>;
 }
 
 export interface SeedCapability {
@@ -137,8 +137,8 @@ export interface SeedOperation {
   operations: string[];
   businessStates: string[];
   useCases: string[];
-  uiDefinitions: any[];
-  testCases: any[];
+  uiDefinitions: unknown[];
+  testCases: unknown[];
 }
 
 // Function parameter types

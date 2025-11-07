@@ -63,7 +63,7 @@ export function MessageItem({ message, isOwn, showAvatar, currentUserId, onReact
   const commonEmojis = ['👍', '❤️', '😊', '🎉', '👏', '😮']
 
   // ファイルメタデータをパース
-  let fileMetadata: any = null
+  let fileMetadata: unknown = null
   if (message.type === 'file' && message.metadata) {
     try {
       fileMetadata = typeof message.metadata === 'string' ? JSON.parse(message.metadata) : message.metadata

@@ -63,7 +63,7 @@ export default function SettingsPanel({
   const [localEditorSettings, setLocalEditorSettings] = useState<EditorSettings>(editorSettings);
 
   // メタデータの更新
-  const updateMetadata = (key: keyof FileMetadata, value: any) => {
+  const updateMetadata = (key: keyof FileMetadata, value: unknown) => {
     setLocalMetadata(prev => ({
       ...prev,
       [key]: value,
@@ -71,7 +71,7 @@ export default function SettingsPanel({
   };
 
   // エディタ設定の更新
-  const updateEditorSettings = (key: keyof EditorSettings, value: any) => {
+  const updateEditorSettings = (key: keyof EditorSettings, value: unknown) => {
     const newSettings = {
       ...localEditorSettings,
       [key]: value,

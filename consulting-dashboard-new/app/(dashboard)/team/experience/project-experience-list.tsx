@@ -4,15 +4,59 @@ import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
 import { Calendar, Briefcase, Users, ChevronDown, ChevronUp, Edit } from 'lucide-react'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import { ProjectExperienceDetail } from './project-experience-detail'
 
+interface Project {
+  id: string
+  name: string
+  client?: {
+    id: string
+    name: string
+  } | null
+}
+
+interface ProjectSkill {
+  id: string
+  skillId: string
+  usageLevel: number
+  skill: {
+    id: string
+    name: string
+    category: {
+      id: string
+      name: string
+    }
+  }
+}
+
+interface ProjectExperience {
+  id: string
+  project: Project
+  role: string
+  startDate: string | Date
+  endDate?: string | Date | null
+  allocation: number
+  achievements?: string | null
+  responsibilities?: string | null
+  skills: ProjectSkill[]
+  duration: number
+}
+
+interface Skill {
+  id: string
+  name: string
+  category: {
+    id: string
+    name: string
+  }
+}
+
 interface ProjectExperienceListProps {
-  experiences: any[]
-  allSkills: any[]
+  experiences: ProjectExperience[]
+  allSkills: Skill[]
   isOwner: boolean
 }
 

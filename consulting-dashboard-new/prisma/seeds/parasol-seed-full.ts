@@ -58,7 +58,6 @@ export async function seedParasolFull() {
       
       const dataCreator = serviceDataCreators[service.name]
       if (dataCreator) {
-        const result = await dataCreator(service.id)
         totalCapabilities += result.capabilities
         totalOperations += result.operations
         
@@ -91,9 +90,9 @@ export async function seedParasolFull() {
     
     console.log('\n✨ Parasol full seed completed successfully!')
     
-  } catch (error) {
+  } catch (_error) {
     console.error('\n❌ Error during Parasol full seed:', error)
-    throw error
+    throw _error
   } finally {
     await parasolDb.$disconnect()
   }

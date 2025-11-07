@@ -58,7 +58,7 @@ export function ClientCreateDialog({ onClose, onClientCreated }: ClientCreateDia
         activeProjectCount: 0
       })
       onClose()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to create client:', error)
       alert(error.message || 'クライアントの作成に失敗しました')
     } finally {

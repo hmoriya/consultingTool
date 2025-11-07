@@ -57,7 +57,7 @@ export function DomainLanguageMarkdownEditor({
 
   return (
     <div className="space-y-4">
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as unknown)}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="markdown" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />

@@ -21,7 +21,7 @@ interface ImportResponse {
   success: boolean
   message: string
   details?: Array<{
-    serviceName: string
+    _serviceName: string
     status: 'created' | 'updated' | 'skipped'
     capabilities: number
     operations: number
@@ -128,7 +128,7 @@ async function seedParasolData() {
 
     console.log('\n🎉 Parasol seed completed successfully!')
 
-  } catch (error) {
+  } catch (_error) {
     console.error('\n❌ Error during seeding:', error)
     console.error('\n💡 Troubleshooting tips:')
     console.error('   1. Ensure the Next.js dev server is running (npm run dev)')

@@ -3,7 +3,22 @@ import { PROJECT_MEMBER_ROLES } from '../../constants/roles'
 
 const projectDb = new ProjectPrismaClient()
 
-export async function seedProjects(users?: any[], organizations?: any) {
+interface UserType {
+  id: string
+  email: string
+  name: string
+}
+
+interface OrganizationType {
+  clientOrg?: { id: string }
+  globalMfg?: { id: string }
+  financeCorp?: { id: string }
+  healthcare?: { id: string }
+  retail?: { id: string }
+  energy?: { id: string }
+}
+
+export async function seedProjects(users?: UserType[], organizations?: OrganizationType) {
   console.log('🌱 Seeding Project Service...')
   
   try {
@@ -328,8 +343,8 @@ export async function seedProjects(users?: any[], organizations?: any) {
             milestoneId: targetMilestone.id,
             name: template.name,
             description: `${template.name}の詳細な仕様と実装内容を含む成果物`,
-            type: template.type as any,
-            status: deliverableStatus as any,
+            type: template.type,
+            status: deliverableStatus,
             version: deliverableStatus === 'delivered' ? 'v1.0' : 'v0.1',
             fileUrl: deliverableStatus === 'delivered' ? `/files/${project.code}/${template.name.replace(/\s/g, '_')}.pdf` : null,
             approvedBy,
@@ -395,9 +410,9 @@ export async function seedProjects(users?: any[], organizations?: any) {
     
     return projectsWithMembers
     
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error seeding Project Service:', error)
-    throw error
+    throw _error
   } finally {
     await projectDb.$disconnect()
   }

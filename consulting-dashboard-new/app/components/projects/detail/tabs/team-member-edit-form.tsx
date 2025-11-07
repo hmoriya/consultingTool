@@ -124,7 +124,7 @@ export function TeamMemberEditForm({ member, onClose, onMemberUpdated }: TeamMem
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="role">ロール *</Label>
-                <Select value={watchedRole} onValueChange={(value) => setValue('role', value as any)}>
+                <Select value={watchedRole} onValueChange={(value) => setValue('role', value as unknown)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

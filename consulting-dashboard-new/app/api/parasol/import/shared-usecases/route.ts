@@ -13,6 +13,20 @@ interface SharedUseCaseImportRequest {
   dryRun?: boolean
 }
 
+interface UseCaseInfo {
+  fileName: string
+  filePath: string
+  content: string
+  displayName: string
+  name: string
+  serviceId: string
+  capabilityId: string
+  operationId: string
+  useCaseId: string
+  layerType: string
+  pages: unknown[]
+}
+
 // Layer 1 (オペレーション共有ユースケース) 専用インポート
 export async function POST(request: Request) {
   try {
@@ -33,8 +47,8 @@ export async function POST(request: Request) {
     const basePath = process.cwd()
     const servicesPath = path.join(basePath, 'docs', 'parasol', 'services')
 
-    const useCases = []
-    const scanErrors = []
+    const useCases: UseCaseInfo[] = []
+    const scanErrors: { serviceId: string; operationId: string; error: string }[] = []
 
     try {
       const serviceDirs = await fs.readdir(servicesPath)
@@ -191,8 +205,8 @@ async function scanServiceSharedUseCases(
   servicePath: string,
   serviceId: string,
   targetOperationId: string | undefined,
-  useCases: any[],
-  scanErrors: any[]
+  useCases: UseCaseInfo[],
+  scanErrors: { serviceId: string; operationId: string; error: string }[]
 ) {
   try {
     const capabilitiesPath = path.join(servicePath, 'capabilities')
@@ -282,8 +296,8 @@ async function scanUseCasePages(pagesPath: string) {
   return pages
 }
 
-function analyzeUseCaseSharing(useCases: any[]) {
-  const duplicateMap = new Map<string, any[]>()
+function analyzeUseCaseSharing(useCases: UseCaseInfo[]) {
+  const duplicateMap = new Map<string, UseCaseInfo[]>()
 
   // displayName でグループ化
   for (const useCase of useCases) {
@@ -338,7 +352,7 @@ function detectConsolidationType(displayName: string): string {
   return 'general-shared'
 }
 
-function validateSharedUseCase(useCase: any, level: string) {
+function validateSharedUseCase(useCase: unknown, level: string) {
   const errors = []
   const warnings = []
 
@@ -382,7 +396,7 @@ function validateSharedUseCase(useCase: any, level: string) {
   }
 }
 
-async function analyzeOperationImpact(useCases: any[], targetOperationId?: string) {
+async function analyzeOperationImpact(useCases: unknown[], targetOperationId?: string) {
   try {
     if (targetOperationId) {
       // 特定オペレーション内の影響分析

@@ -7,7 +7,7 @@ import { Star, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 
 interface SkillsSummaryProps {
-  skills: any[]
+  skills: unknown[]
 }
 
 const skillCategories: Record<string, { label: string; color: string }> = {

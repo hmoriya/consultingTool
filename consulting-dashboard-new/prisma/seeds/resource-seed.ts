@@ -122,9 +122,9 @@ export async function seedResources(users?: SeedUserWithDetails): Promise<void> 
       await seedUserSkills(users, skills)
     }
     
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error seeding Resource Service:', error)
-    throw error
+    throw _error
   } finally {
     await resourceDb.$disconnect()
   }
@@ -192,7 +192,7 @@ async function seedUserSkills(users: SeedUserWithDetails, skills?: SeedSkill[]):
     }
     
     console.log(`  - Created ${uniqueUserSkills.length} user skills`)
-  } catch (error) {
+  } catch (_error) {
     console.error('Error creating user skills:', error)
   }
 }

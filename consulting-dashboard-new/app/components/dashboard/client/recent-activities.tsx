@@ -7,7 +7,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { ja } from 'date-fns/locale'
 
 interface RecentActivitiesProps {
-  activities: any[]
+  activities: unknown[]
 }
 
 export function RecentActivities({ activities }: RecentActivitiesProps) {

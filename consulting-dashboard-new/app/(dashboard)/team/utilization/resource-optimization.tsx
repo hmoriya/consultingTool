@@ -7,12 +7,50 @@ import { Button } from '@/components/ui/button'
 import { ArrowRight, Users, AlertTriangle, TrendingDown } from 'lucide-react'
 import type { MemberUtilization } from '../../../actions/utilization'
 
-interface ResourceOptimizationProps {
-  utilization: MemberUtilization[]
-  recommendations: any
+interface Recommendation {
+  type: 'low_utilization' | 'high_utilization' | 'resource_shortage'
+  priority: 'high' | 'medium' | 'low'
+  message: string
 }
 
-export function ResourceOptimization({ utilization, recommendations }: ResourceOptimizationProps) {
+interface UnderutilizedMember {
+  id: string
+  name: string
+  role: string
+  currentAllocation: number
+  availableCapacity: number
+}
+
+interface OverutilizedMember {
+  id: string
+  name: string
+  role: string
+  currentAllocation: number
+  overAllocation: number
+}
+
+interface ResourceShortage {
+  projectId: string
+  projectName: string
+  shortages: Array<{
+    role: string
+    shortage: number
+  }>
+}
+
+interface Recommendations {
+  underutilized: UnderutilizedMember[]
+  overutilized: OverutilizedMember[]
+  resourceShortages: ResourceShortage[]
+  recommendations: Recommendation[]
+}
+
+interface ResourceOptimizationProps {
+  utilization: MemberUtilization[]
+  recommendations: Recommendations | null
+}
+
+export function ResourceOptimization({ recommendations }: ResourceOptimizationProps) {
   if (!recommendations) {
     return (
       <Card>
@@ -89,7 +127,7 @@ export function ResourceOptimization({ utilization, recommendations }: ResourceO
               現在、特に対応が必要な項目はありません
             </p>
           ) : (
-            recommendations.recommendations.map((rec: any, index: number) => (
+            recommendations.recommendations.map((rec, index) => (
               <div key={index} className="flex items-start gap-3 p-3 border rounded-lg">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
@@ -129,7 +167,7 @@ export function ResourceOptimization({ utilization, recommendations }: ResourceO
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {recommendations.underutilized.slice(0, 5).map((member: any) => (
+              {recommendations.underutilized.slice(0, 5).map((member) => (
                 <div key={member.id} className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium">{member.name}</p>
@@ -162,7 +200,7 @@ export function ResourceOptimization({ utilization, recommendations }: ResourceO
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {recommendations.overutilized.slice(0, 5).map((member: any) => (
+              {recommendations.overutilized.slice(0, 5).map((member) => (
                 <div key={member.id} className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium">{member.name}</p>
@@ -199,11 +237,11 @@ export function ResourceOptimization({ utilization, recommendations }: ResourceO
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {recommendations.resourceShortages.map((project: any) => (
+              {recommendations.resourceShortages.map((project) => (
                 <div key={project.projectId} className="border rounded-lg p-3">
                   <p className="font-medium text-sm mb-2">{project.projectName}</p>
                   <div className="flex flex-wrap gap-2">
-                    {project.shortages.map((shortage: any, idx: number) => (
+                    {project.shortages.map((shortage, idx) => (
                       <Badge key={idx} variant="outline">
                         {shortage.role}: {shortage.shortage}名不足
                       </Badge>

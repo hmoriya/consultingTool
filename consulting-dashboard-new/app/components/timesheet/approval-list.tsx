@@ -21,7 +21,7 @@ import { toast } from 'sonner'
 import { useApproval } from '@/contexts/approval-context'
 
 interface ApprovalListProps {
-  timesheets: any[]
+  timesheets: unknown[]
   onUpdate?: () => void
 }
 
@@ -32,7 +32,7 @@ export function ApprovalList({ timesheets, onUpdate }: ApprovalListProps) {
   const [isProcessing, setIsProcessing] = useState(false)
   const { refreshPendingCount } = useApproval()
 
-  const handleAction = (timesheet: any, actionType: 'APPROVE' | 'REJECT') => {
+  const handleAction = (timesheet: unknown, actionType: 'APPROVE' | 'REJECT') => {
     setSelectedTimesheet(timesheet)
     setAction(actionType)
     setComments('')
@@ -71,7 +71,7 @@ export function ApprovalList({ timesheets, onUpdate }: ApprovalListProps) {
     }
   }
 
-  const getProjectSummary = (entries: any[]) => {
+  const getProjectSummary = (entries: unknown[]) => {
     const projectHours = entries.reduce((acc, entry) => {
       const projectId = entry.projectId || '不明なプロジェクト'
       acc[projectId] = (acc[projectId] || 0) + entry.hours

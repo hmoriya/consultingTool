@@ -9,7 +9,7 @@ import { ja } from 'date-fns/locale'
 import Link from 'next/link'
 
 interface PendingTimesheetApprovalsProps {
-  timesheets: any[]
+  timesheets: unknown[]
 }
 
 export function PendingTimesheetApprovals({ timesheets }: PendingTimesheetApprovalsProps) {

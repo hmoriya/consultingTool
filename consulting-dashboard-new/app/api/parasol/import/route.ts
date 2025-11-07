@@ -43,7 +43,7 @@ interface OperationMetadata {
 // MDファイルからメタデータを抽出
 function extractMetadata(content: string, type: 'service' | 'capability' | 'operation' | 'page' | 'usecase' | 'test') {
   const lines = content.split('\n')
-  const metadata: any = {}
+  const metadata: unknown = {}
 
   // タイトルを抽出（最初の#行）
   const titleLine = lines.find(line => line.startsWith('# ') || line.includes('# '))
@@ -329,7 +329,7 @@ async function scanParasolDocs(basePath: string) {
 }
 
 // データベースにインポート
-async function importToDatabase(services: any[]) {
+async function importToDatabase(services: unknown[]) {
   let importedServices = 0
   let importedCapabilities = 0
   let importedOperations = 0
@@ -498,7 +498,7 @@ async function importToDatabase(services: any[]) {
           // ユースケースが存在する場合とそうでない場合を分けて処理
           // 注意: operations.stepsはユースケースではなくビジネスオペレーションのステップなので除外
           const actualUseCases = operationData.usecases && Array.isArray(operationData.usecases)
-            ? operationData.usecases.filter((uc: any) => {
+            ? operationData.usecases.filter((uc: unknown) => {
                 // stepsプロパティを持つオブジェクトはビジネスオペレーションステップなのでユースケースから除外
                 return uc && typeof uc === 'object' && !('steps' in uc) && uc.name && uc.displayName;
               })
@@ -699,7 +699,7 @@ export async function POST(request: Request) {
       details: services.map(s => ({
         service: s.displayName,
         capabilities: s.capabilities.length,
-        operations: s.capabilities.reduce((sum: number, c: any) => sum + c.operations.length, 0)
+        operations: s.capabilities.reduce((sum: number, c: unknown) => sum + c.operations.length, 0)
       }))
     })
   } catch (error) {
@@ -726,7 +726,7 @@ export async function GET() {
         name: s.name,
         displayName: s.displayName,
         capabilities: s.capabilities.length,
-        operations: s.capabilities.reduce((sum: number, c: any) => sum + c.operations.length, 0)
+        operations: s.capabilities.reduce((sum: number, c: unknown) => sum + c.operations.length, 0)
       }))
     })
   } catch (error) {

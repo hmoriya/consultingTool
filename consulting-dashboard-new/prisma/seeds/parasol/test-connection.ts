@@ -7,7 +7,7 @@ async function testConnection() {
     console.log('Testing Parasol database connection...')
 
     // Test service creation
-    const result = await parasolDb.service.create({
+    const testService = await parasolDb.service.create({
       data: {
         name: 'test-service',
         displayName: 'テストサービス',
@@ -17,7 +17,7 @@ async function testConnection() {
         dbSchema: JSON.stringify({ tables: [] })
       }
     })
-    console.log('✅ Service created:', result.displayName)
+    console.log('✅ Service created:', testService.displayName)
 
     // Test capability creation
     const capability = await parasolDb.businessCapability.create({
@@ -63,7 +63,7 @@ async function testConnection() {
     const count = await parasolDb.service.count()
     console.log('Total services:', count)
 
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error:', error)
   } finally {
     await parasolDb.$disconnect()

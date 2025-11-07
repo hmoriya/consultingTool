@@ -18,16 +18,59 @@ import { toast } from 'sonner'
 import { Search, Users } from 'lucide-react'
 import { searchMembersBySkill } from '../../../actions/skills'
 
+interface Skill {
+  id: string
+  name: string
+  categoryId: string
+  userCount?: number
+}
+
+interface Category {
+  id: string
+  name: string
+}
+
+interface UserSkill {
+  id: string
+  level: number
+  experienceYears?: number | null
+  certifications?: string | null
+  lastUsedDate?: Date | null
+  skill: {
+    id: string
+    name: string
+    category: {
+      name: string
+    }
+  }
+}
+
+interface SearchResult {
+  id: string
+  name: string
+  email: string
+  role: {
+    name: string
+  }
+  skills: UserSkill[]
+  totalAllocation?: number
+  matchingSkills?: UserSkill[]
+  currentProjects?: Array<{
+    id: string
+    name: string
+  }>
+}
+
 interface SkillSearchProps {
-  skills: any[]
-  categories: any[]
+  skills: Skill[]
+  categories: Category[]
 }
 
 export function SkillSearch({ skills, categories }: SkillSearchProps) {
   const [isPending, startTransition] = useTransition()
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [minLevel, setMinLevel] = useState<string>('0')
-  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [hasSearched, setHasSearched] = useState(false)
 
   const handleSearch = () => {
@@ -181,7 +224,7 @@ export function SkillSearch({ skills, categories }: SkillSearchProps) {
                   <div>
                     <p className="text-sm font-medium mb-2">該当スキル</p>
                     <div className="space-y-2">
-                      {member.matchingSkills.map((userSkill: any) => {
+                      {member.matchingSkills?.map((userSkill) => {
                         const progressValue = (userSkill.level / 5) * 100
                         return (
                           <div key={userSkill.id} className="space-y-1">
@@ -202,11 +245,11 @@ export function SkillSearch({ skills, categories }: SkillSearchProps) {
                   </div>
 
                   {/* 現在のプロジェクト */}
-                  {member.currentProjects.length > 0 && (
+                  {member.currentProjects && member.currentProjects.length > 0 && (
                     <div>
                       <p className="text-sm font-medium mb-2">参加中のプロジェクト</p>
                       <div className="flex flex-wrap gap-2">
-                        {member.currentProjects.map((project: any) => (
+                        {member.currentProjects.map((project) => (
                           <Badge key={project.id} variant="outline">
                             {project.name}
                           </Badge>

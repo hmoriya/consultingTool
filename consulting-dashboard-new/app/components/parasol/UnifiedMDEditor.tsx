@@ -805,7 +805,7 @@ export function UnifiedMDEditor({
         </div>
       </CardHeader>
       <CardContent className="flex flex-col flex-1 min-h-0">
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="flex flex-col flex-1 min-h-0">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as unknown)} className="flex flex-col flex-1 min-h-0">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="edit" className="flex items-center gap-2" disabled={readOnly}>
               <FileText className="h-4 w-4" />

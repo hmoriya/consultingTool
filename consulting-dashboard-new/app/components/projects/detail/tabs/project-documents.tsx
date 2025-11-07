@@ -32,7 +32,7 @@ import {
 } from 'lucide-react'
 
 interface ProjectDocumentsProps {
-  project: any
+  project: unknown
 }
 
 export function ProjectDocuments({ project }: ProjectDocumentsProps) {

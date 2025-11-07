@@ -22,11 +22,11 @@ interface ServiceConfig {
       goal: string
       roles: string[]
       businessStates: string[]
-      operations: any[]
-      useCases: any[]
-      uiDefinitions: any[]
-      testCases: any[]
-      robustnessModel: any
+      operations: unknown[]
+      useCases: unknown[]
+      uiDefinitions: unknown[]
+      testCases: unknown[]
+      robustnessModel: unknown
       design: {
         overview?: string
         processFlow?: string
@@ -977,7 +977,7 @@ async function seedAllServicesDetailed() {
       let domainLanguage = ''
       try {
         domainLanguage = readFileSync(domainLanguagePath, 'utf-8')
-      } catch (error) {
+      } catch (_error) {
         console.warn(`  ⚠️ Domain language file not found: ${serviceConfig.domainLanguageFile}`)
         domainLanguage = `# ${serviceConfig.displayName} ドメイン言語\n\nドメイン言語定義は準備中です。`
       }
@@ -1053,9 +1053,9 @@ async function seedAllServicesDetailed() {
 
     return { services: totalServices, capabilities: totalCapabilities, operations: totalOperations }
 
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error in seedAllServicesDetailed:', error)
-    throw error
+    throw _error
   } finally {
     await parasolDb.$disconnect()
   }

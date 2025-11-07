@@ -83,7 +83,7 @@ class Current3LayerMigrator {
     return pages
   }
 
-  async scanServiceStructure(servicePath: string, serviceId: string, pages: any[]) {
+  async scanServiceStructure(servicePath: string, serviceId: string, pages: unknown[]) {
     try {
       const capabilitiesPath = path.join(servicePath, 'capabilities')
       const capabilityDirs = await fs.readdir(capabilitiesPath)
@@ -117,7 +117,7 @@ class Current3LayerMigrator {
     }
   }
 
-  async scanPagesDirectory(pagesPath: string, serviceId: string, operationId: string, pages: any[], sourceType: string, usecaseId?: string) {
+  async scanPagesDirectory(pagesPath: string, serviceId: string, operationId: string, pages: unknown[], sourceType: string, usecaseId?: string) {
     try {
       const pageFiles = await fs.readdir(pagesPath)
       for (const file of pageFiles.filter(f => f.endsWith('.md'))) {
@@ -143,7 +143,7 @@ class Current3LayerMigrator {
     }
   }
 
-  analyzeDuplicates(pages: any[]) {
+  analyzeDuplicates(pages: unknown[]) {
     const duplicateMap = new Map<string, any[]>()
 
     for (const page of pages) {
@@ -171,7 +171,7 @@ class Current3LayerMigrator {
     }
   }
 
-  classifyPagesForMigration(pages: any[]) {
+  classifyPagesForMigration(pages: unknown[]) {
     const layer1 = []
     const layer2 = []
     const layer3 = []
@@ -195,7 +195,7 @@ class Current3LayerMigrator {
     return { layer1, layer2, layer3 }
   }
 
-  classifySinglePage(page: any) {
+  classifySinglePage(page: unknown) {
     const content = page.content.toLowerCase()
     const displayName = page.displayName.toLowerCase()
 
@@ -230,7 +230,7 @@ class Current3LayerMigrator {
     }
   }
 
-  determineDuplicateMigrationStrategy(displayName: string, pages: any[]) {
+  determineDuplicateMigrationStrategy(displayName: string, pages: unknown[]) {
     // 成果物提出画面の場合 -> Layer 2 に統合
     if (displayName.includes('成果物提出')) {
       return {
@@ -260,7 +260,7 @@ class Current3LayerMigrator {
     }
   }
 
-  calculateMigrationComplexity(layerClassification: any, duplicateAnalysis: any) {
+  calculateMigrationComplexity(layerClassification: unknown, duplicateAnalysis: unknown) {
     const { layer1, layer2, layer3 } = layerClassification
     const totalPages = layer1.length + layer2.length + layer3.length
     const duplicateCount = duplicateAnalysis.duplicates.length

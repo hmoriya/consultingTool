@@ -2,7 +2,7 @@ import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 
 const parasolDb = new ParasolPrismaClient()
 
-export async function seedAlignExpectations(service: any, capability: any) {
+export async function seedAlignExpectations(service: unknown, capability: unknown) {
   console.log('    Creating business operation: 期待値をすり合わせる...')
   
   const operation = await parasolDb.businessOperation.create({

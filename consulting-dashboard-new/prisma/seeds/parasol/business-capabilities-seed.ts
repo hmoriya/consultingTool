@@ -148,7 +148,7 @@ const serviceCapabilityMapping: Record<string, Array<{
 }
 
 // ビジネスケーパビリティの作成
-export async function createBusinessCapabilities(services: any[]) {
+export async function createBusinessCapabilities(services: unknown[]) {
   console.log('  Creating business capabilities...')
 
   const allCapabilities = []

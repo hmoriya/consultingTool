@@ -135,7 +135,7 @@ export function markdownToDbDesign(markdown: string): Partial<DbDesign> {
   };
   
   let currentSection: string | null = null;
-  let currentTable: any = null;
+  let currentTable: unknown = null;
   let inTable = false;
   let skipNextLine = false;
   
@@ -202,7 +202,7 @@ export function markdownToDbDesign(markdown: string): Partial<DbDesign> {
       const cells = line.split('|').map(c => c.trim()).filter(c => c);
       
       if (cells.length >= 5) {
-        const column: any = {
+        const column: unknown = {
           name: cells[0],
           type: cells[1],
           nullable: cells[2] === '✓',

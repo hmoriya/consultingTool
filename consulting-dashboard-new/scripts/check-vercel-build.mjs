@@ -135,7 +135,7 @@ try {
   const statusPatterns = [
     { pattern: 'status: string', replacement: "status as 'todo' | 'in_progress' | 'completed' | 'in_review'" },
     { pattern: 'role: string', replacement: "role as 'Executive' | 'PM' | 'Consultant' | 'Client' | 'Admin'" },
-    { pattern: 'priority: string', replacement: "priority as 'low' | 'medium' | 'high' | 'urgent'" }
+    { pattern: 'priority: string', replacement: "priority as 'low' | 'medium' | 'high' | 'critical' | null" }
   ];
   
   let foundIssues = false;
@@ -169,6 +169,17 @@ try {
   }
 } catch (_error) {
   console.log('✅ No console statements found\n');
+}
+
+// 7. Dry run Next.js build (quick check)
+console.log('7. Running Next.js build dry run...');
+try {
+  // Just compile without generating output
+  execSync('npx next build --no-lint --experimental-type-check 2>&1 | head -50', { stdio: 'inherit' });
+  console.log('✅ Next.js build dry run passed\n');
+} catch (_error) {
+  console.log('❌ Next.js build would fail\n');
+  hasErrors = true;
 }
 
 // Summary

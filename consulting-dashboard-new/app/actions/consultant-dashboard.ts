@@ -113,11 +113,13 @@ export async function getConsultantDashboardData() {
   return {
     tasks: myTasks.map(task => ({
       ...task,
-      status: task.status as 'todo' | 'in_progress' | 'in_review' | 'completed'
+      status: task.status as 'todo' | 'in_progress' | 'in_review' | 'completed',
+      priority: task.priority as 'low' | 'medium' | 'high' | 'critical' | null
     })),
     weeklyTasks: weeklyTasks.map(task => ({
       ...task,
-      status: task.status as 'todo' | 'in_progress' | 'in_review' | 'completed'
+      status: task.status as 'todo' | 'in_progress' | 'in_review' | 'completed',
+      priority: task.priority as 'low' | 'medium' | 'high' | 'critical' | null
     })),
     taskStats: {
       total: taskStats.reduce((sum, stat) => sum + stat._count, 0),

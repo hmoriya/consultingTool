@@ -263,7 +263,7 @@ export async function searchProjectExperiences(filters: {
     throw new Error('PM以上の権限が必要です')
   }
 
-  const where: any = {
+  const where: unknown = {
     user: {
       organizationId: user.organizationId
     }

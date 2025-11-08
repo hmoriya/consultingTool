@@ -3,7 +3,7 @@ import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 import fs from 'fs'
 import path from 'path'
 
-const parasolDb = new ParasolPrismaClient()
+const _parasolDb = new ParasolPrismaClient()
 
 interface DesignQualityAnalysisResult {
   structuralDuplications: StructuralDuplication[]
@@ -104,7 +104,7 @@ class DesignQualityAnalyzer {
       // ディレクトリ構造の不整合チェック
       duplications.push(...this.analyzeDirectoryStructure())
 
-    } catch (error) {
+    } catch (_error) {
       console.error('構造的重複分析エラー:', error)
     }
 
@@ -134,7 +134,7 @@ class DesignQualityAnalyzer {
         }
       }
 
-    } catch (error) {
+    } catch (_error) {
       console.error('ケーパビリティ境界分析エラー:', error)
     }
 
@@ -169,7 +169,7 @@ class DesignQualityAnalyzer {
         }
       }
 
-    } catch (error) {
+    } catch (_error) {
       console.error('ビジネス文脈重複分析エラー:', error)
     }
 
@@ -191,7 +191,7 @@ class DesignQualityAnalyzer {
           files.push(fullPath.replace(process.cwd() + '/', ''))
         }
       }
-    } catch (error) {
+    } catch {
       // ディレクトリが存在しない場合は空配列を返す
     }
 
@@ -212,7 +212,7 @@ class DesignQualityAnalyzer {
     return functionGroups
   }
 
-  private determineConsolidationStrategy(functionName: string, locations: any[]): string {
+  private determineConsolidationStrategy(functionName: string, _locations: unknown[]): string {
     // 統合戦略の決定ロジック
     if (functionName.includes('notification')) {
       return '通知機能は communication-delivery ケーパビリティに統一することを推奨'
@@ -251,7 +251,7 @@ class DesignQualityAnalyzer {
           callback(fullPath, item.name)
         }
       }
-    } catch (error) {
+    } catch {
       // エラーは無視（権限なしディレクトリ等）
     }
   }
@@ -269,7 +269,7 @@ class DesignQualityAnalyzer {
       const totalLines = Math.max(lines1.length, lines2.length)
 
       return totalLines > 0 ? commonLines / totalLines : 0
-    } catch (error) {
+    } catch {
       return 0
     }
   }
@@ -332,7 +332,7 @@ class DesignQualityAnalyzer {
   }
 }
 
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
     console.log('設計品質分析API開始')
 
@@ -368,7 +368,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(result)
 
-  } catch (error) {
+  } catch (_error) {
     console.error('設計品質分析エラー:', error)
     return NextResponse.json({
       error: 'Design quality analysis failed',

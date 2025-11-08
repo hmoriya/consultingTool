@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { chromium } = require('playwright');
 
 (async () => {
@@ -41,7 +42,7 @@ const { chromium } = require('playwright');
       await page.waitForURL('**/dashboard/**', { timeout: 5000 });
       console.log('✅ ログイン成功！ダッシュボードへリダイレクトされました');
       console.log(`📍 現在のURL: ${page.url()}`);
-    } catch (error) {
+    } catch (_error) {
       // リダイレクトしなかった場合、トップページへのリダイレクトを確認
       const currentUrl = page.url();
       if (currentUrl === 'http://localhost:3000/') {

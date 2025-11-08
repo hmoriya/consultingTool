@@ -50,7 +50,7 @@ async function main() {
 
     console.log(`\n✅ Updated ${updatedCount} tasks with PM assignments`)
 
-  } catch (error) {
+  } catch (_error) {
     console.error('Error updating task assignees:', error)
     throw error
   } finally {

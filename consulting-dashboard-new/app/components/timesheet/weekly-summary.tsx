@@ -85,7 +85,7 @@ export function WeeklySummary({ weekStart, weekEnd, timesheet }: WeeklySummaryPr
           variant: 'destructive',
         })
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'エラー',
         description: '予期しないエラーが発生しました',
@@ -156,7 +156,7 @@ export function WeeklySummary({ weekStart, weekEnd, timesheet }: WeeklySummaryPr
         <div>
           <h4 className="text-sm font-medium mb-2">日別工数</h4>
           <div className="space-y-1">
-            {dailyHours.map(({ date, totalHours, billableHours }) => (
+            {dailyHours.map(({ date, totalHours, billableHours: _billableHours }) => (
               <div key={date.toISOString()} className="flex items-center justify-between py-1">
                 <span className="text-sm">
                   {format(date, 'M/d(E)', { locale: ja })}

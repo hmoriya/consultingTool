@@ -1,13 +1,13 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Clock, CheckCircle, AlertCircle, PlayCircle } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ja } from 'date-fns/locale'
 
 interface RecentActivitiesProps {
-  activities: any[]
+  activities: unknown[]
 }
 
 export function RecentActivities({ activities }: RecentActivitiesProps) {

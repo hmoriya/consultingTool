@@ -148,7 +148,7 @@ async function main() {
     console.log(`\n✅ タスクデータの投入が完了しました！`)
     console.log(`総タスク数: ${totalTasks}`)
 
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ エラー:', error)
   } finally {
     await projectDb.$disconnect()

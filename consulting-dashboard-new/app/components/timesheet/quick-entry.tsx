@@ -67,7 +67,7 @@ export function QuickEntry({ projects, onSuccess }: QuickEntryProps) {
       } else {
         toast.error(result.error || '工数の記録に失敗しました')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('エラーが発生しました')
     } finally {
       setIsSubmitting(false)

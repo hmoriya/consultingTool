@@ -2,6 +2,67 @@ import { getProjects, createProject, updateProjectStatus } from '../projects'
 import { prismaMock } from '../../__mocks__/db'
 import * as authModule from '../auth'
 
+// Type definitions for mock data
+type MockProject = {
+  id: string
+  name: string
+  code: string
+  status: string
+  priority: string
+  startDate: Date
+  endDate: Date
+  budget: number
+  description?: string | null
+  clientId: string
+  createdAt: Date
+  updatedAt: Date
+  client: {
+    id: string
+    name: string
+  }
+  projectMembers: Array<{
+    userId: string
+    role: string
+    user: {
+      id: string
+      name: string
+      email: string
+    }
+  }>
+}
+
+
+type MockCreatedProject = {
+  id: string
+  name: string
+  code: string
+  clientId: string
+  status: string
+  priority: string
+  startDate: Date
+  endDate: Date
+  budget: number
+  description?: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+type MockSimpleProject = {
+  id: string
+}
+
+type MockProjectWithMembers = {
+  id: string
+  projectMembers: Array<{
+    userId: string
+    role: string
+  }>
+}
+
+type MockUpdatedProject = MockProjectWithMembers & {
+  status: string
+}
+
 // getCurrentUserのモック
 jest.mock('../auth')
 const mockedAuth = authModule as jest.Mocked<typeof authModule>
@@ -60,7 +121,7 @@ describe('projects actions', () => {
       ]
 
       mockedAuth.getCurrentUser.mockResolvedValue(mockUser)
-      prismaMock.project.findMany.mockResolvedValue(mockProjects as any)
+      prismaMock.project.findMany.mockResolvedValue(mockProjects as MockProject[])
 
       const result = await getProjects()
 
@@ -161,7 +222,7 @@ describe('projects actions', () => {
         description: validProjectData.description,
         createdAt: new Date(),
         updatedAt: new Date()
-      } as any)
+      } as MockCreatedProject)
 
       const result = await createProject(validProjectData)
 
@@ -200,13 +261,13 @@ describe('projects actions', () => {
 
       // 重複がある場合、createProjectは再帰的に新しいコードを生成します
       // そのため、2回目の呼び出しでは重複がないと仮定
-      prismaMock.project.findUnique.mockResolvedValueOnce({ id: 'existing' } as any)
+      prismaMock.project.findUnique.mockResolvedValueOnce({ id: 'existing' } as MockSimpleProject)
         .mockResolvedValueOnce(null)
 
       prismaMock.project.create.mockResolvedValue({
         id: 'new-proj-2',
         ...validProjectData
-      } as any)
+      } as MockCreatedProject)
 
       const result = await createProject(validProjectData)
 
@@ -249,7 +310,7 @@ describe('projects actions', () => {
 
       // createProjectは現在の実装では日付の検証を行っていないので、
       // このテストケースは将来の実装のためのプレースホルダー
-      const result = await createProject(invalidData)
+      await createProject(invalidData)
       
       // 現時点では成功することを確認
       expect(prismaMock.project.create).toHaveBeenCalled()
@@ -277,11 +338,11 @@ describe('projects actions', () => {
       }
 
       mockedAuth.getCurrentUser.mockResolvedValue(mockUser)
-      prismaMock.project.findFirst.mockResolvedValue(mockProject as any)
+      prismaMock.project.findFirst.mockResolvedValue(mockProject as MockProjectWithMembers)
       prismaMock.project.update.mockResolvedValue({
         ...mockProject,
         status: 'active'
-      } as any)
+      } as MockUpdatedProject)
 
       await updateProjectStatus('proj-1', 'active')
 
@@ -322,11 +383,11 @@ describe('projects actions', () => {
       }
 
       mockedAuth.getCurrentUser.mockResolvedValue(mockUser)
-      prismaMock.project.findFirst.mockResolvedValue(mockProject as any)
+      prismaMock.project.findFirst.mockResolvedValue(mockProject as MockProjectWithMembers)
       prismaMock.project.update.mockResolvedValue({
         ...mockProject,
         status: 'completed'
-      } as any)
+      } as MockUpdatedProject)
 
       await updateProjectStatus('proj-1', 'completed')
 

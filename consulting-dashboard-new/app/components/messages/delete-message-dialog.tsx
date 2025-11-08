@@ -8,8 +8,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+  AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { deleteMessage } from '@/actions/messages'
 import { toast } from 'sonner'
 import { useState } from 'react'
@@ -40,7 +39,7 @@ export function DeleteMessageDialog({
       } else {
         toast.error(result.error || 'メッセージの削除に失敗しました')
       }
-    } catch (error) {
+    } catch {
       toast.error('エラーが発生しました')
     } finally {
       setIsDeleting(false)

@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, Save, X, Edit2 } from 'lucide-react';
+import { Plus, Edit2, Save, Trash2 } from 'lucide-react';
 import { ValueObject, ValueObjectComponent, DomainType } from '@/types/parasol';
 
 interface ValueObjectEditorProps {
@@ -39,7 +39,7 @@ const domainTypes: DomainType[] = [
 export function ValueObjectEditor({ valueObject, onChange, readonly = false, onEditToggle }: ValueObjectEditorProps) {
   const [editingComponent, setEditingComponent] = useState<number | null>(null);
 
-  const handleBasicInfoChange = (field: keyof ValueObject, value: string) => {
+  const handleBasicInfoChange = (field: keyof ValueObject,_value) => {
     onChange({
       ...valueObject,
       [field]: value

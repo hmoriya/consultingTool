@@ -6,8 +6,8 @@
  * MDファイルからAPI経由でユースケース定義をデータベースに投入します。
  */
 
-const fs = require('fs').promises;
-const path = require('path');
+import fs from 'fs/promises';
+import path from 'path';
 
 const BASE_DOCS_PATH = 'docs/parasol/services';
 
@@ -59,7 +59,7 @@ async function uploadParasolData(data) {
     });
 
     if (response.ok) {
-      const result = await response.json();
+      await response.json();
       console.log(`✅ インポート成功: ${data.length}件のサービス`);
       return true;
     } else {
@@ -151,7 +151,7 @@ async function collectServiceData(serviceName) {
                 });
               }
             }
-          } catch (error) {
+          } catch {
             // usecasesディレクトリがない場合はスキップ
           }
 
@@ -180,7 +180,7 @@ async function collectServiceData(serviceName) {
                 });
               }
             }
-          } catch (error) {
+          } catch {
             // pagesディレクトリがない場合はスキップ
           }
 
@@ -209,7 +209,7 @@ async function collectServiceData(serviceName) {
                 });
               }
             }
-          } catch (error) {
+          } catch {
             // testsディレクトリがない場合はスキップ
           }
 
@@ -224,11 +224,11 @@ async function collectServiceData(serviceName) {
 
           console.log(`📋 収集: ${serviceName}/${capabilityName}/${operationName} - ユースケース:${usecases.length}件, ページ:${pages.length}件, テスト:${tests.length}件`);
         }
-      } catch (error) {
+      } catch {
         // operationsディレクトリがない場合はスキップ
       }
     }
-  } catch (error) {
+  } catch {
     console.log(`⚠️  ケーパビリティディレクトリが見つかりません: ${serviceName}`);
   }
 

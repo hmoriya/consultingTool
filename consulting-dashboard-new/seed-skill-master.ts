@@ -94,7 +94,7 @@ async function main() {
     console.log(`カテゴリ数: ${categories.length}`)
     console.log(`スキル数: ${skills.length}`)
 
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ エラー:', error)
   } finally {
     await resourceDb.$disconnect()

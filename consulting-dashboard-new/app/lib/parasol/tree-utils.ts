@@ -3,11 +3,7 @@
  */
 
 import { TreeNode, ParasolService, BusinessCapability, BusinessOperation } from '@/types/parasol';
-import {
-  buildApiUsageFilePath,
-  buildUsecaseFilePath,
-  buildPageFilePath
-} from '@/app/lib/parasol/path-utils';
+// Removed unused imports: buildApiUsageFilePath, buildUsecaseFilePath, buildPageFilePath
 
 /**
  * サービス、ケーパビリティ、オペレーションからツリー構造を構築（同期版・後方互換）
@@ -78,8 +74,8 @@ export async function buildTreeFromParasolDataAsync(
         };
 
         // ユースケースモデルを追加（v2.0 ディレクトリ・ファイル構造）
-        if ((operation as any).useCaseModels && Array.isArray((operation as any).useCaseModels)) {
-          for (const useCase of (operation as any).useCaseModels) {
+        if ((operation as unknown).useCaseModels && Array.isArray((operation as unknown).useCaseModels)) {
+          for (const useCase of (operation as unknown).useCaseModels) {
             // ユースケースディレクトリノード
             const useCaseDirectoryNode: TreeNode = {
               id: useCase.id,
@@ -257,8 +253,8 @@ function buildTreeFromParasolDataSync(
         };
 
         // ユースケースモデルを追加（v2.0 ディレクトリ・ファイル構造）
-        if ((operation as any).useCaseModels && Array.isArray((operation as any).useCaseModels)) {
-          (operation as any).useCaseModels.forEach((useCase: any) => {
+        if ((operation as unknown).useCaseModels && Array.isArray((operation as unknown).useCaseModels)) {
+          (operation as unknown).useCaseModels.forEach((useCase: unknown) => {
             // ユースケースディレクトリノード
             const useCaseDirectoryNode: TreeNode = {
               id: useCase.id,

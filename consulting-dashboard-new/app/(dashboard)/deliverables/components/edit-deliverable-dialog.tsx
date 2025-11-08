@@ -82,8 +82,8 @@ interface Milestone {
 }
 
 export function EditDeliverableDialog({ deliverable, open, onOpenChange }: EditDeliverableDialogProps) {
-  const [projects, setProjects] = useState<Project[]>([])
-  const [milestones, setMilestones] = useState<Milestone[]>([])
+  const [, setProjects] = useState<Project[]>([])
+  const [, setMilestones] = useState<Milestone[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<FormData>({
@@ -93,8 +93,8 @@ export function EditDeliverableDialog({ deliverable, open, onOpenChange }: EditD
       milestoneId: '',
       name: deliverable.name,
       description: deliverable.description || '',
-      type: deliverable.type as any,
-      status: deliverable.status as any,
+      type: deliverable.type as FormData['type'],
+      status: deliverable.status as FormData['status'],
       version: deliverable.version || '',
       fileUrl: deliverable.fileUrl || ''
     }
@@ -136,8 +136,8 @@ export function EditDeliverableDialog({ deliverable, open, onOpenChange }: EditD
         milestoneId: '',
         name: deliverable.name,
         description: deliverable.description || '',
-        type: deliverable.type as any,
-        status: deliverable.status as any,
+        type: deliverable.type as FormData['type'],
+        status: deliverable.status as FormData['status'],
         version: deliverable.version || '',
         fileUrl: deliverable.fileUrl || ''
       })
@@ -147,7 +147,7 @@ export function EditDeliverableDialog({ deliverable, open, onOpenChange }: EditD
   const onSubmit = async (data: FormData) => {
     setIsLoading(true)
     try {
-      const { projectId, milestoneId, ...updateData } = data
+      const { ...updateData } = data
       const result = await updateDeliverable(deliverable.id, updateData)
       if (result.success) {
         toast.success('成果物を更新しました')
@@ -155,7 +155,7 @@ export function EditDeliverableDialog({ deliverable, open, onOpenChange }: EditD
       } else {
         toast.error(result.error)
       }
-    } catch (error) {
+    } catch {
       toast.error('成果物の更新に失敗しました')
     } finally {
       setIsLoading(false)

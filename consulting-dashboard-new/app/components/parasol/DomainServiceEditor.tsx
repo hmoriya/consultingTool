@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, Save, X, Edit2, ArrowRight } from 'lucide-react';
+import { Plus, Edit2, ArrowRight, Save, Trash2 } from 'lucide-react';
 import { DomainService, DomainServiceOperation, OperationParameter } from '@/types/parasol';
 
 interface DomainServiceEditorProps {
@@ -19,7 +19,7 @@ interface DomainServiceEditorProps {
 export function DomainServiceEditor({ domainService, onChange, readonly = false, onEditToggle }: DomainServiceEditorProps) {
   const [editingOperation, setEditingOperation] = useState<number | null>(null);
 
-  const handleBasicInfoChange = (field: keyof DomainService, value: string) => {
+  const handleBasicInfoChange = (field: keyof DomainService,_value) => {
     onChange({
       ...domainService,
       [field]: value

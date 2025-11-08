@@ -1,13 +1,13 @@
 import { getSkillCategories, getSkills, getUserSkills } from '../../../actions/skills'
 import { getCurrentUser } from '../../../actions/auth'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { SkillManagement } from './skill-management'
 import { MySkills } from './my-skills'
 import { SkillSearch } from './skill-search'
-import { Users, BookOpen, Award } from 'lucide-react'
+import { BookOpen, Award, Users } from 'lucide-react'
 import { USER_ROLES } from '@/constants/roles'
 
 export default async function SkillsPage() {

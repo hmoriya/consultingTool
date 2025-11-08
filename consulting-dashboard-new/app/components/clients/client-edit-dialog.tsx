@@ -15,10 +15,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
+  DialogFooter } from '@/components/ui/dialog'
 import { updateClient, ClientItem } from '@/actions/clients'
-import { X, Save, Building2, Briefcase } from 'lucide-react'
+import { Building2, Briefcase, X, Save } from 'lucide-react'
 
 const clientSchema = z.object({
   name: z.string().min(1, 'クライアント名は必須です').max(100, '100文字以内で入力してください'),
@@ -75,7 +74,7 @@ export function ClientEditDialog({ client, onClose, onClientUpdated }: ClientEdi
         activeProjectCount: client.activeProjectCount
       })
       onClose()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to update client:', error)
       alert(error.message || 'クライアントの更新に失敗しました')
     } finally {

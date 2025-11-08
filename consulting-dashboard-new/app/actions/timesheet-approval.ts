@@ -1,25 +1,11 @@
 'use server'
 
 import { getCurrentUser } from '@/actions/auth'
-import { timesheetDb as db } from '@/lib/db/timesheet-db'
-import { db as userDb } from '@/lib/db'
-import { revalidatePath } from 'next/cache'
-import { z } from 'zod'
 
-// 承認申請のスキーマ
-const submitForApprovalSchema = z.object({
-  timesheetId: z.string(),
-})
-
-// 承認/差戻しのスキーマ
-const approvalActionSchema = z.object({
-  timesheetId: z.string(),
-  action: z.enum(['APPROVE', 'REJECT']),
-  comments: z.string().optional(),
-})
+// スキーマは将来実装時に使用予定
 
 // 承認申請を提出
-export async function submitTimesheetForApproval(timesheetId: string) {
+export async function submitTimesheetForApproval(_timesheetId: string) {
   try {
     const user = await getCurrentUser()
     if (!user) {
@@ -79,7 +65,7 @@ export async function submitTimesheetForApproval(timesheetId: string) {
 
     // revalidatePath('/timesheet')
     // return { success: true, data: updated }
-  } catch (error) {
+  } catch (_error) {
     console.error('Submit timesheet for approval error:', error)
     return {
       success: false,
@@ -90,9 +76,9 @@ export async function submitTimesheetForApproval(timesheetId: string) {
 
 // タイムシートを承認/差戻し
 export async function approveOrRejectTimesheet(
-  timesheetId: string,
-  action: 'APPROVE' | 'REJECT',
-  comments?: string
+  _timesheetId: string,
+  _action: 'APPROVE' | 'REJECT',
+  _comments?: string
 ) {
   try {
     const user = await getCurrentUser()
@@ -168,7 +154,7 @@ export async function approveOrRejectTimesheet(
     // revalidatePath('/timesheet')
     // revalidatePath('/timesheet/approval')
     // return { success: true, data: updated }
-  } catch (error) {
+  } catch (_error) {
     console.error('Approve/reject timesheet error:', error)
     return {
       success: false,
@@ -227,7 +213,7 @@ export async function getPendingApprovals() {
     // )
 
     // return { success: true, data: timesheetsWithUser }
-  } catch (error) {
+  } catch (_error) {
     console.error('Get pending approvals error:', error)
     return { 
       success: false, 
@@ -237,7 +223,7 @@ export async function getPendingApprovals() {
 }
 
 // 承認履歴を取得
-export async function getApprovalHistory(timesheetId: string) {
+export async function getApprovalHistory(_timesheetId: string) {
   try {
     const user = await getCurrentUser()
     if (!user) {
@@ -269,7 +255,7 @@ export async function getApprovalHistory(timesheetId: string) {
     // })
 
     // return { success: true, data: history }
-  } catch (error) {
+  } catch (_error) {
     console.error('Get approval history error:', error)
     return {
       success: false,
@@ -313,7 +299,7 @@ export async function getMyTimesheetStatuses() {
     // })
 
     // return { success: true, data: timesheets }
-  } catch (error) {
+  } catch (_error) {
     console.error('Get my timesheet statuses error:', error)
     return {
       success: false,

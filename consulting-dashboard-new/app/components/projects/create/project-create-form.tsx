@@ -16,10 +16,9 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  SelectValue } from '@/components/ui/select'
 import { createProject } from '@/actions/projects'
-import { Save, ArrowLeft, Plus, X, Building2 } from 'lucide-react'
+import { ArrowLeft, Building2, Save, X } from 'lucide-react'
 import { ClientSelectDialog } from '@/components/clients/client-select-dialog'
 
 const projectSchema = z.object({
@@ -99,7 +98,7 @@ export function ProjectCreateForm() {
       
       const project = await createProject(projectData)
       router.push(`/projects/${project.id}`)
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to create project:', error)
     } finally {
       setIsLoading(false)
@@ -199,7 +198,7 @@ export function ProjectCreateForm() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="status">ステータス *</Label>
-              <Select value={watchedStatus} onValueChange={(value) => setValue('status', value as any)}>
+              <Select value={watchedStatus} onValueChange={(value) => setValue('status', value as unknown)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -212,7 +211,7 @@ export function ProjectCreateForm() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="priority">優先度 *</Label>
-              <Select value={watchedPriority} onValueChange={(value) => setValue('priority', value as any)}>
+              <Select value={watchedPriority} onValueChange={(value) => setValue('priority', value as unknown)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

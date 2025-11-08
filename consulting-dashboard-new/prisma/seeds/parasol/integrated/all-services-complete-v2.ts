@@ -1085,7 +1085,7 @@ async function seedAllServicesCompleteV2() {
       let domainLanguage = ''
       try {
         domainLanguage = readFileSync(domainLanguagePath, 'utf-8')
-      } catch (error) {
+      } catch (_error) {
         console.warn(`  ⚠️ Domain language file not found: ${serviceConfig.domainLanguageFile}`)
         domainLanguage = '# Domain Language\nNot yet defined.'
       }
@@ -1153,9 +1153,9 @@ async function seedAllServicesCompleteV2() {
 
     return { services: totalServices, capabilities: totalCapabilities, operations: totalOperations }
 
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error in seedAllServicesCompleteV2:', error)
-    throw error
+    throw _error
   } finally {
     await parasolDb.$disconnect()
   }
@@ -1164,7 +1164,7 @@ async function seedAllServicesCompleteV2() {
 // Direct execution
 if (require.main === module) {
   seedAllServicesCompleteV2()
-    .then(result => {
+    .then(_result => {
       console.log('✅ Seed completed successfully')
       process.exit(0)
     })

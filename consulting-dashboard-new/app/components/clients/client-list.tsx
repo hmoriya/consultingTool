@@ -11,24 +11,22 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+  TableRow } from '@/components/ui/table'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+  DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { 
   Plus, 
   Search, 
   Building2,
   Edit,
-  Trash2,
-  MoreVertical,
   Briefcase,
-  ExternalLink
+  ExternalLink,
+  MoreVertical,
+  Trash2
 } from 'lucide-react'
 import { ClientItem, deleteClient } from '@/actions/clients'
 import { ClientCreateDialog } from './client-create-dialog'
@@ -65,7 +63,7 @@ export function ClientList({ initialClients }: ClientListProps) {
     try {
       await deleteClient(clientId)
       setClients(prev => prev.filter(c => c.id !== clientId))
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to delete client:', error)
       alert('クライアントの削除に失敗しました')
     } finally {

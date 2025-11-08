@@ -32,7 +32,7 @@ export async function getArticles() {
       success: true,
       data: articles
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('Error fetching articles:', error)
     return {
       success: false,
@@ -152,7 +152,7 @@ export async function getArticle(id: string) {
       success: true,
       data: article
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('Error fetching article:', error)
     return {
       success: false,
@@ -201,7 +201,7 @@ export async function createArticle(data: {
       success: true,
       data: article
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('Error creating article:', error)
     return {
       success: false,
@@ -231,7 +231,7 @@ export async function updateArticle(
       }
     }
 
-    const updateData: any = {
+    const updateData: unknown = {
       ...data,
       updatedAt: new Date()
     }
@@ -259,7 +259,7 @@ export async function updateArticle(
       success: true,
       data: article
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('Error updating article:', error)
     return {
       success: false,
@@ -284,7 +284,7 @@ export async function getCategories() {
       success: true,
       data: categories
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('Error fetching categories:', error)
     return {
       success: false,
@@ -312,7 +312,7 @@ export async function getTemplates() {
       success: true,
       data: templates
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('Error fetching templates:', error)
     return {
       success: false,
@@ -340,7 +340,7 @@ export async function getFAQs() {
       success: true,
       data: faqs
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('Error fetching FAQs:', error)
     return {
       success: false,
@@ -414,7 +414,7 @@ export async function likeArticle(articleId: string) {
         liked: true
       }
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('Error liking article:', error)
     return {
       success: false,
@@ -491,7 +491,7 @@ export async function searchArticles(query: string) {
       success: true,
       data: articles
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('Error searching articles:', error)
     return {
       success: false,

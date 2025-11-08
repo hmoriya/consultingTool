@@ -5,7 +5,7 @@ const knowledgeDb = new KnowledgePrismaClient({
   log: ['error', 'warn']
 })
 
-export async function seedKnowledge(users?: any) {
+export async function seedKnowledge(users?: unknown) {
   console.log('🌱 Seeding Knowledge Service...')
   
   try {
@@ -431,9 +431,9 @@ npm install @next/bundle-analyzer
     console.log(`   - FAQs: ${faqs.length}`)
     console.log(`   - Experts: ${experts.length}`)
     
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error seeding Knowledge Service:', error)
-    throw error
+    throw _error
   } finally {
     await knowledgeDb.$disconnect()
   }

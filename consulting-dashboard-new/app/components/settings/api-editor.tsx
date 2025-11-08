@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Card } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { MarkdownRenderer } from '@/components/markdown-renderer'
-import { Save, FileText, Eye, Edit, AlertCircle, CheckCircle } from 'lucide-react'
+import { Eye, Edit, AlertCircle, CheckCircle, Save } from 'lucide-react'
 import { getApiContent, saveApiContent } from '@/actions/settings'
 
 const services = [
@@ -29,11 +29,7 @@ export function ApiEditor() {
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', message: string } | null>(null)
   const [viewMode, setViewMode] = useState<'edit' | 'preview'>('preview')
 
-  useEffect(() => {
-    loadContent()
-  }, [selectedService])
-
-  const loadContent = async () => {
+  const loadContent = useCallback(async () => {
     setIsLoading(true)
     setSaveMessage(null)
     try {
@@ -107,7 +103,11 @@ Authorization: Bearer <token>
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [selectedService])
+
+  useEffect(() => {
+    loadContent()
+  }, [loadContent])
 
   const handleSave = async () => {
     setIsSaving(true)

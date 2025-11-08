@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { AlertCircle, FileText, Eye } from 'lucide-react';
+import { AlertCircle, Eye, FileText } from 'lucide-react';
 import { DomainLanguageDefinition } from '@/types/parasol';
 import { 
   domainLanguageToMarkdown, 
@@ -14,7 +13,6 @@ import {
   validateDomainLanguageMarkdown 
 } from '@/lib/parasol/markdown-converter';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -30,7 +28,6 @@ export function DomainLanguageMarkdownEditor({
   const [markdown, setMarkdown] = useState('');
   const [activeTab, setActiveTab] = useState<'markdown' | 'preview'>('preview');
   const [errors, setErrors] = useState<string[]>([]);
-  const { toast } = useToast();
 
   // 初期値の設定
   useEffect(() => {
@@ -50,14 +47,14 @@ export function DomainLanguageMarkdownEditor({
         const parsed = markdownToDomainLanguage(newMarkdown);
         onChange(parsed);
       }
-    } catch (error) {
+    } catch (_error) {
       // パースエラーは無視（バリデーションエラーで表示）
     }
   };
 
   return (
     <div className="space-y-4">
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as unknown)}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="markdown" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />

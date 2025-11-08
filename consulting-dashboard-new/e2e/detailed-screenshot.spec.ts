@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test } from '@playwright/test'
 
 test.describe('詳細なデザイン確認', () => {
   test('ログインページの詳細確認', async ({ page }) => {

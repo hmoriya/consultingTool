@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { 
@@ -12,9 +12,9 @@ import {
   XCircle, 
   Keyboard,
   ArrowRight,
-  FileText,
   MousePointer,
-  GitBranch
+  GitBranch,
+  FileText
 } from 'lucide-react'
 import type { DetailedStep } from '@/constants/use-case-details'
 

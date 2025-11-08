@@ -155,7 +155,7 @@ export function markdownToDomainLanguage(markdown: string): DomainLanguageDefini
   let currentSection: 'entities' | 'valueObjects' | 'domainServices' | null = null;
   let currentItem: Entity | ValueObject | DomainService | null = null;
   let currentTable: 'properties' | 'events' | 'methods' | null = null;
-  let tableLines: string[] = [];
+  const _tableLines: string[] = [];
   
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
@@ -230,7 +230,7 @@ export function markdownToDomainLanguage(markdown: string): DomainLanguageDefini
     // テーブルの処理
     if (line.startsWith('| プロパティ |')) {
       currentTable = 'properties';
-      tableLines = [];
+      // const _tableLines = [];
       continue;
     }
     
@@ -420,7 +420,7 @@ export function validateDomainLanguageMarkdown(markdown: string): {
       }
     });
     
-  } catch (error) {
+  } catch (_error) {
     errors.push('Markdownの解析中にエラーが発生しました');
   }
   

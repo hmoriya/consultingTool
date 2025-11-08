@@ -28,7 +28,7 @@ function runSeed(scriptPath: string, serviceName: string) {
       cwd: path.resolve(__dirname, '..')
     })
     console.log(`✅ ${serviceName} のシード完了`)
-  } catch (error) {
+  } catch (_error) {
     console.error(`❌ ${serviceName} のシードでエラーが発生しました:`, error)
     throw error
   }
@@ -116,7 +116,7 @@ async function main() {
     console.log('   メールアドレス: consultant@example.com / パスワード: password123 (Consultant)')
     console.log('   メールアドレス: client@example.com / パスワード: password123 (Client)')
     
-  } catch (error) {
+  } catch (_error) {
     console.error('\n💥 シード処理中にエラーが発生しました:', error)
     process.exit(1)
   }

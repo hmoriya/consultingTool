@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
@@ -11,9 +11,8 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { CheckCircle, XCircle, Clock, Calendar, User, FileText } from 'lucide-react'
+  DialogTitle } from '@/components/ui/dialog'
+import { CheckCircle, XCircle, Clock, Calendar, User } from 'lucide-react'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import { approveOrRejectTimesheet } from '@/actions/timesheet-approval'
@@ -21,18 +20,18 @@ import { toast } from 'sonner'
 import { useApproval } from '@/contexts/approval-context'
 
 interface ApprovalListProps {
-  timesheets: any[]
+  timesheets: unknown[]
   onUpdate?: () => void
 }
 
 export function ApprovalList({ timesheets, onUpdate }: ApprovalListProps) {
-  const [selectedTimesheet, setSelectedTimesheet] = useState<any>(null)
+  const [selectedTimesheet, setSelectedTimesheet] = useState<unknown>(null)
   const [action, setAction] = useState<'APPROVE' | 'REJECT' | null>(null)
   const [comments, setComments] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
   const { refreshPendingCount } = useApproval()
 
-  const handleAction = (timesheet: any, actionType: 'APPROVE' | 'REJECT') => {
+  const handleAction = (timesheet: unknown, actionType: 'APPROVE' | 'REJECT') => {
     setSelectedTimesheet(timesheet)
     setAction(actionType)
     setComments('')
@@ -64,14 +63,14 @@ export function ApprovalList({ timesheets, onUpdate }: ApprovalListProps) {
       } else {
         toast.error(result.error || '処理に失敗しました')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('エラーが発生しました')
     } finally {
       setIsProcessing(false)
     }
   }
 
-  const getProjectSummary = (entries: any[]) => {
+  const getProjectSummary = (entries: unknown[]) => {
     const projectHours = entries.reduce((acc, entry) => {
       const projectId = entry.projectId || '不明なプロジェクト'
       acc[projectId] = (acc[projectId] || 0) + entry.hours

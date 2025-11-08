@@ -165,7 +165,7 @@ export async function updateMilestone(milestoneId: string, data: {
     throw new Error('マイルストーンが見つからないか、権限がありません')
   }
 
-  const updateData: any = {}
+  const updateData: unknown = {}
   if (data.name !== undefined) updateData.name = data.name
   if (data.description !== undefined) updateData.description = data.description || null
   if (data.dueDate !== undefined) {

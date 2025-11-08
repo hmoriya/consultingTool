@@ -54,7 +54,7 @@ export async function createDeliverable(data: z.infer<typeof deliverableSchema>)
     revalidatePath('/deliverables')
     revalidatePath('/projects')
     return { success: true, data: deliverable }
-  } catch (error) {
+  } catch (_error) {
     console.error('createDeliverable error:', error)
     if (error instanceof z.ZodError) {
       return { success: false, error: error.errors[0].message }
@@ -109,7 +109,7 @@ export async function updateDeliverable(id: string, data: Partial<z.infer<typeof
     revalidatePath('/deliverables')
     revalidatePath('/projects')
     return { success: true, data: deliverable }
-  } catch (error) {
+  } catch (_error) {
     console.error('updateDeliverable error:', error)
     return { success: false, error: '成果物の更新に失敗しました' }
   }
@@ -152,7 +152,7 @@ export async function deleteDeliverable(id: string) {
     revalidatePath('/deliverables')
     revalidatePath('/projects')
     return { success: true }
-  } catch (error) {
+  } catch (_error) {
     console.error('deleteDeliverable error:', error)
     return { success: false, error: '成果物の削除に失敗しました' }
   }
@@ -174,7 +174,7 @@ export async function getDeliverables(projectId?: string) {
 
     const projectIds = accessibleProjects.map(pm => pm.projectId)
 
-    const whereClause: any = {
+    const whereClause: unknown = {
       projectId: { in: projectIds }
     }
 
@@ -196,7 +196,7 @@ export async function getDeliverables(projectId?: string) {
     })
 
     return { success: true, data: deliverables }
-  } catch (error) {
+  } catch (_error) {
     console.error('getDeliverables error:', error)
     return { success: false, error: '成果物一覧の取得に失敗しました' }
   }
@@ -237,7 +237,7 @@ export async function getDeliverableById(id: string) {
     }
 
     return { success: true, data: deliverable }
-  } catch (error) {
+  } catch (_error) {
     console.error('getDeliverableById error:', error)
     return { success: false, error: '成果物の取得に失敗しました' }
   }
@@ -267,7 +267,7 @@ export async function getAccessibleProjects() {
     })
 
     return { success: true, data: projects }
-  } catch (error) {
+  } catch (_error) {
     console.error('getAccessibleProjects error:', error)
     return { success: false, error: 'プロジェクト一覧の取得に失敗しました' }
   }
@@ -305,7 +305,7 @@ export async function getProjectMilestones(projectId: string) {
     })
 
     return { success: true, data: milestones }
-  } catch (error) {
+  } catch (_error) {
     console.error('getProjectMilestones error:', error)
     return { success: false, error: 'マイルストーン一覧の取得に失敗しました' }
   }

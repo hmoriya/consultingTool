@@ -18,7 +18,7 @@ export default async function MessagesPage() {
     console.log(`Channel ${index + 1}:`, {
       name: channel.name,
       type: channel.type,
-      memberUsersCount: (channel as any).memberUsers?.length || 0
+      memberUsersCount: 'memberUsers' in channel && Array.isArray(channel.memberUsers) ? channel.memberUsers.length : 0
     })
   })
 

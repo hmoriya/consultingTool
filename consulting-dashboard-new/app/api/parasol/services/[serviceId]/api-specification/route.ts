@@ -52,7 +52,7 @@ export async function GET(
         updatedAt: apiSpec.updatedAt
       }
     })
-  } catch (error) {
+  } catch (_error) {
     console.error('API specification fetch error:', error)
     return NextResponse.json(
       { error: 'API仕様の取得中にエラーが発生しました', details: error },
@@ -115,7 +115,7 @@ export async function PUT(
         updatedAt: apiSpec.updatedAt
       }
     })
-  } catch (error) {
+  } catch (_error) {
     console.error('API specification update error:', error)
     return NextResponse.json(
       { error: 'API仕様の更新中にエラーが発生しました', details: error },

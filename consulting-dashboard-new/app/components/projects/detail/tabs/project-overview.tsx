@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 
 interface ProjectOverviewProps {
-  project: any
+  project: unknown
 }
 
 export function ProjectOverview({ project }: ProjectOverviewProps) {
@@ -118,7 +118,7 @@ export function ProjectOverview({ project }: ProjectOverviewProps) {
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">プロジェクトマネージャー</span>
                 <span className="text-sm font-medium">
-                  {project.projectMembers.find((m: any) => m.role === 'pm')?.user.name || '未割当'}
+                  {project.projectMembers.find((m: unknown) => m.role === 'pm')?.user.name || '未割当'}
                 </span>
               </div>
               <div className="flex justify-between">

@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { X, Send, MessageCircle } from 'lucide-react'
+import { Send, MessageCircle, X } from 'lucide-react'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import { cn } from '@/lib/utils'
+// import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
 interface ThreadMessage {
@@ -48,7 +48,7 @@ export function ThreadView({
   onClose,
   onSendReply,
   threadMessages,
-  currentUserId
+  currentUserId: _currentUserId
 }: ThreadViewProps) {
   const [replyContent, setReplyContent] = useState('')
   const [isSending, setIsSending] = useState(false)
@@ -68,7 +68,7 @@ export function ThreadView({
     try {
       await onSendReply(replyContent)
       setReplyContent('')
-    } catch (error) {
+    } catch (_error) {
       toast.error('返信の送信に失敗しました')
     } finally {
       setIsSending(false)

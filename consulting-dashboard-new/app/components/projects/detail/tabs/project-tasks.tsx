@@ -1,45 +1,30 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Plus,
-  Filter,
   Calendar,
   Clock,
-  User,
-  ChevronDown,
-  MoreVertical,
-  Edit,
-  Trash2,
   CheckCircle2
 } from 'lucide-react'
 import { TaskItem, TaskStatus, TaskPriority, getProjectTasks, updateTaskStatus } from '@/actions/tasks'
-import { getProjectMilestones } from '@/actions/milestones'
+import { getProjectMilestones, MilestoneItem } from '@/actions/milestones'
 import { TaskCreateForm } from './task-create-form'
 import { TaskCard } from './task-card'
 import { TaskKanban } from './task-kanban'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  SelectValue } from '@/components/ui/select'
 
 interface ProjectTasksProps {
-  project: any
+  project: unknown
 }
 
 const statusLabels: Record<TaskStatus, string> = {
@@ -56,16 +41,10 @@ const priorityLabels: Record<TaskPriority, string> = {
   urgent: '緊急'
 }
 
-const priorityColors: Record<TaskPriority, string> = {
-  low: 'bg-green-100 text-green-700',
-  medium: 'bg-yellow-100 text-yellow-700',
-  high: 'bg-orange-100 text-orange-700',
-  urgent: 'bg-red-100 text-red-700'
-}
 
 export function ProjectTasks({ project }: ProjectTasksProps) {
   const [tasks, setTasks] = useState<TaskItem[]>([])
-  const [milestones, setMilestones] = useState<any[]>([])
+  const [milestones, setMilestones] = useState<MilestoneItem[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list')
@@ -73,11 +52,7 @@ export function ProjectTasks({ project }: ProjectTasksProps) {
   const [priorityFilter, setPriorityFilter] = useState<string>('all')
   const [assigneeFilter, setAssigneeFilter] = useState<string>('all')
 
-  useEffect(() => {
-    loadTasks()
-  }, [project.id])
-
-  const loadTasks = async () => {
+  const loadTasks = useCallback(async () => {
     try {
       setLoading(true)
       const [projectTasks, projectMilestones] = await Promise.all([
@@ -91,13 +66,17 @@ export function ProjectTasks({ project }: ProjectTasksProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [project.id])
+
+  useEffect(() => {
+    loadTasks()
+  }, [loadTasks])
 
   const handleTaskStatusChange = async (taskId: string, status: TaskStatus) => {
     try {
       await updateTaskStatus(taskId, status)
       await loadTasks() // リロード
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to update task status:', error)
     }
   }
@@ -210,7 +189,7 @@ export function ProjectTasks({ project }: ProjectTasksProps) {
             </p>
           </div>
           <div className="flex gap-2">
-            <Tabs value={viewMode} onValueChange={(value: any) => setViewMode(value)}>
+            <Tabs value={viewMode} onValueChange={(value: unknown) => setViewMode(value)}>
               <TabsList>
                 <TabsTrigger value="list">リスト</TabsTrigger>
                 <TabsTrigger value="kanban">カンバン</TabsTrigger>

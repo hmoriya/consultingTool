@@ -2,7 +2,7 @@ import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 
 const parasolDb = new ParasolPrismaClient()
 
-export async function seedOptimizeProfitability(service: any, capability: any) {
+export async function seedOptimizeProfitability(service: unknown, capability: unknown) {
   console.log('    Creating business operation: 収益性を最適化する...')
   
   const operation = await parasolDb.businessOperation.create({

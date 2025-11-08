@@ -1,6 +1,6 @@
 // 認証・組織管理サービスのビジネスオペレーション（フルスペック）
 
-export async function seedAuthOperationsFull(service: any, capability: any) {
+export async function seedAuthOperationsFull(service: unknown, capability: unknown) {
   console.log('  Creating auth business operations...')
   
   // 1. ユーザーアイデンティティを確立する

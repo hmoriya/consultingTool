@@ -14,10 +14,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
+  DialogFooter } from '@/components/ui/dialog'
 import { createOrganizationContact, OrganizationContactItem } from '@/actions/organization-contacts'
-import { X, Save, UserPlus } from 'lucide-react'
+import { UserPlus, X, Save } from 'lucide-react'
 
 const contactSchema = z.object({
   name: z.string().min(1, '担当者名は必須です').max(100, '100文字以内で入力してください'),
@@ -71,7 +70,7 @@ export function ContactCreateDialog({
       })
       onContactCreated(newContact)
       onClose()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to create contact:', error)
       alert(error.message || '担当者の作成に失敗しました')
     } finally {

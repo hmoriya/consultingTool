@@ -144,7 +144,7 @@ async function main() {
   console.log('💬 Creating messages...')
 
   // Messages in DX channel
-  const dxMessage1 = await notificationDb.message.create({
+  const _dxMessage1 = await notificationDb.message.create({
     data: {
       channelId: dxChannel.id,
       senderId: pmUser.id,
@@ -170,7 +170,7 @@ async function main() {
     }
   })
 
-  const dxMessage3 = await notificationDb.message.create({
+  const _dxMessage3 = await notificationDb.message.create({
     data: {
       channelId: dxChannel.id,
       senderId: clientUser.id,

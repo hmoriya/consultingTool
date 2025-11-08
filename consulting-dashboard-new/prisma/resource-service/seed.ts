@@ -21,6 +21,15 @@ async function main() {
     const skills = await resourceDb.skill.findMany()
     console.log(`Found ${skills.length} skills`)
 
+    // ヘルパー関数：スキル名からIDを安全に取得
+    const getSkillId = (skillName: string): string => {
+      const skill = skills.find(s => s.name === skillName)
+      if (!skill) {
+        throw new Error(`Skill not found: ${skillName}`)
+      }
+      return skill.id
+    }
+
     // ユーザーIDの定義（authサービスのシードデータと同期）
     // これらのIDはauth-service/seed.tsで作成されたユーザーのIDと一致する必要があります
     // 実際のユーザーIDをハードコーディング（本来は環境変数や別ファイルから取得すべき）
@@ -38,7 +47,7 @@ async function main() {
       // 鈴木花子（PM）のスキル
       {
         userId: userIds.pm1,
-        skillId: skills.find(s => s.name === 'プロジェクト管理')?.id!,
+        skillId: getSkillId('プロジェクト管理'),
         level: 5,
         experienceYears: 10,
         selfAssessment: 5,
@@ -48,7 +57,7 @@ async function main() {
       },
       {
         userId: userIds.pm1,
-        skillId: skills.find(s => s.name === '英語')?.id!,
+        skillId: getSkillId('英語'),
         level: 4,
         experienceYears: 8,
         selfAssessment: 4,
@@ -60,7 +69,7 @@ async function main() {
       // 木村大輔（PM）のスキル
       {
         userId: userIds.pm2,
-        skillId: skills.find(s => s.name === 'プロジェクト管理')?.id!,
+        skillId: getSkillId('プロジェクト管理'),
         level: 4,
         experienceYears: 7,
         selfAssessment: 4,
@@ -70,7 +79,7 @@ async function main() {
       },
       {
         userId: userIds.pm2,
-        skillId: skills.find(s => s.name === 'JavaScript')?.id!,
+        skillId: getSkillId('JavaScript'),
         level: 3,
         experienceYears: 5,
         selfAssessment: 3,
@@ -81,7 +90,7 @@ async function main() {
       // 佐藤次郎（コンサルタント）のスキル
       {
         userId: userIds.consultant1,
-        skillId: skills.find(s => s.name === 'JavaScript')?.id!,
+        skillId: getSkillId('JavaScript'),
         level: 5,
         experienceYears: 8,
         selfAssessment: 5,
@@ -91,7 +100,7 @@ async function main() {
       },
       {
         userId: userIds.consultant1,
-        skillId: skills.find(s => s.name === 'React')?.id!,
+        skillId: getSkillId('React'),
         level: 5,
         experienceYears: 6,
         selfAssessment: 5,
@@ -100,7 +109,7 @@ async function main() {
       },
       {
         userId: userIds.consultant1,
-        skillId: skills.find(s => s.name === 'Node.js')?.id!,
+        skillId: getSkillId('Node.js'),
         level: 4,
         experienceYears: 5,
         selfAssessment: 4,
@@ -111,7 +120,7 @@ async function main() {
       // 高橋愛（コンサルタント）のスキル
       {
         userId: userIds.consultant2,
-        skillId: skills.find(s => s.name === 'React')?.id!,
+        skillId: getSkillId('React'),
         level: 4,
         experienceYears: 4,
         selfAssessment: 4,
@@ -120,7 +129,7 @@ async function main() {
       },
       {
         userId: userIds.consultant2,
-        skillId: skills.find(s => s.name === 'JavaScript')?.id!,
+        skillId: getSkillId('JavaScript'),
         level: 4,
         experienceYears: 5,
         selfAssessment: 4,
@@ -129,7 +138,7 @@ async function main() {
       },
       {
         userId: userIds.consultant2,
-        skillId: skills.find(s => s.name === '英語')?.id!,
+        skillId: getSkillId('英語'),
         level: 3,
         experienceYears: 3,
         selfAssessment: 3,
@@ -141,7 +150,7 @@ async function main() {
       // 渡辺健（コンサルタント）のスキル
       {
         userId: userIds.consultant3,
-        skillId: skills.find(s => s.name === 'Node.js')?.id!,
+        skillId: getSkillId('Node.js'),
         level: 5,
         experienceYears: 7,
         selfAssessment: 5,
@@ -151,7 +160,7 @@ async function main() {
       },
       {
         userId: userIds.consultant3,
-        skillId: skills.find(s => s.name === 'JavaScript')?.id!,
+        skillId: getSkillId('JavaScript'),
         level: 4,
         experienceYears: 6,
         selfAssessment: 4,
@@ -162,7 +171,7 @@ async function main() {
       // 伊藤真由美（コンサルタント）のスキル
       {
         userId: userIds.consultant4,
-        skillId: skills.find(s => s.name === 'React')?.id!,
+        skillId: getSkillId('React'),
         level: 3,
         experienceYears: 2,
         selfAssessment: 3,
@@ -171,7 +180,7 @@ async function main() {
       },
       {
         userId: userIds.consultant4,
-        skillId: skills.find(s => s.name === 'JavaScript')?.id!,
+        skillId: getSkillId('JavaScript'),
         level: 3,
         experienceYears: 3,
         selfAssessment: 3,
@@ -240,7 +249,7 @@ async function main() {
 
     console.log('✅ Resource database seeding completed!')
 
-  } catch (error) {
+  } catch (_error) {
     console.error('Error seeding database:', error)
     throw error
   } finally {

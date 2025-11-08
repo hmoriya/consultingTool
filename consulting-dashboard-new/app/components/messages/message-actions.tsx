@@ -9,14 +9,14 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import {
-  MoreVertical,
   Edit2,
-  Trash2,
   Pin,
   Copy,
   Reply,
   Flag,
-  BookmarkPlus
+  BookmarkPlus,
+  MoreVertical,
+  Trash2
 } from 'lucide-react'
 import { toast } from 'sonner'
 

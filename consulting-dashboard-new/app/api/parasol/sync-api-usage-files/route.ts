@@ -16,9 +16,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { action = 'sync_all' } = body
 
-    let syncedFiles: string[] = []
-    let errors: string[] = []
-    let stats = {
+    const syncedFiles: string[] = []
+    const errors: string[] = []
+    const stats = {
       found: 0,
       synced: 0,
       errors: 0,
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
           syncedFiles.push(fileInfo.relativePath)
           stats.synced++
 
-        } catch (error) {
+        } catch (_error) {
           console.error(`Failed to sync ${fileInfo.relativePath}:`, error)
           errors.push(`${fileInfo.relativePath}: ${error}`)
           stats.errors++
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       errors: errors.length > 0 ? errors : undefined
     })
 
-  } catch (error) {
+  } catch (_error) {
     console.error('API usage files sync error:', error)
     return NextResponse.json({
       success: false,

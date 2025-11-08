@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { Hash, Lock, ChevronDown, ChevronRight, Plus, Users, MessageSquare } from 'lucide-react'
+import { Hash, Lock, ChevronDown, ChevronRight, Plus, MessageSquare, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { CreateChannelDialog } from './create-channel-dialog'
@@ -77,7 +77,7 @@ export function ChannelSidebar({ channels, currentUserId }: ChannelSidebarProps)
       }
     } else {
       // プロジェクトやグループチャンネルは名前で重複判定
-      const key = `${channel.type}-${channel.name}`
+      const _key = `${channel.type}-${channel.name}`
       if (!acc.some(c => c.type === channel.type && c.name === channel.name)) {
         acc.push(channel)
       }

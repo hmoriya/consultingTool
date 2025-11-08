@@ -1,35 +1,23 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
 import { Progress } from '@/components/ui/progress'
 import {
   Send,
   Paperclip,
-  MoreVertical,
-  Hash,
-  Lock,
-  MessageCircle,
   Smile,
-  ArrowLeft,
-  Users,
-  X,
   File,
+  Image as ImageIcon,
   FileText,
-  Image,
-  Download
+  X
 } from 'lucide-react'
-import { format, formatDistanceToNow, isSameDay, isToday, isYesterday } from 'date-fns'
+import { format, isToday, isYesterday } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import { sendMessage, markMessageAsRead, addReaction, editMessage, deleteMessage, pinMessage, markChannelAsRead, toggleMessageFlag } from '@/actions/messages'
+import { sendMessage, addReaction, pinMessage, markChannelAsRead, toggleMessageFlag } from '@/actions/messages'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { MessageItem } from '@/components/messages/message-item'
@@ -38,7 +26,6 @@ import { ThreadView } from '@/components/messages/thread-view'
 import { EditMessageDialog } from '@/components/messages/edit-message-dialog'
 import { DeleteMessageDialog } from '@/components/messages/delete-message-dialog'
 import { sendThreadMessage, getThreadMessages } from '@/actions/messages'
-import { updateMessage } from '@/actions/messages'
 
 interface Message {
   id: string
@@ -118,7 +105,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
   const [mentionSearch, setMentionSearch] = useState('')
   const [mentionIndex, setMentionIndex] = useState(0)
   const [selectedThread, setSelectedThread] = useState<Message | null>(null)
-  const [threadMessages, setThreadMessages] = useState<any[]>([])
+  const [threadMessages, setThreadMessages] = useState<Message[]>([])
   const [editingMessage, setEditingMessage] = useState<{ id: string; content: string } | null>(null)
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -221,7 +208,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
         console.log('Calling markChannelAsRead for channel:', channel.id)
         const result = await markChannelAsRead(channel.id)
         console.log('markChannelAsRead result:', result)
-      } catch (error) {
+      } catch (_error) {
         console.error('Failed to mark channel as read:', error)
       }
     }, 500)
@@ -259,18 +246,6 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
     }
   }, [])
 
-  // ファイル選択ハンドラ
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      // ファイルサイズチェック（10MB）
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error('ファイルサイズが大きすぎます（10MB以下にしてください）')
-        return
-      }
-      setSelectedFile(file)
-    }
-  }
 
   // ファイルアップロードとメッセージ送信
   const handleFileUpload = async () => {
@@ -338,7 +313,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
       } else {
         throw new Error(result.error || 'メッセージの送信に失敗しました')
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('File upload error:', error)
       toast.error(error instanceof Error ? error.message : 'ファイルの送信に失敗しました')
     } finally {
@@ -389,7 +364,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
         toast.error(result.error || 'メッセージの送信に失敗しました')
         setNewMessage(tempMessage) // 失敗時は復元
       }
-    } catch (error) {
+    } catch {
       toast.error('エラーが発生しました')
       setNewMessage(tempMessage)
     } finally {
@@ -641,7 +616,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {selectedFile.type.startsWith('image/') ? (
-                    <Image className="h-5 w-5 text-blue-500" />
+                    <ImageIcon className="h-5 w-5 text-blue-500" aria-hidden="true" />
                   ) : selectedFile.type === 'application/pdf' ? (
                     <FileText className="h-5 w-5 text-red-500" />
                   ) : (

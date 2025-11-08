@@ -1,9 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight, Folder, FolderOpen, FileText, Image, Settings } from 'lucide-react';
+import { ChevronDown, ChevronRight, Folder, FolderOpen, Image, Settings, FileText } from 'lucide-react';
 
 interface FileNode {
   id: string;
@@ -202,7 +200,7 @@ export function DirectoryPanel({ currentPath, onFileSelect, className = '' }: Di
 
         setExpandedNodes(expandedPaths);
 
-      } catch (error) {
+      } catch (_error) {
         console.error('Failed to load file tree:', error);
       } finally {
         setIsLoading(false);
@@ -252,6 +250,7 @@ export function DirectoryPanel({ currentPath, onFileSelect, className = '' }: Di
       case 'usecase':
         return <FileText className="w-4 h-4 text-green-500" />;
       case 'page':
+        // eslint-disable-next-line jsx-a11y/alt-text
         return <Image className="w-4 h-4 text-purple-500" />;
       case 'api-usage':
         return <Settings className="w-4 h-4 text-orange-500" />;

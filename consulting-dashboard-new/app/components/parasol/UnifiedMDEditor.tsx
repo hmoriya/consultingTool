@@ -1,21 +1,21 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
-  FileText, 
   Eye, 
   Copy, 
   Download, 
   Upload, 
   RotateCcw,
-  Save,
   FileCode2,
-  GitBranch
+  GitBranch,
+  Save,
+  FileText
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -635,7 +635,7 @@ export function UnifiedMDEditor({
       console.log('UnifiedMDEditor: Generated diagram code:', code);
       setDiagramCode(code);
       setDiagramType(diagType);
-    } catch (err) {
+    } catch (_err) {
       console.error('Diagram generation error:', err);
       setDiagramCode('');
     }
@@ -671,7 +671,7 @@ export function UnifiedMDEditor({
         title: 'コピー完了',
         description: 'Markdownをクリップボードにコピーしました。',
       });
-    } catch (err) {
+    } catch (_err) {
       toast({
         title: 'エラー',
         description: 'コピーに失敗しました。',
@@ -805,7 +805,7 @@ export function UnifiedMDEditor({
         </div>
       </CardHeader>
       <CardContent className="flex flex-col flex-1 min-h-0">
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="flex flex-col flex-1 min-h-0">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as unknown)} className="flex flex-col flex-1 min-h-0">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="edit" className="flex items-center gap-2" disabled={readOnly}>
               <FileText className="h-4 w-4" />

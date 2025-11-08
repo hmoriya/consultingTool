@@ -3,7 +3,7 @@ import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 const parasolDb = new ParasolPrismaClient()
 
 // プロジェクト成功支援サービスのケーパビリティとオペレーション
-export async function seedProjectServiceFullParasol(service: any) {
+export async function seedProjectServiceFullParasol(service: unknown) {
   console.log('    Creating business operations for project service...')
 
   // ケーパビリティとオペレーションが既に存在するかチェック

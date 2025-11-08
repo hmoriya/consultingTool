@@ -51,7 +51,7 @@ export async function GET(
         updatedAt: dbDesign.updatedAt
       }
     })
-  } catch (error) {
+  } catch (_error) {
     console.error('Database design fetch error:', error)
     return NextResponse.json(
       { error: 'データベース設計の取得中にエラーが発生しました', details: error },
@@ -112,7 +112,7 @@ export async function PUT(
         updatedAt: dbDesign.updatedAt
       }
     })
-  } catch (error) {
+  } catch (_error) {
     console.error('Database design update error:', error)
     return NextResponse.json(
       { error: 'データベース設計の更新中にエラーが発生しました', details: error },

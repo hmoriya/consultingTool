@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { ProjectOverview } from './tabs/project-overview'
 import { ProjectTasks } from './tabs/project-tasks'
 import { ProjectTeam } from './tabs/project-team'

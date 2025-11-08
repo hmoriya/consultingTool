@@ -2,7 +2,12 @@ import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 
 const parasolDb = new ParasolPrismaClient()
 
-export async function seedResourceServiceParasol(service: any) {
+interface ServiceType {
+  id: string
+  name: string
+}
+
+export async function seedResourceServiceParasol(service: ServiceType) {
   console.log('  Seeding resource-service parasol data...')
   
   const capability = await parasolDb.businessCapability.create({

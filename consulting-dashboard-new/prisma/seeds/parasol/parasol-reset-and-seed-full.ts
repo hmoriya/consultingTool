@@ -22,9 +22,9 @@ async function main() {
   
   try {
     await execAsync('npx tsx prisma/seeds/parasol/parasol-seed-full.ts')
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to run seed script:', error)
-    throw error
+    throw _error
   }
 }
 

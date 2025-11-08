@@ -56,7 +56,7 @@ async function main() {
       console.log(`User ${sample.userId}: ${(sample.allocation * 100).toFixed(1)}%`)
     })
     
-  } catch (error) {
+  } catch (_error) {
     console.error('Error fixing allocation values:', error)
     throw error
   } finally {

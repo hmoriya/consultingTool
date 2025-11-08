@@ -72,9 +72,9 @@ async function main() {
 
     console.log('\n✅ Complete Parasol seed finished successfully!')
 
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error seeding Parasol:', error)
-    throw error
+    throw _error
   } finally {
     await parasolDb.$disconnect()
   }

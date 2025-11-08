@@ -13,17 +13,15 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+  DialogTitle } from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  SelectValue } from '@/components/ui/select'
 import { updateTeamMember, TeamMemberItem } from '@/actions/team'
-import { X, Save, Users, Loader2 } from 'lucide-react'
+import { Loader2, Users, X, Save } from 'lucide-react'
 import { Role } from '@prisma/client'
 
 const memberSchema = z.object({
@@ -63,7 +61,7 @@ export function TeamEditDialog({ member, onClose, onMemberUpdated }: TeamEditDia
         if (!response.ok) throw new Error('Failed to fetch roles')
         const data = await response.json()
         setRoles(data.filter((role: Role) => ['executive', 'pm', 'consultant'].includes(role.name)))
-      } catch (error) {
+      } catch (_error) {
         console.error('Failed to fetch roles:', error)
       }
     }
@@ -80,7 +78,7 @@ export function TeamEditDialog({ member, onClose, onMemberUpdated }: TeamEditDia
       
       onMemberUpdated(updatedMember as TeamMemberItem)
       onClose()
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to update member:', error)
       alert(error instanceof Error ? error.message : 'メンバーの更新に失敗しました')
     } finally {

@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/actions/auth'
 import { getPendingApprovals } from '@/actions/timesheet-approval'
 import { ApprovalList } from '@/components/timesheet/approval-list'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Shield } from 'lucide-react'
 
 export default async function TimesheetApprovalPage() {

@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Eye, Edit, Trash2, Plus } from 'lucide-react';
+import { Eye, Edit, Plus, FileText, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface UseCase {
@@ -51,7 +51,7 @@ interface UseCaseListViewProps {
 }
 
 export function UseCaseListView({
-  operationId,
+  operationId: _operationId,
   useCases,
   pageDefinitions,
   testDefinitions,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
+import type { FileSystemError } from '@/app/types/parasol-api';
 
 interface FileMetadata {
   title: string;
@@ -63,8 +64,8 @@ export async function GET(request: NextRequest) {
       };
 
       return NextResponse.json(response);
-    } catch (error: any) {
-      if (error.code === 'ENOENT') {
+    } catch (_error) {
+      if ((error as FileSystemError).code === 'ENOENT') {
         // ファイルが存在しない場合
         const response: FileData = {
           content: '',
@@ -78,7 +79,7 @@ export async function GET(request: NextRequest) {
 
       throw error;
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('Error reading file:', error);
     return NextResponse.json(
       { error: 'Failed to read file' },
@@ -137,7 +138,7 @@ export async function PUT(request: NextRequest) {
     };
 
     return NextResponse.json(response);
-  } catch (error) {
+  } catch (_error) {
     console.error('Error writing file:', error);
     return NextResponse.json(
       { error: 'Failed to write file' },
@@ -172,14 +173,14 @@ export async function DELETE(request: NextRequest) {
     try {
       await fs.unlink(fullPath);
       return NextResponse.json({ success: true });
-    } catch (error: any) {
-      if (error.code === 'ENOENT') {
+    } catch (_error) {
+      if ((error as FileSystemError).code === 'ENOENT') {
         // ファイルが存在しない場合は成功とみなす
         return NextResponse.json({ success: true });
       }
       throw error;
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('Error deleting file:', error);
     return NextResponse.json(
       { error: 'Failed to delete file' },

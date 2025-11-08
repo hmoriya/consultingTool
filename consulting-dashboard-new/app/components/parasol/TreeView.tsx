@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { ChevronRight, ChevronDown, Package, Code, FileText, Layout, Folder } from 'lucide-react';
+import { ChevronRight, ChevronDown, Package, Code, Layout, Folder } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TreeNode } from '@/types/parasol';
 

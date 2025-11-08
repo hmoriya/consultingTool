@@ -147,7 +147,7 @@ export async function GET() {
       })
     })
 
-  } catch (error) {
+  } catch (_error) {
     console.error('API usage analysis error:', error)
     return NextResponse.json({
       success: false,

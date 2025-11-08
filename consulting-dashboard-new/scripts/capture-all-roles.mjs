@@ -1,6 +1,6 @@
-const { chromium } = require('playwright');
-const path = require('path');
-const fs = require('fs');
+import { chromium } from 'playwright';
+import path from 'path';
+import fs from 'fs';
 
 // キャプチャ設定
 const captures = [

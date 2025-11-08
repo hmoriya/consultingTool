@@ -311,7 +311,7 @@ async function main() {
     })
     console.log('✅ Updated successfully')
     
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error:', error)
   } finally {
     await prisma.$disconnect()

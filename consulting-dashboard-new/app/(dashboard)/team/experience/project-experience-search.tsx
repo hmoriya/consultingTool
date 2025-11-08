@@ -7,35 +7,60 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Search, Calendar, Briefcase } from 'lucide-react'
-import { format } from 'date-fns'
-import { ja } from 'date-fns/locale'
+import { Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { searchProjectExperiences } from '../../../actions/project-experience'
 import { ProjectExperienceList } from './project-experience-list'
 
+interface Skill {
+  id: string
+  name: string
+  category: {
+    id: string
+    name: string
+  }
+  userCount?: number
+}
+
+interface User {
+  id: string
+  name: string
+  email: string
+}
+
+interface ProjectExperience {
+  id: string
+  user: User
+  [key: string]: unknown
+}
+
+interface SearchResult {
+  user: User
+  experiences: ProjectExperience[]
+}
+
 interface ProjectExperienceSearchProps {
-  allSkills: any[]
+  allSkills: Skill[]
 }
 
 export function ProjectExperienceSearch({ allSkills }: ProjectExperienceSearchProps) {
   const [isPending, startTransition] = useTransition()
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [selectedRole, setSelectedRole] = useState<string>('all')
-  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [hasSearched, setHasSearched] = useState(false)
 
   const handleSearch = () => {
     startTransition(async () => {
       try {
-        const filters: any = {}
+        const filters: { skillIds?: string[], role?: string } = {}
         if (selectedSkills.length > 0) filters.skillIds = selectedSkills
         if (selectedRole !== 'all') filters.role = selectedRole
 
         const results = await searchProjectExperiences(filters)
         
         // ユーザーごとにグループ化
-        const groupedResults = results.reduce((acc: any, exp: any) => {
+        const groupedResults = results.reduce((acc: Record<string, SearchResult>, exp: ProjectExperience) => {
           const userId = exp.user.id
           if (!acc[userId]) {
             acc[userId] = {
@@ -68,7 +93,7 @@ export function ProjectExperienceSearch({ allSkills }: ProjectExperienceSearchPr
   }
 
   // カテゴリごとにスキルをグループ化
-  const skillsByCategory = allSkills.reduce((acc: any, skill: any) => {
+  const skillsByCategory = allSkills.reduce((acc: Record<string, Skill[]>, skill) => {
     if (!acc[skill.category.name]) {
       acc[skill.category.name] = []
     }
@@ -89,13 +114,13 @@ export function ProjectExperienceSearch({ allSkills }: ProjectExperienceSearchPr
           <div>
             <Label>スキルで検索</Label>
             <div className="mt-2 space-y-4">
-              {Object.entries(skillsByCategory).map(([category, skills]: [string, any]) => (
+              {Object.entries(skillsByCategory).map(([category, skills]) => (
                 <div key={category}>
                   <p className="text-sm font-medium text-muted-foreground mb-2">
                     {category}
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {skills.map((skill: any) => (
+                    {skills.map((skill) => (
                       <Badge
                         key={skill.id}
                         variant={selectedSkills.includes(skill.id) ? 'default' : 'outline'}

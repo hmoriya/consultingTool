@@ -1,30 +1,27 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import React, { useState, useEffect, useCallback } from 'react'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Progress } from '@/components/ui/progress'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+// import { Progress } from '@/components/ui/progress'
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts'
 import {
   AlertTriangle,
   CheckCircle,
-  Info,
   RefreshCw,
-  Trash2,
-  GitMerge,
   Edit,
   Copy,
   Target,
-  FileText,
-  Users,
   Settings,
-  Zap
+  Zap,
+  Trash2,
+  GitMerge
 } from 'lucide-react'
 
 interface PageUseCaseMapping {
@@ -119,9 +116,9 @@ export default function DesignRestructureDashboard() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedTab, setSelectedTab] = useState('overview')
-  const [selectedOperations, setSelectedOperations] = useState<Set<string>>(new Set())
+  const [_selectedOperations, _setSelectedOperations] = useState<Set<string>>(new Set())
 
-  const fetchAnalysis = async () => {
+  const fetchAnalysis = useCallback(async () => {
     setIsLoading(true)
     setError(null)
 
@@ -133,12 +130,12 @@ export default function DesignRestructureDashboard() {
 
       const data = await response.json()
       setAnalysisData(data)
-    } catch (error) {
-      setError(error instanceof Error ? error.message : '不明なエラーが発生しました')
+    } catch (_error) {
+      setError(_error instanceof Error ? _error.message : '不明なエラーが発生しました')
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
   const handleApplyRestructure = async (operationId: string, mappings: ProposedMapping[]) => {
     try {
@@ -161,7 +158,7 @@ export default function DesignRestructureDashboard() {
         alert(`再構築に失敗しました: ${result.message}`)
       }
 
-    } catch (error) {
+    } catch (_error) {
       console.error('再構築実行エラー:', error)
       alert('再構築の処理中にエラーが発生しました')
     }
@@ -191,7 +188,7 @@ export default function DesignRestructureDashboard() {
         alert(`重複削除に失敗しました: ${result.message}`)
       }
 
-    } catch (error) {
+    } catch (_error) {
       console.error('重複削除エラー:', error)
       alert('重複削除の処理中にエラーが発生しました')
     } finally {
@@ -223,7 +220,7 @@ export default function DesignRestructureDashboard() {
         alert(`データベース重複削除に失敗しました: ${result.message}`)
       }
 
-    } catch (error) {
+    } catch (_error) {
       console.error('データベース重複削除エラー:', error)
       alert('データベース重複削除の処理中にエラーが発生しました')
     } finally {
@@ -239,7 +236,7 @@ export default function DesignRestructureDashboard() {
 
   useEffect(() => {
     fetchAnalysis()
-  }, [])
+  }, [fetchAnalysis])
 
   if (isLoading) {
     return (

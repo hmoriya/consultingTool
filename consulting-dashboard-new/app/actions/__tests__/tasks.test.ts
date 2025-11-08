@@ -110,16 +110,16 @@ describe('tasks actions', () => {
 
   describe('getProjectTasks', () => {
     test('プロジェクトのタスク一覧を取得できる', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as unknown)
 
       // PMがプロジェクトメンバー
       prismaMock.project.findFirst.mockResolvedValue({
         ...mockProject,
         projectMembers: [{ userId: '2' }]
-      } as any)
+      } as unknown)
 
       const mockTasks = [mockTask, { ...mockTask, id: 'task-2', priority: 'medium' }]
-      prismaMock.task.findMany.mockResolvedValue(mockTasks as any)
+      prismaMock.task.findMany.mockResolvedValue(mockTasks as unknown)
 
       const result = await getProjectTasks('proj-1')
 
@@ -135,7 +135,7 @@ describe('tasks actions', () => {
     })
 
     test('プロジェクトアクセス権限がない場合はエラー', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockConsultantUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockConsultantUser as unknown)
       prismaMock.project.findFirst.mockResolvedValue(null)
 
       await expect(getProjectTasks('proj-1')).rejects.toThrow(
@@ -154,15 +154,15 @@ describe('tasks actions', () => {
 
   describe('createTask', () => {
     test('PMがタスクを作成できる', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as unknown)
 
       prismaMock.project.findFirst.mockResolvedValue({
         ...mockProject,
         projectMembers: [{ userId: '2', role: 'pm' }]
-      } as any)
+      } as unknown)
 
-      prismaMock.task.create.mockResolvedValue(mockTask as any)
-      prismaMock.auditLog.create.mockResolvedValue({} as any)
+      prismaMock.task.create.mockResolvedValue(mockTask as unknown)
+      prismaMock.auditLog.create.mockResolvedValue({} as unknown)
 
       const result = await createTask({
         projectId: 'proj-1',
@@ -184,7 +184,7 @@ describe('tasks actions', () => {
     })
 
     test('コンサルタントはタスクを作成できない', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockConsultantUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockConsultantUser as unknown)
 
       // コンサルタントはPMやリードではないため、権限チェックで弾かれる
       prismaMock.project.findFirst.mockResolvedValue(null)
@@ -209,19 +209,19 @@ describe('tasks actions', () => {
 
   describe('updateTaskStatus', () => {
     test('アサインされたユーザーがステータスを更新できる', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockConsultantUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockConsultantUser as unknown)
 
       prismaMock.task.findFirst.mockResolvedValue({
         ...mockTask,
         project: mockProject
-      } as any)
+      } as unknown)
 
       prismaMock.task.update.mockResolvedValue({
         ...mockTask,
         status: 'in_progress'
-      } as any)
+      } as unknown)
 
-      prismaMock.auditLog.create.mockResolvedValue({} as any)
+      prismaMock.auditLog.create.mockResolvedValue({} as unknown)
 
       const result = await updateTaskStatus('task-1', 'in_progress')
 
@@ -232,7 +232,7 @@ describe('tasks actions', () => {
     })
 
     test('PMがチームメンバーのタスクステータスを更新できる', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as unknown)
 
       prismaMock.task.findFirst.mockResolvedValue({
         ...mockTask,
@@ -240,15 +240,15 @@ describe('tasks actions', () => {
           ...mockProject,
           projectMembers: [{ userId: '2', role: 'pm' }]
         }
-      } as any)
+      } as unknown)
 
       prismaMock.task.update.mockResolvedValue({
         ...mockTask,
         status: 'completed',
         completedAt: new Date()
-      } as any)
+      } as unknown)
 
-      prismaMock.auditLog.create.mockResolvedValue({} as any)
+      prismaMock.auditLog.create.mockResolvedValue({} as unknown)
 
       const result = await updateTaskStatus('task-1', 'completed')
 
@@ -267,7 +267,7 @@ describe('tasks actions', () => {
 
     test('関係ないユーザーはステータスを更新できない', async () => {
       const otherUser = { ...mockConsultantUser, id: '999' }
-      mockedAuth.getCurrentUser.mockResolvedValue(otherUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(otherUser as unknown)
 
       prismaMock.task.findFirst.mockResolvedValue(null)
 
@@ -279,7 +279,7 @@ describe('tasks actions', () => {
 
   describe('updateTask', () => {
     test('PMがタスク情報を更新できる', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as unknown)
 
       prismaMock.task.findFirst.mockResolvedValue({
         ...mockTask,
@@ -287,15 +287,15 @@ describe('tasks actions', () => {
           ...mockProject,
           projectMembers: [{ userId: '2', role: 'pm' }]
         }
-      } as any)
+      } as unknown)
 
       prismaMock.task.update.mockResolvedValue({
         ...mockTask,
         title: '更新されたタスク',
         priority: 'low'
-      } as any)
+      } as unknown)
 
-      prismaMock.auditLog.create.mockResolvedValue({} as any)
+      prismaMock.auditLog.create.mockResolvedValue({} as unknown)
 
       const result = await updateTask('task-1', {
         title: '更新されたタスク',
@@ -310,16 +310,16 @@ describe('tasks actions', () => {
     })
 
     test('アサインされたユーザー自身もタスクを更新できる', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockConsultantUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockConsultantUser as unknown)
 
-      prismaMock.task.findFirst.mockResolvedValue(mockTask as any)
+      prismaMock.task.findFirst.mockResolvedValue(mockTask as unknown)
 
       prismaMock.task.update.mockResolvedValue({
         ...mockTask,
         actualHours: 10
-      } as any)
+      } as unknown)
 
-      prismaMock.auditLog.create.mockResolvedValue({} as any)
+      prismaMock.auditLog.create.mockResolvedValue({} as unknown)
 
       const result = await updateTask('task-1', {
         actualHours: 10
@@ -332,7 +332,7 @@ describe('tasks actions', () => {
     })
 
     test('日付の更新処理が正しく動作する', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as unknown)
 
       prismaMock.task.findFirst.mockResolvedValue({
         ...mockTask,
@@ -340,10 +340,10 @@ describe('tasks actions', () => {
           ...mockProject,
           projectMembers: [{ userId: '2', role: 'pm' }]
         }
-      } as any)
+      } as unknown)
 
-      prismaMock.task.update.mockResolvedValue(mockTask as any)
-      prismaMock.auditLog.create.mockResolvedValue({} as any)
+      prismaMock.task.update.mockResolvedValue(mockTask as unknown)
+      prismaMock.auditLog.create.mockResolvedValue({} as unknown)
 
       await updateTask('task-1', {
         startDate: '2024-03-15',
@@ -363,7 +363,7 @@ describe('tasks actions', () => {
 
   describe('deleteTask', () => {
     test('PMがタスクを削除できる', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockPMUser as unknown)
 
       prismaMock.task.findFirst.mockResolvedValue({
         ...mockTask,
@@ -371,10 +371,10 @@ describe('tasks actions', () => {
           ...mockProject,
           projectMembers: [{ userId: '2', role: 'pm' }]
         }
-      } as any)
+      } as unknown)
 
-      prismaMock.task.delete.mockResolvedValue(mockTask as any)
-      prismaMock.auditLog.create.mockResolvedValue({} as any)
+      prismaMock.task.delete.mockResolvedValue(mockTask as unknown)
+      prismaMock.auditLog.create.mockResolvedValue({} as unknown)
 
       const result = await deleteTask('task-1')
 
@@ -385,12 +385,12 @@ describe('tasks actions', () => {
     })
 
     test('エグゼクティブもタスクを削除できる', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockExecutiveUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockExecutiveUser as unknown)
 
-      prismaMock.task.findFirst.mockResolvedValue(mockTask as any)
+      prismaMock.task.findFirst.mockResolvedValue(mockTask as unknown)
 
-      prismaMock.task.delete.mockResolvedValue(mockTask as any)
-      prismaMock.auditLog.create.mockResolvedValue({} as any)
+      prismaMock.task.delete.mockResolvedValue(mockTask as unknown)
+      prismaMock.auditLog.create.mockResolvedValue({} as unknown)
 
       const result = await deleteTask('task-1')
 
@@ -398,7 +398,7 @@ describe('tasks actions', () => {
     })
 
     test('コンサルタントはタスクを削除できない', async () => {
-      mockedAuth.getCurrentUser.mockResolvedValue(mockConsultantUser as any)
+      mockedAuth.getCurrentUser.mockResolvedValue(mockConsultantUser as unknown)
 
       prismaMock.task.findFirst.mockResolvedValue(null)
 

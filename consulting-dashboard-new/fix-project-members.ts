@@ -87,7 +87,7 @@ async function main() {
 
     console.log('\n✅ プロジェクトメンバーの修正が完了しました！')
 
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ エラー:', error)
   } finally {
     await projectDb.$disconnect()

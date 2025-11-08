@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Calendar, Clock, Send, CheckCircle, XCircle, AlertCircle, FileText, History } from 'lucide-react'
+import { Calendar, Clock, Send, CheckCircle, XCircle, AlertCircle, History, FileText } from 'lucide-react'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import { submitTimesheetForApproval } from '@/actions/timesheet-approval'
@@ -12,10 +12,9 @@ import { toast } from 'sonner'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
+  // DialogDescription,
   DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+  DialogTitle } from '@/components/ui/dialog'
 import { ApprovalHistory } from './approval-history'
 
 interface TimesheetData {
@@ -29,7 +28,7 @@ interface TimesheetData {
   submittedAt?: Date
   approvedAt?: Date
   entries: { id: string }[]
-  approvalHistory: any[]
+  approvalHistory: unknown[]
 }
 
 interface MyTimesheetsProps {
@@ -39,7 +38,7 @@ interface MyTimesheetsProps {
 
 export function MyTimesheets({ timesheets, onUpdate }: MyTimesheetsProps) {
   const [submittingId, setSubmittingId] = useState<string | null>(null)
-  const [selectedHistory, setSelectedHistory] = useState<any[] | null>(null)
+  const [selectedHistory, setSelectedHistory] = useState<unknown[] | null>(null)
 
   const getStatusConfig = (status: string) => {
     switch (status) {
@@ -93,7 +92,7 @@ export function MyTimesheets({ timesheets, onUpdate }: MyTimesheetsProps) {
       } else {
         toast.error(result.error || '承認申請に失敗しました')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('エラーが発生しました')
     } finally {
       setSubmittingId(null)

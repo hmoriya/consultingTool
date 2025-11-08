@@ -2,34 +2,30 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Plus, Search, Save } from 'lucide-react';
 import { saveServiceData, createBusinessOperation, createBusinessCapability, updateBusinessOperation, deleteBusinessOperation } from '@/app/actions/parasol';
-import { DomainLanguageEditor } from './DomainLanguageEditor';
-import { DomainLanguageMarkdownEditor } from './DomainLanguageMarkdownEditor';
-import { APISpecificationEditor } from './APISpecificationEditor';
-import { DBSchemaEditor } from './DBSchemaEditor';
-import { UnifiedDesignEditor, DesignType } from './UnifiedDesignEditor';
 import { ServiceForm } from './ServiceForm';
 import { BusinessCapabilityEditor } from './BusinessCapabilityEditor';
 import { BusinessOperationEditor } from './BusinessOperationEditor';
+import { UnifiedDesignEditor } from './UnifiedDesignEditor';
 import { CodeGenerationPanel } from './CodeGenerationPanel';
 import { useToast } from '@/hooks/use-toast';
-import { DomainLanguageDefinition, APISpecification, DBSchema } from '@/types/parasol';
+import { DomainLanguageDefinition, APISpecification, DBSchema, BusinessCapability, BusinessOperation } from '@/app/types/parasol';
 
 interface Service {
   id: string;
   name: string;
   displayName: string;
   description?: string | null;
-  domainLanguage: any;
-  apiSpecification: any;
-  dbSchema: any;
-  capabilities?: any[];
-  businessOperations: any[];
+  domainLanguage: DomainLanguageDefinition | null;
+  apiSpecification: APISpecification | null;
+  dbSchema: DBSchema | null;
+  capabilities?: BusinessCapability[];
+  businessOperations: BusinessOperation[];
 }
 
 interface ParasolSettingsPageProps {
@@ -47,8 +43,8 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
   
   // オペレーション編集モーダルの状態
   const [operationModalOpen, setOperationModalOpen] = useState(false);
-  const [editingOperation, setEditingOperation] = useState<any>(null);
-  const [editingCapability, setEditingCapability] = useState<any>(null);
+  const [editingOperation, setEditingOperation] = useState<BusinessOperation | null>(null);
+  const [editingCapability, setEditingCapability] = useState<BusinessCapability | null>(null);
   
   // デバッグ用ログ
   useEffect(() => {
@@ -151,7 +147,7 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'エラー',
         description: '保存中にエラーが発生しました',
@@ -178,19 +174,19 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
   };
 
   // オペレーション操作のハンドラー
-  const handleAddOperation = (capability: any) => {
+  const handleAddOperation = (capability: BusinessCapability) => {
     setEditingCapability(capability);
     setEditingOperation(null);
     setOperationModalOpen(true);
   };
 
-  const handleEditOperation = (capability: any, operation: any) => {
+  const handleEditOperation = (capability: BusinessCapability, operation: BusinessOperation) => {
     setEditingCapability(capability);
     setEditingOperation(operation);
     setOperationModalOpen(true);
   };
 
-  const handleDeleteOperation = async (capability: any, operation: any) => {
+  const handleDeleteOperation = async (capability: BusinessCapability, operation: BusinessOperation) => {
     if (!operation.id) return;
 
     try {
@@ -223,7 +219,7 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'エラー',
         description: '削除中にエラーが発生しました',
@@ -232,7 +228,7 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
     }
   };
 
-  const handleOperationSave = async (operation: any) => {
+  const handleOperationSave = async (operation: BusinessOperation) => {
     try {
       if (editingOperation?.id) {
         // 更新
@@ -303,7 +299,7 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
       }
       
       setOperationModalOpen(false);
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'エラー',
         description: '保存中にエラーが発生しました',
@@ -313,7 +309,7 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
   };
 
   // ケーパビリティとオペレーションからドメイン言語を自動生成
-  const generateDomainLanguageFromCapabilities = (capabilities: any[]) => {
+  const generateDomainLanguageFromCapabilities = (capabilities: BusinessCapability[]) => {
     if (!selectedService) return;
     
     const domainLanguage: DomainLanguageDefinition = {
@@ -357,8 +353,8 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
       
       // オペレーションパターンに基づいてプロパティを追加
       if (capability.businessOperations) {
-        const hasWorkflow = capability.businessOperations.some((op: any) => op.pattern === 'Workflow');
-        const hasCRUD = capability.businessOperations.some((op: any) => op.pattern === 'CRUD');
+        const hasWorkflow = capability.businessOperations.some((op: BusinessOperation) => op.pattern === 'Workflow');
+        const hasCRUD = capability.businessOperations.some((op: BusinessOperation) => op.pattern === 'CRUD');
         
         if (hasWorkflow) {
           entity.properties.push({
@@ -386,7 +382,7 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
         }
         
         // オペレーションからドメインイベントを生成
-        capability.businessOperations.forEach((op: any) => {
+        capability.businessOperations.forEach((op: BusinessOperation) => {
           if (op.pattern === 'CRUD' && op.name.startsWith('create')) {
             entity.domainEvents.push({
               name: `${capability.name}Created`,
@@ -412,7 +408,7 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
           name: `${capability.name}Service`,
           displayName: `${capability.displayName}サービス`,
           description: `${capability.displayName}に関するビジネスロジックを提供`,
-          methods: capability.businessOperations?.map((op: any) => ({
+          methods: capability.businessOperations?.map((op: BusinessOperation) => ({
             name: op.name,
             displayName: op.displayName,
             parameters: [],
@@ -656,7 +652,7 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
                           
                           // ドメイン言語を自動生成
                           generateDomainLanguageFromCapabilities(updatedCapabilities);
-                        } catch (error) {
+                        } catch (_error) {
                           console.error('Error generating operations:', error);
                           toast({
                             title: 'エラー',
@@ -758,7 +754,7 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
           setEditingCapability(null);
         }}
         onSave={handleOperationSave}
-        onDelete={editingOperation?.id ? async (id) => {
+        onDelete={editingOperation?.id ? async (_id) => {
           await handleDeleteOperation(editingCapability, editingOperation);
           setOperationModalOpen(false);
         } : undefined}

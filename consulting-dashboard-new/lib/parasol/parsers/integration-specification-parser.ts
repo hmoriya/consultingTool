@@ -2,6 +2,7 @@
  * 統合仕様書パーサー
  * MD形式の統合仕様書からJSON構造を抽出
  */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export interface ParsedDependency {
   serviceName: string
@@ -15,7 +16,7 @@ export interface ParsedDomainEvent {
   eventType: string
   description: string
   occurredAt: string
-  payload?: any
+  payload?: Record<string, any>
   subscribers?: string[]
 }
 
@@ -160,7 +161,7 @@ function extractProvidedEvents(content: string): ParsedDomainEvent[] {
     if (payloadMatch) {
       try {
         payload = JSON.parse(payloadMatch[1])
-      } catch (e) {
+      } catch (_e) {
         payload = payloadMatch[1]
       }
     }

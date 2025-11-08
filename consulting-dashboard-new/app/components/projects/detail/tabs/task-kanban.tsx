@@ -4,12 +4,10 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
+// import { Button } from '@/components/ui/button'
 import {
   Calendar,
   Clock,
-  User,
-  MoreVertical,
   Plus
 } from 'lucide-react'
 import { TaskItem, TaskStatus, TaskPriority } from '@/actions/tasks'
@@ -22,7 +20,7 @@ interface TaskKanbanProps {
   onTaskUpdate: () => void
 }
 
-const statusLabels: Record<TaskStatus, string> = {
+const _statusLabels: Record<TaskStatus, string> = {
   todo: '未着手',
   in_progress: '進行中',
   review: 'レビュー',
@@ -50,7 +48,7 @@ const priorityLabels: Record<TaskPriority, string> = {
   urgent: '緊急'
 }
 
-export function TaskKanban({ tasks, onStatusChange, onTaskUpdate }: TaskKanbanProps) {
+export function TaskKanban({ tasks, onStatusChange, onTaskUpdate: _onTaskUpdate }: TaskKanbanProps) {
   const [draggedTask, setDraggedTask] = useState<TaskItem | null>(null)
 
   const columns: { status: TaskStatus; label: string }[] = [

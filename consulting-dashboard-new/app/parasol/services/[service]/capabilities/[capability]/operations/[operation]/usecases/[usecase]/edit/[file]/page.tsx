@@ -1,8 +1,8 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { ArrowLeft, Save, Eye, BarChart3, Settings, FileText, Layout, Code } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { ArrowLeft, Eye, BarChart3, Settings, Layout, Code, Save, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
@@ -81,89 +81,8 @@ export default function ParasolFileEditPage() {
     { label: config.title, href: '', current: true }
   ];
 
-  // ファイルデータの読み込み
-  useEffect(() => {
-    loadFile();
-  }, [filePath]);
-
-  const loadFile = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/parasol/files?path=${encodeURIComponent(filePath)}`);
-
-      if (!response.ok) {
-        throw new Error(`Failed to load file: ${response.statusText}`);
-      }
-
-      const data: FileData = await response.json();
-      setFileData(data);
-      setIsModified(false);
-    } catch (error) {
-      console.error('Error loading file:', error);
-      toast.error('ファイルの読み込みに失敗しました');
-
-      // ファイルが存在しない場合は新規作成
-      setFileData({
-        content: getDefaultContent(fileType),
-        metadata: {
-          title: config.title,
-          description: config.description,
-          version: '1.0.0',
-          lastModified: new Date(),
-          author: 'current-user',
-          tags: [],
-          category: fileType
-        },
-        exists: false,
-        lastModified: new Date()
-      });
-      setIsModified(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ファイルの保存
-  const saveFile = async () => {
-    if (!fileData || !isModified) return;
-
-    try {
-      setSaving(true);
-      const response = await fetch(`/api/parasol/files?path=${encodeURIComponent(filePath)}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          content: fileData.content,
-          metadata: fileData.metadata
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to save file: ${response.statusText}`);
-      }
-
-      const updatedData = await response.json();
-      setFileData(prev => prev ? { ...prev, lastModified: new Date() } : null);
-      setIsModified(false);
-      toast.success('ファイルを保存しました');
-    } catch (error) {
-      console.error('Error saving file:', error);
-      toast.error('ファイルの保存に失敗しました');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // コンテンツの更新
-  const updateContent = (content: string) => {
-    setFileData(prev => prev ? { ...prev, content } : null);
-    setIsModified(true);
-  };
-
   // デフォルトコンテンツの生成
-  const getDefaultContent = (type: FileType): string => {
+  const getDefaultContent = useCallback((type: FileType): string => {
     switch (type) {
       case 'usecase':
         return `# ユースケース: ${usecase}
@@ -196,134 +115,168 @@ export default function ParasolFileEditPage() {
 ### 例外1:
 -
 
-## 特別要件
-- **性能**:
-- **可用性**:
-- **セキュリティ**:
+## ロバストネス図
+\`\`\`mermaid
+graph LR
+    actor[アクター] --> boundary[境界オブジェクト]
+    boundary --> control[コントロール]
+    control --> entity[エンティティ]
+\`\`\`
 `;
-
       case 'page':
         return `# ページ定義: ${usecase}
 
-## 画面の目的
-
-
-## 利用者
-- **主要利用者**:
-- **副次利用者**:
+## 基本情報
+- **ページID**: PG-${usecase.toUpperCase()}
+- **URL**: /${service}/${capability}/${operation}/${usecase}
+- **タイプ**: [form/list/detail/dashboard]
 
 ## 画面構成
-
-### ヘッダー部
+### ヘッダー
 -
 
-### メインコンテンツ部
+### メインコンテンツ
 -
 
-### フッター部
+### アクション
 -
 
 ## データ表示
+| 項目名 | データ型 | 必須 | 説明 |
+|-------|---------|------|------|
+| | | | |
 
-### 表示データ一覧
-| データ項目 | 表示形式 | 必須 | 説明 |
-|-----------|---------|------|------|
-|  |  |  |  |
+## 入力フォーム
+| フィールド名 | データ型 | 必須 | バリデーション |
+|-------------|---------|------|----------------|
+| | | | |
 
-## 入力項目
-
-### フォーム一覧
-| 入力項目 | 入力形式 | 必須 | バリデーション | 説明 |
-|---------|---------|------|---------------|------|
-|  |  |  |  |  |
-
-## アクション・操作
-
-### 主要アクション
--
-
-### 副次アクション
--
-
-## 画面の振る舞い
-
-### ユーザー操作への反応
--
-
-### 条件による表示変更
--
-
-## 画面遷移
-
-### 遷移元画面
--
-
-### 遷移先画面
--
-
-## エラーハンドリング
--
-
-## アクセシビリティ要件
--
-
-## レスポンシブ対応
-- **デスクトップ**:
-- **タブレット**:
-- **モバイル**:
+## ボタン・リンク
+- **保存**: [アクション]
+- **キャンセル**: [アクション]
 `;
-
       case 'api-usage':
         return `# API利用仕様: ${usecase}
 
-## 利用するAPI一覧
+## 利用API一覧
+| API名 | メソッド | エンドポイント | 用途 |
+|-------|----------|----------------|------|
+| | | | |
 
-### 自サービスAPI
-| API | エンドポイント | 利用目的 | パラメータ |
-|-----|---------------|----------|-----------|
-|  |  |  |  |
+## API詳細
+### API名: [APIの名前]
+- **メソッド**: GET/POST/PUT/DELETE
+- **エンドポイント**: /api/...
+- **認証**: 必要/不要
 
-### 他サービスAPI（ユースケース利用型）
-| サービス | ユースケースAPI | 利用タイミング | 期待結果 |
-|---------|-----------------|---------------|----------|
-|  |  |  |  |
+#### リクエスト
+\`\`\`json
+{
+  
+}
+\`\`\`
 
-## API呼び出しシーケンス
+#### レスポンス
+##### 成功時 (200)
+\`\`\`json
+{
+  
+}
+\`\`\`
 
-1. **事前認証**:
-2. **メイン処理**:
-3. **結果通知**:
-4. **ログ記録**:
-
-## エラーハンドリング
-
-### 認証・認可エラー
--
-
-### API処理エラー
--
-
-### ネットワークエラー
--
-
-### リトライ戦略
--
-
-## パフォーマンス要件
-- **レスポンス時間**:
-- **スループット**:
-- **可用性**:
-
-## セキュリティ要件
-- **認証**:
-- **認可**:
-- **データ保護**:
+##### エラー時
+- **400 Bad Request**: [エラー内容]
+- **401 Unauthorized**: [エラー内容]
+- **404 Not Found**: [エラー内容]
+- **500 Internal Server Error**: [エラー内容]
 `;
-
       default:
         return '';
     }
+  }, [usecase, service, capability, operation]);
+
+  const loadFile = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/parasol/files?path=${encodeURIComponent(filePath)}`);
+
+      if (!response.ok) {
+        throw new Error(`Failed to load file: ${response.statusText}`);
+      }
+
+      const data: FileData = await response.json();
+      setFileData(data);
+      setIsModified(false);
+    } catch (_error) {
+      console.error('Error loading file:', _error);
+      toast.error('ファイルの読み込みに失敗しました');
+
+      // ファイルが存在しない場合は新規作成
+      setFileData({
+        content: getDefaultContent(fileType),
+        metadata: {
+          title: config.title,
+          description: config.description,
+          version: '1.0.0',
+          lastModified: new Date(),
+          author: 'current-user',
+          tags: [],
+          category: fileType
+        },
+        exists: false,
+        lastModified: new Date()
+      });
+      setIsModified(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [filePath, fileType, config.title, config.description, getDefaultContent]);
+
+  // ファイルの保存
+  const saveFile = async () => {
+    if (!fileData || !isModified) return;
+
+    try {
+      setSaving(true);
+      const response = await fetch(`/api/parasol/files?path=${encodeURIComponent(filePath)}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: fileData.content,
+          metadata: fileData.metadata
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to save file: ${response.statusText}`);
+      }
+
+      const _updatedData = await response.json();
+      setFileData(prev => prev ? { ...prev, lastModified: new Date() } : null);
+      setIsModified(false);
+      toast.success('ファイルを保存しました');
+    } catch (_error) {
+      console.error('Error saving file:', _error);
+      toast.error('ファイルの保存に失敗しました');
+    } finally {
+      setSaving(false);
+    }
   };
+
+  // コンテンツの更新
+  const updateContent = (content: string) => {
+    setFileData(prev => prev ? { ...prev, content } : null);
+    setIsModified(true);
+  };
+
+  // getDefaultContentは上で定義済み
+
+  // ファイルデータの読み込み
+  useEffect(() => {
+    loadFile();
+  }, [loadFile]);
 
   if (loading) {
     return (

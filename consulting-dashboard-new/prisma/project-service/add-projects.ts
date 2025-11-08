@@ -154,7 +154,7 @@ async function addMoreProjects() {
 
     console.log('\n✅ Projects added successfully')
 
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error adding projects:', error)
     throw error
   }

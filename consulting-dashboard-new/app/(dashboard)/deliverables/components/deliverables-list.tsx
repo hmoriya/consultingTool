@@ -61,8 +61,8 @@ const typeConfig = {
 export function DeliverablesList({ deliverables }: DeliverablesListProps) {
   const [editingDeliverable, setEditingDeliverable] = useState<Deliverable | null>(null)
 
-  const handleStatusUpdate = async (id: string, status: string) => {
-    const result = await updateDeliverable(id, { status: status as any })
+  const handleStatusUpdate = async (id: string, status: 'draft' | 'review' | 'approved' | 'delivered') => {
+    const result = await updateDeliverable(id, { status })
     if (result.success) {
       toast.success('ステータスを更新しました')
     } else {

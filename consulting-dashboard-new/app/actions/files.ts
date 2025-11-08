@@ -1,8 +1,5 @@
 'use server';
 
-import fs from 'fs/promises';
-import path from 'path';
-
 /**
  * パラソル設計ファイルの内容を読み込む（無効化済み - Issue #148対応）
  *

@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -15,22 +16,20 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
+  DialogFooter } from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  SelectValue } from '@/components/ui/select'
 import { updateTeamMember, TeamMemberItem } from '@/actions/project-team'
 import { 
   TeamMemberRole, 
   teamMemberRoleSchema,
   teamMemberRoleUtils 
 } from '@/types/team-member'
-import { X, Save } from 'lucide-react'
+import { X } from 'lucide-react'
 import { format } from 'date-fns'
 
 const memberSchema = z.object({
@@ -83,7 +82,7 @@ export function TeamMemberEditForm({ member, onClose, onMemberUpdated }: TeamMem
       await updateTeamMember(member.id, updateData)
       onMemberUpdated()
       onClose()
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to update team member:', error)
       alert('メンバー情報の更新に失敗しました')
     } finally {
@@ -124,7 +123,7 @@ export function TeamMemberEditForm({ member, onClose, onMemberUpdated }: TeamMem
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="role">ロール *</Label>
-                <Select value={watchedRole} onValueChange={(value) => setValue('role', value as any)}>
+                <Select value={watchedRole} onValueChange={(value) => setValue('role', value as unknown)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

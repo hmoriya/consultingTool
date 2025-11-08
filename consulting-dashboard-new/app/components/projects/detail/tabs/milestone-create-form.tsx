@@ -14,10 +14,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
+  DialogFooter } from '@/components/ui/dialog'
 import { createMilestone } from '@/actions/milestones'
-import { X, Save, Target } from 'lucide-react'
+import { Target, X, Save } from 'lucide-react'
 
 const milestoneSchema = z.object({
   name: z.string().min(1, 'マイルストーン名は必須です').max(100, 'マイルストーン名は100文字以内で入力してください'),
@@ -63,7 +62,7 @@ export function MilestoneCreateForm({ projectId, onClose, onMilestoneCreated }: 
       })
       onMilestoneCreated()
       onClose()
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to create milestone:', error)
       alert('マイルストーンの作成に失敗しました')
     } finally {

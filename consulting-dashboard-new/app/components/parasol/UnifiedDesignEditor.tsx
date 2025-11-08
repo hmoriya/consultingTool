@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertTriangle, Check, FileText, Eye, Book, Code, Database, Package, FileCode } from 'lucide-react';
+import { AlertTriangle, Check, Eye, Book, Code, Database, Package, FileCode, FileText } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -38,8 +37,18 @@ import {
   markdownToDbDesign,
   validateDbDesignMarkdown
 } from '@/lib/parasol/db-markdown-converter';
+import { UseCase } from '@/app/types/parasol';
 
 export type DesignType = 'domain' | 'capability' | 'operation' | 'api' | 'db' | 'markdown' | 'useCase';
+
+interface DesignTypeConfig {
+  title: string;
+  description: string;
+  icon: unknown;
+  toMarkdown: (data: string) => string;
+  fromMarkdown: (md: string, serviceId?: string, capabilityId?: string) => string;
+  validate: (md: string) => { isValid: boolean; errors: string[] };
+}
 
 interface UnifiedDesignEditorProps {
   type: DesignType;
@@ -51,12 +60,12 @@ interface UnifiedDesignEditorProps {
   readOnly?: boolean;
 }
 
-const designTypeConfig = {
+const designTypeConfig: Record<DesignType, DesignTypeConfig> = {
   domain: {
     title: 'ドメイン言語',
     description: 'エンティティ、値オブジェクト、ドメインサービスを定義',
     icon: Book,
-    toMarkdown: (data: any) => domainLanguageToMarkdown(JSON.parse(data)),
+    toMarkdown: (data: string) => domainLanguageToMarkdown(JSON.parse(data)),
     fromMarkdown: (md: string) => JSON.stringify(markdownToDomainLanguage(md), null, 2),
     validate: validateDomainLanguageMarkdown
   },
@@ -64,7 +73,7 @@ const designTypeConfig = {
     title: 'ビジネスケーパビリティ',
     description: '業務能力とオペレーションを定義',
     icon: Package,
-    toMarkdown: (data: any) => {
+    toMarkdown: (data: string) => {
       const parsed = JSON.parse(data);
       return capabilitiesToMarkdown(parsed.capabilities || [], parsed.operations || []);
     },
@@ -78,7 +87,7 @@ const designTypeConfig = {
     title: 'ビジネスオペレーション',
     description: 'オペレーションの詳細定義',
     icon: Code,
-    toMarkdown: (data: any) => operationToMarkdown(JSON.parse(data)),
+    toMarkdown: (data: string) => operationToMarkdown(JSON.parse(data)),
     fromMarkdown: (md: string, serviceId?: string, capabilityId?: string) => {
       const result = markdownToOperation(md, serviceId || '', capabilityId || '');
       return JSON.stringify(result, null, 2);
@@ -89,7 +98,7 @@ const designTypeConfig = {
     title: 'API仕様',
     description: 'RESTful APIのエンドポイント定義',
     icon: FileCode,
-    toMarkdown: (data: any) => apiSpecToMarkdown(JSON.parse(data)),
+    toMarkdown: (data: string) => apiSpecToMarkdown(JSON.parse(data)),
     fromMarkdown: (md: string) => JSON.stringify(markdownToApiSpec(md), null, 2),
     validate: validateApiSpecMarkdown
   },
@@ -97,7 +106,7 @@ const designTypeConfig = {
     title: 'DB設計',
     description: 'テーブル、カラム、リレーションの定義',
     icon: Database,
-    toMarkdown: (data: any) => dbDesignToMarkdown(JSON.parse(data)),
+    toMarkdown: (data: string) => dbDesignToMarkdown(JSON.parse(data)),
     fromMarkdown: (md: string) => JSON.stringify(markdownToDbDesign(md), null, 2),
     validate: validateDbDesignMarkdown
   },
@@ -105,7 +114,7 @@ const designTypeConfig = {
     title: 'Markdown',
     description: '自然言語での記述',
     icon: FileText,
-    toMarkdown: (data: any) => data,  // そのまま返す
+    toMarkdown: (data: string) => data,  // そのまま返す
     fromMarkdown: (md: string) => md, // そのまま返す
     validate: () => ({ isValid: true, errors: [] }) // 常に有効
   },
@@ -113,30 +122,30 @@ const designTypeConfig = {
     title: 'ユースケース',
     description: 'ユースケースの詳細定義',
     icon: FileText,
-    toMarkdown: (data: any) => {
-      const useCase = JSON.parse(data);
+    toMarkdown: (data: string) => {
+      const useCase: UseCase = JSON.parse(data);
       return `# ユースケース: ${useCase.displayName || useCase.name || 'ユースケース'}
 
 ## 概要
 ${useCase.description || ''}
 
 ## アクター
-${useCase.actors ? useCase.actors.map((a: any) => `- ${a}`).join('\n') : ''}
+${useCase.actors ? (Array.isArray(useCase.actors) ? useCase.actors.map((a: string) => `- ${a}`).join('\n') : useCase.actors) : ''}
 
 ## 事前条件
-${useCase.preconditions ? useCase.preconditions.map((p: any) => `- ${p}`).join('\n') : ''}
+${useCase.preconditions ? (Array.isArray(useCase.preconditions) ? useCase.preconditions.map((p: string) => `- ${p}`).join('\n') : useCase.preconditions) : ''}
 
 ## 事後条件
-${useCase.postconditions ? useCase.postconditions.map((p: any) => `- ${p}`).join('\n') : ''}
+${useCase.postconditions ? (Array.isArray(useCase.postconditions) ? useCase.postconditions.map((p: string) => `- ${p}`).join('\n') : useCase.postconditions) : ''}
 
 ## 基本フロー
-${useCase.basicFlow ? useCase.basicFlow.map((s: any, i: number) => `${i + 1}. ${s}`).join('\n') : ''}
+${useCase.basicFlow ? (Array.isArray(useCase.basicFlow) ? useCase.basicFlow.map((s: string, i: number) => `${i + 1}. ${s}`).join('\n') : useCase.basicFlow) : ''}
 
 ## 代替フロー
-${useCase.alternativeFlow ? useCase.alternativeFlow.map((f: any) => `- ${f}`).join('\n') : ''}
+${useCase.alternativeFlow ? (Array.isArray(useCase.alternativeFlow) ? useCase.alternativeFlow.map((f: string) => `- ${f}`).join('\n') : useCase.alternativeFlow) : ''}
 
 ## 例外フロー
-${useCase.exceptionFlow ? useCase.exceptionFlow.map((f: any) => `- ${f}`).join('\n') : ''}`;
+${useCase.exceptionFlow ? (Array.isArray(useCase.exceptionFlow) ? useCase.exceptionFlow.map((f: string) => `- ${f}`).join('\n') : useCase.exceptionFlow) : ''}`;;
     },
     fromMarkdown: (md: string) => md, // 変換しない
     validate: () => ({ isValid: true, errors: [] })
@@ -212,7 +221,7 @@ export function UnifiedDesignEditor({
         <CardDescription>{config.description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as unknown)}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="markdown" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />

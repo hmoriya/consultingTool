@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { ChevronRight, ChevronDown, Folder, FolderOpen, Package, Code, FileText, Layout, FileCheck, Maximize2, Minimize2, GitBranch, File, FileCode, Settings } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ChevronRight, ChevronDown, Folder, FolderOpen, Package, Code, Layout, FileCheck, Maximize2, Minimize2, GitBranch, FileCode, FileText } from 'lucide-react';
 import { TreeNode, ParasolService, BusinessCapability, BusinessOperation } from '@/types/parasol';
-import { buildUnifiedTreeFromServices, searchNodes, flattenTree } from '@/lib/parasol/tree-utils';
+import { buildUnifiedTreeFromServices, searchNodes } from '@/lib/parasol/tree-utils';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -78,7 +78,7 @@ export function UnifiedTreeView({
       // DB-based同期版でツリーを構築（ファイル読み込みなし）
       const syncTreeNodes = buildUnifiedTreeFromServices(services);
       setTreeNodes(syncTreeNodes);
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to build tree from DB data:', error);
       setTreeNodes([]);
     } finally {

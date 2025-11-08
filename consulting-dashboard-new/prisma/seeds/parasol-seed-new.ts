@@ -1,5 +1,5 @@
 import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
-import { createServices } from './parasol/services-seed'
+// import { createServices } from './parasol/services-seed'
 import { createBusinessCapabilities } from './parasol/business-capabilities-seed'
 import { createBusinessOperations } from './parasol/business-operations-seed'
 import { createUseCases } from './parasol/use-cases-seed'
@@ -95,8 +95,8 @@ const serviceDefinitions = {
 }
 
 // イテレーション計画のMD形式定義
-const iterationPlanDefinition = `# イテレーション計画: パラソル仕様準拠シードデータ投入
 
+/*
 ## 計画概要
 
 ### プロジェクト情報
@@ -143,7 +143,8 @@ const iterationPlanDefinition = `# イテレーション計画: パラソル仕�
 #### 完了基準
 - [ ] 全データ投入成功
 - [ ] データ整合性確認
-- [ ] 参照可能性確認`
+- [ ] 参照可能性確認
+*/
 
 export async function seedParasolService() {
   console.log('🌱 Seeding Parasol Service with new specification...')
@@ -287,7 +288,7 @@ export async function seedParasolService() {
 
     // ドメインサービスを作成
     console.log('  Creating domain services...')
-    const domainService = await parasolDb.domainService.create({
+    await parasolDb.domainService.create({
       data: {
         serviceId: service.id,
         name: 'ResourceAllocationService',
@@ -354,9 +355,9 @@ export async function seedParasolService() {
       console.log(`  Domain Services: 1`)
     }
 
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error seeding Parasol Service:', error)
-    throw error
+    throw _error
   } finally {
     await parasolDb.$disconnect()
   }

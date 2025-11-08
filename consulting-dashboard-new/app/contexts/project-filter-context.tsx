@@ -14,7 +14,7 @@ interface ProjectFilterState {
 
 interface ProjectFilterContextType {
   filters: ProjectFilterState
-  updateFilter: (key: keyof ProjectFilterState, value: string) => void
+  updateFilter: (key: keyof ProjectFilterState,_value) => void
   resetFilters: () => void
 }
 
@@ -43,7 +43,7 @@ export function ProjectFilterProvider({ children }: { children: ReactNode }) {
     sortOrder: (searchParams.get('sortOrder') as 'asc' | 'desc') || defaultFilters.sortOrder
   }))
 
-  const updateFilter = (key: keyof ProjectFilterState, value: string) => {
+  const updateFilter = (key: keyof ProjectFilterState,_value) => {
     const newFilters = { ...filters, [key]: value }
     setFilters(newFilters)
 

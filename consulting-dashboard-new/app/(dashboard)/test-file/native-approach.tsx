@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
-import { Upload, FileText, CheckCircle, X, AlertTriangle } from 'lucide-react'
+import { Upload, CheckCircle, AlertTriangle, FileText, X } from 'lucide-react'
 
 export default function NativeApproachPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)

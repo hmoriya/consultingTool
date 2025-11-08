@@ -1,19 +1,49 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
-import { Plus, Trash2, Save, X } from 'lucide-react'
+import { Plus, Trash2, X, Save } from 'lucide-react'
 import { updateProjectExperience, addProjectSkill, removeProjectSkill } from '../../../actions/project-experience'
 
+interface ProjectSkill {
+  id: string
+  skillId: string
+  usageLevel: number
+  skill: {
+    id: string
+    name: string
+    category: {
+      id: string
+      name: string
+    }
+  }
+}
+
+interface ProjectExperience {
+  id: string
+  achievements?: string | null
+  responsibilities?: string | null
+  skills: ProjectSkill[]
+}
+
+interface Skill {
+  id: string
+  name: string
+  category: {
+    id: string
+    name: string
+  }
+}
+
 interface ProjectExperienceDetailProps {
-  experience: any
-  allSkills: any[]
+  experience: ProjectExperience
+  allSkills: Skill[]
   isEditing: boolean
   onClose: () => void
 }
@@ -32,7 +62,7 @@ export function ProjectExperienceDetail({
 
   // 使用可能なスキル（まだ追加していないスキル）
   const availableSkills = allSkills.filter(skill => 
-    !experience.skills.some((ps: any) => ps.skillId === skill.id)
+    !experience.skills.some((ps) => ps.skillId === skill.id)
   )
 
   const handleSave = () => {
@@ -44,7 +74,7 @@ export function ProjectExperienceDetail({
         })
         toast.success('プロジェクト経験を更新しました')
         onClose()
-      } catch (error) {
+      } catch {
         toast.error('更新に失敗しました')
       }
     })
@@ -66,7 +96,7 @@ export function ProjectExperienceDetail({
         toast.success('スキルを追加しました')
         setSelectedSkillId('')
         setSelectedLevel('3')
-      } catch (error) {
+      } catch {
         toast.error('スキルの追加に失敗しました')
       }
     })
@@ -77,7 +107,7 @@ export function ProjectExperienceDetail({
       try {
         await removeProjectSkill(experience.id, skillId)
         toast.success('スキルを削除しました')
-      } catch (error) {
+      } catch {
         toast.error('スキルの削除に失敗しました')
       }
     })
@@ -181,7 +211,7 @@ export function ProjectExperienceDetail({
             </p>
           ) : (
             <div className="space-y-2">
-              {experience.skills.map((ps: any) => (
+              {experience.skills.map((ps) => (
                 <div key={ps.id} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary">

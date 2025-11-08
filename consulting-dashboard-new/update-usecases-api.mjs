@@ -78,7 +78,7 @@ for (const usecase of usecases) {
   try {
     await updateUseCase(usecase);
     await new Promise(resolve => setTimeout(resolve, 500));
-  } catch (error) {
+  } catch {
     console.error(`Failed to update ${usecase.displayName}`);
   }
 }

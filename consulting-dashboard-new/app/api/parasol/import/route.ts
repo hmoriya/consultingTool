@@ -22,28 +22,28 @@ import path from 'path'
 
 const parasolDb = new ParasolPrismaClient()
 
-interface ServiceMetadata {
-  name: string
-  displayName: string
-  description: string
-}
+// interface ServiceMetadata {
+//   name: string
+//   displayName: string
+//   description: string
+// }
 
-interface CapabilityMetadata {
-  name: string
-  displayName: string
-  category: string
-}
+// interface CapabilityMetadata {
+//   name: string
+//   displayName: string
+//   category: string
+// }
 
-interface OperationMetadata {
-  name: string
-  displayName: string
-  pattern: string
-}
+// interface OperationMetadata {
+//   name: string
+//   displayName: string
+//   pattern: string
+// }
 
 // MDファイルからメタデータを抽出
 function extractMetadata(content: string, type: 'service' | 'capability' | 'operation' | 'page' | 'usecase' | 'test') {
   const lines = content.split('\n')
-  const metadata: any = {}
+  const metadata: unknown = {}
 
   // タイトルを抽出（最初の#行）
   const titleLine = lines.find(line => line.startsWith('# ') || line.includes('# '))
@@ -106,25 +106,25 @@ async function scanParasolDocs(basePath: string) {
 
         try {
           domainLanguageContent = await fs.readFile(path.join(servicePath, 'domain-language.md'), 'utf-8')
-        } catch (error) {
+        } catch {
           console.log(`ドメイン言語なし: ${serviceDir}`)
         }
 
         try {
           apiSpec = await fs.readFile(path.join(servicePath, 'api-specification.md'), 'utf-8')
-        } catch (error) {
+        } catch {
           console.log(`API仕様なし: ${serviceDir}`)
         }
 
         try {
           dbDesign = await fs.readFile(path.join(servicePath, 'database-design.md'), 'utf-8')
-        } catch (error) {
+        } catch {
           console.log(`DB設計なし: ${serviceDir}`)
         }
 
         try {
           integrationSpec = await fs.readFile(path.join(servicePath, 'integration-specification.md'), 'utf-8')
-        } catch (error) {
+        } catch {
           console.log(`統合仕様なし: ${serviceDir}`)
         }
 
@@ -137,7 +137,20 @@ async function scanParasolDocs(basePath: string) {
           apiSpecification: apiSpec,
           databaseDesign: dbDesign,
           integrationSpecification: integrationSpec,
-          capabilities: [] as any[]
+          capabilities: [] as Array<{
+            name: string;
+            displayName: string;
+            content: string;
+            operations: Array<{
+              name: string;
+              displayName: string;
+              pattern: string;
+              content: string;
+              usecases: unknown[];
+              pages: unknown[];
+              tests: unknown[];
+            }>;
+          }>
         }
 
         // ケーパビリティを読み込み
@@ -157,7 +170,15 @@ async function scanParasolDocs(basePath: string) {
                 name: capabilityDir,
                 displayName: capabilityMetadata.displayName || capabilityDir,
                 content: capabilityContent,
-                operations: [] as any[]
+                operations: [] as Array<{
+                  name: string;
+                  displayName: string;
+                  pattern: string;
+                  content: string;
+                  usecases: unknown[];
+                  pages: unknown[];
+                  tests: unknown[];
+                }>
               }
 
               // オペレーションを読み込み
@@ -203,7 +224,7 @@ async function scanParasolDocs(basePath: string) {
                             try {
                               apiUsageContent = await fs.readFile(apiUsageFilePath, 'utf-8')
                               console.log(`✅ API利用仕様読み込み成功: ${apiUsageFilePath} (${apiUsageContent.length}文字)`)
-                            } catch (apiError) {
+                            } catch (_apiError) {
                               console.log(`⚠️ API利用仕様なし: ${apiUsageFilePath}`)
                             }
 
@@ -225,10 +246,10 @@ async function scanParasolDocs(basePath: string) {
                                 content: pageContent,
                                 usecaseName: entry.name // 1対1関係を明示
                               })
-                            } catch (pageError) {
+                            } catch (_pageError) {
                               console.log(`対応ページなし: ${pageFilePath}`)
                             }
-                          } catch (usecaseError) {
+                          } catch (_usecaseError) {
                             console.log(`ユースケースファイルなし: ${usecaseFilePath}`)
                           }
                         } else if (entry.name.endsWith('.md')) {
@@ -242,7 +263,7 @@ async function scanParasolDocs(basePath: string) {
                           })
                         }
                       }
-                    } catch (error) {
+                    } catch {
                       // ユースケースディレクトリがない場合は無視
                     }
 
@@ -267,7 +288,7 @@ async function scanParasolDocs(basePath: string) {
                           }
                         }
                       }
-                    } catch (error) {
+                    } catch {
                       // ページディレクトリがない場合は無視
                     }
 
@@ -286,7 +307,7 @@ async function scanParasolDocs(basePath: string) {
                           })
                         }
                       }
-                    } catch (error) {
+                    } catch {
                       // テストディレクトリがない場合は無視
                     }
 
@@ -299,29 +320,29 @@ async function scanParasolDocs(basePath: string) {
                       pages: pages,
                       tests: tests
                     })
-                  } catch (error) {
+                  } catch {
                     console.log(`オペレーションファイルなし: ${operationFilePath}`)
                   }
                 }
-              } catch (error) {
+              } catch {
                 console.log(`オペレーションディレクトリなし: ${operationsPath}`)
               }
 
               service.capabilities.push(capability)
-            } catch (error) {
+            } catch {
               console.log(`ケーパビリティファイルなし: ${capabilityFilePath}`)
             }
           }
-        } catch (error) {
+        } catch {
           console.log(`ケーパビリティディレクトリなし: ${capabilitiesPath}`)
         }
 
         services.push(service)
-      } catch (error) {
+      } catch {
         console.log(`サービスファイルなし: ${serviceFilePath}`)
       }
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('ディレクトリ読み込みエラー:', error)
   }
 
@@ -329,7 +350,7 @@ async function scanParasolDocs(basePath: string) {
 }
 
 // データベースにインポート
-async function importToDatabase(services: any[]) {
+async function importToDatabase(services: unknown[]) {
   let importedServices = 0
   let importedCapabilities = 0
   let importedOperations = 0
@@ -386,7 +407,7 @@ async function importToDatabase(services: any[]) {
               businessRules: stringified.businessRules
             }
           })
-        } catch (error) {
+        } catch (_error) {
           console.error(`ドメイン言語パースエラー (${serviceData.name}):`, error)
         }
       }
@@ -409,7 +430,7 @@ async function importToDatabase(services: any[]) {
               rateLimits: stringified.rateLimits
             }
           })
-        } catch (error) {
+        } catch (_error) {
           console.error(`API仕様パースエラー (${serviceData.name}):`, error)
         }
       }
@@ -431,7 +452,7 @@ async function importToDatabase(services: any[]) {
               constraints: stringified.constraints
             }
           })
-        } catch (error) {
+        } catch (_error) {
           console.error(`DB設計パースエラー (${serviceData.name}):`, error)
         }
       }
@@ -453,7 +474,7 @@ async function importToDatabase(services: any[]) {
               asyncPatterns: stringified.asyncPatterns
             }
           })
-        } catch (error) {
+        } catch (_error) {
           console.error(`統合仕様パースエラー (${serviceData.name}):`, error)
         }
       }
@@ -498,7 +519,7 @@ async function importToDatabase(services: any[]) {
           // ユースケースが存在する場合とそうでない場合を分けて処理
           // 注意: operations.stepsはユースケースではなくビジネスオペレーションのステップなので除外
           const actualUseCases = operationData.usecases && Array.isArray(operationData.usecases)
-            ? operationData.usecases.filter((uc: any) => {
+            ? operationData.usecases.filter((uc: unknown) => {
                 // stepsプロパティを持つオブジェクトはビジネスオペレーションステップなのでユースケースから除外
                 return uc && typeof uc === 'object' && !('steps' in uc) && uc.name && uc.displayName;
               })
@@ -663,7 +684,7 @@ export async function POST(request: Request) {
       if (bodyText && bodyText.trim()) {
         body = JSON.parse(bodyText);
       }
-    } catch (jsonError) {
+    } catch (_jsonError) {
       console.log('📨 リクエストボディが空またはJSONではありません - ファイルスキャンモードで実行');
     }
 
@@ -699,10 +720,10 @@ export async function POST(request: Request) {
       details: services.map(s => ({
         service: s.displayName,
         capabilities: s.capabilities.length,
-        operations: s.capabilities.reduce((sum: number, c: any) => sum + c.operations.length, 0)
+        operations: s.capabilities.reduce((sum: number, c: unknown) => sum + c.operations.length, 0)
       }))
     })
-  } catch (error) {
+  } catch (_error) {
     console.error('Import error:', error)
     return NextResponse.json(
       { error: 'インポート中にエラーが発生しました', details: error },
@@ -726,10 +747,10 @@ export async function GET() {
         name: s.name,
         displayName: s.displayName,
         capabilities: s.capabilities.length,
-        operations: s.capabilities.reduce((sum: number, c: any) => sum + c.operations.length, 0)
+        operations: s.capabilities.reduce((sum: number, c: unknown) => sum + c.operations.length, 0)
       }))
     })
-  } catch (error) {
+  } catch (_error) {
     console.error('Scan error:', error)
     return NextResponse.json(
       { error: 'スキャン中にエラーが発生しました', details: error },

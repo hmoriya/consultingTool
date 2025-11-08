@@ -13,15 +13,13 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+  FormMessage } from '@/components/ui/form'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
@@ -124,7 +122,7 @@ export function KnowledgeForm() {
       })
 
       router.push('/knowledge')
-    } catch (error) {
+    } catch (_error) {
       console.error('Error creating knowledge:', error)
       toast({
         title: 'エラー',

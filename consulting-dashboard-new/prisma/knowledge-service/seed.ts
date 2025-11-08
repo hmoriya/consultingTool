@@ -586,7 +586,7 @@ DX推進は技術導入だけでなく、組織全体の変革が必要です。
     console.log(`✅ Created ${experts.length} experts`)
 
     console.log('✅ Knowledge service seeding completed successfully!')
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error seeding knowledge service:', error)
     throw error
   } finally {

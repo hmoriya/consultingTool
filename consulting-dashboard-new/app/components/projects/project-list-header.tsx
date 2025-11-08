@@ -1,6 +1,6 @@
 'use client'
 
-import { Plus, Search, Filter, X, SortAsc, SortDesc } from 'lucide-react'
+import { Plus, Search, Filter, SortAsc, SortDesc, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useRouter } from 'next/navigation'
@@ -12,8 +12,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  SelectValue } from '@/components/ui/select'
 
 export function ProjectListHeader() {
   const router = useRouter()
@@ -115,7 +114,7 @@ export function ProjectListHeader() {
             <span>フィルター:</span>
             {filters.searchQuery && (
               <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-md">
-                検索: "{filters.searchQuery}"
+                検索: &quot;{filters.searchQuery}&quot;
               </span>
             )}
             {filters.statusFilter !== 'all' && (

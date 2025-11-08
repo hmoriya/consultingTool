@@ -79,7 +79,7 @@ export async function getDashboardData() {
       })
 
       // 今月の工数
-      const timeEntries = await financeDb.timeEntry.aggregate({
+      await financeDb.timeEntry.aggregate({
         where: {
           projectId: project.id,
           date: {

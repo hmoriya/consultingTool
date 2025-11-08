@@ -9,18 +9,16 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
+  DialogFooter } from '@/components/ui/dialog'
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+  TableRow } from '@/components/ui/table'
 import { searchClients, getClients, ClientItem } from '@/actions/clients'
-import { X, Search, Building2, Check, Plus } from 'lucide-react'
+import { Search, Building2, Check, Plus, X } from 'lucide-react'
 import { ClientCreateDialog } from './client-create-dialog'
 
 interface ClientSelectDialogProps {
@@ -44,7 +42,7 @@ export function ClientSelectDialog({ selectedClientId, onSelect, onClose }: Clie
       setLoading(true)
       const clientList = await getClients()
       setClients(clientList)
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to load clients:', error)
     } finally {
       setLoading(false)
@@ -62,7 +60,7 @@ export function ClientSelectDialog({ selectedClientId, onSelect, onClose }: Clie
       setLoading(true)
       const results = await searchClients(query)
       setClients(results.map(c => ({ ...c, type: 'client', createdAt: new Date(), updatedAt: new Date() })))
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to search clients:', error)
     } finally {
       setLoading(false)

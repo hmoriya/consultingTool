@@ -5,10 +5,10 @@ const parasolDb = new ParasolPrismaClient()
 
 export async function GET(
   request: Request,
-  { params }: { params: { serviceId: string } }
+  { params }: { params: Promise<{ serviceId: string }> }
 ) {
   try {
-    const { serviceId } = params
+    const { serviceId } = await params
 
     const domainLanguage = await parasolDb.domainLanguage.findUnique({
       where: { serviceId }

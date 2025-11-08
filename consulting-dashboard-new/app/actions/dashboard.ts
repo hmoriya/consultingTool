@@ -31,9 +31,15 @@ export async function getDashboardData() {
     select: {
       id: true,
       name: true,
+      description: true,
       code: true,
       status: true,
       budget: true,
+      startDate: true,
+      endDate: true,
+      createdAt: true,
+      updatedAt: true,
+      organizationId: true,
       clientId: true,
       client: {
         select: {

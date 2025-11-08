@@ -115,7 +115,9 @@ export function DeliverablesList({ deliverables }: DeliverablesListProps) {
                         <h3 className="font-semibold truncate">{deliverable.name}</h3>
                         <div className="flex items-center gap-1">
                           {deliverable.fileUrl && (
-                            <PaperclipIcon className="h-4 w-4 text-blue-500" title="ファイル添付あり" />
+                            <span title="ファイル添付あり">
+                              <PaperclipIcon className="h-4 w-4 text-blue-500" />
+                            </span>
                           )}
                           {deliverable.version && (
                             <Badge variant="outline" className="text-xs">

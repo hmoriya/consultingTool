@@ -112,15 +112,17 @@ export interface TaskListProps {
 export interface TaskWithDetails {
   id: string;
   title: string;
-  description?: string;
-  status: 'pending' | 'in-progress' | 'completed' | 'blocked';
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  dueDate?: Date;
+  description?: string | null;
+  status: 'todo' | 'in_progress' | 'in_review' | 'completed';
+  priority?: 'low' | 'medium' | 'high' | 'critical' | null;
+  dueDate?: Date | string | null;
+  assigneeId?: string | null;
   assignedTo?: TeamMember;
-  project?: {
+  project: {
     id: string;
     name: string;
   };
+  projectId?: string;
   progress?: number;
   tags?: string[];
 }

@@ -25,10 +25,23 @@ export default async function KnowledgeEditPage({ params }: { params: Promise<{ 
     redirect(`/knowledge/${id}`)
   }
 
+  // KnowledgeEditFormが期待する型に合わせてデータを整形
+  const editFormData = {
+    id: article.id,
+    title: article.title,
+    content: article.content,
+    status: article.status,
+    tags: article.tags,
+    category: article.category ? {
+      id: article.category.id,
+      name: article.category.name
+    } : null
+  }
+
   return (
     <div className="container mx-auto py-6 max-w-5xl">
       <h1 className="text-3xl font-bold mb-6">記事を編集</h1>
-      <KnowledgeEditForm article={article} />
+      <KnowledgeEditForm article={editFormData} />
     </div>
   )
 }

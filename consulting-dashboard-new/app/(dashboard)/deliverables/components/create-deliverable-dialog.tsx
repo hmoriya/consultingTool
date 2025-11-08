@@ -156,7 +156,10 @@ export function CreateDeliverableDialog({ open, onOpenChange }: CreateDeliverabl
   const onSubmit = async (data: FormData) => {
     setIsLoading(true)
     try {
-      const result = await createDeliverable(data)
+      const result = await createDeliverable({
+        ...data,
+        status: 'draft' as const
+      })
       if (result.success) {
         toast.success('成果物を作成しました')
         form.reset()

@@ -111,8 +111,14 @@ export async function getConsultantDashboardData() {
   })
 
   return {
-    tasks: myTasks,
-    weeklyTasks,
+    tasks: myTasks.map(task => ({
+      ...task,
+      status: task.status as 'todo' | 'in_progress' | 'in_review' | 'completed'
+    })),
+    weeklyTasks: weeklyTasks.map(task => ({
+      ...task,
+      status: task.status as 'todo' | 'in_progress' | 'in_review' | 'completed'
+    })),
     taskStats: {
       total: taskStats.reduce((sum, stat) => sum + stat._count, 0),
       todo: taskStats.find(s => s.status === 'todo')?._count || 0,

@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": [
+    "app/**/*",
+    "components/**/*",
+    "lib/**/*",
+    "hooks/**/*",
+    "constants/**/*",
+    "next-env.d.ts"
+  ],
+  "exclude": [
+    "node_modules/**/*",
+    ".next",
+    "out",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/node_modules/**"
+  ]
+}

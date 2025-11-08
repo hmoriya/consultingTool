@@ -16,7 +16,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
   
   try {
     project = await getProjectDetails(id)
-  } catch (_error) {
+  } catch (error) {
     console.error('Failed to get project details:', error)
     notFound()
   }

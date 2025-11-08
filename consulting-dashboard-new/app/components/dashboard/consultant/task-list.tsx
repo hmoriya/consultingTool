@@ -29,7 +29,7 @@ export function TaskList({ tasks }: TaskListProps) {
     try {
       await updateTaskStatus(taskId, status as 'todo' | 'in_progress' | 'in_review' | 'completed')
       router.refresh()
-    } catch (_error) {
+    } catch (error) {
       console.error('Failed to update task status:', error)
     } finally {
       setUpdatingTask(null)
@@ -92,14 +92,16 @@ export function TaskList({ tasks }: TaskListProps) {
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">
                       <Link 
-                        href={`/projects/${task.projectId}`}
+                        href={task.project ? `/projects/${task.project.id}` : '#'}
                         className="font-medium hover:underline"
                       >
                         {task.title}
                       </Link>
-                      <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                        <span>{task.project.name}</span>
-                      </div>
+                      {task.project && (
+                        <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+                          <span>{task.project.name}</span>
+                        </div>
+                      )}
                     </div>
                     <Badge 
                       className={getPriorityColor(task.priority || 'medium')}

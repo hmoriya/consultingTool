@@ -100,10 +100,6 @@ TEXT: 長文テキスト（制限なし）
 [テーブル定義を記述]
 `, [service])
 
-  useEffect(() => {
-    loadAllContent()
-  }, [loadAllContent])
-
   const loadAllContent = useCallback(async () => {
     setIsLoading(true)
     setSaveMessage(null)
@@ -145,6 +141,10 @@ TEXT: 長文テキスト（制限なし）
       setIsLoading(false)
     }
   }, [domain, service, getDefaultApiTemplate, getDefaultDomainTemplate, getDefaultSchemaTemplate])
+
+  useEffect(() => {
+    loadAllContent()
+  }, [loadAllContent])
 
   const getCurrentContent = () => {
     switch (activeTab) {

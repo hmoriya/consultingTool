@@ -19,7 +19,9 @@ import {
   BarChart3,
   Briefcase,
   MessageCircle,
-  Sparkles
+  Sparkles,
+  Users,
+  FileText
 } from 'lucide-react'
 import { useUser } from '@/contexts/user-context'
 import { useApproval } from '@/contexts/approval-context'

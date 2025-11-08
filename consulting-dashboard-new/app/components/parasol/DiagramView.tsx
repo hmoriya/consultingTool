@@ -45,19 +45,6 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
   });
   const { toast } = useToast();
   
-  // code が undefined の場合の早期リターン
-  if (!code) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-muted-foreground text-center">
-            図表データがありません
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   // コンポーネントマウント時にズームをリセット
   useEffect(() => {
     setZoom(100);
@@ -318,6 +305,19 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
       }
     }
   }, [originalSvgContent, zoom, stereotypeFilters]);
+
+  // code が undefined の場合の早期リターン
+  if (!code) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-muted-foreground text-center">
+            図表データがありません
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // SVGダウンロード
   const handleDownload = () => {

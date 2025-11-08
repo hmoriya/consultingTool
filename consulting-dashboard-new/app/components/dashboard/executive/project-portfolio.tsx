@@ -18,9 +18,9 @@ type Project = {
   code: string
   status: string
   budget: number
-  client: {
+  client?: {
     name: string
-  }
+  } | null
   _count: {
     projectMembers: number
   }
@@ -59,7 +59,7 @@ export function ProjectPortfolio({ projects }: ProjectPortfolioProps) {
                 <div className="space-y-1">
                   <CardTitle className="text-lg">{project.name}</CardTitle>
                   <CardDescription className="text-xs">
-                    {project.code}
+                    {project.code} {project.client && `・ ${project.client.name}`}
                   </CardDescription>
                 </div>
                 <Badge className={`${status.color} text-xs`}>

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { BookOpen, Target, MessageSquare, ZoomIn, ChevronDown, ChevronUp } from 'lucide-react'
+import { BookOpen, Target, MessageSquare, ZoomIn, ChevronDown, ChevronUp, Users, FileText } from 'lucide-react'
 import { USE_CASES, USE_CASE_CATEGORIES } from '@/constants/use-cases'
 import type { UseCase } from '@/constants/use-cases'
 import { getUseCaseDetails } from '@/constants/use-case-details'

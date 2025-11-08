@@ -11,7 +11,8 @@ import { MarkdownRenderer } from '@/components/markdown-renderer'
 import { LikeButton } from '@/components/knowledge/like-button'
 
 // ユーザー名を取得するダミー関数
-function getUserName(authorId: string): string {
+function getUserName(authorId: string | undefined): string {
+  if (!authorId) return '不明なユーザー'
   const userMap: Record<string, string> = {
     'consultant-user-id': '山田太郎',
     'pm-user-id': '佐藤花子',

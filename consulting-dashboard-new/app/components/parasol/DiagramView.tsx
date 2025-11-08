@@ -44,6 +44,19 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
     specification: true
   });
   const { toast } = useToast();
+  
+  // code が undefined の場合の早期リターン
+  if (!code) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-muted-foreground text-center">
+            図表データがありません
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // コンポーネントマウント時にズームをリセット
   useEffect(() => {

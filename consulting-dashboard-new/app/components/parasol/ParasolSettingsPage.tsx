@@ -8,17 +8,13 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Plus, Search, Save } from 'lucide-react';
 import { saveServiceData, createBusinessOperation, createBusinessCapability, updateBusinessOperation, deleteBusinessOperation } from '@/app/actions/parasol';
-import { DomainLanguageEditor } from './DomainLanguageEditor';
-import { DomainLanguageMarkdownEditor } from './DomainLanguageMarkdownEditor';
-import { APISpecificationEditor } from './APISpecificationEditor';
-import { DBSchemaEditor } from './DBSchemaEditor';
-import { UnifiedDesignEditor, DesignType } from './UnifiedDesignEditor';
 import { ServiceForm } from './ServiceForm';
 import { BusinessCapabilityEditor } from './BusinessCapabilityEditor';
 import { BusinessOperationEditor } from './BusinessOperationEditor';
+import { UnifiedDesignEditor } from './UnifiedDesignEditor';
 import { CodeGenerationPanel } from './CodeGenerationPanel';
 import { useToast } from '@/hooks/use-toast';
-import { DomainLanguageDefinition, APISpecification, DBSchema, BusinessCapability, BusinessOperation, UseCase, PageDefinition, TestDefinition } from '@/app/types/parasol';
+import { DomainLanguageDefinition, APISpecification, DBSchema, BusinessCapability, BusinessOperation } from '@/app/types/parasol';
 
 interface Service {
   id: string;
@@ -758,7 +754,7 @@ export function ParasolSettingsPage({ initialServices }: ParasolSettingsPageProp
           setEditingCapability(null);
         }}
         onSave={handleOperationSave}
-        onDelete={editingOperation?.id ? async (id) => {
+        onDelete={editingOperation?.id ? async (_id) => {
           await handleDeleteOperation(editingCapability, editingOperation);
           setOperationModalOpen(false);
         } : undefined}

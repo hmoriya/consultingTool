@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -69,7 +69,7 @@ export default function DuplicationAnalysisDashboard() {
   const [error, setError] = useState<string | null>(null)
   const [selectedGroup, setSelectedGroup] = useState<DuplicationGroup | null>(null)
 
-  const fetchAnalysis = async () => {
+  const fetchAnalysis = useCallback(async () => {
     setIsLoading(true)
     setError(null)
 
@@ -82,11 +82,11 @@ export default function DuplicationAnalysisDashboard() {
       const data = await response.json()
       setAnalysisData(data)
     } catch (_error) {
-      setError(error instanceof Error ? error.message : '不明なエラーが発生しました')
+      setError(_error instanceof Error ? _error.message : '不明なエラーが発生しました')
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchAnalysis()

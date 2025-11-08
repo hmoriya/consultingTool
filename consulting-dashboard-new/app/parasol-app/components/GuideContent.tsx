@@ -97,7 +97,7 @@ export default function GuideContent({ guidePath }: GuideContentProps) {
           await mermaid.run();
         }
       } catch (_error) {
-        console.error('Mermaid rendering error:', error);
+        console.error('Mermaid rendering error:', _error);
       }
     };
 

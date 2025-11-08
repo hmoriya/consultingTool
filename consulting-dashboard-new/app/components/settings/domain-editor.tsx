@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
@@ -29,11 +29,7 @@ export function DomainEditor() {
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', message: string } | null>(null)
   const [viewMode, setViewMode] = useState<'edit' | 'preview'>('preview')
 
-  useEffect(() => {
-    loadContent()
-  }, [selectedDomain])
-
-  const loadContent = async () => {
+  const loadContent = useCallback(async () => {
     setIsLoading(true)
     setSaveMessage(null)
     try {
@@ -124,13 +120,17 @@ interface Repository {
         setContent(template)
         setOriginalContent(template)
       }
-    } catch (_error) {
+    } catch (error) {
       console.error('Failed to load content:', error)
       setSaveMessage({ type: 'error', message: 'コンテンツの読み込みに失敗しました' })
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [selectedDomain])
+
+  useEffect(() => {
+    loadContent()
+  }, [loadContent])
 
   const handleSave = async () => {
     setIsSaving(true)

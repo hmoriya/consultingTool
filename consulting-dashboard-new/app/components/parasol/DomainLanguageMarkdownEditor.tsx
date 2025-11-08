@@ -5,7 +5,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
 import { AlertCircle, Eye, FileText } from 'lucide-react';
 import { DomainLanguageDefinition } from '@/types/parasol';
 import { 
@@ -14,7 +13,6 @@ import {
   validateDomainLanguageMarkdown 
 } from '@/lib/parasol/markdown-converter';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -30,7 +28,6 @@ export function DomainLanguageMarkdownEditor({
   const [markdown, setMarkdown] = useState('');
   const [activeTab, setActiveTab] = useState<'markdown' | 'preview'>('preview');
   const [errors, setErrors] = useState<string[]>([]);
-  const { toast } = useToast();
 
   // 初期値の設定
   useEffect(() => {

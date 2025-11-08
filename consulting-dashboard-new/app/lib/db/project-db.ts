@@ -1,6 +1,6 @@
 // プロジェクトサービス用の独立したPrismaクライアント
 import { PrismaClient as ProjectPrismaClient } from '@prisma/project-client'
-import path from 'path'
+// import path from 'path'
 
 // グローバル変数として定義（開発環境でのホットリロード対応）
 declare global {

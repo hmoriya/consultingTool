@@ -12,7 +12,7 @@ import { toast } from 'sonner'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
+  // DialogDescription,
   DialogHeader,
   DialogTitle } from '@/components/ui/dialog'
 import { ApprovalHistory } from './approval-history'

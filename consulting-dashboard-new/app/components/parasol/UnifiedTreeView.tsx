@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ChevronRight, ChevronDown, Folder, FolderOpen, Package, Code, Layout, FileCheck, Maximize2, Minimize2, GitBranch, FileCode, Settings, FileText, Save } from 'lucide-react';
+import { ChevronRight, ChevronDown, Folder, FolderOpen, Package, Code, Layout, FileCheck, Maximize2, Minimize2, GitBranch, FileCode, FileText } from 'lucide-react';
 import { TreeNode, ParasolService, BusinessCapability, BusinessOperation } from '@/types/parasol';
-import { buildUnifiedTreeFromServices, searchNodes, flattenTree } from '@/lib/parasol/tree-utils';
+import { buildUnifiedTreeFromServices, searchNodes } from '@/lib/parasol/tree-utils';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';

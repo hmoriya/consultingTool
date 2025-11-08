@@ -23,7 +23,6 @@ import {
 import { createTeamMember, TeamMemberItem } from '@/actions/team'
 import { Loader2, Users, X, Save } from 'lucide-react'
 import { Role } from '@prisma/client'
-import { prisma } from '@/lib/db'
 
 const memberSchema = z.object({
   email: z.string().email('有効なメールアドレスを入力してください'),

@@ -42,7 +42,7 @@ const statusConfig: Record<string, { label: string; variant: 'default' | 'second
 export function ProjectHeader({ project }: ProjectHeaderProps) {
   const router = useRouter()
   const { user } = useUser()
-  const [isLoading, setIsLoading] = useState(false)
+  const [_isLoading, _setIsLoading] = useState(false)
 
   const canEdit = user?.role.name === 'executive' || 
     project.projectMembers.some((m: unknown) => m.userId === user?.id && m.role === 'pm')

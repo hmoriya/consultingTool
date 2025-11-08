@@ -1,5 +1,5 @@
 import { ApiSpecification } from '@/types/parasol';
-import type { APIParameter, APIEndpoint } from '@/types/parasol-api';
+import type { APIParameter } from '@/types/parasol-api';
 
 /**
  * API仕様をMarkdown形式に変換

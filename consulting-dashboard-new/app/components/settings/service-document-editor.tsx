@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -53,9 +53,9 @@ export function ServiceDocumentEditor({ service, domain }: ServiceDocumentEditor
   // サービス変更時に全コンテンツを読み込み
   useEffect(() => {
     loadAllContent()
-  }, [service, domain])
+  }, [loadAllContent])
 
-  const loadAllContent = async () => {
+  const loadAllContent = useCallback(async () => {
     setIsLoading(true)
     setSaveMessage(null)
 
@@ -90,12 +90,12 @@ export function ServiceDocumentEditor({ service, domain }: ServiceDocumentEditor
         setOriginalSchemaContent(getDefaultSchemaTemplate())
       }
     } catch (_error) {
-      console.error('Failed to load content:', error)
+      console.error('Failed to load content:', _error)
       setSaveMessage({ type: 'error', message: 'コンテンツの読み込みに失敗しました' })
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [domain, service])
 
   const getCurrentContent = () => {
     switch (activeTab) {
@@ -113,7 +113,7 @@ export function ServiceDocumentEditor({ service, domain }: ServiceDocumentEditor
     }
   }
 
-  const setCurrentContent = (content: string) => {
+  const _setCurrentContent = (content: string) => {
     switch (activeTab) {
       case 'domain': setDomainContent(content); break
       case 'api': setApiContent(content); break
@@ -149,7 +149,7 @@ export function ServiceDocumentEditor({ service, domain }: ServiceDocumentEditor
         setSaveMessage({ type: 'error', message: result?.error || '保存に失敗しました' })
       }
     } catch (_error) {
-      console.error('Failed to save content:', error)
+      console.error('Failed to save content:', _error)
       setSaveMessage({ type: 'error', message: '保存中にエラーが発生しました' })
     } finally {
       setIsSaving(false)

@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue } from '@/components/ui/select'
 import { createProject } from '@/actions/projects'
-import { ArrowLeft, Plus, Building2, Save, X } from 'lucide-react'
+import { ArrowLeft, Building2, Save, X } from 'lucide-react'
 import { ClientSelectDialog } from '@/components/clients/client-select-dialog'
 
 const projectSchema = z.object({

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter, FolderTree, RefreshCw } from 'lucide-react';
+import { Search, FolderTree, RefreshCw } from 'lucide-react';
 import { TreeView } from './TreeView';
 import { TreeNode, ParasolService, BusinessCapability, BusinessOperation } from '@/types/parasol';
 import { buildTreeFromParasolData, searchNodes, updateNodeCounts } from '@/lib/parasol/tree-utils';

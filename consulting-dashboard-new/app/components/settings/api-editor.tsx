@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
@@ -29,11 +29,7 @@ export function ApiEditor() {
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', message: string } | null>(null)
   const [viewMode, setViewMode] = useState<'edit' | 'preview'>('preview')
 
-  useEffect(() => {
-    loadContent()
-  }, [selectedService])
-
-  const loadContent = async () => {
+  const loadContent = useCallback(async () => {
     setIsLoading(true)
     setSaveMessage(null)
     try {
@@ -101,13 +97,17 @@ Authorization: Bearer <token>
         setContent(template)
         setOriginalContent(template)
       }
-    } catch (_error) {
+    } catch (error) {
       console.error('Failed to load content:', error)
       setSaveMessage({ type: 'error', message: 'コンテンツの読み込みに失敗しました' })
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [selectedService])
+
+  useEffect(() => {
+    loadContent()
+  }, [loadContent])
 
   const handleSave = async () => {
     setIsSaving(true)
@@ -121,7 +121,7 @@ Authorization: Bearer <token>
       } else {
         setSaveMessage({ type: 'error', message: result.error || '保存に失敗しました' })
       }
-    } catch (_error) {
+    } catch (error) {
       console.error('Failed to save content:', error)
       setSaveMessage({ type: 'error', message: '保存中にエラーが発生しました' })
     } finally {

@@ -31,7 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger } from '@/components/ui/alert-dialog'
-import { deleteTimeEntry, updateTimeEntry } from '@/actions/timesheet-new'
+import { deleteTimeEntry } from '@/actions/timesheet-new'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 

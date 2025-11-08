@@ -111,9 +111,9 @@ export default function ParasolEnhancedEditPage() {
     if (service && capability && operation && usecase) {
       loadFile();
     }
-  }, [filePath]);
+  }, [service, capability, operation, usecase, loadFile]);
 
-  const loadFile = async () => {
+  const loadFile = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/parasol/files?path=${encodeURIComponent(filePath)}`);
@@ -126,7 +126,7 @@ export default function ParasolEnhancedEditPage() {
       setFileData(data);
       setIsModified(false);
     } catch (_error) {
-      console.error('Error loading file:', error);
+      console.error('Error loading file:', _error);
       toast.error('ファイルの読み込みに失敗しました');
 
       // ファイルが存在しない場合は新規作成
@@ -148,10 +148,10 @@ export default function ParasolEnhancedEditPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filePath, fileType]);
 
   // ファイルの保存
-  const saveFile = async () => {
+  const saveFile = useCallback(async () => {
     if (!fileData || !isModified) return;
 
     try {
@@ -175,12 +175,12 @@ export default function ParasolEnhancedEditPage() {
       setIsModified(false);
       toast.success('ファイルを保存しました');
     } catch (_error) {
-      console.error('Error saving file:', error);
+      console.error('Error saving file:', _error);
       toast.error('ファイルの保存に失敗しました');
     } finally {
       setSaving(false);
     }
-  };
+  }, [fileData, filePath, isModified]);
 
   // コンテンツの更新
   const updateContent = (content: string) => {

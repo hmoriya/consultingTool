@@ -24,8 +24,6 @@ import {
 } from '@/actions/project-team'
 import { 
   TeamMemberRole, 
-  TEAM_MEMBER_ROLE_LABELS, 
-  TEAM_MEMBER_ROLE_COLORS,
   teamMemberRoleUtils 
 } from '@/types/team-member'
 import { TeamMemberAddForm } from './team-member-add-form'
@@ -59,11 +57,7 @@ export function ProjectTeam({ project }: ProjectTeamProps) {
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingMember, setEditingMember] = useState<TeamMemberItem | null>(null)
 
-  useEffect(() => {
-    loadTeamData()
-  }, [project.id])
-
-  const loadTeamData = async () => {
+  const loadTeamData = useCallback(async () => {
     try {
       setLoading(true)
       const [teamMembers, teamStats] = await Promise.all([
@@ -72,12 +66,16 @@ export function ProjectTeam({ project }: ProjectTeamProps) {
       ])
       setMembers(teamMembers)
       setStats(teamStats)
-    } catch (_error) {
+    } catch (error) {
       console.error('Failed to load team data:', error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [project.id])
+
+  useEffect(() => {
+    loadTeamData()
+  }, [loadTeamData])
 
   const handleRemoveMember = async (memberId: string) => {
     if (!confirm('このメンバーをプロジェクトから削除しますか？')) return

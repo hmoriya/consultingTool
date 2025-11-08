@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -635,7 +635,7 @@ export function UnifiedMDEditor({
       console.log('UnifiedMDEditor: Generated diagram code:', code);
       setDiagramCode(code);
       setDiagramType(diagType);
-    } catch (err) {
+    } catch (_err) {
       console.error('Diagram generation error:', err);
       setDiagramCode('');
     }
@@ -671,7 +671,7 @@ export function UnifiedMDEditor({
         title: 'コピー完了',
         description: 'Markdownをクリップボードにコピーしました。',
       });
-    } catch (err) {
+    } catch (_err) {
       toast({
         title: 'エラー',
         description: 'コピーに失敗しました。',

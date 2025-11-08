@@ -1,19 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Plus,
-  Filter,
   Calendar,
   Clock,
-  User,
-  ChevronDown,
-  Edit,
   CheckCircle2
 } from 'lucide-react'
 import { TaskItem, TaskStatus, TaskPriority, getProjectTasks, updateTaskStatus } from '@/actions/tasks'
@@ -21,12 +16,6 @@ import { getProjectMilestones, MilestoneItem } from '@/actions/milestones'
 import { TaskCreateForm } from './task-create-form'
 import { TaskCard } from './task-card'
 import { TaskKanban } from './task-kanban'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import {
   Select,
   SelectContent,
@@ -52,12 +41,6 @@ const priorityLabels: Record<TaskPriority, string> = {
   urgent: '緊急'
 }
 
-const priorityColors: Record<TaskPriority, string> = {
-  low: 'bg-green-100 text-green-700',
-  medium: 'bg-yellow-100 text-yellow-700',
-  high: 'bg-orange-100 text-orange-700',
-  urgent: 'bg-red-100 text-red-700'
-}
 
 export function ProjectTasks({ project }: ProjectTasksProps) {
   const [tasks, setTasks] = useState<TaskItem[]>([])
@@ -69,11 +52,7 @@ export function ProjectTasks({ project }: ProjectTasksProps) {
   const [priorityFilter, setPriorityFilter] = useState<string>('all')
   const [assigneeFilter, setAssigneeFilter] = useState<string>('all')
 
-  useEffect(() => {
-    loadTasks()
-  }, [project.id])
-
-  const loadTasks = async () => {
+  const loadTasks = useCallback(async () => {
     try {
       setLoading(true)
       const [projectTasks, projectMilestones] = await Promise.all([
@@ -82,12 +61,16 @@ export function ProjectTasks({ project }: ProjectTasksProps) {
       ])
       setTasks(projectTasks)
       setMilestones(projectMilestones)
-    } catch (_error) {
+    } catch (error) {
       console.error('Failed to load tasks:', error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [project.id])
+
+  useEffect(() => {
+    loadTasks()
+  }, [loadTasks])
 
   const handleTaskStatusChange = async (taskId: string, status: TaskStatus) => {
     try {

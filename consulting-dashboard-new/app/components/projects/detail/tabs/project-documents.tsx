@@ -34,7 +34,7 @@ interface ProjectDocumentsProps {
   project: unknown
 }
 
-export function ProjectDocuments({ project }: ProjectDocumentsProps) {
+export function ProjectDocuments({ project: _project }: ProjectDocumentsProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
 

@@ -17,7 +17,6 @@ import {
   Monitor,
   Keyboard,
   RotateCcw,
-  History,
   Download,
   Upload,
   Save,

@@ -51,7 +51,7 @@ export default function MarkdownPreview({
             .use(remarkHtml, { sanitize: false });
           const result = await basicProcessor.process(content);
           setHtmlContent(result.toString() + '<p><em>Note: Some advanced features may not be available</em></p>');
-        } catch (basicError) {
+        } catch (_basicError) {
           setHtmlContent('<div class="error-message"><h3>Markdown Processing Error</h3><pre>' + content.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre></div>');
         }
       } finally {
@@ -82,7 +82,7 @@ export default function MarkdownPreview({
           mermaid.run();
         }
       } catch (_error) {
-        console.error('Mermaid rendering error:', error);
+        console.error('Mermaid rendering error:', _error);
       }
     };
 

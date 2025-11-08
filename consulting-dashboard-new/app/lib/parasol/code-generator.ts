@@ -5,17 +5,12 @@
 
 import { 
   GenerationConfig, 
-  GenerationScope,
-  GenerationTarget,
   filterCapabilitiesByScope,
   validateGenerationConfig
 } from './generation-config';
 import { 
   BusinessCapability, 
-  BusinessOperation,
-  DomainLanguageDefinition,
-  ApiSpecification,
-  DbDesign
+  BusinessOperation
 } from '@/types/parasol';
 import { inferEntities, InferredEntity } from './entity-inference';
 
@@ -279,7 +274,7 @@ export enum ${primaryEntity.name}Status {
 function generateEntityFallback(
   capability: BusinessCapability,
   operations: BusinessOperation[],
-  config: GenerationConfig
+  _config: GenerationConfig
 ): string {
   const hasWorkflow = operations.some(op => op.pattern === 'Workflow');
   const hasCRUD = operations.some(op => op.pattern === 'CRUD');
@@ -380,7 +375,7 @@ function mapTypeToTSType(domainType: string): string {
  */
 function generateValueObjects(
   capability: BusinessCapability,
-  operations: BusinessOperation[]
+  _operations: BusinessOperation[]
 ): GeneratedFile[] {
   const files: GeneratedFile[] = [];
   

@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { ArrowLeft, Eye, BarChart3, Settings, Layout, Code, Save, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -84,9 +84,9 @@ export default function ParasolFileEditPage() {
   // ファイルデータの読み込み
   useEffect(() => {
     loadFile();
-  }, [filePath]);
+  }, [loadFile]);
 
-  const loadFile = async () => {
+  const loadFile = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/parasol/files?path=${encodeURIComponent(filePath)}`);
@@ -99,7 +99,7 @@ export default function ParasolFileEditPage() {
       setFileData(data);
       setIsModified(false);
     } catch (_error) {
-      console.error('Error loading file:', error);
+      console.error('Error loading file:', _error);
       toast.error('ファイルの読み込みに失敗しました');
 
       // ファイルが存在しない場合は新規作成
@@ -121,7 +121,7 @@ export default function ParasolFileEditPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filePath, fileType]);
 
   // ファイルの保存
   const saveFile = async () => {
@@ -144,12 +144,12 @@ export default function ParasolFileEditPage() {
         throw new Error(`Failed to save file: ${response.statusText}`);
       }
 
-      const updatedData = await response.json();
+      const _updatedData = await response.json();
       setFileData(prev => prev ? { ...prev, lastModified: new Date() } : null);
       setIsModified(false);
       toast.success('ファイルを保存しました');
     } catch (_error) {
-      console.error('Error saving file:', error);
+      console.error('Error saving file:', _error);
       toast.error('ファイルの保存に失敗しました');
     } finally {
       setSaving(false);

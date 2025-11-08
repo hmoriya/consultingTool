@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
@@ -15,8 +15,7 @@ import {
   AlertCircle,
   BarChart3,
   MoreVertical,
-  Trash2,
-  Users
+  Trash2
 } from 'lucide-react'
 import {
   MilestoneItem,
@@ -76,11 +75,7 @@ export function ProjectMilestones({ project }: ProjectMilestonesProps) {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingMilestone, setEditingMilestone] = useState<MilestoneItem | null>(null)
 
-  useEffect(() => {
-    loadMilestoneData()
-  }, [project.id])
-
-  const loadMilestoneData = async () => {
+  const loadMilestoneData = useCallback(async () => {
     try {
       setLoading(true)
       const [milestoneData, statsData] = await Promise.all([
@@ -89,12 +84,16 @@ export function ProjectMilestones({ project }: ProjectMilestonesProps) {
       ])
       setMilestones(milestoneData)
       setStats(statsData)
-    } catch (_error) {
+    } catch (error) {
       console.error('Failed to load milestone data:', error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [project.id])
+
+  useEffect(() => {
+    loadMilestoneData()
+  }, [loadMilestoneData])
 
   const handleDeleteMilestone = async (milestoneId: string) => {
     if (!confirm('このマイルストーンを削除しますか？関連するタスクがある場合は削除できません。')) return

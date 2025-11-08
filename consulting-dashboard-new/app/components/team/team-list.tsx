@@ -19,11 +19,6 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle } from '@/components/ui/dialog'
 import { Progress } from '@/components/ui/progress'
 import { 
   Plus, 
@@ -31,7 +26,6 @@ import {
   Edit,
   UserCheck,
   Briefcase,
-  Percent,
   ChevronDown,
   ChevronRight,
   ExternalLink,

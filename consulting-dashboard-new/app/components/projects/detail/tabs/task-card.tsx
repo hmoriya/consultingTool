@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -18,7 +18,7 @@ import {
   Trash2,
   MoreVertical
 } from 'lucide-react'
-import { TaskItem, TaskStatus, TaskPriority, updateTaskStatus, deleteTask } from '@/actions/tasks'
+import { TaskItem, TaskStatus, TaskPriority, deleteTask } from '@/actions/tasks'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,7 +47,7 @@ const statusLabels: Record<TaskStatus, string> = {
   completed: '完了'
 }
 
-const statusColors: Record<TaskStatus, string> = {
+const _statusColors: Record<TaskStatus, string> = {
   todo: 'bg-gray-100 text-gray-700',
   in_progress: 'bg-blue-100 text-blue-700',
   review: 'bg-yellow-100 text-yellow-700',

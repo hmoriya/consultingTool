@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import { ChevronLeft, ChevronRight, Clock, Plus, Save, X } from 'lucide-react'
@@ -206,11 +206,11 @@ function DroppableCalendarCell({ date, children }: { date: Date; children: React
 }
 
 
-export function WeeklyCalendar({ projects, initialEntries = [], onRefresh }: WeeklyCalendarProps) {
+export function WeeklyCalendar({ projects, initialEntries = [], onRefresh: _onRefresh }: WeeklyCalendarProps) {
   const [currentWeek, setCurrentWeek] = useState(new Date())
   const [entries, setEntries] = useState<TimeEntry[]>(initialEntries)
-  const [activeId, setActiveId] = useState<string | null>(null)
-  const [overId, setOverId] = useState<string | null>(null)
+  const [_activeId, setActiveId] = useState<string | null>(null)
+  const [_overId, setOverId] = useState<string | null>(null)
   const { toast } = useToast()
 
   const sensors = useSensors(

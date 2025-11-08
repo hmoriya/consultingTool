@@ -126,7 +126,21 @@ export async function getDashboardData() {
       const margin = projectRevenue - projectCost
 
       return {
-        ...project,
+        id: project.id,
+        name: project.name,
+        description: project.description,
+        code: project.code,
+        status: project.status,
+        budget: project.budget,
+        startDate: project.startDate,
+        endDate: project.endDate,
+        createdAt: project.createdAt,
+        updatedAt: project.updatedAt,
+        organizationId: project.organizationId,
+        clientId: project.clientId,
+        client: project.client,
+        _count: project._count,
+        tasks: project.tasks,
         latestMetrics: {
           revenue: projectRevenue,
           cost: projectCost,

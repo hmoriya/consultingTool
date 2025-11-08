@@ -20,7 +20,7 @@ import {
 import Link from 'next/link'
 
 interface ClientDetailPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export async function generateMetadata({ params }: ClientDetailPageProps): Promise<Metadata> {

@@ -25,7 +25,7 @@ export function inferEntities(
   capabilities: BusinessCapability[],
   operations: BusinessOperation[]
 ): InferredEntity[] {
-  const entities: InferredEntity[] = [];
+  const _entities: InferredEntity[] = [];
   const entityMap = new Map<string, InferredEntity>();
   
   // 1. ケーパビリティから基本エンティティを推論
@@ -187,7 +187,7 @@ function inferEntitiesFromPatterns(operations: BusinessOperation[]): InferredEnt
   
   // Workflowパターンから承認関連エンティティを推論
   if (patternMap.has('Workflow')) {
-    const workflowOps = patternMap.get('Workflow')!;
+    const _workflowOps = patternMap.get('Workflow')!;
     
     // 承認履歴エンティティ
     entities.push({

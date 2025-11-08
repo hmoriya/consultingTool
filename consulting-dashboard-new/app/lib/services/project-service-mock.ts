@@ -1,4 +1,4 @@
-import { ProjectWithDetails, CreateProjectInput, UpdateProjectInput, ProjectMemberWithUser } from '@/types/project'
+import { ProjectWithDetails, CreateProjectInput, UpdateProjectInput } from '@/types/project'
 
 // Mock data for testing
 const mockProjects: unknown[] = [
@@ -259,7 +259,7 @@ export class ProjectServiceMock {
   /**
    * プロジェクトのリスクを取得
    */
-  async getProjectRisks(projectId: string, options?: {
+  async getProjectRisks(_projectId: string, _options?: {
     status?: string
     severity?: string
   }) {

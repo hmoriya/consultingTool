@@ -273,7 +273,7 @@ class ParasolStructureMigrator {
   }
 
   private generateUseCasePagePairsFromSteps(operationName: string, processSteps: string[]): Array<{useCaseName: string, pageTitle: string, directoryName: string}> {
-    const pairs: Array<{useCaseName: string, pageTitle: string, directoryName: string}> = []
+    const _pairs: Array<{useCaseName: string, pageTitle: string, directoryName: string}> = []
 
     // 一般的なビジネスオペレーションパターンと対応ユースケース
     const operationPatterns: {[key: string]: Array<{useCase: string, page: string, directory: string}>} = {
@@ -310,7 +310,7 @@ class ParasolStructureMigrator {
   }
 
   private inferUseCasesFromProcessSteps(processSteps: string[]): Array<{useCaseName: string, pageTitle: string, directoryName: string}> {
-    const pairs: Array<{useCaseName: string, pageTitle: string, directoryName: string}> = []
+    const _pairs: Array<{useCaseName: string, pageTitle: string, directoryName: string}> = []
 
     // プロセスステップから動詞を抽出してユースケースに変換
     const actionPatterns = [

@@ -1,5 +1,5 @@
 import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
-import { createServices } from './parasol/services-seed'
+// import { createServices } from './parasol/services-seed'
 import { createBusinessCapabilities } from './parasol/business-capabilities-seed'
 import { createBusinessOperations } from './parasol/business-operations-seed'
 import { createUseCases } from './parasol/use-cases-seed'

@@ -2,7 +2,7 @@ import { PrismaClient as FinancePrismaClient } from '@prisma/finance-client'
 import { PrismaClient as AuthPrismaClient } from '@prisma/client'
 import { PrismaClient as ProjectPrismaClient } from '@prisma/project-client'
 import path from 'path'
-import { subDays, startOfMonth, endOfMonth } from 'date-fns'
+import { startOfMonth, endOfMonth } from 'date-fns'
 
 const projectRoot = path.resolve(__dirname, '../..')
 

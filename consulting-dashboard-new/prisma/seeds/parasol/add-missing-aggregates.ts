@@ -10,7 +10,7 @@ import path from 'path'
 const prisma = new PrismaClient()
 
 // 各サービスのドメイン言語定義ファイルを読み込む
-const domainLanguageFiles = {
+const _domainLanguageFiles = {
   'productivity-visualization': path.join(__dirname, 'domain-languages/productivity-visualization-v2.md'),
   'collaboration-facilitation': path.join(__dirname, 'domain-languages/collaboration-facilitation-v2.md'),
   'knowledge-cocreation': path.join(__dirname, 'domain-languages/knowledge-cocreation-v2.md'),

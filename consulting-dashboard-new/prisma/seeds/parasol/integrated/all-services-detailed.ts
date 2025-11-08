@@ -1064,7 +1064,7 @@ async function seedAllServicesDetailed() {
 // Direct execution
 if (require.main === module) {
   seedAllServicesDetailed()
-    .then(result => {
+    .then(_result => {
       console.log('✅ Seed completed successfully')
       process.exit(0)
     })

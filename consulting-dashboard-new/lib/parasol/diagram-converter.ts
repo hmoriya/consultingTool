@@ -924,7 +924,7 @@ export class DiagramConverter {
     let inAggregateEntities = false;
     let inAttributeSection = false;
     let currentAttributeName: string | null = null;
-    const currentAttributeType: string | null = null;
+    const _currentAttributeType: string | null = null;
     const processedEntities = new Set<string>();
     
     lines.forEach((line, index) => {
@@ -976,7 +976,7 @@ export class DiagramConverter {
           const entityMatch = trimmed.match(/^#{3,4}\s+([A-Za-z]+)[（(](.+?)[）)]/);
           if (entityMatch) {
             const englishName = entityMatch[1].trim();
-            const japaneseName = entityMatch[2].trim();
+            const _japaneseName = entityMatch[2].trim();
 
             // 重複チェック
             if (!processedEntities.has(englishName)) {
@@ -1076,9 +1076,9 @@ export class DiagramConverter {
             // 形式: - ユーザーID [UserId] [USER_ID]
             const attrMatch = trimmed.match(/^-\s+(.+?)\s+\[([A-Za-z_]+)\]\s+\[([A-Z_]+)\]$/);
             if (attrMatch) {
-              const japaneseName = attrMatch[1].trim();
+              const _japaneseName = attrMatch[1].trim();
               const englishName = attrMatch[2].trim();
-              const systemName = attrMatch[3].trim();
+              const _systemName = attrMatch[3].trim();
 
               // 既に追加済みかチェック
               const exists = currentEntity.attributes.some(a => a.name === englishName);
@@ -1097,7 +1097,7 @@ export class DiagramConverter {
           else if (inAttributeSection && currentAttributeName && trimmed.startsWith('- 型:')) {
             const typeMatch = trimmed.match(/^-\s+型:\s+(.+?)\s+\[([A-Za-z_]+)\]/);
             if (typeMatch) {
-              const japaneseType = typeMatch[1].trim();
+              const _japaneseType = typeMatch[1].trim();
               const englishType = typeMatch[2].trim();
 
               // 最後に追加した属性の型を更新
@@ -1126,9 +1126,9 @@ export class DiagramConverter {
           // 新フォーマット: ### メールアドレス [Email] [EMAIL]
           const nameMatch = trimmed.match(/^###\s+(.+?)\s*\[(.+?)\]\s*\[(.+?)\]$/);
           if (nameMatch) {
-            const japaneseName = nameMatch[1].trim();
+            const _japaneseName = nameMatch[1].trim();
             const englishName = nameMatch[2].trim();
-            const systemName = nameMatch[3].trim();
+            const _systemName = nameMatch[3].trim();
             currentValueObject = {
               name: englishName,  // 英語名をクラス名として使用
               attributes: [],
@@ -1158,9 +1158,9 @@ export class DiagramConverter {
           // 新フォーマット: - **値** [value] [VALUE]: STRING_255
           const attrMatch = trimmed.match(/^-\s*\*\*(.+?)\*\*\s*\[(.+?)\]\s*\[(.+?)\]:\s*(.+)/);
           if (attrMatch) {
-            const japaneseName = attrMatch[1].trim();
+            const _japaneseName = attrMatch[1].trim();
             const englishName = attrMatch[2].trim();
-            const systemName = attrMatch[3].trim();
+            const _systemName = attrMatch[3].trim();
             const type = attrMatch[4].trim();
             currentValueObject.attributes.push({
               name: englishName,
@@ -1194,9 +1194,9 @@ export class DiagramConverter {
           // Format 2: #### KnowledgeAggregate
           const nameMatch = trimmed.match(/^#{3,4}\s+(.+?)\s*\[(.+?)\]\s*\[(.+?)\]$/);
           if (nameMatch) {
-            const japaneseName = nameMatch[1].trim();
+            const _japaneseName = nameMatch[1].trim();
             const englishName = nameMatch[2].trim();
-            const systemName = nameMatch[3].trim();
+            const _systemName = nameMatch[3].trim();
             currentAggregate = { name: englishName, root: '', entities: [] };
             result.aggregates.push(currentAggregate);
             console.log('Found aggregate (bracketed format):', englishName);

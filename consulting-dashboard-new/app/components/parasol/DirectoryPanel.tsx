@@ -250,6 +250,7 @@ export function DirectoryPanel({ currentPath, onFileSelect, className = '' }: Di
       case 'usecase':
         return <FileText className="w-4 h-4 text-green-500" />;
       case 'page':
+        // eslint-disable-next-line jsx-a11y/alt-text
         return <Image className="w-4 h-4 text-purple-500" />;
       case 'api-usage':
         return <Settings className="w-4 h-4 text-orange-500" />;

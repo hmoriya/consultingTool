@@ -1,7 +1,7 @@
-import { test, expect } from '@playwright/test'
+import { test } from '@playwright/test'
 
 test.describe('Debug Login', () => {
-  test('Direct API login test', async ({ page, request }) => {
+  test('Direct API login test', async ({ _page, request }) => {
     // First check if the login endpoint works
     const response = await request.post('http://localhost:3000/api/login', {
       data: {

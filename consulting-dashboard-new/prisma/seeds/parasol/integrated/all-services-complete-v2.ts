@@ -1164,7 +1164,7 @@ async function seedAllServicesCompleteV2() {
 // Direct execution
 if (require.main === module) {
   seedAllServicesCompleteV2()
-    .then(result => {
+    .then(_result => {
       console.log('✅ Seed completed successfully')
       process.exit(0)
     })

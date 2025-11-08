@@ -239,7 +239,7 @@ function extractValueObjects(content: string): ParsedValueObject[] {
   const valueObjects: ParsedValueObject[] = []
 
   // 値オブジェクト定義セクションを探す
-  const voPattern = /####\s+(.+?)（(.+?)）\s*\n([\s\S]*?)(?=####|###\s+集約定義|##\s+[^\s]|$)/g
+  const _voPattern = /####\s+(.+?)（(.+?)）\s*\n([\s\S]*?)(?=####|###\s+集約定義|##\s+[^\s]|$)/g
   const voSectionMatch = content.match(/###\s+値オブジェクト定義([\s\S]*?)(?=###\s+集約定義|##\s+[^\s]|$)/m)
 
   if (!voSectionMatch) return valueObjects
@@ -419,7 +419,7 @@ function extractDomainEvents(content: string): ParsedDomainEvent[] {
     if (payloadMatch) {
       try {
         payload = JSON.parse(payloadMatch[1])
-      } catch (e) {
+      } catch (_e) {
         payload = payloadMatch[1]
       }
     }

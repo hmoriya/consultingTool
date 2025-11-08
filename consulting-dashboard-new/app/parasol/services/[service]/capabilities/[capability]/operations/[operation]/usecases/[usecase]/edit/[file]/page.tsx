@@ -81,10 +81,119 @@ export default function ParasolFileEditPage() {
     { label: config.title, href: '', current: true }
   ];
 
-  // ファイルデータの読み込み
-  useEffect(() => {
-    loadFile();
-  }, [loadFile]);
+  // デフォルトコンテンツの生成
+  const getDefaultContent = useCallback((type: FileType): string => {
+    switch (type) {
+      case 'usecase':
+        return `# ユースケース: ${usecase}
+
+## 基本情報
+- **ユースケースID**: UC-${usecase.toUpperCase()}
+- **アクター**:
+- **概要**:
+
+## 事前条件
+-
+
+## 事後条件
+### 成功時
+-
+
+### 失敗時
+-
+
+## 基本フロー
+1.
+2.
+3.
+
+## 代替フロー
+### 代替フロー1:
+-
+
+## 例外フロー
+### 例外1:
+-
+
+## ロバストネス図
+\`\`\`mermaid
+graph LR
+    actor[アクター] --> boundary[境界オブジェクト]
+    boundary --> control[コントロール]
+    control --> entity[エンティティ]
+\`\`\`
+`;
+      case 'page':
+        return `# ページ定義: ${usecase}
+
+## 基本情報
+- **ページID**: PG-${usecase.toUpperCase()}
+- **URL**: /${service}/${capability}/${operation}/${usecase}
+- **タイプ**: [form/list/detail/dashboard]
+
+## 画面構成
+### ヘッダー
+-
+
+### メインコンテンツ
+-
+
+### アクション
+-
+
+## データ表示
+| 項目名 | データ型 | 必須 | 説明 |
+|-------|---------|------|------|
+| | | | |
+
+## 入力フォーム
+| フィールド名 | データ型 | 必須 | バリデーション |
+|-------------|---------|------|----------------|
+| | | | |
+
+## ボタン・リンク
+- **保存**: [アクション]
+- **キャンセル**: [アクション]
+`;
+      case 'api-usage':
+        return `# API利用仕様: ${usecase}
+
+## 利用API一覧
+| API名 | メソッド | エンドポイント | 用途 |
+|-------|----------|----------------|------|
+| | | | |
+
+## API詳細
+### API名: [APIの名前]
+- **メソッド**: GET/POST/PUT/DELETE
+- **エンドポイント**: /api/...
+- **認証**: 必要/不要
+
+#### リクエスト
+\`\`\`json
+{
+  
+}
+\`\`\`
+
+#### レスポンス
+##### 成功時 (200)
+\`\`\`json
+{
+  
+}
+\`\`\`
+
+##### エラー時
+- **400 Bad Request**: [エラー内容]
+- **401 Unauthorized**: [エラー内容]
+- **404 Not Found**: [エラー内容]
+- **500 Internal Server Error**: [エラー内容]
+`;
+      default:
+        return '';
+    }
+  }, [usecase, service, capability, operation]);
 
   const loadFile = useCallback(async () => {
     try {
@@ -121,7 +230,7 @@ export default function ParasolFileEditPage() {
     } finally {
       setLoading(false);
     }
-  }, [filePath, fileType]);
+  }, [filePath, fileType, config.title, config.description, getDefaultContent]);
 
   // ファイルの保存
   const saveFile = async () => {
@@ -162,168 +271,12 @@ export default function ParasolFileEditPage() {
     setIsModified(true);
   };
 
-  // デフォルトコンテンツの生成
-  const getDefaultContent = (type: FileType): string => {
-    switch (type) {
-      case 'usecase':
-        return `# ユースケース: ${usecase}
+  // getDefaultContentは上で定義済み
 
-## 基本情報
-- **ユースケースID**: UC-${usecase.toUpperCase()}
-- **アクター**:
-- **概要**:
-
-## 事前条件
--
-
-## 事後条件
-### 成功時
--
-
-### 失敗時
--
-
-## 基本フロー
-1.
-2.
-3.
-
-## 代替フロー
-### 代替フロー1:
--
-
-## 例外フロー
-### 例外1:
--
-
-## 特別要件
-- **性能**:
-- **可用性**:
-- **セキュリティ**:
-`;
-
-      case 'page':
-        return `# ページ定義: ${usecase}
-
-## 画面の目的
-
-
-## 利用者
-- **主要利用者**:
-- **副次利用者**:
-
-## 画面構成
-
-### ヘッダー部
--
-
-### メインコンテンツ部
--
-
-### フッター部
--
-
-## データ表示
-
-### 表示データ一覧
-| データ項目 | 表示形式 | 必須 | 説明 |
-|-----------|---------|------|------|
-|  |  |  |  |
-
-## 入力項目
-
-### フォーム一覧
-| 入力項目 | 入力形式 | 必須 | バリデーション | 説明 |
-|---------|---------|------|---------------|------|
-|  |  |  |  |  |
-
-## アクション・操作
-
-### 主要アクション
--
-
-### 副次アクション
--
-
-## 画面の振る舞い
-
-### ユーザー操作への反応
--
-
-### 条件による表示変更
--
-
-## 画面遷移
-
-### 遷移元画面
--
-
-### 遷移先画面
--
-
-## エラーハンドリング
--
-
-## アクセシビリティ要件
--
-
-## レスポンシブ対応
-- **デスクトップ**:
-- **タブレット**:
-- **モバイル**:
-`;
-
-      case 'api-usage':
-        return `# API利用仕様: ${usecase}
-
-## 利用するAPI一覧
-
-### 自サービスAPI
-| API | エンドポイント | 利用目的 | パラメータ |
-|-----|---------------|----------|-----------|
-|  |  |  |  |
-
-### 他サービスAPI（ユースケース利用型）
-| サービス | ユースケースAPI | 利用タイミング | 期待結果 |
-|---------|-----------------|---------------|----------|
-|  |  |  |  |
-
-## API呼び出しシーケンス
-
-1. **事前認証**:
-2. **メイン処理**:
-3. **結果通知**:
-4. **ログ記録**:
-
-## エラーハンドリング
-
-### 認証・認可エラー
--
-
-### API処理エラー
--
-
-### ネットワークエラー
--
-
-### リトライ戦略
--
-
-## パフォーマンス要件
-- **レスポンス時間**:
-- **スループット**:
-- **可用性**:
-
-## セキュリティ要件
-- **認証**:
-- **認可**:
-- **データ保護**:
-`;
-
-      default:
-        return '';
-    }
-  };
+  // ファイルデータの読み込み
+  useEffect(() => {
+    loadFile();
+  }, [loadFile]);
 
   if (loading) {
     return (

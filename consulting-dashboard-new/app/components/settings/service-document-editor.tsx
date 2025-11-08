@@ -51,6 +51,55 @@ export function ServiceDocumentEditor({ service, domain }: ServiceDocumentEditor
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', message: string } | null>(null)
 
   // サービス変更時に全コンテンツを読み込み
+  const getDefaultDomainTemplate = useCallback(() => `# ${domain.replace('-domain', '')}ドメインモデル
+
+## ドメイン概要
+[ドメインの説明を記入]
+
+## ユビキタス言語定義
+
+### 基本型定義
+\`\`\`
+UUID: 一意識別子（36文字）
+STRING_N: 最大N文字の文字列
+TEXT: 長文テキスト（制限なし）
+[他の型定義...]
+\`\`\`
+
+## エンティティ（Entities）
+
+## 値オブジェクト（Value Objects）
+
+## 集約（Aggregates）
+
+## ドメインサービス
+
+## ドメインイベント
+
+## ビジネスルール
+
+## リポジトリインターフェース
+`, [domain])
+
+  const getDefaultApiTemplate = useCallback(() => `# ${service.replace('-service', '')} API仕様
+
+## 基本情報
+- ベースURL: \`/api/${service.replace('-service', '')}\`
+- 認証: JWT Bearer Token
+- Content-Type: application/json
+
+## エンドポイント一覧
+
+[APIエンドポイントの定義]
+`, [service])
+
+  const getDefaultSchemaTemplate = useCallback(() => `# ${service.replace('-service', '')} データベーススキーマ
+
+## テーブル定義
+
+[テーブル定義を記述]
+`, [service])
+
   useEffect(() => {
     loadAllContent()
   }, [loadAllContent])
@@ -95,7 +144,7 @@ export function ServiceDocumentEditor({ service, domain }: ServiceDocumentEditor
     } finally {
       setIsLoading(false)
     }
-  }, [domain, service])
+  }, [domain, service, getDefaultApiTemplate, getDefaultDomainTemplate, getDefaultSchemaTemplate])
 
   const getCurrentContent = () => {
     switch (activeTab) {
@@ -157,55 +206,6 @@ export function ServiceDocumentEditor({ service, domain }: ServiceDocumentEditor
   }
 
   const hasChanges = getCurrentContent() !== getOriginalContent()
-
-  const getDefaultDomainTemplate = () => `# ${domain.replace('-domain', '')}ドメインモデル
-
-## ドメイン概要
-[ドメインの説明を記入]
-
-## ユビキタス言語定義
-
-### 基本型定義
-\`\`\`
-UUID: 一意識別子（36文字）
-STRING_N: 最大N文字の文字列
-TEXT: 長文テキスト（制限なし）
-[他の型定義...]
-\`\`\`
-
-## エンティティ（Entities）
-
-## 値オブジェクト（Value Objects）
-
-## 集約（Aggregates）
-
-## ドメインサービス
-
-## ドメインイベント
-
-## ビジネスルール
-
-## リポジトリインターフェース
-`
-
-  const getDefaultApiTemplate = () => `# ${service.replace('-service', '')} API仕様
-
-## 基本情報
-- ベースURL: \`/api/${service.replace('-service', '')}\`
-- 認証: JWT Bearer Token
-- Content-Type: application/json
-
-## エンドポイント一覧
-
-[APIエンドポイントの定義]
-`
-
-  const getDefaultSchemaTemplate = () => `# ${service.replace('-service', '')} データベーススキーマ
-
-## テーブル定義
-
-[テーブル定義を記述]
-`
 
   return (
     <div className="space-y-4">

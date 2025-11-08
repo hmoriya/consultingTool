@@ -161,7 +161,7 @@ function extractProvidedEvents(content: string): ParsedDomainEvent[] {
     if (payloadMatch) {
       try {
         payload = JSON.parse(payloadMatch[1])
-      } catch (e) {
+      } catch (_e) {
         payload = payloadMatch[1]
       }
     }

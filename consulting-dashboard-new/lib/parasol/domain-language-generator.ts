@@ -121,8 +121,8 @@ export function refineDomainLanguageFromOperations(
   }
 
   // オペレーションから新しいエンティティと詳細を抽出
-  const additionalEntities = extractEntitiesFromOperations(operations);
-  const additionalStates = extractStatesFromOperations(operations);
+  const _additionalEntities = extractEntitiesFromOperations(operations);
+  const _additionalStates = extractStatesFromOperations(operations);
   const additionalValueObjects = extractValueObjectsFromOperations(operations);
   
   // エンティティセクション（拡張版）
@@ -217,9 +217,9 @@ ${existingContent.match(/- \d{4}-\d{2}-\d{2}.*$/gm)?.join('\n') || ''}`);
 
 // ヘルパー関数群
 
-function extractEntitiesFromText(text: string): DomainEntity[] {
+function extractEntitiesFromText(_text: string): DomainEntity[] {
   // テキストからエンティティ候補を抽出（簡易実装）
-  const entityPatterns = [
+  const _entityPatterns = [
     /(\w+)\s*\[([A-Z_]+)\]\s*\[([A-Z_]+)\]/g,
     /「(.+?)」/g,
     /\b([A-Z][a-z]+(?:[A-Z][a-z]+)*)\b/g
@@ -237,19 +237,19 @@ function extractEntitiesFromOperations(operations: BusinessOperation[]): DomainE
   
   operations.forEach(op => {
     // オペレーションの設計内容から抽出
-    const design = op.design || '';
+    const _design = op.design || '';
     // 簡易的な実装 - 実際にはより高度な解析が必要
   });
   
   return Array.from(entities.values());
 }
 
-function extractStatesFromOperations(operations: BusinessOperation[]): State[] {
+function extractStatesFromOperations(_operations: BusinessOperation[]): State[] {
   // オペレーションから状態を抽出
   return [];
 }
 
-function extractValueObjectsFromOperations(operations: BusinessOperation[]): ValueObject[] {
+function extractValueObjectsFromOperations(_operations: BusinessOperation[]): ValueObject[] {
   // オペレーションから値オブジェクトを抽出
   return {
     common: [],
@@ -257,12 +257,12 @@ function extractValueObjectsFromOperations(operations: BusinessOperation[]): Val
   };
 }
 
-function extractAggregatesFromOperations(operations: BusinessOperation[]): string[] {
+function extractAggregatesFromOperations(_operations: BusinessOperation[]): string[] {
   // オペレーションから集約を抽出
   return [];
 }
 
-function extractDomainEventsFromOperations(operations: BusinessOperation[]): DomainEvent[] {
+function extractDomainEventsFromOperations(_operations: BusinessOperation[]): DomainEvent[] {
   // オペレーションからドメインイベントを抽出
   return [];
 }

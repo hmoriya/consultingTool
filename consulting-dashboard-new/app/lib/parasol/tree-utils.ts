@@ -3,11 +3,7 @@
  */
 
 import { TreeNode, ParasolService, BusinessCapability, BusinessOperation } from '@/types/parasol';
-import {
-  buildApiUsageFilePath,
-  buildUsecaseFilePath,
-  buildPageFilePath
-} from '@/app/lib/parasol/path-utils';
+// Removed unused imports: buildApiUsageFilePath, buildUsecaseFilePath, buildPageFilePath
 
 /**
  * サービス、ケーパビリティ、オペレーションからツリー構造を構築（同期版・後方互換）

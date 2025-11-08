@@ -76,7 +76,7 @@ export function analyzeRelationships(entities: EntityDefinition[]): Relationship
 /**
  * 強い所有関係（composition）を判定
  */
-function isStrongOwnership(childEntity: string, parentEntity: string, foreignKey: string): boolean {
+function isStrongOwnership(childEntity: string, parentEntity: string, _foreignKey: string): boolean {
   // 命名規則から所有関係を推測
   const strongOwnershipPatterns = [
     // 親エンティティ名が子エンティティ名の一部に含まれる

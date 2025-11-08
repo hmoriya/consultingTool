@@ -191,7 +191,7 @@ export function markdownToOperation(
   };
   
   let currentSection: string | null = null;
-  const currentSubSection: { name: string; content: string[] } | null = null;
+  const _currentSubSection: { name: string; content: string[] } | null = null;
   let inTable = false;
   let skipNextLine = false;
   

@@ -1,22 +1,23 @@
 // Type definitions for parasol components
 
 import type {
-  ParasolService,
-  BusinessCapability,
-  BusinessOperation,
-  UseCase,
-  PageDefinition,
-  DomainLanguageDefinition,
+  // ParasolService,
+  // BusinessCapability,
+  // BusinessOperation,
+  // UseCase,
+  // PageDefinition,
+  // DomainLanguageDefinition,
   ApiSpecification,
-  DbDesign,
+  // DbDesign,
   TreeNode } from './parasol';
 
 import type {
   ServiceResponse,
   ServiceWithMappedRelations,
-  MappedBusinessOperation,
-  MappedBusinessCapability,
-  MappedUseCase } from './parasol-actions';
+  MappedBusinessOperation
+  // MappedBusinessCapability,
+  // MappedUseCase
+} from './parasol-actions';
 
 // Service Form Component Types
 export interface ServiceFormProps {

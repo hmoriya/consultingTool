@@ -2,7 +2,7 @@
  * 既存のドメイン言語定義にアグリゲート分析を追加するスクリプト
  */
 
-import { addAggregatesToAllServices } from '../../../app/actions/parasol-aggregate'
+// import { addAggregatesToAllServices } from '../../../app/actions/parasol-aggregate'
 
 async function main() {
   console.log('🔍 Starting aggregate analysis for all services...\n')

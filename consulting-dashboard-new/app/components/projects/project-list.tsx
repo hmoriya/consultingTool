@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -9,12 +9,12 @@ import { Button } from '@/components/ui/button'
 import { 
   Calendar, 
   DollarSign, 
-  Users, 
   ChevronRight,
-  MoreVertical,
   Edit,
   Archive,
-  FileText
+  MoreVertical,
+  FileText,
+  Users
 } from 'lucide-react'
 import { ProjectListItem, ProjectStatus } from '@/actions/projects'
 import {
@@ -22,8 +22,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+  DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import { useProjectFilters } from '@/contexts/project-filter-context'

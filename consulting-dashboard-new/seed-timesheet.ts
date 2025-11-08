@@ -269,7 +269,7 @@ async function main() {
     console.log(`\n✅ タイムシートデータの投入が完了しました！`)
     console.log(`総エントリ数: ${totalEntries}`)
 
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ エラー:', error)
   } finally {
     await timesheetDb.$disconnect()

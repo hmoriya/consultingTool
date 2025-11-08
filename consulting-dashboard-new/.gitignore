@@ -69,3 +69,7 @@ docs/issues/issue-*.md
 # *.db
 # *.db-journal
 # prisma/*/data/
+
+# temporary/corrupted files
+upload-usecases.mjs
+update-db-design.js

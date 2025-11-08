@@ -12,35 +12,26 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+  TableRow } from '@/components/ui/table'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+  DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Progress } from '@/components/ui/progress'
 import { 
   Plus, 
-  Search, 
-  Users,
+  Search,
   Edit,
-  Trash2,
-  MoreVertical,
   UserCheck,
   Briefcase,
-  Percent,
   ChevronDown,
   ChevronRight,
-  ExternalLink
+  ExternalLink,
+  Users,
+  MoreVertical,
+  Trash2
 } from 'lucide-react'
 import { TeamMemberItem, deleteTeamMember, getMemberUtilization } from '@/actions/team'
 import { TeamCreateDialog } from './team-create-dialog'
@@ -71,7 +62,7 @@ export function TeamList({ initialMembers, currentUserRole }: TeamListProps) {
   const [editingMember, setEditingMember] = useState<TeamMemberItem | null>(null)
   const [loading, setLoading] = useState(false)
   const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set())
-  const [memberUtilization, setMemberUtilization] = useState<Record<string, any>>({})
+  const [memberUtilization, setMemberUtilization] = useState<Record<string, unknown>>({})
 
   const filteredMembers = members.filter(member =>
     member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -85,7 +76,7 @@ export function TeamList({ initialMembers, currentUserRole }: TeamListProps) {
     try {
       await deleteTeamMember(memberId)
       setMembers(prev => prev.filter(m => m.id !== memberId))
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to delete member:', error)
       alert(error instanceof Error ? error.message : 'メンバーの削除に失敗しました')
     } finally {
@@ -117,7 +108,7 @@ export function TeamList({ initialMembers, currentUserRole }: TeamListProps) {
         try {
           const utilization = await getMemberUtilization(memberId)
           setMemberUtilization(prev => ({ ...prev, [memberId]: utilization[0] }))
-        } catch (error) {
+        } catch (_error) {
           console.error('Failed to fetch utilization:', error)
         }
       }
@@ -304,7 +295,7 @@ export function TeamList({ initialMembers, currentUserRole }: TeamListProps) {
                                 <p className="text-sm text-muted-foreground pl-6">現在プロジェクトに参加していません</p>
                               ) : (
                                 <div className="space-y-3">
-                                  {utilization.projects.map((project: any) => (
+                                  {utilization.projects.map((project: unknown) => (
                                     <div key={project.id} className="flex items-center justify-between pl-6 pr-4">
                                       <Link 
                                         href={`/projects/${project.id}`}

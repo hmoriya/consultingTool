@@ -10,33 +10,58 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  SelectValue } from '@/components/ui/select'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+  DialogTrigger } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
-import { Plus, Trash2, Edit } from 'lucide-react'
+import { Plus, Edit, Trash2 } from 'lucide-react'
 import { upsertUserSkill, deleteUserSkill } from '../../../actions/skills'
 
+interface Skill {
+  id: string
+  name: string
+  categoryId: string
+  category: {
+    id: string
+    name: string
+  }
+}
+
+interface UserSkill {
+  id: string
+  userId: string
+  skillId: string
+  level: number
+  experienceYears?: number | null
+  certifications?: string | null
+  lastUsedDate?: Date | null
+  skill: Skill
+}
+
+interface Category {
+  id: string
+  name: string
+  description?: string | null
+}
+
 interface MySkillsProps {
-  mySkills: any[]
-  categories: any[]
-  allSkills: any[]
+  mySkills: UserSkill[]
+  categories: Category[]
+  allSkills: Skill[]
 }
 
 export function MySkills({ mySkills, categories, allSkills }: MySkillsProps) {
   const [isPending, startTransition] = useTransition()
   const [open, setOpen] = useState(false)
-  const [editingSkill, setEditingSkill] = useState<any>(null)
+  const [editingSkill, setEditingSkill] = useState<UserSkill | null>(null)
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('')
   const [selectedSkillId, setSelectedSkillId] = useState<string>('')
   const [level, setLevel] = useState<number>(3)
@@ -79,7 +104,7 @@ export function MySkills({ mySkills, categories, allSkills }: MySkillsProps) {
         toast.success(editingSkill ? 'スキルを更新しました' : 'スキルを追加しました')
         setOpen(false)
         resetForm()
-      } catch (error) {
+      } catch (_error) {
         toast.error(error instanceof Error ? error.message : '処理に失敗しました')
       }
     })
@@ -92,13 +117,13 @@ export function MySkills({ mySkills, categories, allSkills }: MySkillsProps) {
       try {
         await deleteUserSkill(userSkillId)
         toast.success('スキルを削除しました')
-      } catch (error) {
+      } catch (_error) {
         toast.error(error instanceof Error ? error.message : '削除に失敗しました')
       }
     })
   }
 
-  const handleEdit = (userSkill: any) => {
+  const handleEdit = (userSkill: UserSkill) => {
     setEditingSkill(userSkill)
     setSelectedCategoryId(userSkill.skill.categoryId)
     setSelectedSkillId(userSkill.skillId)

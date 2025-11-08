@@ -217,7 +217,7 @@ export async function addAggregatesToDomainLanguage(serviceId: string) {
       }))
     }
     
-  } catch (error) {
+  } catch (_error) {
     console.error('[Aggregate Analysis] Error:', error)
     return {
       success: false,
@@ -275,7 +275,7 @@ export async function addAggregatesToAllServices() {
       }
     }
     
-  } catch (error) {
+  } catch (_error) {
     console.error('[Aggregate Analysis] Batch error:', error)
     return {
       success: false,

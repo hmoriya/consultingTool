@@ -180,9 +180,9 @@ export async function clearAllData() {
     
     console.log('================================')
     console.log('✅ Data clearing process completed')
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error clearing data:', error)
-    throw error
+    throw _error
   } finally {
     // 接続をクローズ
     await Promise.all(disconnectList)
@@ -192,8 +192,8 @@ export async function clearAllData() {
 /**
  * 特定のサービスのデータをクリア
  */
-export async function clearServiceData(serviceName: string) {
-  switch (serviceName.toLowerCase()) {
+export async function clearServiceData(_serviceName: string) {
+  switch (_serviceName.toLowerCase()) {
     case 'auth':
     case 'core':
       return clearAuthData()
@@ -210,19 +210,19 @@ export async function clearServiceData(serviceName: string) {
     case 'parasol':
       return clearParasolData()
     default:
-      throw new Error(`Unknown service: ${serviceName}`)
+      throw new Error(`Unknown service: ${_serviceName}`)
   }
 }
 
 // CLIから直接実行可能
 if (require.main === module) {
-  const serviceName = process.argv[2]
+  const _serviceName = process.argv[2]
   
-  if (serviceName && serviceName !== 'all') {
-    clearServiceData(serviceName)
-      .then(() => console.log(`${serviceName} data cleared`))
+  if (_serviceName && _serviceName !== 'all') {
+    clearServiceData(_serviceName)
+      .then(() => console.log(`${_serviceName} data cleared`))
       .catch(e => {
-        console.error(`Error clearing ${serviceName} data:`, e)
+        console.error(`Error clearing ${_serviceName} data:`, e)
         process.exit(1)
       })
   } else {

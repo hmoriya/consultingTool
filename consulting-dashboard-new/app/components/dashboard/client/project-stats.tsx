@@ -1,11 +1,11 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { TrendingUp, TrendingDown, AlertCircle } from 'lucide-react'
 
 interface ProjectStatsProps {
-  projects: any[]
+  projects: unknown[]
 }
 
 export function ProjectStats({ projects }: ProjectStatsProps) {

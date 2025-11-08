@@ -96,8 +96,8 @@ export default function GuideContent({ guidePath }: GuideContentProps) {
         if (elements.length > 0) {
           await mermaid.run();
         }
-      } catch (error) {
-        console.error('Mermaid rendering error:', error);
+      } catch (_error) {
+        console.error('Mermaid rendering error:', _error);
       }
     };
 
@@ -153,7 +153,7 @@ export default function GuideContent({ guidePath }: GuideContentProps) {
 
         html2pdf().set(options).from(element).save();
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('PDF export error:', error);
     }
   };

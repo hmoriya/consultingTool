@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { PrismaClient } from '@prisma/client'
 import { PrismaClient as AuthPrismaClient } from '@prisma/auth-client'
 import { PrismaClient as ProjectPrismaClient } from '@prisma/project-client'
@@ -105,7 +107,7 @@ async function resetAndSeed() {
     console.log('  - リテールチェーン株式会社')
     console.log('  - エネルギー開発株式会社')
     
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Reset and seeding failed:', error)
     throw error
   } finally {

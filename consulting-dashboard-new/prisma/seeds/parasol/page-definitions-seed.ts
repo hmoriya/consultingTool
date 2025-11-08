@@ -244,7 +244,7 @@ export const pageDefinitionContents = {
 }
 
 // ページ定義の作成
-export async function createPageDefinitions(useCases: any[]) {
+export async function createPageDefinitions(useCases: unknown[]) {
   console.log('  Creating page definitions...')
 
   const pageDefinitions = []

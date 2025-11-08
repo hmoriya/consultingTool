@@ -89,9 +89,8 @@ export async function getTeamUtilization(targetMonth?: string) {
     })
 
     // 実際の工数データを取得（オプション - タイムシートDBが存在する場合）
-    let timesheetData = null
     try {
-      timesheetData = await timesheetDb.timesheetEntry.findMany({
+      await timesheetDb.timesheetEntry.findMany({
         where: {
           userId: member.id,
           date: {
@@ -100,7 +99,7 @@ export async function getTeamUtilization(targetMonth?: string) {
           }
         }
       })
-    } catch (error) {
+    } catch {
       // タイムシートデータが取得できない場合はallocationベースで計算
       console.log('Timesheet data not available, using allocation-based calculation')
     }
@@ -271,7 +270,7 @@ export async function getProjectResourceAllocation(projectId: string) {
     })
 
     return acc
-  }, {} as Record<string, any>)
+  }, {} as Record<string, unknown>)
 
   // 合計稼働率
   const totalAllocation = project.projectMembers.reduce((sum, pm) => sum + pm.allocation, 0)

@@ -1,4 +1,5 @@
 import { ApiSpecification } from '@/types/parasol';
+import type { APIParameter } from '@/types/parasol-api';
 
 /**
  * API仕様をMarkdown形式に変換
@@ -67,7 +68,7 @@ export function apiSpecToMarkdown(apiSpec: ApiSpecification): string {
             sections.push('| 名前 | 場所 | 型 | 必須 | 説明 |');
             sections.push('|------|------|-----|------|------|');
             
-            operation.parameters.forEach((param: any) => {
+            operation.parameters.forEach((param: APIParameter) => {
               const required = param.required ? '✓' : '-';
               const type = param.schema?.type || '-';
               sections.push(`| ${param.name} | ${param.in} | ${type} | ${required} | ${param.description || ''} |`);
@@ -93,7 +94,7 @@ export function apiSpecToMarkdown(apiSpec: ApiSpecification): string {
                 sections.push('| プロパティ | 型 | 必須 | 説明 |');
                 sections.push('|------------|-----|------|------|');
                 
-                Object.entries(schema.properties).forEach(([prop, propSchema]: [string, any]) => {
+                Object.entries(schema.properties).forEach(([prop, propSchema]) => {
                   const required = schema.required?.includes(prop) ? '✓' : '-';
                   const type = propSchema.type || '-';
                   sections.push(`| ${prop} | ${type} | ${required} | ${propSchema.description || ''} |`);
@@ -108,7 +109,7 @@ export function apiSpecToMarkdown(apiSpec: ApiSpecification): string {
             sections.push('**レスポンス**:');
             sections.push('');
             
-            Object.entries(operation.responses).forEach(([statusCode, response]: [string, any]) => {
+            Object.entries(operation.responses).forEach(([statusCode, response]: [string, unknown]) => {
               sections.push(`- **${statusCode}**: ${response.description || ''}`);
               
               const content = response.content;
@@ -134,7 +135,7 @@ export function apiSpecToMarkdown(apiSpec: ApiSpecification): string {
     sections.push('## スキーマ定義');
     sections.push('');
     
-    Object.entries(apiSpec.components.schemas).forEach(([schemaName, schema]: [string, any]) => {
+    Object.entries(apiSpec.components.schemas).forEach(([schemaName, schema]: [string, unknown]) => {
       sections.push(`### ${schemaName}`);
       sections.push('');
       
@@ -147,7 +148,7 @@ export function apiSpecToMarkdown(apiSpec: ApiSpecification): string {
         sections.push('| プロパティ | 型 | 必須 | 説明 |');
         sections.push('|------------|-----|------|------|');
         
-        Object.entries(schema.properties).forEach(([prop, propSchema]: [string, any]) => {
+        Object.entries(schema.properties).forEach(([prop, propSchema]: [string, unknown]) => {
           const required = schema.required?.includes(prop) ? '✓' : '-';
           const type = propSchema.type || '-';
           sections.push(`| ${prop} | ${type} | ${required} | ${propSchema.description || ''} |`);
@@ -310,14 +311,14 @@ export function validateApiSpecMarkdown(markdown: string): {
 /**
  * スキーマから例を生成するヘルパー関数
  */
-function generateExampleFromSchema(schema: any): any {
+function generateExampleFromSchema(schema: Record<string, unknown>): Record<string, unknown> {
   if (schema.example) {
     return schema.example;
   }
   
   if (schema.type === 'object' && schema.properties) {
-    const example: any = {};
-    Object.entries(schema.properties).forEach(([key, prop]: [string, any]) => {
+    const example: Record<string, unknown> = {};
+    Object.entries(schema.properties).forEach(([key, prop]) => {
       example[key] = generateExampleFromSchema(prop);
     });
     return example;

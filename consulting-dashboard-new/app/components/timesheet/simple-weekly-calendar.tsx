@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight, Clock, Plus, X, Save } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Clock, Plus, Save, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -16,8 +16,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+  DialogTitle } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 import { createTimeEntry, updateTimeEntry, deleteTimeEntry } from '@/actions/timesheet-new'
@@ -73,7 +72,7 @@ function CalendarEntry({
       try {
         await onUpdate(newHours)
         setIsEditing(false)
-      } catch (error) {
+      } catch (_error) {
         // エラーが発生した場合は元の値に戻す
         setHours(entry.hours.toString())
       } finally {
@@ -329,7 +328,7 @@ export function SimpleWeeklyCalendar({ projects, initialEntries = [], onRefresh 
           variant: 'destructive',
         })
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('エントリ追加エラー:', error)
       toast({
         title: 'エラー',
@@ -365,7 +364,7 @@ export function SimpleWeeklyCalendar({ projects, initialEntries = [], onRefresh 
         })
         throw new Error(result.error || '更新に失敗しました')
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Error updating entry:', error)
       toast({
         title: 'エラー',
@@ -395,7 +394,7 @@ export function SimpleWeeklyCalendar({ projects, initialEntries = [], onRefresh 
           variant: 'destructive',
         })
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Error deleting entry:', error)
       toast({
         title: 'エラー',

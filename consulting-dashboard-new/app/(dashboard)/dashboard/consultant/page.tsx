@@ -2,13 +2,12 @@ import { getCurrentUser } from '@/actions/auth'
 import { redirect } from 'next/navigation'
 import { getConsultantDashboardData } from '@/actions/consultant-dashboard'
 import { USER_ROLES } from '@/constants/roles'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TaskList } from '@/components/dashboard/consultant/task-list'
 import { WeeklyCalendar } from '@/components/dashboard/consultant/weekly-calendar'
 import { ProjectCards } from '@/components/dashboard/consultant/project-cards'
 import { SkillsSummary } from '@/components/dashboard/consultant/skills-summary'
-import { Calendar, CheckCircle2, Clock, FileText, Target } from 'lucide-react'
+import { CheckCircle2, Clock, Target, FileText } from 'lucide-react'
 
 export default async function ConsultantDashboard() {
   const user = await getCurrentUser()

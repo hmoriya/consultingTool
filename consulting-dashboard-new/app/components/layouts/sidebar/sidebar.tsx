@@ -11,23 +11,23 @@ import {
   HelpCircle,
   ChevronLeft,
   ChevronRight,
-  Users,
   CheckSquare,
   Clock,
   BookOpen,
-  FileText,
   Building2,
   Award,
   BarChart3,
   Briefcase,
   MessageCircle,
-  Sparkles
+  Sparkles,
+  Users,
+  FileText
 } from 'lucide-react'
 import { useUser } from '@/contexts/user-context'
 import { useApproval } from '@/contexts/approval-context'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
-import type { UserRole } from '@/types/user'
+// import type { UserRole } from '@/types/user'
 import { USER_ROLES } from '@/constants/roles'
 
 interface MenuItem {

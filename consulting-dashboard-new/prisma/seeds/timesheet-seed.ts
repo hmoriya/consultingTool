@@ -8,7 +8,18 @@ const timesheetDb = new TimesheetPrismaClient({
   }
 })
 
-export async function seedTimesheets(users?: any, projects?: any) {
+interface UserType {
+  pmUser: { id: string; email: string }
+  allUsers: { id: string; email: string; name?: string }[]
+}
+
+interface ProjectType {
+  id: string
+  name: string
+  projectMembers: { userId: string; role: string }[]
+}
+
+export async function seedTimesheets(users?: UserType, projects?: ProjectType[]) {
   console.log('🌱 Seeding Timesheet Service...')
   
   try {
@@ -60,8 +71,8 @@ export async function seedTimesheets(users?: any, projects?: any) {
           const weekNumber = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1
           
           // PMとして関わっているプロジェクトの中から2-3個をランダムに選択
-          const pmProjects = projects.filter((p: any) => 
-            p.projectMembers.some((m: any) => m.userId === users.pmUser.id && m.role === 'pm')
+          const pmProjects = projects.filter((p) => 
+            p.projectMembers.some((m) => m.userId === users.pmUser.id && m.role === 'pm')
           ).slice(0, 2 + Math.floor(Math.random() * 2))
           
           for (const project of pmProjects) {
@@ -140,7 +151,7 @@ export async function seedTimesheets(users?: any, projects?: any) {
 
       // その他のコンサルタントの工数
       if (users.allUsers) {
-        const consultants = users.allUsers.filter((u: any) => u.email.includes('consultant'))
+        const consultants = users.allUsers.filter((u) => u.email.includes('consultant'))
         for (const consultant of consultants.slice(0, 3)) { // 最大3人分
           const consultantTimesheet = {
             consultantId: consultant.id,
@@ -210,9 +221,9 @@ export async function seedTimesheets(users?: any, projects?: any) {
     console.log(`  - Created ${createdTimesheets.count} timesheets`)
     console.log(`  - Created ${createdTimeEntries.count} time entries`)
     
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error seeding Timesheet Service:', error)
-    throw error
+    throw _error
   } finally {
     await timesheetDb.$disconnect()
   }

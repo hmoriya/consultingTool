@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { createChannel } from '@/actions/messages'
 import { getAllUsers } from '@/actions/users'
 import { getActiveProjects } from '@/actions/projects'
@@ -19,7 +19,18 @@ import { Loader2 } from 'lucide-react'
 interface NewChannelDialogProps {
   open: boolean
   onClose: () => void
-  onSuccess: (channel: any) => void
+  onSuccess: (channel: unknown) => void
+}
+
+interface User {
+  id: string
+  name: string
+  email: string
+}
+
+interface Project {
+  id: string
+  name: string
 }
 
 export function NewChannelDialog({ open, onClose, onSuccess }: NewChannelDialogProps) {
@@ -30,8 +41,8 @@ export function NewChannelDialog({ open, onClose, onSuccess }: NewChannelDialogP
   const [isPrivate, setIsPrivate] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [users, setUsers] = useState<any[]>([])
-  const [projects, setProjects] = useState<any[]>([])
+  const [users, setUsers] = useState<User[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
 
   useEffect(() => {
     if (open) {
@@ -78,7 +89,7 @@ export function NewChannelDialog({ open, onClose, onSuccess }: NewChannelDialogP
       } else {
         toast.error(result.error || '作成に失敗しました')
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('エラーが発生しました')
     } finally {
       setIsSubmitting(false)

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 import fs from 'fs'
 import path from 'path'
+import { FileMapping, RestructureResult } from '@/app/types/parasol'
 
 const parasolDb = new ParasolPrismaClient()
 
@@ -84,7 +85,7 @@ class DesignRestructureAnalyzer {
       .filter(dirent => dirent.isDirectory())
 
     const pageMappings: PageUseCaseMapping[] = []
-    const duplicateFiles: DuplicateFileGroup[] = []
+    const _duplicateFiles: DuplicateFileGroup[] = []
     let totalOperations = 0
     let problemOperations = 0
 
@@ -503,7 +504,7 @@ class DesignRestructureAnalyzer {
             })
           }
         }
-      } catch (error) {
+      } catch {
         // アクセス権限エラー等は無視
       }
     }
@@ -592,7 +593,7 @@ class DesignRestructureAnalyzer {
   }
 }
 
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
     console.log('設計再構築分析API開始')
 
@@ -607,7 +608,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(result)
 
-  } catch (error) {
+  } catch (_error) {
     console.error('設計再構築分析エラー:', error)
     return NextResponse.json({
       error: 'Design restructure analysis failed',
@@ -640,7 +641,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
 
-  } catch (error) {
+  } catch (_error) {
     console.error('設計再構築実行エラー:', error)
     return NextResponse.json({
       error: 'Design restructure execution failed',
@@ -649,7 +650,7 @@ export async function POST(request: Request) {
   }
 }
 
-async function applyRestructure(operationId: string, mappings: any[]): Promise<any> {
+async function applyRestructure(operationId: string, mappings: FileMapping[]): Promise<RestructureResult[]> {
   const results = []
   let successCount = 0
   let errorCount = 0
@@ -686,7 +687,7 @@ async function applyRestructure(operationId: string, mappings: any[]): Promise<a
           message: 'マージ機能は今後実装予定'
         })
       }
-    } catch (error) {
+    } catch (_error) {
       console.error(`ファイル操作エラー:`, error)
       results.push({
         action: mapping.action,
@@ -708,7 +709,13 @@ async function applyRestructure(operationId: string, mappings: any[]): Promise<a
 }
 
 // MD重複ファイル削除専用のエンドポイント
-async function deleteDuplicateMDFiles(): Promise<any> {
+async function deleteDuplicateMDFiles(): Promise<{
+  success: boolean;
+  deletedFiles: number;
+  errorCount: number;
+  results: Array<{filePath: string; status: string; message: string}>;
+  message: string;
+}> {
   const duplicateFiles = [
     // create-notification.md の重複（collaboration-facilitation-service内）
     'docs/parasol/services/collaboration-facilitation-service/capabilities/deliver-immediate-information/operations/deliver-notifications/usecases/create-notification.md',
@@ -751,7 +758,7 @@ async function deleteDuplicateMDFiles(): Promise<any> {
           message: 'ファイルが存在しません'
         })
       }
-    } catch (error) {
+    } catch (_error) {
       console.error(`重複ファイル削除エラー:`, error)
       results.push({
         action: 'delete_duplicate',
@@ -773,7 +780,24 @@ async function deleteDuplicateMDFiles(): Promise<any> {
 }
 
 // データベースレベルの重複削除専用の関数
-async function deleteDatabaseDuplicates(): Promise<any> {
+async function deleteDatabaseDuplicates(): Promise<{
+  success: boolean;
+  processedGroups?: number;
+  deletedRecords?: number;
+  pageGroups?: number;
+  useCaseGroups?: number;
+  results?: Array<{
+    displayName: string;
+    totalCount: number;
+    deletedCount: number;
+    keptUseCaseId?: string;
+    status: string;
+    type: string;
+    message: string;
+  }>;
+  error?: string;
+  message: string;
+}> {
   try {
     const results = []
     let totalDeletedRecords = 0
@@ -841,7 +865,7 @@ async function deleteDatabaseDuplicates(): Promise<any> {
           console.log(`✅ ${group.displayName}: ${deleteResult.count}件削除、1件保持`)
         }
 
-      } catch (error) {
+      } catch (_error) {
         console.error(`重複グループ処理エラー (${group.displayName}):`, error)
         results.push({
           displayName: group.displayName,
@@ -911,7 +935,7 @@ async function deleteDatabaseDuplicates(): Promise<any> {
           console.log(`✅ ユースケース ${group.displayName}: ${deleteResult.count}件削除、1件保持`)
         }
 
-      } catch (error) {
+      } catch (_error) {
         console.error(`ユースケース重複グループ処理エラー (${group.displayName}):`, error)
         results.push({
           displayName: group.displayName,
@@ -934,7 +958,7 @@ async function deleteDatabaseDuplicates(): Promise<any> {
       message: `${totalProcessedGroups}グループを処理し、${totalDeletedRecords}件の重複レコードを削除しました`
     }
 
-  } catch (error) {
+  } catch (_error) {
     console.error('データベース重複削除エラー:', error)
     return {
       success: false,

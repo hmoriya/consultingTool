@@ -1,7 +1,5 @@
 import fs from 'fs/promises'
 import path from 'path'
-import { fileURLToPath } from 'url'
-import { dirname } from 'path'
 
 // 全サービスのデータ定義
 const servicesData = {
@@ -106,7 +104,7 @@ const servicesData = {
 }
 
 // テンプレート関数
-const generateServiceMD = (service: any) => `# ${service.displayName}
+const generateServiceMD = (service: unknown) => `# ${service.displayName}
 
 ## サービス概要
 **名前**: ${service.name}
@@ -163,10 +161,10 @@ ENUM: 列挙型
 - パフォーマンス最適化
 
 ## 提供ケーパビリティ
-- ${Object.values(service.capabilities || {}).map((c: any) => c.displayName).join('\n- ')}
+- ${Object.values(service.capabilities || {}).map((c: unknown) => c.displayName).join('\n- ')}
 `
 
-const generateCapabilityMD = (capability: any, serviceName: string) => `# ${capability.displayName}
+const generateCapabilityMD = (capability: unknown, _serviceName: string) => `# ${capability.displayName}
 
 ## 定義
 ${capability.displayName}を実現し、組織の競争優位性を確立する能力
@@ -200,8 +198,8 @@ ${capability.operations.map((op: string) => `- ${op}`).join('\n')}
 - **関連ケーパビリティ**: 密接に関連する他の能力
 `
 
-const generateOperationMD = (operationName: string, capabilityName: string) => {
-  const displayNames: any = {
+const generateOperationMD = (operationName: string, _capabilityName: string) => {
+  const displayNames: unknown = {
     'authenticate-user': 'ユーザーを認証する',
     'manage-permissions': '権限を管理する',
     'audit-access': 'アクセスを監査する',
@@ -303,8 +301,8 @@ stateDiagram-v2
 async function createFolderStructure() {
   const basePath = path.join(process.cwd(), 'docs', 'parasol', 'services')
 
-  for (const [serviceName, serviceData] of Object.entries(servicesData)) {
-    const servicePath = path.join(basePath, serviceName)
+  for (const [_serviceName, serviceData] of Object.entries(servicesData)) {
+    const servicePath = path.join(basePath, _serviceName)
 
     // サービスディレクトリ作成
     await fs.mkdir(servicePath, { recursive: true })
@@ -320,12 +318,12 @@ async function createFolderStructure() {
     const capabilitiesPath = path.join(servicePath, 'capabilities')
     await fs.mkdir(capabilitiesPath, { recursive: true })
 
-    for (const [capabilityName, capabilityData] of Object.entries(serviceData.capabilities)) {
-      const capabilityPath = path.join(capabilitiesPath, capabilityName)
+    for (const [_capabilityName, capabilityData] of Object.entries(serviceData.capabilities)) {
+      const capabilityPath = path.join(capabilitiesPath, _capabilityName)
       await fs.mkdir(capabilityPath, { recursive: true })
 
       // capability.mdを作成
-      const capabilityMD = generateCapabilityMD(capabilityData, serviceName)
+      const capabilityMD = generateCapabilityMD(capabilityData, _serviceName)
       await fs.writeFile(path.join(capabilityPath, 'capability.md'), capabilityMD)
 
       // operations作成
@@ -337,7 +335,7 @@ async function createFolderStructure() {
         await fs.mkdir(operationPath, { recursive: true })
 
         // operation.mdを作成
-        const operationMD = generateOperationMD(operationName, capabilityName)
+        const operationMD = generateOperationMD(operationName, _capabilityName)
         await fs.writeFile(path.join(operationPath, 'operation.md'), operationMD)
 
         // use-cases, pages, testsディレクトリも作成
@@ -362,8 +360,8 @@ async function main() {
     console.log(`- Services: ${Object.keys(servicesData).length}`)
     console.log(`- Capabilities: ${Object.values(servicesData).reduce((sum, s) => sum + Object.keys(s.capabilities).length, 0)}`)
     console.log(`- Operations: ${Object.values(servicesData).reduce((sum, s) =>
-      sum + Object.values(s.capabilities).reduce((cSum, c: any) => cSum + c.operations.length, 0), 0)}`)
-  } catch (error) {
+      sum + Object.values(s.capabilities).reduce((cSum, c: unknown) => cSum + c.operations.length, 0), 0)}`)
+  } catch (_error) {
     console.error('❌ Error:', error)
     process.exit(1)
   }

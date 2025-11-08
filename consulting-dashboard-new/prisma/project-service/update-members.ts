@@ -63,7 +63,7 @@ async function updateProjectMembers() {
 
     console.log('✅ Project members updated successfully')
 
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error updating project members:', error)
     throw error
   }

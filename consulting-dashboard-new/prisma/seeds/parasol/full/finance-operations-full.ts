@@ -3,7 +3,7 @@ import { seedOptimizeCosts } from './finance-operations/02-optimize-costs'
 import { seedOptimizeProfitability } from './finance-operations/03-optimize-profitability'
 
 // 財務管理サービスのビジネスオペレーション群
-export async function seedFinanceOperationsFull(service: any, capability: any) {
+export async function seedFinanceOperationsFull(service: unknown, capability: unknown) {
   console.log('  Creating finance business operations...')
   
   // 収益を正確に追跡する

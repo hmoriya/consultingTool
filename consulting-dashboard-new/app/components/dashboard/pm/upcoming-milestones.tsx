@@ -1,16 +1,18 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Calendar, Target } from 'lucide-react'
 import Link from 'next/link'
 
 interface UpcomingMilestonesProps {
-  milestones: any[]
+  milestones: unknown[]
 }
 
+type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'success'
+
 export function UpcomingMilestones({ milestones }: UpcomingMilestonesProps) {
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string): BadgeVariant => {
     switch (status) {
       case 'planned': return 'secondary'
       case 'in_progress': return 'default'
@@ -85,7 +87,7 @@ export function UpcomingMilestones({ milestones }: UpcomingMilestonesProps) {
                         {milestone.project.client?.name || 'クライアント未設定'} - {milestone.project.name}
                       </p>
                     </div>
-                    <Badge variant={getStatusColor(milestone.status) as any} className="text-xs">
+                    <Badge variant={getStatusColor(milestone.status)} className="text-xs">
                       {getStatusLabel(milestone.status)}
                     </Badge>
                   </div>

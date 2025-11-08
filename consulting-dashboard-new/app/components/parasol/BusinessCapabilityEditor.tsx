@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Edit2, Trash2, ChevronRight, Briefcase, Sparkles, MoreVertical } from 'lucide-react';
+import { Plus, Edit2, ChevronRight, Briefcase, Sparkles, Trash2 } from 'lucide-react';
 
 interface BusinessCapability {
   id?: string;
@@ -38,7 +38,7 @@ interface BusinessCapabilityEditorProps {
 }
 
 export function BusinessCapabilityEditor({ 
-  serviceId, 
+  serviceId: _serviceId, 
   capabilities, 
   onSave,
   onOperationClick,

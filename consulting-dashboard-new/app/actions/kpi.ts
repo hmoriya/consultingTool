@@ -2,7 +2,7 @@
 
 import { authDb, projectDb, financeDb } from '@/lib/db'
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'
-import { calculateUtilization, calculateAverageUtilization } from '@/lib/utils/utilization'
+import { calculateAverageUtilization } from '@/lib/utils/utilization'
 
 // KPIを計算して保存（日次/週次/月次）
 export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' | 'monthly') {
@@ -276,7 +276,7 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
       success: true,
       data: kpiHistory,
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('KPI calculation error:', error)
     return {
       success: false,
@@ -308,7 +308,7 @@ export async function getLatestKPIs(type: 'daily' | 'weekly' | 'monthly') {
       projectKPIs,
       roleKPIs,
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('Get latest KPIs error:', error)
     return null
   }
@@ -328,7 +328,7 @@ export async function getKPIHistory(type: 'daily' | 'weekly' | 'monthly', count:
       projectKPIs: kpi.projectKPIs ? JSON.parse(kpi.projectKPIs as string) : [],
       roleKPIs: kpi.roleKPIs ? JSON.parse(kpi.roleKPIs as string) : [],
     }))
-  } catch (error) {
+  } catch (_error) {
     console.error('Get KPI history error:', error)
     return []
   }

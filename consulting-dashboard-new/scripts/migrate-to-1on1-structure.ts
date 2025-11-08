@@ -90,7 +90,7 @@ class ParasolStructureMigrator {
             result.operationsProcessed++
             console.log(`✅ 移行完了: ${path.basename(operationPath)}`)
           }
-        } catch (error) {
+        } catch (_error) {
           const errorMsg = `❌ 移行エラー (${path.basename(operationPath)}): ${error}`
           result.errors.push(errorMsg)
           console.error(errorMsg)
@@ -100,7 +100,7 @@ class ParasolStructureMigrator {
       result.success = result.errors.length === 0
       console.log(`🎉 移行処理完了: ${result.operationsProcessed}/${operationPaths.length} オペレーション`)
 
-    } catch (error) {
+    } catch (_error) {
       const errorMsg = `💥 移行処理中に致命的エラー: ${error}`
       result.errors.push(errorMsg)
       console.error(errorMsg)
@@ -273,7 +273,7 @@ class ParasolStructureMigrator {
   }
 
   private generateUseCasePagePairsFromSteps(operationName: string, processSteps: string[]): Array<{useCaseName: string, pageTitle: string, directoryName: string}> {
-    const pairs: Array<{useCaseName: string, pageTitle: string, directoryName: string}> = []
+    const _pairs: Array<{useCaseName: string, pageTitle: string, directoryName: string}> = []
 
     // 一般的なビジネスオペレーションパターンと対応ユースケース
     const operationPatterns: {[key: string]: Array<{useCase: string, page: string, directory: string}>} = {
@@ -310,7 +310,7 @@ class ParasolStructureMigrator {
   }
 
   private inferUseCasesFromProcessSteps(processSteps: string[]): Array<{useCaseName: string, pageTitle: string, directoryName: string}> {
-    const pairs: Array<{useCaseName: string, pageTitle: string, directoryName: string}> = []
+    const _pairs: Array<{useCaseName: string, pageTitle: string, directoryName: string}> = []
 
     // プロセスステップから動詞を抽出してユースケースに変換
     const actionPatterns = [

@@ -186,7 +186,7 @@ export async function getPMDashboardData() {
       allocation: member.allocation
     })
     return acc
-  }, {} as Record<string, any>)
+  }, {} as Record<string, unknown>)
 
   return {
     projects: projectsWithCount,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, Copy, Maximize2, ZoomIn, ZoomOut, RotateCcw, Filter, Eye, EyeOff } from 'lucide-react';
@@ -18,8 +18,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  DialogTitle } from '@/components/ui/dialog';
 
 interface DiagramViewProps {
   type: 'mermaid' | 'plantuml';
@@ -45,7 +44,7 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
     specification: true
   });
   const { toast } = useToast();
-
+  
   // コンポーネントマウント時にズームをリセット
   useEffect(() => {
     setZoom(100);
@@ -306,6 +305,19 @@ export function DiagramView({ type, code, title, onError }: DiagramViewProps) {
       }
     }
   }, [originalSvgContent, zoom, stereotypeFilters]);
+
+  // code が undefined の場合の早期リターン
+  if (!code) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-muted-foreground text-center">
+            図表データがありません
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // SVGダウンロード
   const handleDownload = () => {

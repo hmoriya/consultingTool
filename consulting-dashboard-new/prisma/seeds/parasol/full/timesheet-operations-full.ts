@@ -2,7 +2,7 @@ import { seedRecordTimeEntries } from './timesheet-operations/01-record-time-ent
 import { seedApproveTimesheets } from './timesheet-operations/02-approve-timesheets'
 import { seedAnalyzeUtilization } from './timesheet-operations/03-analyze-utilization'
 
-export async function seedTimesheetOperationsFull(service: any, capability: any) {
+export async function seedTimesheetOperationsFull(service: unknown, capability: unknown) {
   console.log('  Seeding timesheet operations full data...')
   
   // 1. 工数を記録する

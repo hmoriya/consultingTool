@@ -117,7 +117,7 @@ export function ParasolFileEditor({
   const handleEditorWillMount = useCallback((monaco: Monaco) => {
     // パラソル専用スニペットの登録
     monaco.languages.registerCompletionItemProvider('markdown', {
-      provideCompletionItems: (model, position) => {
+      provideCompletionItems: (_model, _position) => {
         const suggestions = getParasolSnippets(monaco, fileType);
         return { suggestions };
       },
@@ -252,7 +252,7 @@ export function ParasolFileEditor({
 }
 
 // パラソル専用スニペットの定義
-function getParasolSnippets(monaco: any, fileType: FileType) {
+function getParasolSnippets(monaco: unknown, fileType: FileType) {
   const baseSnippets = [
     {
       label: 'entity',

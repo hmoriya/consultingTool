@@ -1,11 +1,11 @@
 import { getCurrentUser } from '@/actions/auth'
 import { getArticle } from '@/actions/knowledge'
 import { redirect, notFound } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { BookOpen, Calendar, User, Tag, ArrowLeft, Edit, Trash2, Share2, FileText, Link as LinkIcon, Eye } from 'lucide-react'
+import { BookOpen, Calendar, User, Tag, ArrowLeft, Edit, Share2, Eye, Trash2, FileText } from 'lucide-react'
 import Link from 'next/link'
 import { MarkdownRenderer } from '@/components/markdown-renderer'
 import { LikeButton } from '@/components/knowledge/like-button'
@@ -40,7 +40,7 @@ export default async function KnowledgeDetailPage({ params }: { params: Promise<
   // デバッグ用ログ
   console.log('Current user:', user.id, user.name, user.role)
   console.log('Article author:', article.authorId)
-  const userRole = typeof user.role === 'object' ? (user.role as any).name : user.role
+  const userRole = typeof user.role === 'object' ? (user.role as { name: string }).name : user.role
   console.log('User role (parsed):', userRole)
   console.log('Should show edit button:', user.id === article.authorId || userRole === 'Executive')
 
@@ -88,7 +88,7 @@ export default async function KnowledgeDetailPage({ params }: { params: Promise<
                   <Button variant="ghost" size="icon">
                     <Share2 className="h-4 w-4" />
                   </Button>
-                  {(user.id === article.authorId || (typeof user.role === 'object' ? (user.role as any).name : user.role) === 'Executive') && (
+                  {(user.id === article.authorId || (typeof user.role === 'object' ? (user.role as { name: string }).name : user.role) === 'Executive') && (
                     <>
                       <Link href={`/knowledge/${article.id}/edit`}>
                         <Button variant="ghost" size="icon" title="編集">

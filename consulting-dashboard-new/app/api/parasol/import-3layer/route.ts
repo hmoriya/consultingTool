@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 import fs from 'fs/promises'
 import path from 'path'
+import type { 
+  PageImport
+} from '@/app/types/parasol-api'
 
 const parasolDb = new ParasolPrismaClient()
 
@@ -62,7 +65,7 @@ class Layer3PageClassifier {
       usecase: ['ウィザード', '詳細設定', '専用', '固有']
     }
 
-    const lowerContent = content.toLowerCase()
+    const _lowerContent = content.toLowerCase()
 
     // Global indicators
     if (indicators.global.some(term => content.includes(term))) {
@@ -81,8 +84,8 @@ class Layer3PageClassifier {
 
 // 重複解決ロジック
 class DuplicationResolver {
-  async resolveDuplication(pages: any[], conflictResolution: string = 'merge') {
-    const duplicateGroups = new Map<string, any[]>()
+  async resolveDuplication(pages: PageImport[], conflictResolution: string = 'merge') {
+    const duplicateGroups = new Map<string, PageImport[]>()
 
     // グループ化
     for (const page of pages) {
@@ -94,13 +97,13 @@ class DuplicationResolver {
     }
 
     const plan = {
-      merge: [] as any[],
-      layer1Candidates: [] as any[],
-      layer2Candidates: [] as any[],
-      conflicts: [] as any[]
+      merge: [] as PageImport[],
+      layer1Candidates: [] as PageImport[],
+      layer2Candidates: [] as PageImport[],
+      conflicts: [] as PageImport[][]
     }
 
-    for (const [name, group] of duplicateGroups.entries()) {
+    for (const [_name, group] of duplicateGroups.entries()) {
       if (group.length === 1) {
         plan.merge.push(group[0])
         continue
@@ -119,7 +122,7 @@ class DuplicationResolver {
     return plan
   }
 
-  private isGlobalCandidate(pages: any[]): boolean {
+  private isGlobalCandidate(pages: PageImport[]): boolean {
     // 全サービスで共通利用される可能性のあるページ
     const globalKeywords = ['ログイン', 'ダッシュボード', '通知', 'エラー']
     return pages.some(page =>
@@ -129,7 +132,7 @@ class DuplicationResolver {
     )
   }
 
-  private isOperationCandidate(pages: any[]): boolean {
+  private isOperationCandidate(pages: PageImport[]): boolean {
     // 複数オペレーションで共有される可能性のあるページ
     const operationKeywords = ['一覧', '検索', '成果物提出', '請求書', 'コスト']
     return pages.some(page =>
@@ -139,7 +142,7 @@ class DuplicationResolver {
     )
   }
 
-  private selectCanonical(pages: any[], resolution: string): any {
+  private selectCanonical(pages: PageImport[], resolution: string): PageImport {
     switch (resolution) {
       case 'merge':
         // 最も包括的なコンテンツを持つページを選択
@@ -183,7 +186,7 @@ async function scan3LayerStructure(basePath: string) {
           name: file.replace('.md', '')
         })
       }
-    } catch (error) {
+    } catch {
       // global-shared-pages が存在しない場合はスキップ
     }
 
@@ -192,7 +195,7 @@ async function scan3LayerStructure(basePath: string) {
     for (const serviceDir of serviceDirs.filter(d => d !== 'global-shared-pages')) {
       await scanServicePages(path.join(servicesPath, serviceDir), serviceDir, classifier, pages)
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('MDファイルスキャンエラー:', error)
     throw error
   }
@@ -200,7 +203,7 @@ async function scan3LayerStructure(basePath: string) {
   return pages
 }
 
-async function scanServicePages(servicePath: string, serviceId: string, classifier: any, pages: any[]) {
+async function scanServicePages(servicePath: string, serviceId: string, classifier: Layer3PageClassifier, pages: PageImport[]) {
   try {
     const capabilitiesPath = path.join(servicePath, 'capabilities')
     const capabilityDirs = await fs.readdir(capabilitiesPath)
@@ -240,7 +243,7 @@ async function scanServicePages(servicePath: string, serviceId: string, classifi
         }
       }
     }
-  } catch (error) {
+  } catch (_error) {
     console.error(`サービス ${serviceId} のスキャンエラー:`, error)
   }
 }
@@ -250,7 +253,7 @@ async function scanPagesDirectory(
   layer: 'global' | 'operation' | 'usecase',
   serviceId: string,
   operationId: string,
-  pages: any[],
+  pages: PageImport[],
   usecaseId?: string
 ) {
   try {
@@ -269,7 +272,7 @@ async function scanPagesDirectory(
         usecaseId
       })
     }
-  } catch (error) {
+  } catch {
     // ディレクトリが存在しない場合はスキップ
   }
 }
@@ -364,7 +367,7 @@ export async function POST(request: Request) {
         })
         migrationSummary.globalSharedPages++
         layerClassification.layer1.push(page.displayName)
-      } catch (error) {
+      } catch (_error) {
         migrationSummary.errors.push(`Layer 1 ページ作成エラー: ${page.displayName} - ${error}`)
       }
     }
@@ -385,7 +388,7 @@ export async function POST(request: Request) {
         })
         migrationSummary.operationSharedPages++
         layerClassification.layer2.push(page.displayName)
-      } catch (error) {
+      } catch (_error) {
         migrationSummary.errors.push(`Layer 2 ページ作成エラー: ${page.displayName} - ${error}`)
       }
     }
@@ -406,7 +409,7 @@ export async function POST(request: Request) {
         })
         migrationSummary.usecaseDedicatedPages++
         layerClassification.layer3.push(page.displayName)
-      } catch (error) {
+      } catch (_error) {
         migrationSummary.errors.push(`Layer 3 ページ作成エラー: ${page.displayName} - ${error}`)
       }
     }
@@ -425,7 +428,7 @@ export async function POST(request: Request) {
       layerClassification
     })
 
-  } catch (error) {
+  } catch (_error) {
     console.error('3層分離インポートエラー:', error)
     return NextResponse.json({
       success: false,

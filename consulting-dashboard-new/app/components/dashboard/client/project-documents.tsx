@@ -2,15 +2,24 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { FileText, Download, File } from 'lucide-react'
+import { Download, File, FileText } from 'lucide-react'
 import { getProjectDocuments } from '@/actions/client-portal'
 
 interface ProjectDocumentsProps {
   projectId: string
 }
 
+interface DocumentInfo {
+  id: string
+  type: string
+  name: string
+  size: string
+  uploadedAt: string
+  uploadedBy: string
+}
+
 export function ProjectDocuments({ projectId }: ProjectDocumentsProps) {
-  const [documents, setDocuments] = useState<any[]>([])
+  const [documents, setDocuments] = useState<DocumentInfo[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -18,7 +27,7 @@ export function ProjectDocuments({ projectId }: ProjectDocumentsProps) {
       try {
         const docs = await getProjectDocuments(projectId)
         setDocuments(docs)
-      } catch (error) {
+      } catch (_error) {
         console.error('Failed to load documents:', error)
       } finally {
         setLoading(false)

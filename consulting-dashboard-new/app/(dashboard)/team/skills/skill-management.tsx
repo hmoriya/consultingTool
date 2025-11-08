@@ -12,21 +12,36 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+  DialogTrigger } from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { Plus, Settings } from 'lucide-react'
 import { createSkillCategory, createSkill } from '../../../actions/skills'
 
+interface Category {
+  id: string
+  name: string
+  description?: string | null
+  order?: number | null
+  _count?: {
+    skills: number
+  }
+  skills?: Array<{
+    id: string
+    name: string
+    _count?: {
+      userSkills: number
+    }
+  }>
+}
+
 interface SkillManagementProps {
-  categories: any[]
+  categories: Category[]
 }
 
 export function SkillManagement({ categories }: SkillManagementProps) {
@@ -54,7 +69,7 @@ export function SkillManagement({ categories }: SkillManagementProps) {
         setCategoryOpen(false)
         setCategoryName('')
         setCategoryOrder('')
-      } catch (error) {
+      } catch (_error) {
         toast.error(error instanceof Error ? error.message : 'カテゴリの作成に失敗しました')
       }
     })
@@ -76,7 +91,7 @@ export function SkillManagement({ categories }: SkillManagementProps) {
         setSkillOpen(false)
         setSkillName('')
         setSelectedCategoryId('')
-      } catch (error) {
+      } catch (_error) {
         toast.error(error instanceof Error ? error.message : 'スキルの作成に失敗しました')
       }
     })
@@ -111,7 +126,7 @@ export function SkillManagement({ categories }: SkillManagementProps) {
           }
         }
         toast.success('初期データを作成しました')
-      } catch (error) {
+      } catch {
         toast.error('初期データの作成中にエラーが発生しました')
       }
     })
@@ -259,7 +274,7 @@ export function SkillManagement({ categories }: SkillManagementProps) {
                 <div>
                   <CardTitle className="text-base">{category.name}</CardTitle>
                   <CardDescription>
-                    {category.skillCount}個のスキル • {category.userCount}件の登録
+                    {category._count?.skills || 0}個のスキル
                   </CardDescription>
                 </div>
                 <Badge variant="secondary">
@@ -269,15 +284,15 @@ export function SkillManagement({ categories }: SkillManagementProps) {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
-                {category.skills.map((skill: any) => (
+                {category.skills?.map((skill) => (
                   <Badge key={skill.id} variant="outline">
                     {skill.name}
-                    {skill.users.length > 0 && (
-                      <span className="ml-1 text-xs">({skill.users.length})</span>
+                    {skill._count?.userSkills && skill._count.userSkills > 0 && (
+                      <span className="ml-1 text-xs">({skill._count.userSkills})</span>
                     )}
                   </Badge>
                 ))}
-                {category.skills.length === 0 && (
+                {(!category.skills || category.skills.length === 0) && (
                   <p className="text-sm text-muted-foreground">
                     スキルが登録されていません
                   </p>

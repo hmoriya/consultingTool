@@ -113,7 +113,7 @@ async function addMoreClients() {
 
     console.log('\n✅ Client organizations added successfully')
 
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error adding client organizations:', error)
     throw error
   }

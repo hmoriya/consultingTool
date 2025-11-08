@@ -131,7 +131,7 @@ export async function createProject(data: {
   const now = new Date()
   const yearMonth = now.getFullYear().toString().slice(-2) + (now.getMonth() + 1).toString().padStart(2, '0')
   const namePrefix = data.name.slice(0, 3).toUpperCase()
-  let code = `${namePrefix}${yearMonth}${Math.floor(Math.random() * 100).toString().padStart(2, '0')}`
+  const code = `${namePrefix}${yearMonth}${Math.floor(Math.random() * 100).toString().padStart(2, '0')}`
 
   // プロジェクトサービスを使用してプロジェクトを作成
   try {
@@ -166,7 +166,7 @@ export async function createProject(data: {
     })
 
     return project
-  } catch (error: any) {
+  } catch (error: unknown) {
     // コードが重複している場合は再生成
     if (error.message?.includes('Unique constraint failed')) {
       return createProject(data)
@@ -244,7 +244,7 @@ export async function getProjectDetails(projectId: string) {
 
   // プロジェクトメトリクスを取得（現在は空配列を返す）
   // TODO: 将来的に財務サービスから取得
-  const projectMetrics: any[] = []
+  const projectMetrics: unknown[] = []
 
   // メンバーのロール情報を追加
   const memberUserIds = project.projectMembers.map(m => m.userId)
@@ -297,7 +297,7 @@ export async function getActiveProjects() {
     }))
 
     return { success: true, data: formattedProjects }
-  } catch (error) {
+  } catch (_error) {
     console.error('getActiveProjects error:', error)
     return { success: false, error: 'プロジェクト一覧の取得に失敗しました' }
   }

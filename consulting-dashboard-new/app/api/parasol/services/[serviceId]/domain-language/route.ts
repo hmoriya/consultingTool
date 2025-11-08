@@ -5,10 +5,10 @@ const parasolDb = new ParasolPrismaClient()
 
 export async function GET(
   request: Request,
-  { params }: { params: { serviceId: string } }
+  { params }: { params: Promise<{ serviceId: string }> }
 ) {
   try {
-    const { serviceId } = params
+    const { serviceId } = await params
 
     const domainLanguage = await parasolDb.domainLanguage.findUnique({
       where: { serviceId }
@@ -41,7 +41,7 @@ export async function GET(
         updatedAt: domainLanguage.updatedAt
       }
     })
-  } catch (error) {
+  } catch (_error) {
     console.error('Domain language fetch error:', error)
     return NextResponse.json(
       { error: 'ドメイン言語の取得中にエラーが発生しました', details: error },

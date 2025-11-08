@@ -10,29 +10,27 @@ import {
   Calendar,
   Clock,
   User,
-  MoreVertical,
   Edit,
-  Trash2,
   CheckCircle2,
   Play,
   Pause,
-  Eye
+  Eye,
+  Trash2,
+  MoreVertical
 } from 'lucide-react'
-import { TaskItem, TaskStatus, TaskPriority, updateTaskStatus, deleteTask } from '@/actions/tasks'
+import { TaskItem, TaskStatus, TaskPriority, deleteTask } from '@/actions/tasks'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+  DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  SelectValue } from '@/components/ui/select'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 
@@ -49,7 +47,7 @@ const statusLabels: Record<TaskStatus, string> = {
   completed: '完了'
 }
 
-const statusColors: Record<TaskStatus, string> = {
+const _statusColors: Record<TaskStatus, string> = {
   todo: 'bg-gray-100 text-gray-700',
   in_progress: 'bg-blue-100 text-blue-700',
   review: 'bg-yellow-100 text-yellow-700',
@@ -84,7 +82,7 @@ export function TaskCard({ task, onStatusChange, onTaskUpdate }: TaskCardProps) 
       setIsDeleting(true)
       await deleteTask(task.id)
       onTaskUpdate()
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to delete task:', error)
     } finally {
       setIsDeleting(false)

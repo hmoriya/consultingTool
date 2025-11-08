@@ -4,17 +4,17 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 import {
   ArrowLeft,
-  Save,
   Eye,
   BarChart3,
   Settings,
-  FileText,
   Layout,
   Code,
   Maximize2,
   Minimize2,
   Folder,
-  FolderOpen
+  FolderOpen,
+  Save,
+  FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -106,139 +106,8 @@ export default function ParasolEnhancedEditPage() {
     { label: config.title, href: '', current: true }
   ];
 
-  // ファイルデータの読み込み
-  useEffect(() => {
-    if (service && capability && operation && usecase) {
-      loadFile();
-    }
-  }, [filePath]);
-
-  const loadFile = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/parasol/files?path=${encodeURIComponent(filePath)}`);
-
-      if (!response.ok) {
-        throw new Error(`Failed to load file: ${response.statusText}`);
-      }
-
-      const data: FileData = await response.json();
-      setFileData(data);
-      setIsModified(false);
-    } catch (error) {
-      console.error('Error loading file:', error);
-      toast.error('ファイルの読み込みに失敗しました');
-
-      // ファイルが存在しない場合は新規作成
-      setFileData({
-        content: getDefaultContent(fileType),
-        metadata: {
-          title: config.title,
-          description: config.description,
-          version: '1.0.0',
-          lastModified: new Date(),
-          author: 'current-user',
-          tags: [],
-          category: fileType
-        },
-        exists: false,
-        lastModified: new Date()
-      });
-      setIsModified(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ファイルの保存
-  const saveFile = async () => {
-    if (!fileData || !isModified) return;
-
-    try {
-      setSaving(true);
-      const response = await fetch(`/api/parasol/files?path=${encodeURIComponent(filePath)}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          content: fileData.content,
-          metadata: fileData.metadata
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to save file: ${response.statusText}`);
-      }
-
-      setFileData(prev => prev ? { ...prev, lastModified: new Date() } : null);
-      setIsModified(false);
-      toast.success('ファイルを保存しました');
-    } catch (error) {
-      console.error('Error saving file:', error);
-      toast.error('ファイルの保存に失敗しました');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // コンテンツの更新
-  const updateContent = (content: string) => {
-    setFileData(prev => prev ? { ...prev, content } : null);
-    setIsModified(true);
-  };
-
-  // 表示モードの切り替え
-  const toggleViewMode = useCallback(() => {
-    const newViewMode = viewMode === 'fullscreen' ? 'integrated' : 'fullscreen';
-    setViewMode(newViewMode);
-
-    // URLパラメータも更新
-    const newSearchParams = new URLSearchParams(searchParams.toString());
-    newSearchParams.set('view', newViewMode);
-    router.replace(`${window.location.pathname}?${newSearchParams.toString()}`);
-  }, [viewMode, searchParams, router]);
-
-  // モード変更時のURL更新
-  const handleModeChange = useCallback((mode: EditMode) => {
-    setCurrentMode(mode);
-
-    const newSearchParams = new URLSearchParams(searchParams.toString());
-    newSearchParams.set('mode', mode);
-    router.replace(`${window.location.pathname}?${newSearchParams.toString()}`);
-  }, [searchParams, router]);
-
-  // ファイルタイプ変更時のURL更新
-  const handleFileTypeChange = useCallback((newFileType: FileType) => {
-    const newSearchParams = new URLSearchParams(searchParams.toString());
-    newSearchParams.set('file', newFileType);
-    router.replace(`${window.location.pathname}?${newSearchParams.toString()}`);
-  }, [searchParams, router]);
-
-  // キーボードショートカット
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // Ctrl+S または Cmd+S で保存
-      if ((event.ctrlKey || event.metaKey) && event.key === 's') {
-        event.preventDefault();
-        saveFile();
-      }
-
-      // F11 または Ctrl+Shift+F で表示モード切り替え
-      if (event.key === 'F11' || ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'F')) {
-        event.preventDefault();
-        toggleViewMode();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [saveFile, toggleViewMode]);
-
   // デフォルトコンテンツの生成
-  const getDefaultContent = (type: FileType): string => {
+  const getDefaultContent = useCallback((type: FileType): string => {
     switch (type) {
       case 'usecase':
         return `# ユースケース: ${usecase}
@@ -355,12 +224,12 @@ export default function ParasolEnhancedEditPage() {
 
 ### 自サービスAPI
 | API | エンドポイント | 利用目的 | パラメータ |
-|-----|---------------|----------|-----------|
+|-----|---------------|----------|------------|
 |  |  |  |  |
 
 ### 他サービスAPI（ユースケース利用型）
 | サービス | ユースケースAPI | 利用タイミング | 期待結果 |
-|---------|-----------------|---------------|----------|
+|---------|-----------------|---------------|-----------|
 |  |  |  |  |
 
 ## API呼び出しシーケンス
@@ -398,9 +267,143 @@ export default function ParasolEnhancedEditPage() {
       default:
         return '';
     }
+  }, [usecase]);
+
+  const loadFile = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/parasol/files?path=${encodeURIComponent(filePath)}`);
+
+      if (!response.ok) {
+        throw new Error(`Failed to load file: ${response.statusText}`);
+      }
+
+      const data: FileData = await response.json();
+      setFileData(data);
+      setIsModified(false);
+    } catch (_error) {
+      console.error('Error loading file:', _error);
+      toast.error('ファイルの読み込みに失敗しました');
+
+      // ファイルが存在しない場合は新規作成
+      setFileData({
+        content: getDefaultContent(fileType),
+        metadata: {
+          title: config.title,
+          description: config.description,
+          version: '1.0.0',
+          lastModified: new Date(),
+          author: 'current-user',
+          tags: [],
+          category: fileType
+        },
+        exists: false,
+        lastModified: new Date()
+      });
+      setIsModified(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [filePath, fileType, config.title, config.description, getDefaultContent]);
+
+  // ファイルの保存
+  const saveFile = useCallback(async () => {
+    if (!fileData || !isModified) return;
+
+    try {
+      setSaving(true);
+      const response = await fetch(`/api/parasol/files?path=${encodeURIComponent(filePath)}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: fileData.content,
+          metadata: fileData.metadata
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to save file: ${response.statusText}`);
+      }
+
+      setFileData(prev => prev ? { ...prev, lastModified: new Date() } : null);
+      setIsModified(false);
+      toast.success('ファイルを保存しました');
+    } catch (_error) {
+      console.error('Error saving file:', _error);
+      toast.error('ファイルの保存に失敗しました');
+    } finally {
+      setSaving(false);
+    }
+  }, [fileData, filePath, isModified]);
+
+  // コンテンツの更新
+  const updateContent = (content: string) => {
+    setFileData(prev => prev ? { ...prev, content } : null);
+    setIsModified(true);
   };
 
+  // 表示モードの切り替え
+  const toggleViewMode = useCallback(() => {
+    const newViewMode = viewMode === 'fullscreen' ? 'integrated' : 'fullscreen';
+    setViewMode(newViewMode);
+
+    // URLパラメータも更新
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    newSearchParams.set('view', newViewMode);
+    router.replace(`${window.location.pathname}?${newSearchParams.toString()}`);
+  }, [viewMode, searchParams, router]);
+
+  // モード変更時のURL更新
+  const handleModeChange = useCallback((mode: EditMode) => {
+    setCurrentMode(mode);
+
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    newSearchParams.set('mode', mode);
+    router.replace(`${window.location.pathname}?${newSearchParams.toString()}`);
+  }, [searchParams, router]);
+
+  // ファイルタイプ変更時のURL更新
+  const handleFileTypeChange = useCallback((newFileType: FileType) => {
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    newSearchParams.set('file', newFileType);
+    router.replace(`${window.location.pathname}?${newSearchParams.toString()}`);
+  }, [searchParams, router]);
+
+  // キーボードショートカット
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Ctrl+S または Cmd+S で保存
+      if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+        event.preventDefault();
+        saveFile();
+      }
+
+      // F11 または Ctrl+Shift+F で表示モード切り替え
+      if (event.key === 'F11' || ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'F')) {
+        event.preventDefault();
+        toggleViewMode();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [saveFile, toggleViewMode]);
+
+  // getDefaultContentは上で定義済み
+
+  // ファイルデータの読み込み
+  useEffect(() => {
+    if (service && capability && operation && usecase) {
+      loadFile();
+    }
+  }, [service, capability, operation, usecase, loadFile]);
+
   if (loading) {
+
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

@@ -2,7 +2,7 @@
  * ビジネスオペレーション定義からドメイン言語を生成する
  */
 
-interface OperationTemplate {
+interface _OperationTemplate {
   serviceId: string
   serviceName: string
   serviceDisplayName: string

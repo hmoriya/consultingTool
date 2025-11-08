@@ -30,7 +30,7 @@ export default function MarkdownPreview({
       try {
         setIsLoading(true);
 
-        let processor = remark()
+        const processor = remark()
           .use(remarkGfm) // GitHub Flavored Markdown
           .use(remarkHtml, { sanitize: false }); // HTMLに変換
 
@@ -42,7 +42,7 @@ export default function MarkdownPreview({
 
         const result = await processor.process(contentWithMermaidFallback);
         setHtmlContent(result.toString());
-      } catch (error) {
+      } catch (_error) {
         console.error('Markdown processing error:', error);
         // フォールバック: 基本的なMarkdownプロセッサーのみ使用
         try {
@@ -51,7 +51,7 @@ export default function MarkdownPreview({
             .use(remarkHtml, { sanitize: false });
           const result = await basicProcessor.process(content);
           setHtmlContent(result.toString() + '<p><em>Note: Some advanced features may not be available</em></p>');
-        } catch (basicError) {
+        } catch (_basicError) {
           setHtmlContent('<div class="error-message"><h3>Markdown Processing Error</h3><pre>' + content.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre></div>');
         }
       } finally {
@@ -81,8 +81,8 @@ export default function MarkdownPreview({
         if (elements.length > 0) {
           mermaid.run();
         }
-      } catch (error) {
-        console.error('Mermaid rendering error:', error);
+      } catch (_error) {
+        console.error('Mermaid rendering error:', _error);
       }
     };
 
@@ -141,7 +141,7 @@ export default function MarkdownPreview({
 
         html2pdf().set(options).from(element).save();
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('PDF export error:', error);
     }
   };

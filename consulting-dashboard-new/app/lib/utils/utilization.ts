@@ -1,4 +1,4 @@
-import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, differenceInDays } from 'date-fns'
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter } from 'date-fns'
 
 /**
  * 営業日数を計算する（土日を除く）

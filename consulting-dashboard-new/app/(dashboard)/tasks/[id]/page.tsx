@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { CheckCircle2, Circle, Clock, AlertCircle, Calendar, Timer, User, ArrowLeft } from 'lucide-react'
+import { CheckCircle2, Circle, Clock, AlertCircle, Calendar, Timer, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { db } from '@/lib/db'
 import { projectDb } from '@/lib/db/project-db'
@@ -100,7 +100,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
               </CardDescription>
             </div>
             <div className="flex gap-2">
-              <Badge variant={priorityInfo.color as any}>
+              <Badge variant={priorityInfo.color as 'default' | 'secondary' | 'destructive'}>
                 優先度: {priorityInfo.label}
               </Badge>
               <Badge className={statusInfo.color}>

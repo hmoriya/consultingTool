@@ -3,25 +3,24 @@ import { notFound } from 'next/navigation'
 import AppLayout from '@/components/layouts/app-layout'
 import { ContactList } from '@/components/clients/contact-list'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { db } from '@/lib/db'
 import { getOrganizationContacts } from '@/actions/organization-contacts'
 import { 
   Building2, 
   Globe, 
-  Users, 
   Calendar, 
   MapPin, 
   Phone, 
   Mail,
-  ArrowLeft
+  ArrowLeft,
+  Users
 } from 'lucide-react'
 import Link from 'next/link'
 
 interface ClientDetailPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export async function generateMetadata({ params }: ClientDetailPageProps): Promise<Metadata> {

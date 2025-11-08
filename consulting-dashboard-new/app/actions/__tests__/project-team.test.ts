@@ -8,6 +8,58 @@ import {
 import { prismaMock } from '../../__mocks__/db'
 import * as authModule from '../auth'
 
+// Type definitions for mock data
+type MockProjectMember = {
+  userId: string
+  projectId: string
+  role: string
+  allocation: number
+  startDate: Date
+  endDate?: Date | null
+  user?: {
+    id: string
+    name: string
+    email: string
+    role: { name: string }
+  }
+}
+
+type MockProject = {
+  id: string
+  name?: string
+  projectMembers: Array<{ userId: string; role: string }>
+}
+
+type MockUser = {
+  id: string
+  organizationId: string
+  roleId?: string
+  role?: { name: string }
+}
+
+type MockGroupByResult = {
+  userId: string
+  _sum: { allocation: number | null }
+}
+
+type MockProjectWithMembers = {
+  id: string
+  name: string
+  projectMembers: Array<{
+    user: {
+      id: string
+      name: string
+      role: { name: string }
+      userSkills: Array<{
+        skill: { name: string; category: string }
+      }>
+    }
+    allocation: number
+    role: string
+  }>
+  tasks: Array<{ status: string }>
+}
+
 // getCurrentUserのモック
 jest.mock('../auth')
 const mockedAuth = authModule as jest.Mocked<typeof authModule>
@@ -72,7 +124,7 @@ describe('project-team actions', () => {
         ]
       }
 
-      prismaMock.projectMember.findMany.mockResolvedValue(mockProject.projectMembers as any)
+      prismaMock.projectMember.findMany.mockResolvedValue(mockProject.projectMembers as MockProjectMember[])
 
       const result = await getProjectTeamMembers('proj-1')
 
@@ -120,7 +172,7 @@ describe('project-team actions', () => {
       prismaMock.project.findFirst.mockResolvedValue({
         id: 'proj-1',
         projectMembers: [{ userId: '1', role: 'pm' }]
-      } as any)
+      } as MockProject)
 
       // ユーザーの存在確認
       prismaMock.user.findFirst.mockResolvedValue({
@@ -128,7 +180,7 @@ describe('project-team actions', () => {
         organizationId: 'org-1',
         roleId: 'consultant-role',
         role: { name: 'consultant' }
-      } as any)
+      } as MockUser)
 
       // 既存メンバーチェック
       prismaMock.projectMember.findUnique.mockResolvedValue(null)
@@ -136,13 +188,13 @@ describe('project-team actions', () => {
       // 現在の稼働率チェック
       prismaMock.projectMember.groupBy.mockResolvedValue([
         { userId: '3', _sum: { allocation: 30 } }
-      ] as any)
+      ] as MockGroupByResult[])
 
       prismaMock.projectMember.create.mockResolvedValue({
         ...validMemberData,
         startDate: new Date(validMemberData.startDate),
         endDate: null
-      } as any)
+      } as MockProjectMember)
 
       const result = await addProjectMember(validMemberData)
 
@@ -163,18 +215,18 @@ describe('project-team actions', () => {
       prismaMock.project.findFirst.mockResolvedValue({
         id: 'proj-1',
         projectMembers: [{ userId: '1', role: 'pm' }]
-      } as any)
+      } as MockProject)
 
       prismaMock.user.findFirst.mockResolvedValue({
         id: '3',
         organizationId: 'org-1'
-      } as any)
+      } as MockUser)
 
       // 既にアサイン済み
       prismaMock.projectMember.findUnique.mockResolvedValue({
         userId: '3',
         projectId: 'proj-1'
-      } as any)
+      } as MockProjectMember)
 
       const result = await addProjectMember(validMemberData)
 
@@ -188,19 +240,19 @@ describe('project-team actions', () => {
       prismaMock.project.findFirst.mockResolvedValue({
         id: 'proj-1',
         projectMembers: [{ userId: '1', role: 'pm' }]
-      } as any)
+      } as MockProject)
 
       prismaMock.user.findFirst.mockResolvedValue({
         id: '3',
         organizationId: 'org-1'
-      } as any)
+      } as MockProject)
 
       prismaMock.projectMember.findUnique.mockResolvedValue(null)
 
       // 現在の稼働率が70%
       prismaMock.projectMember.groupBy.mockResolvedValue([
         { userId: '3', _sum: { allocation: 70 } }
-      ] as any)
+      ] as MockGroupByResult[])
 
       const result = await addProjectMember(validMemberData)
 
@@ -214,13 +266,13 @@ describe('project-team actions', () => {
       prismaMock.project.findFirst.mockResolvedValue({
         id: 'proj-1',
         projectMembers: [{ userId: '1', role: 'pm' }]
-      } as any)
+      } as MockProject)
 
       // 他組織のユーザー
       prismaMock.user.findFirst.mockResolvedValue({
         id: '3',
         organizationId: 'other-org'
-      } as any)
+      } as MockProject)
 
       const result = await addProjectMember(validMemberData)
 
@@ -234,7 +286,7 @@ describe('project-team actions', () => {
       prismaMock.project.findFirst.mockResolvedValue({
         id: 'proj-1',
         projectMembers: [{ userId: '2', role: 'consultant' }]
-      } as any)
+      } as MockProject)
 
       const result = await addProjectMember(validMemberData)
 
@@ -252,24 +304,24 @@ describe('project-team actions', () => {
         projectId: 'proj-1',
         role: 'consultant',
         allocation: 50
-      } as any)
+      } as MockProject)
 
       prismaMock.project.findFirst.mockResolvedValue({
         id: 'proj-1',
         projectMembers: [{ userId: '1', role: 'pm' }]
-      } as any)
+      } as MockProject)
 
       // 他のプロジェクトでの稼働率チェック
       prismaMock.projectMember.groupBy.mockResolvedValue([
         { userId: '2', _sum: { allocation: 30 } }
-      ] as any)
+      ] as MockGroupByResult[])
 
       prismaMock.projectMember.update.mockResolvedValue({
         userId: '2',
         projectId: 'proj-1',
         role: 'consultant',
         allocation: 80
-      } as any)
+      } as MockProject)
 
       const result = await updateProjectMember({
         userId: '2',
@@ -296,17 +348,17 @@ describe('project-team actions', () => {
         userId: '2',
         projectId: 'proj-1',
         allocation: 50
-      } as any)
+      } as MockProject)
 
       prismaMock.project.findFirst.mockResolvedValue({
         id: 'proj-1',
         projectMembers: [{ userId: '1', role: 'pm' }]
-      } as any)
+      } as MockProject)
 
       // 他プロジェクトで既に60%稼働
       prismaMock.projectMember.groupBy.mockResolvedValue([
         { userId: '2', _sum: { allocation: 60 } }
-      ] as any)
+      ] as MockGroupByResult[])
 
       const result = await updateProjectMember({
         userId: '2',
@@ -341,7 +393,7 @@ describe('project-team actions', () => {
         userId: '2',
         projectId: 'proj-1',
         role: 'consultant'
-      } as any)
+      } as MockProject)
 
       prismaMock.project.findFirst.mockResolvedValue({
         id: 'proj-1',
@@ -349,7 +401,7 @@ describe('project-team actions', () => {
           { userId: '1', role: 'pm' },
           { userId: '2', role: 'consultant' }
         ]
-      } as any)
+      } as MockProject)
 
       // アクティブなタスクがない
       prismaMock.task.count.mockResolvedValue(0)
@@ -357,7 +409,7 @@ describe('project-team actions', () => {
       prismaMock.projectMember.delete.mockResolvedValue({
         userId: '2',
         projectId: 'proj-1'
-      } as any)
+      } as MockProject)
 
       const result = await removeProjectMember('2', 'proj-1')
 
@@ -379,7 +431,7 @@ describe('project-team actions', () => {
         userId: '1',
         projectId: 'proj-1',
         role: 'pm'
-      } as any)
+      } as MockProject)
 
       const result = await removeProjectMember('1', 'proj-1')
 
@@ -394,12 +446,12 @@ describe('project-team actions', () => {
         userId: '2',
         projectId: 'proj-1',
         role: 'consultant'
-      } as any)
+      } as MockProject)
 
       prismaMock.project.findFirst.mockResolvedValue({
         id: 'proj-1',
         projectMembers: [{ userId: '1', role: 'pm' }]
-      } as any)
+      } as MockProject)
 
       // アクティブなタスクがある
       prismaMock.task.count.mockResolvedValue(3)
@@ -417,12 +469,12 @@ describe('project-team actions', () => {
         userId: '3',
         projectId: 'proj-1',
         role: 'consultant'
-      } as any)
+      } as MockProject)
 
       prismaMock.project.findFirst.mockResolvedValue({
         id: 'proj-1',
         projectMembers: [{ userId: '2', role: 'consultant' }]
-      } as any)
+      } as MockProject)
 
       const result = await removeProjectMember('3', 'proj-1')
 
@@ -473,7 +525,7 @@ describe('project-team actions', () => {
         ]
       }
 
-      prismaMock.project.findUnique.mockResolvedValue(mockProject as any)
+      prismaMock.project.findUnique.mockResolvedValue(mockProject as MockProjectWithMembers)
 
       const result = await getProjectTeamStatistics('proj-1')
 

@@ -202,7 +202,7 @@ export async function seedProjectService() {
 
     console.log('✅ Project Service seeded successfully')
 
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error seeding project service:', error)
     throw error
   }

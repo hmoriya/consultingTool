@@ -10,23 +10,23 @@ import path from 'path'
 const prisma = new PrismaClient()
 
 // 各サービスのドメイン言語定義ファイルを読み込む
-const domainLanguageFiles = {
+const _domainLanguageFiles = {
   'productivity-visualization': path.join(__dirname, 'domain-languages/productivity-visualization-v2.md'),
   'collaboration-facilitation': path.join(__dirname, 'domain-languages/collaboration-facilitation-v2.md'),
   'knowledge-cocreation': path.join(__dirname, 'domain-languages/knowledge-cocreation-v2.md'),
   'revenue-optimization': path.join(__dirname, 'domain-languages/revenue-optimization-v2.md')
 }
 
-async function updateService(serviceName: string, domainLanguageContent: string) {
+async function updateService(_serviceName: string, domainLanguageContent: string) {
   try {
-    console.log(`📝 Updating ${serviceName}...`)
+    console.log(`📝 Updating ${_serviceName}...`)
     
     const service = await prisma.services.findFirst({
-      where: { name: serviceName }
+      where: { name: _serviceName }
     })
     
     if (!service) {
-      console.log(`⚠️  Service ${serviceName} not found, skipping...`)
+      console.log(`⚠️  Service ${_serviceName} not found, skipping...`)
       return
     }
     
@@ -50,10 +50,10 @@ async function updateService(serviceName: string, domainLanguageContent: string)
       }
     })
     
-    console.log(`✅ ${serviceName} updated successfully`)
-  } catch (error) {
-    console.error(`❌ Error updating ${serviceName}:`, error)
-    throw error
+    console.log(`✅ ${_serviceName} updated successfully`)
+  } catch (_error) {
+    console.error(`❌ Error updating ${_serviceName}:`, error)
+    throw _error
   }
 }
 
@@ -1205,9 +1205,9 @@ MONEY: 金額（通貨単位付き）
       console.log(`  ${service.name}: ${hasAggregates ? '✓ アグリゲート定義あり' : '✗ アグリゲート定義なし'}`)
     })
     
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ エラーが発生しました:', error)
-    throw error
+    throw _error
   } finally {
     await prisma.$disconnect()
   }

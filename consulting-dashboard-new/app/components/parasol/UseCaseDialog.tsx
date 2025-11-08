@@ -7,8 +7,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -93,7 +92,7 @@ export function UseCaseDialog({
       } else {
         alert(result.error || 'エラーが発生しました');
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to save useCase:', error);
       alert('保存に失敗しました');
     } finally {

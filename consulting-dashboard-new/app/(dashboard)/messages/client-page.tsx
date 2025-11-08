@@ -2,21 +2,19 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { 
   MessageCircle, 
-  Users, 
   Search, 
   Plus,
   Hash,
-  Lock,
-  ChevronRight
+  Lock
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ja } from 'date-fns/locale'
@@ -73,7 +71,7 @@ export default function MessageListClient({ initialChannels }: MessageListClient
     if (channels.length > 0) {
       console.log('First channel:', channels[0])
       console.log('Channel type:', channels[0].type)
-      console.log('Channel memberUsers:', (channels[0] as any).memberUsers)
+      console.log('Channel memberUsers:', channels[0].memberUsers)
     }
   }, [channels])
 
@@ -104,9 +102,9 @@ export default function MessageListClient({ initialChannels }: MessageListClient
   }
 
   // チャンネル名を取得（ダイレクトメッセージの場合は相手の名前）
-  const getChannelName = (channel: any) => {
+  const getChannelName = (channel: Channel) => {
     if (channel.type === 'DIRECT' && channel.memberUsers) {
-      const otherUser = channel.memberUsers.find((m: any) => m.userId !== user?.id)
+      const otherUser = channel.memberUsers?.find((m) => m.userId !== user?.id)
       if (otherUser?.user) {
         return otherUser.user.name
       }
@@ -147,7 +145,7 @@ export default function MessageListClient({ initialChannels }: MessageListClient
       </div>
 
       {/* タブ */}
-      <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as any)}>
+      <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as 'all' | 'project' | 'direct')}>
         <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
           <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             すべて
@@ -194,7 +192,7 @@ export default function MessageListClient({ initialChannels }: MessageListClient
                           <Avatar className="h-12 w-12 flex-shrink-0">
                             <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                               {(() => {
-                                const otherUser = channel.memberUsers.find((m: any) => m.userId !== user?.id)
+                                const otherUser = channel.memberUsers?.find((m) => m.userId !== user?.id)
                                 const name = otherUser?.user?.name || 'U'
                                 return name.slice(0, 2).toUpperCase()
                               })()}

@@ -1,13 +1,13 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Star, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 
 interface SkillsSummaryProps {
-  skills: any[]
+  skills: unknown[]
 }
 
 const skillCategories: Record<string, { label: string; color: string }> = {
@@ -32,7 +32,7 @@ export function SkillsSummary({ skills }: SkillsSummaryProps) {
     return 'text-gray-600'
   }
 
-  const sortedSkills = [...skills].sort((a, b) => b.proficiencyLevel - a.proficiencyLevel)
+  const sortedSkills = [...skills].sort((a, b) => (b.proficiencyLevel || 0) - (a.proficiencyLevel || 0))
 
   return (
     <Card>
@@ -72,7 +72,10 @@ export function SkillsSummary({ skills }: SkillsSummaryProps) {
               <Card className="border-muted">
                 <CardContent className="p-3 text-center">
                   <div className="text-2xl font-bold">
-                    {Math.round(skills.reduce((sum, s) => sum + s.proficiencyLevel, 0) / skills.length * 10) / 10}
+                    {skills.length > 0 
+                      ? Math.round(skills.reduce((sum, s) => sum + (s.proficiencyLevel || 0), 0) / skills.length * 10) / 10
+                      : '0'
+                    }
                   </div>
                   <div className="text-xs text-muted-foreground">平均熟練度</div>
                 </CardContent>

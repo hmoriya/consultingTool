@@ -50,7 +50,7 @@ export async function GET(
         updatedAt: service.updatedAt
       }
     })
-  } catch (error) {
+  } catch (_error) {
     console.error('Integration specification fetch error:', error)
     return NextResponse.json(
       { error: '統合仕様の取得中にエラーが発生しました', details: error },
@@ -107,7 +107,7 @@ export async function PUT(
         updatedAt: updatedService.updatedAt
       }
     })
-  } catch (error) {
+  } catch (_error) {
     console.error('Integration specification update error:', error)
     return NextResponse.json(
       { error: '統合仕様の更新中にエラーが発生しました', details: error },

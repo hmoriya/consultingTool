@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,16 +14,14 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
   Settings,
-  FileText,
   Monitor,
   Keyboard,
-  Save,
   RotateCcw,
-  History,
   Download,
   Upload,
-  Trash2,
-} from 'lucide-react';
+  Save,
+  FileText,
+  Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface FileMetadata {
@@ -63,7 +61,7 @@ export default function SettingsPanel({
   const [localEditorSettings, setLocalEditorSettings] = useState<EditorSettings>(editorSettings);
 
   // メタデータの更新
-  const updateMetadata = (key: keyof FileMetadata, value: any) => {
+  const updateMetadata = (key: keyof FileMetadata,_value) => {
     setLocalMetadata(prev => ({
       ...prev,
       [key]: value,
@@ -71,7 +69,7 @@ export default function SettingsPanel({
   };
 
   // エディタ設定の更新
-  const updateEditorSettings = (key: keyof EditorSettings, value: any) => {
+  const updateEditorSettings = (key: keyof EditorSettings,_value) => {
     const newSettings = {
       ...localEditorSettings,
       [key]: value,
@@ -142,7 +140,7 @@ export default function SettingsPanel({
           setLocalMetadata(data.metadata);
         }
         toast.success('設定をインポートしました');
-      } catch (error) {
+      } catch (_error) {
         toast.error('設定ファイルの読み込みに失敗しました');
       }
     };

@@ -5,7 +5,7 @@ import { db } from '@/lib/db'
 import { projectDb } from '@/lib/db/project-db'
 import { getCurrentUser } from '@/actions/auth'
 import { redirect } from 'next/navigation'
-import { startOfWeek, endOfWeek } from 'date-fns'
+// import { startOfWeek, endOfWeek } from 'date-fns'
 
 export default async function TimesheetPage() {
   const user = await getCurrentUser()

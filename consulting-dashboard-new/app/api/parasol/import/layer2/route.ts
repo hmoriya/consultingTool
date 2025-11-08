@@ -12,6 +12,18 @@ interface Layer2ImportRequest {
   dryRun?: boolean
 }
 
+interface PageInfo {
+  fileName: string
+  filePath: string
+  content: string
+  displayName: string
+  name: string
+  serviceId: string
+  capabilityId: string
+  operationId: string
+  layerType: string
+}
+
 // Layer 2 (オペレーション内共有) 専用インポート
 export async function POST(request: Request) {
   try {
@@ -29,8 +41,8 @@ export async function POST(request: Request) {
     const basePath = process.cwd()
     const servicesPath = path.join(basePath, 'docs', 'parasol', 'services')
 
-    const pages = []
-    const scanErrors = []
+    const pages: PageInfo[] = []
+    const scanErrors: { serviceId: string; operationId: string; error: string }[] = []
 
     // 各サービス内の shared-pages をスキャン
     try {
@@ -45,7 +57,7 @@ export async function POST(request: Request) {
           scanErrors
         )
       }
-    } catch (error) {
+    } catch (_error) {
       return NextResponse.json({
         success: false,
         error: 'サービスディレクトリのスキャンに失敗しました',
@@ -134,7 +146,7 @@ export async function POST(request: Request) {
           })
           processed.push({ ...page, action: 'created' })
         }
-      } catch (error) {
+      } catch (_error) {
         errors.push({
           page: page.name,
           error: error instanceof Error ? error.message : '未知のエラー'
@@ -168,7 +180,7 @@ export async function POST(request: Request) {
       scanErrors
     })
 
-  } catch (error) {
+  } catch (_error) {
     console.error('Layer 2 インポートエラー:', error)
     return NextResponse.json({
       success: false,
@@ -182,8 +194,8 @@ async function scanServiceSharedPages(
   servicePath: string,
   serviceId: string,
   targetOperationId: string | undefined,
-  pages: any[],
-  scanErrors: any[]
+  pages: unknown[],
+  scanErrors: unknown[]
 ) {
   try {
     const capabilitiesPath = path.join(servicePath, 'capabilities')
@@ -222,7 +234,7 @@ async function scanServiceSharedPages(
                 layerType: 'operation'
               })
             }
-          } catch (error) {
+          } catch (_error) {
             // shared-pages ディレクトリが存在しない場合はスキップ
             scanErrors.push({
               serviceId,
@@ -231,7 +243,7 @@ async function scanServiceSharedPages(
             })
           }
         }
-      } catch (error) {
+      } catch (_error) {
         scanErrors.push({
           serviceId,
           capabilityId: capabilityDir,
@@ -239,7 +251,7 @@ async function scanServiceSharedPages(
         })
       }
     }
-  } catch (error) {
+  } catch (_error) {
     scanErrors.push({
       serviceId,
       error: `サービススキャンエラー: ${error}`
@@ -247,8 +259,8 @@ async function scanServiceSharedPages(
   }
 }
 
-function analyzeDuplication(pages: any[]) {
-  const duplicateMap = new Map<string, any[]>()
+function analyzeDuplication(pages: PageInfo[]) {
+  const duplicateMap = new Map<string, PageInfo[]>()
 
   // displayName でグループ化
   for (const page of pages) {
@@ -302,7 +314,7 @@ function detectConsolidationType(displayName: string): string {
   return 'general'
 }
 
-function validateLayer2Page(page: any, level: string) {
+function validateLayer2Page(page: unknown, level: string) {
   const errors = []
   const warnings = []
 
@@ -346,7 +358,7 @@ function validateLayer2Page(page: any, level: string) {
   }
 }
 
-async function analyzeOperationImpact(pages: any[], targetOperationId?: string) {
+async function analyzeOperationImpact(pages: PageInfo[], targetOperationId?: string) {
   try {
     if (targetOperationId) {
       // 特定オペレーション内の影響分析
@@ -393,7 +405,7 @@ async function analyzeOperationImpact(pages: any[], targetOperationId?: string) 
         ]
       }
     }
-  } catch (error) {
+  } catch (_error) {
     return {
       impactScope: 'unknown',
       error: error instanceof Error ? error.message : '影響分析に失敗しました',

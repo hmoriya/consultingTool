@@ -1,29 +1,24 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
-import { Search, Plus, Save, FolderTree, Code } from 'lucide-react';
-import { saveServiceData, createBusinessOperation, createBusinessCapability, updateBusinessOperation, deleteBusinessOperation, getUseCasesForOperation } from '@/app/actions/parasol';
-import { ParasolTreeView } from './ParasolTreeView';
+import { Search, Plus, FolderTree, Code, Save } from 'lucide-react';
+import { saveServiceData, getUseCasesForOperation } from '@/app/actions/parasol';
 import { UnifiedTreeView } from './UnifiedTreeView';
-import { TreeNode, ParasolService } from '@/types/parasol';
+import { TreeNode, ParasolService, BusinessCapability, BusinessOperationWithRelations, UseCase, PageDefinition, TestDefinition, DomainLanguageDefinition, ApiSpecification, DbDesign } from '@/app/types/parasol';
 import { buildTreeFromParasolData, flattenTree } from '@/app/lib/parasol/tree-utils';
-import { UnifiedDesignEditor, DesignType } from './UnifiedDesignEditor';
-import { UnifiedMDEditor, MDEditorType } from './UnifiedMDEditor';
+import { UnifiedMDEditor } from './UnifiedMDEditor';
 import { ServiceForm } from './ServiceForm';
 import { BusinessCapabilityEditor } from './BusinessCapabilityEditor';
-import { BusinessOperationEditor } from './BusinessOperationEditor';
 import { UseCaseDialog } from './UseCaseDialog';
 import { UseCaseListView } from './UseCaseListView';
 import { CodeGenerationPanel } from './CodeGenerationPanel';
-import { DomainLanguageDefinition, APISpecification, DBSchema } from '@/types/parasol';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/app/hooks/use-toast';
-import { cn } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 import { generateInitialDomainLanguageFromCapabilities, refineDomainLanguageFromOperations } from '@/lib/parasol/domain-language-generator';
@@ -31,6 +26,7 @@ import DuplicationAnalysisDashboard from './DuplicationAnalysisDashboard';
 import DesignQualityDashboard from './DesignQualityDashboard';
 import DesignRestructureDashboard from './DesignRestructureDashboard';
 import APIUsageManagementPanel from './APIUsageManagementPanel';
+
 
 interface Service {
   id: string;
@@ -41,11 +37,11 @@ interface Service {
   domainLanguageDefinition?: string; // MD形式のドメイン言語定義
   apiSpecificationDefinition?: string; // MD形式のAPI仕様
   databaseDesignDefinition?: string; // MD形式のDB設計
-  domainLanguage: any; // 既存のJSON形式（後で廃止予定）
-  apiSpecification: any; // 既存のJSON形式（後で廃止予定）
-  dbSchema: any; // 既存のJSON形式（後で廃止予定）
-  capabilities?: any[];
-  businessOperations: any[];
+  domainLanguage: DomainLanguageDefinition | null;
+  apiSpecification: ApiSpecification | null;
+  dbSchema: DbDesign | null;
+  capabilities?: BusinessCapability[];
+  businessOperations: BusinessOperationWithRelations[];
 }
 
 interface ParasolSettingsPageProps {
@@ -53,7 +49,6 @@ interface ParasolSettingsPageProps {
 }
 
 export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPageProps) {
-  const router = useRouter();
   const [services, setServices] = useState<Service[]>(initialServices);
   const [mounted, setMounted] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -65,14 +60,11 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
   const [hasChanges, setHasChanges] = useState(false);
 
   // オペレーション編集モーダルの状態
-  const [operationModalOpen, setOperationModalOpen] = useState(false);
-  const [editingOperation, setEditingOperation] = useState<any>(null);
-  const [editingCapability, setEditingCapability] = useState<any>(null);
   const [showUseCaseDialog, setShowUseCaseDialog] = useState(false);
   const [currentOperationForUseCase, setCurrentOperationForUseCase] = useState<string | null>(null);
-  const [editingUseCase, setEditingUseCase] = useState<any>(null);
-  const [operationUseCases, setOperationUseCases] = useState<any[]>([]);
-  const [servicesWithUseCases, setServicesWithUseCases] = useState<any[]>([]);
+  const [editingUseCase, setEditingUseCase] = useState<unknown>(null);
+  const [operationUseCases, setOperationUseCases] = useState<unknown[]>([]);
+  const [servicesWithUseCases, setServicesWithUseCases] = useState<unknown[]>([]);
 
   const { toast } = useToast();
 
@@ -92,7 +84,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
             console.error('Failed to load usecases:', result.error);
             setOperationUseCases([]);
           }
-        } catch (error) {
+        } catch (_error) {
           console.error('Error loading usecases:', error);
           setOperationUseCases([]);
         }
@@ -124,7 +116,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
               allNodeIds.add(operation.id);
               // ユースケースのIDも追加
               if (operation.useCaseModels) {
-                operation.useCaseModels.forEach((uc: any) => {
+                operation.useCaseModels.forEach((uc: UseCase) => {
                   allNodeIds.add(uc.id);
                 });
               }
@@ -137,7 +129,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
         uncategorizedOps.forEach(operation => {
           allNodeIds.add(operation.id);
           if (operation.useCaseModels) {
-            operation.useCaseModels.forEach((uc: any) => {
+            operation.useCaseModels.forEach((uc: UseCase) => {
               allNodeIds.add(uc.id);
             });
           }
@@ -146,7 +138,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
 
       setExpandedNodes(allNodeIds);
     }
-  }, [servicesWithUseCases.length]); // servicesWithUseCases.lengthの変更時にのみ実行
+  }, [servicesWithUseCases, expandedNodes.size]); // 依存関係を追加
 
   // 全サービスのユースケースを取得する
   useEffect(() => {
@@ -164,7 +156,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                   };
                   return operationWithUseCases;
                 }
-              } catch (error) {
+              } catch (_error) {
                 console.error(`Error loading usecases for operation ${operation.id}:`, error);
               }
               return {
@@ -249,26 +241,6 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
     service.displayName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // 初期ドメイン言語定義
-  const getInitialDomainLanguage = (): DomainLanguageDefinition => ({
-    entities: [],
-    valueObjects: [],
-    domainServices: [],
-    version: '1.0.0',
-    lastModified: new Date().toISOString()
-  });
-
-  // 初期API仕様
-  const getInitialAPISpec = (): APISpecification => ({
-    openapi: '3.0.0',
-    info: {
-      title: 'API Specification',
-      version: '1.0.0',
-      description: ''
-    },
-    paths: {}
-  });
-
   // 初期DB設計
   const getInitialDBSchema = (): DBSchema => ({
     tables: [],
@@ -276,119 +248,6 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
     indexes: []
   });
 
-  // サービスデータの変更ハンドラ
-  const handleDomainLanguageChange = (domainLanguage: DomainLanguageDefinition) => {
-    if (selectedService) {
-      setSelectedService({
-        ...selectedService,
-        domainLanguage
-      });
-      setHasChanges(true);
-    }
-  };
-
-  const handleAPISpecChange = (apiSpecification: APISpecification) => {
-    if (selectedService) {
-      setSelectedService({
-        ...selectedService,
-        apiSpecification
-      });
-      setHasChanges(true);
-    }
-  };
-
-  const handleDBSchemaChange = (dbSchema: DBSchema) => {
-    if (selectedService) {
-      setSelectedService({
-        ...selectedService,
-        dbSchema
-      });
-      setHasChanges(true);
-    }
-  };
-
-  // ファイル編集ページへのナビゲーション関数
-  const navigateToFileEditor = (node: TreeNode) => {
-    // ファイルノードから編集ページのURLを構築
-    const buildEditingRoute = (fileNode: TreeNode) => {
-      // ファイルタイプの決定
-      let fileType = '';
-      switch (fileNode.type) {
-        case 'usecaseFile':
-          fileType = 'usecase';
-          break;
-        case 'pageFile':
-          fileType = 'page';
-          break;
-        case 'apiUsageFile':
-          fileType = 'api-usage';
-          break;
-        default:
-          return null;
-      }
-
-      // 階層情報の取得（親ノードを辿る）
-      let currentNode = fileNode;
-      let usecaseNode: TreeNode | null = null;
-      let operationNode: TreeNode | null = null;
-      let capabilityNode: TreeNode | null = null;
-      let serviceNode: TreeNode | null = null;
-
-      // 全サービスのツリーノードを平坦化してノード検索を可能にする
-      const allNodes: TreeNode[] = [];
-      const servicesToUse = servicesWithUseCases.length > 0 ? servicesWithUseCases : services;
-      servicesToUse.forEach(service => {
-        const serviceTreeNode = buildTreeFromParasolData(
-          service as ParasolService,
-          service.capabilities || [],
-          service.businessOperations || []
-        );
-        allNodes.push(...flattenTree(serviceTreeNode));
-      });
-
-      // 親ノードを辿ってルートパスを構築
-      const findParentByType = (nodeId: string, targetType: string): TreeNode | null => {
-        for (const n of allNodes) {
-          if (n.children?.some(child => child.id === nodeId)) {
-            if (n.type === targetType) {
-              return n;
-            }
-            // 再帰的に親を探す
-            return findParentByType(n.id, targetType);
-          }
-        }
-        return null;
-      };
-
-      // ユースケース（ディレクトリ）ノードを取得
-      usecaseNode = findParentByType(fileNode.id, 'directory');
-      if (!usecaseNode) return null;
-
-      // オペレーションノードを取得
-      operationNode = findParentByType(usecaseNode.id, 'operation');
-      if (!operationNode) return null;
-
-      // ケーパビリティノードを取得
-      capabilityNode = findParentByType(operationNode.id, 'capability');
-      if (!capabilityNode) return null;
-
-      // サービスノードを取得
-      serviceNode = findParentByType(capabilityNode.id, 'service');
-      if (!serviceNode) return null;
-
-      // ルートパスの構築
-      const route = `/parasol/services/${serviceNode.name}/capabilities/${capabilityNode.name}/operations/${operationNode.name}/usecases/${usecaseNode.name}/edit/${fileType}`;
-      return route;
-    };
-
-    const route = buildEditingRoute(node);
-    if (route) {
-      console.log('Navigating to:', route);
-      router.push(route);
-    } else {
-      console.error('Could not build route for node:', node);
-    }
-  };
 
   // ノード選択時の処理
   const handleNodeSelect = (node: TreeNode) => {
@@ -460,15 +319,15 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
           }
           // ユースケースをチェック（オペレーション内）
           for (const op of service.businessOperations || []) {
-            if (op.useCaseModels?.some((uc: any) => uc.id === nodeId)) {
+            if (op.useCaseModels?.some((uc: UseCase) => uc.id === nodeId)) {
               return service;
             }
             // ページ定義とテスト定義をチェック（ユースケース内）
             for (const uc of op.useCaseModels || []) {
-              if (uc.pageDefinitions?.some((pd: any) => pd.id === nodeId)) {
+              if (uc.pageDefinitions?.some((pd: PageDefinition) => pd.id === nodeId)) {
                 return service;
               }
-              if (uc.testDefinitions?.some((td: any) => td.id === nodeId)) {
+              if (uc.testDefinitions?.some((td: TestDefinition) => td.id === nodeId)) {
                 return service;
               }
             }
@@ -517,7 +376,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'エラー',
         description: '保存中にエラーが発生しました',
@@ -588,7 +447,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                     <UnifiedMDEditor
                       type="service-description"
                       value={selectedService.serviceDescription || ''}
-                      onChange={(value) => {
+                      onChange={(_value) => {
                         setSelectedService({
                           ...selectedService,
                           serviceDescription: value
@@ -639,7 +498,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                       <UnifiedMDEditor
                         type="domain-language"
                         value={selectedService.domainLanguageDefinition || ''}
-                        onChange={(value) => {
+                        onChange={(_value) => {
                           setSelectedService({
                             ...selectedService,
                             domainLanguageDefinition: value
@@ -657,7 +516,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                     <UnifiedMDEditor
                       type="database-design"
                       value={selectedService.databaseDesignDefinition || ''}
-                      onChange={(value) => {
+                      onChange={(_value) => {
                         setSelectedService({
                           ...selectedService,
                           databaseDesignDefinition: value
@@ -682,7 +541,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                         });
                         setHasChanges(true);
                       }}
-                      onOperationClick={(capability, operation) => {
+                      onOperationClick={(_capability, _operation) => {
                         // オペレーションクリック処理
                       }}
                       onAddOperation={() => {}}
@@ -731,7 +590,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                         <UnifiedMDEditor
                           type="api-specification"
                           value={selectedService.apiSpecificationDefinition || ''}
-                          onChange={(value) => {
+                          onChange={(_value) => {
                             setSelectedService({
                               ...selectedService,
                               apiSpecificationDefinition: value
@@ -852,7 +711,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
               <UnifiedMDEditor
                 type="capability-definition"
                 value={capability.definition || ''}
-                onChange={(value) => {
+                onChange={(_value) => {
                   // ケーパビリティ変更処理
                   const updatedCapability = { ...capability, definition: value };
                   const updatedCapabilities = selectedService.capabilities?.map(c => 
@@ -916,7 +775,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                   <UnifiedMDEditor
                     type="operation-design"
                     value={operation.design || ''}
-                    onChange={(value) => {
+                    onChange={(_value) => {
                       // オペレーション変更処理
                       const updatedOperation = { ...operation, design: value };
 
@@ -1022,7 +881,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                   <UnifiedMDEditor
                     type="usecase-definition"
                     value={useCaseData?.definition || ''}
-                    onChange={(value) => {
+                    onChange={(_value) => {
                       // ユースケース変更処理
                       // TODO: ユースケースの更新ロジックを実装
                       setHasChanges(true);
@@ -1037,7 +896,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                   <UnifiedMDEditor
                     type="robustness-diagram"
                     value={useCaseData?.robustnessDiagram?.content || ''}
-                    onChange={(value) => {
+                    onChange={(_value) => {
                       // ロバストネス図変更処理
                       // TODO: ロバストネス図の更新ロジックを実装
                       setHasChanges(true);
@@ -1051,7 +910,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                 <TabsContent value="tests" className="mt-4 flex flex-col flex-1 min-h-0">
                   <div className="space-y-4 flex-1 overflow-auto">
                     {useCaseData?.testDefinitions && useCaseData.testDefinitions.length > 0 ? (
-                      useCaseData.testDefinitions.map((test: any, index: number) => (
+                      useCaseData.testDefinitions.map((test: TestDefinition, index: number) => (
                         <Card key={test.id || index}>
                           <CardHeader>
                             <CardTitle className="text-base">{test.displayName || test.name}</CardTitle>
@@ -1061,7 +920,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                             <UnifiedMDEditor
                               type="test-definition"
                               value={test.content || ''}
-                              onChange={(value) => {
+                              onChange={(_value) => {
                                 // テスト定義変更処理
                                 // TODO: テスト定義の更新ロジックを実装
                                 setHasChanges(true);
@@ -1101,7 +960,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
               <UnifiedMDEditor
                 type="page-definition"
                 value={pageDef?.content || ''}
-                onChange={(value) => {
+                onChange={(_value) => {
                   // ページ定義変更処理
                   // TODO: ページ定義の更新ロジックを実装
                   setHasChanges(true);
@@ -1127,7 +986,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
               <UnifiedMDEditor
                 type="test-definition"
                 value={testDef?.content || ''}
-                onChange={(value) => {
+                onChange={(_value) => {
                   // テスト定義変更処理
                   // TODO: テスト定義の更新ロジックを実装
                   setHasChanges(true);
@@ -1152,7 +1011,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
               <UnifiedMDEditor
                 type="usecase-definition"
                 value={selectedNode.metadata?.content || ''}
-                onChange={(value) => {
+                onChange={(_value) => {
                   // ファイル変更処理（統合ビューでの編集）
                   // TODO: ファイル更新ロジックを実装
                   setHasChanges(true);
@@ -1177,7 +1036,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
               <UnifiedMDEditor
                 type="page-definition"
                 value={selectedNode.metadata?.content || ''}
-                onChange={(value) => {
+                onChange={(_value) => {
                   // ファイル変更処理（統合ビューでの編集）
                   // TODO: ファイル更新ロジックを実装
                   setHasChanges(true);
@@ -1202,7 +1061,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
               <UnifiedMDEditor
                 type="api-specification"
                 value={selectedNode.metadata?.content || ''}
-                onChange={(value) => {
+                onChange={(_value) => {
                   // ファイル変更処理（統合ビューでの編集）
                   // TODO: ファイル更新ロジックを実装
                   setHasChanges(true);
@@ -1298,7 +1157,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                                   allNodeIds.add(operation.id);
                                   // ユースケースのIDも追加
                                   if (operation.useCaseModels) {
-                                    operation.useCaseModels.forEach((uc: any) => {
+                                    operation.useCaseModels.forEach((uc: UseCase) => {
                                       allNodeIds.add(uc.id);
                                     });
                                   }
@@ -1386,7 +1245,7 @@ export function ParasolSettingsPage2({ initialServices }: ParasolSettingsPagePro
                 if (result.success) {
                   setOperationUseCases(result.data || []);
                 }
-              } catch (error) {
+              } catch (_error) {
                 console.error('Error refreshing usecases:', error);
               }
             }

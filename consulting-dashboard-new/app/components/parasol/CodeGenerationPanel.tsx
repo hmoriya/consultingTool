@@ -2,21 +2,20 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Download, FileCode, Loader2, Settings, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/app/hooks/use-toast';
 import { 
   GenerationScope, 
   GenerationTarget, 
-  GenerationConfig, 
-  defaultGenerationOptions,
+  GenerationConfig,
   getGenerationOptionsByCategory
 } from '@/lib/parasol/generation-config';
 import { generateCode, GenerationResult } from '@/lib/parasol/code-generator';
@@ -132,7 +131,7 @@ export function CodeGenerationPanel({
           variant: 'destructive'
         });
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'エラー',
         description: '生成中にエラーが発生しました',
@@ -340,7 +339,7 @@ export function CodeGenerationPanel({
             <TabsContent value="db" className="space-y-2">
               <div>
                 <Label>データベースタイプ</Label>
-                <Select value={databaseType} onValueChange={(v) => setDatabaseType(v as any)}>
+                <Select value={databaseType} onValueChange={(v) => setDatabaseType(v as unknown)}>
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>

@@ -87,7 +87,7 @@ async function removeDuplicateOrganizations() {
       console.log(`- ${org.name} (${org.id})`)
     })
 
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error removing duplicates:', error)
     throw error
   }

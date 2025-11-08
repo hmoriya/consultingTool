@@ -8,22 +8,21 @@ import { Button } from '@/components/ui/button'
 import {
   ArrowLeft,
   Edit,
-  MoreVertical,
   Calendar,
   DollarSign,
-  Users,
   CheckCircle,
   Archive,
   Pause,
-  Play
+  Play,
+  MoreVertical,
+  Users
 } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+  DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import { useUser } from '@/contexts/user-context'
@@ -33,7 +32,7 @@ interface ProjectHeaderProps {
   project: ProjectWithRelations
 }
 
-const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: any }> = {
+const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: unknown }> = {
   planning: { label: '計画中', variant: 'outline', icon: null },
   active: { label: '進行中', variant: 'default', icon: Play },
   completed: { label: '完了', variant: 'secondary', icon: CheckCircle },
@@ -43,10 +42,10 @@ const statusConfig: Record<string, { label: string; variant: 'default' | 'second
 export function ProjectHeader({ project }: ProjectHeaderProps) {
   const router = useRouter()
   const { user } = useUser()
-  const [isLoading, setIsLoading] = useState(false)
+  const [_isLoading, _setIsLoading] = useState(false)
 
   const canEdit = user?.role.name === 'executive' || 
-    project.projectMembers.some((m: any) => m.userId === user?.id && m.role === 'pm')
+    project.projectMembers.some((m: unknown) => m.userId === user?.id && m.role === 'pm')
 
   const handleBack = () => {
     router.push('/projects')

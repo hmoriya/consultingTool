@@ -1,25 +1,22 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import React, { useState, useEffect, useCallback } from 'react'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts'
 import {
   AlertTriangle,
   CheckCircle,
-  Info,
   RefreshCw,
   Settings,
   Target,
   Zap,
-  FileText,
-  GitMerge,
   AlertCircle,
   TrendingUp
 } from 'lucide-react'
@@ -92,7 +89,7 @@ export default function DesignQualityDashboard() {
   const [error, setError] = useState<string | null>(null)
   const [selectedTab, setSelectedTab] = useState('overview')
 
-  const fetchAnalysis = async () => {
+  const fetchAnalysis = useCallback(async () => {
     setIsLoading(true)
     setError(null)
 
@@ -104,16 +101,16 @@ export default function DesignQualityDashboard() {
 
       const data = await response.json()
       setAnalysisData(data)
-    } catch (error) {
-      setError(error instanceof Error ? error.message : '不明なエラーが発生しました')
+    } catch (_error) {
+      setError(_error instanceof Error ? _error.message : '不明なエラーが発生しました')
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchAnalysis()
-  }, [])
+  }, [fetchAnalysis])
 
   if (isLoading) {
     return (

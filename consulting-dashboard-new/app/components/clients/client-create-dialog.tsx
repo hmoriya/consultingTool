@@ -13,10 +13,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
+  DialogFooter } from '@/components/ui/dialog'
 import { createClient, ClientItem } from '@/actions/clients'
-import { X, Save, Building2 } from 'lucide-react'
+import { Building2, X, Save } from 'lucide-react'
 
 const clientSchema = z.object({
   name: z.string().min(1, 'クライアント名は必須です').max(100, '100文字以内で入力してください'),
@@ -58,7 +57,7 @@ export function ClientCreateDialog({ onClose, onClientCreated }: ClientCreateDia
         activeProjectCount: 0
       })
       onClose()
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to create client:', error)
       alert(error.message || 'クライアントの作成に失敗しました')
     } finally {

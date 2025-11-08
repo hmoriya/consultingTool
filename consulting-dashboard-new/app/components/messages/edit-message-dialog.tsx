@@ -7,8 +7,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
+  DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { updateMessage } from '@/actions/messages'
@@ -48,7 +47,7 @@ export function EditMessageDialog({
       } else {
         toast.error(result.error || 'メッセージの編集に失敗しました')
       }
-    } catch (error) {
+    } catch {
       toast.error('エラーが発生しました')
     } finally {
       setIsSubmitting(false)

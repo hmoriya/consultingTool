@@ -7,8 +7,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+  DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -16,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/hooks/use-toast'
-import { Loader2, Hash, Users, Lock } from 'lucide-react'
+import { Loader2, Hash, Lock, Users } from 'lucide-react'
 import { createChannel } from '@/actions/messages'
 import { useRouter } from 'next/navigation'
 
@@ -68,7 +67,7 @@ export function CreateChannelDialog({ open, onOpenChange }: CreateChannelDialogP
       } else {
         throw new Error(result.error || 'チャンネルの作成に失敗しました')
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to create channel:', error)
       toast({
         title: 'エラー',

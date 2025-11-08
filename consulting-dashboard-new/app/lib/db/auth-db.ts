@@ -1,6 +1,6 @@
 // 認証サービス用の独立したPrismaクライアント
 import { PrismaClient as AuthPrismaClient } from '@prisma/auth-client'
-import path from 'path'
+// import path from 'path'
 
 // グローバル変数として定義（開発環境でのホットリロード対応）
 declare global {

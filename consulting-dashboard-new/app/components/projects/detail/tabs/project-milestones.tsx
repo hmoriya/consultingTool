@@ -1,21 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import {
   Plus,
-  MoreVertical,
   Edit,
-  Trash2,
   Calendar,
   Target,
   CheckCircle2,
   Clock,
   AlertCircle,
-  BarChart3
+  BarChart3,
+  MoreVertical,
+  Trash2
 } from 'lucide-react'
 import {
   MilestoneItem,
@@ -31,13 +31,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+  DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 
 interface ProjectMilestonesProps {
-  project: any
+  project: unknown
 }
 
 const statusLabels: Record<MilestoneStatus | 'inProgress', string> = {
@@ -63,16 +62,20 @@ const statusIcons: Record<MilestoneStatus | 'inProgress', React.ComponentType<{ 
 
 export function ProjectMilestones({ project }: ProjectMilestonesProps) {
   const [milestones, setMilestones] = useState<MilestoneItem[]>([])
-  const [stats, setStats] = useState<any>(null)
+  const [stats, setStats] = useState<{
+    totalMilestones: number;
+    completedMilestones: number;
+    delayedMilestones: number;
+    pendingMilestones: number;
+    overdueMilestones: number;
+    overallProgress: number;
+    completionRate: number;
+  } | null>(null)
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingMilestone, setEditingMilestone] = useState<MilestoneItem | null>(null)
 
-  useEffect(() => {
-    loadMilestoneData()
-  }, [project.id])
-
-  const loadMilestoneData = async () => {
+  const loadMilestoneData = useCallback(async () => {
     try {
       setLoading(true)
       const [milestoneData, statsData] = await Promise.all([
@@ -86,7 +89,11 @@ export function ProjectMilestones({ project }: ProjectMilestonesProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [project.id])
+
+  useEffect(() => {
+    loadMilestoneData()
+  }, [loadMilestoneData])
 
   const handleDeleteMilestone = async (milestoneId: string) => {
     if (!confirm('このマイルストーンを削除しますか？関連するタスクがある場合は削除できません。')) return
@@ -94,7 +101,7 @@ export function ProjectMilestones({ project }: ProjectMilestonesProps) {
     try {
       await deleteMilestone(milestoneId)
       await loadMilestoneData()
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to delete milestone:', error)
       alert('マイルストーンの削除に失敗しました')
     }

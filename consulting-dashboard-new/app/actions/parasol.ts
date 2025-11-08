@@ -3,6 +3,28 @@
 import { parasolDb } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import type {
+  CreateServiceData,
+  UpdateServiceData,
+  SaveServiceData,
+  CreateBusinessOperationData,
+  UpdateBusinessOperationData,
+  CreateBusinessCapabilityData,
+  UpdateBusinessCapabilityData,
+  CreateUseCaseData,
+  UpdateUseCaseData,
+  CreateRobustnessDiagramData,
+  UpdateRobustnessDiagramData,
+  ActionResponse,
+  ServiceResponse,
+  ServiceWithMappedRelations,
+  MappedBusinessOperation,
+  MappedBusinessCapability,
+  MappedUseCase,
+  MappedRobustnessDiagram,
+  ServiceUpdateData,
+  UseCaseUpdateData,
+  RobustnessDiagramUpdateData } from '@/app/types/parasol-actions';
 
 // バリデーションスキーマ
 const ServiceSchema = z.object({
@@ -64,14 +86,7 @@ const RobustnessDiagramSchema = z.object({
 });
 
 // サービス関連のアクション
-export async function createService(data: {
-  name: string;
-  displayName: string;
-  description?: string;
-  domainLanguage: any;
-  apiSpecification: any;
-  dbSchema: any;
-}) {
+export async function createService(data: CreateServiceData): Promise<ActionResponse<ServiceResponse>> {
   try {
     const result = ServiceSchema.parse({
       ...data,
@@ -98,13 +113,13 @@ export async function createService(data: {
         businessOperations: []
       }
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to create service:', error);
     return { success: false, error: 'サービスの作成に失敗しました' };
   }
 }
 
-export async function getServices() {
+export async function getServices(): Promise<ActionResponse<ServiceWithMappedRelations[]>> {
   try {
     console.log('Fetching services from Parasol DB...');
     const services = await parasolDb.service.findMany({
@@ -217,7 +232,7 @@ export async function getServices() {
     }));
     
     return { success: true, data: mappedServices };
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to fetch services:', error);
     if (error instanceof Error) {
       console.error('Error details:', error.message);
@@ -227,7 +242,7 @@ export async function getServices() {
   }
 }
 
-export async function getService(id: string) {
+export async function getService(id: string): Promise<ServiceResponse | null> {
   try {
     const service = await parasolDb.service.findUnique({
       where: { id },
@@ -254,20 +269,13 @@ export async function getService(id: string) {
         robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
       }))
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to fetch service:', error);
     return null;
   }
 }
 
-export async function updateService(id: string, data: {
-  name: string;
-  displayName: string;
-  description?: string;
-  domainLanguage: any;
-  apiSpecification: any;
-  dbSchema: any;
-}) {
+export async function updateService(id: string, data: UpdateServiceData): Promise<ActionResponse<ServiceResponse>> {
   try {
     const result = ServiceSchema.parse({
       ...data,
@@ -304,13 +312,13 @@ export async function updateService(id: string, data: {
         }))
       }
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to update service:', error);
     return { success: false, error: 'サービスの更新に失敗しました' };
   }
 }
 
-export async function deleteService(id: string) {
+export async function deleteService(id: string): Promise<ActionResponse<void>> {
   try {
     await parasolDb.service.delete({
       where: { id },
@@ -318,28 +326,14 @@ export async function deleteService(id: string) {
     
     revalidatePath('/settings/parasol');
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to delete service:', error);
     return { success: false, error: 'サービスの削除に失敗しました' };
   }
 }
 
 // ビジネスオペレーション関連のアクション
-export async function createBusinessOperation(data: {
-  serviceId: string;
-  capabilityId?: string;
-  name: string;
-  displayName: string;
-  pattern: 'CRUD' | 'Workflow' | 'Analytics' | 'Communication' | 'Administration';
-  goal: string;
-  roles: any;
-  operations: any;
-  businessStates: any;
-  useCases: any;
-  uiDefinitions: any;
-  testCases: any;
-  robustnessModel?: any;
-}) {
+export async function createBusinessOperation(data: CreateBusinessOperationData): Promise<ActionResponse<MappedBusinessOperation>> {
   try {
     const result = BusinessOperationSchema.parse({
       ...data,
@@ -370,13 +364,13 @@ export async function createBusinessOperation(data: {
         robustnessModel: operation.robustnessModel ? JSON.parse(operation.robustnessModel) : null,
       }
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to create business operation:', error);
     return { success: false, error: 'ビジネスオペレーションの作成に失敗しました' };
   }
 }
 
-export async function getBusinessOperations(serviceId: string) {
+export async function getBusinessOperations(serviceId: string): Promise<MappedBusinessOperation[]> {
   try {
     const operations = await parasolDb.businessOperation.findMany({
       where: { serviceId },
@@ -395,27 +389,13 @@ export async function getBusinessOperations(serviceId: string) {
       testCases: JSON.parse(op.testCases),
       robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
     }));
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to fetch business operations:', error);
     return [];
   }
 }
 
-export async function updateBusinessOperation(id: string, data: {
-  serviceId: string;
-  capabilityId?: string;
-  name: string;
-  displayName: string;
-  pattern: 'CRUD' | 'Workflow' | 'Analytics' | 'Communication' | 'Administration';
-  goal: string;
-  roles: any;
-  operations: any;
-  businessStates: any;
-  useCases: any;
-  uiDefinitions: any;
-  testCases: any;
-  robustnessModel?: any;
-}) {
+export async function updateBusinessOperation(id: string, data: UpdateBusinessOperationData): Promise<ActionResponse<MappedBusinessOperation>> {
   try {
     const result = BusinessOperationSchema.parse({
       ...data,
@@ -447,13 +427,13 @@ export async function updateBusinessOperation(id: string, data: {
         robustnessModel: operation.robustnessModel ? JSON.parse(operation.robustnessModel) : null,
       }
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to update business operation:', error);
     return { success: false, error: 'ビジネスオペレーションの更新に失敗しました' };
   }
 }
 
-export async function deleteBusinessOperation(id: string) {
+export async function deleteBusinessOperation(id: string): Promise<ActionResponse<void>> {
   try {
     await parasolDb.businessOperation.delete({
       where: { id },
@@ -461,24 +441,16 @@ export async function deleteBusinessOperation(id: string) {
     
     revalidatePath('/settings/parasol');
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to delete business operation:', error);
     return { success: false, error: 'ビジネスオペレーションの削除に失敗しました' };
   }
 }
 
 // データ保存用の簡易アクション（エディタから直接使用）
-export async function saveServiceData(serviceId: string, data: {
-  domainLanguage?: any;
-  apiSpecification?: any;
-  dbSchema?: any;
-  serviceDescription?: string;
-  domainLanguageDefinition?: string;
-  apiSpecificationDefinition?: string;
-  databaseDesignDefinition?: string;
-}) {
+export async function saveServiceData(serviceId: string, data: SaveServiceData): Promise<ActionResponse<ServiceResponse>> {
   try {
-    const updateData: any = {};
+    const updateData: ServiceUpdateData = {};
     
     // MD形式のフィールド
     if (data.serviceDescription !== undefined) {
@@ -520,20 +492,14 @@ export async function saveServiceData(serviceId: string, data: {
         dbSchema: JSON.parse(service.dbSchema),
       }
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to save service data:', error);
     return { success: false, error: 'データの保存に失敗しました' };
   }
 }
 
 // ビジネスケーパビリティ関連のアクション
-export async function createBusinessCapability(data: {
-  serviceId: string;
-  name: string;
-  displayName: string;
-  description?: string;
-  category: 'Core' | 'Supporting' | 'Generic';
-}) {
+export async function createBusinessCapability(data: CreateBusinessCapabilityData): Promise<ActionResponse<MappedBusinessCapability>> {
   try {
     const result = BusinessCapabilitySchema.parse(data);
 
@@ -561,13 +527,13 @@ export async function createBusinessCapability(data: {
         }))
       }
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to create business capability:', error);
     return { success: false, error: 'ビジネスケーパビリティの作成に失敗しました' };
   }
 }
 
-export async function getBusinessCapabilities(serviceId: string) {
+export async function getBusinessCapabilities(serviceId: string): Promise<MappedBusinessCapability[]> {
   try {
     const capabilities = await parasolDb.businessCapability.findMany({
       where: { serviceId },
@@ -592,18 +558,13 @@ export async function getBusinessCapabilities(serviceId: string) {
         robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
       }))
     }));
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to fetch business capabilities:', error);
     return [];
   }
 }
 
-export async function updateBusinessCapability(id: string, data: {
-  name: string;
-  displayName: string;
-  description?: string;
-  category: 'Core' | 'Supporting' | 'Generic';
-}) {
+export async function updateBusinessCapability(id: string, data: UpdateBusinessCapabilityData): Promise<ActionResponse<MappedBusinessCapability>> {
   try {
     const capability = await parasolDb.businessCapability.update({
       where: { id },
@@ -630,13 +591,13 @@ export async function updateBusinessCapability(id: string, data: {
         }))
       }
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to update business capability:', error);
     return { success: false, error: 'ビジネスケーパビリティの更新に失敗しました' };
   }
 }
 
-export async function deleteBusinessCapability(id: string) {
+export async function deleteBusinessCapability(id: string): Promise<ActionResponse<void>> {
   try {
     await parasolDb.businessCapability.delete({
       where: { id },
@@ -644,7 +605,7 @@ export async function deleteBusinessCapability(id: string) {
 
     revalidatePath('/settings/parasol');
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to delete business capability:', error);
     return { success: false, error: 'ビジネスケーパビリティの削除に失敗しました' };
   }
@@ -654,20 +615,7 @@ export async function deleteBusinessCapability(id: string) {
 // UseCase CRUD Operations
 // ========================
 
-export async function createUseCase(data: {
-  operationId: string;
-  name: string;
-  displayName: string;
-  description?: string;
-  definition?: string;
-  order?: number;
-  actors?: any;
-  preconditions?: any;
-  postconditions?: any;
-  basicFlow?: any;
-  alternativeFlow?: any;
-  exceptionFlow?: any;
-}) {
+export async function createUseCase(data: CreateUseCaseData): Promise<ActionResponse<MappedUseCase>> {
   try {
     const result = UseCaseSchema.parse({
       ...data,
@@ -700,27 +648,15 @@ export async function createUseCase(data: {
         exceptionFlow: useCase.exceptionFlow ? JSON.parse(useCase.exceptionFlow) : null,
       }
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to create useCase:', error);
     return { success: false, error: 'ユースケースの作成に失敗しました' };
   }
 }
 
-export async function updateUseCase(id: string, data: {
-  name?: string;
-  displayName?: string;
-  description?: string;
-  definition?: string;
-  order?: number;
-  actors?: any;
-  preconditions?: any;
-  postconditions?: any;
-  basicFlow?: any;
-  alternativeFlow?: any;
-  exceptionFlow?: any;
-}) {
+export async function updateUseCase(id: string, data: UpdateUseCaseData): Promise<ActionResponse<MappedUseCase>> {
   try {
-    const updateData: any = {};
+    const updateData: UseCaseUpdateData = {};
 
     if (data.name !== undefined) updateData.name = data.name;
     if (data.displayName !== undefined) updateData.displayName = data.displayName;
@@ -756,13 +692,13 @@ export async function updateUseCase(id: string, data: {
         exceptionFlow: useCase.exceptionFlow ? JSON.parse(useCase.exceptionFlow) : null,
       }
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to update useCase:', error);
     return { success: false, error: 'ユースケースの更新に失敗しました' };
   }
 }
 
-export async function deleteUseCase(id: string) {
+export async function deleteUseCase(id: string): Promise<ActionResponse<void>> {
   try {
     await parasolDb.useCase.delete({
       where: { id },
@@ -770,7 +706,7 @@ export async function deleteUseCase(id: string) {
 
     revalidatePath('/settings/parasol');
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to delete useCase:', error);
     return { success: false, error: 'ユースケースの削除に失敗しました' };
   }
@@ -780,15 +716,7 @@ export async function deleteUseCase(id: string) {
 // RobustnessDiagram CRUD Operations
 // ==============================
 
-export async function createRobustnessDiagram(data: {
-  useCaseId: string;
-  content: string;
-  boundaryObjects?: any;
-  controlObjects?: any;
-  entityObjects?: any;
-  diagram?: string;
-  interactions?: any;
-}) {
+export async function createRobustnessDiagram(data: CreateRobustnessDiagramData): Promise<ActionResponse<MappedRobustnessDiagram>> {
   try {
     const result = RobustnessDiagramSchema.parse({
       ...data,
@@ -813,22 +741,15 @@ export async function createRobustnessDiagram(data: {
         interactions: robustnessDiagram.interactions ? JSON.parse(robustnessDiagram.interactions) : null,
       }
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to create robustness diagram:', error);
     return { success: false, error: 'ロバストネス図の作成に失敗しました' };
   }
 }
 
-export async function updateRobustnessDiagram(id: string, data: {
-  content?: string;
-  boundaryObjects?: any;
-  controlObjects?: any;
-  entityObjects?: any;
-  diagram?: string;
-  interactions?: any;
-}) {
+export async function updateRobustnessDiagram(id: string, data: UpdateRobustnessDiagramData): Promise<ActionResponse<MappedRobustnessDiagram>> {
   try {
-    const updateData: any = {};
+    const updateData: RobustnessDiagramUpdateData = {};
 
     if (data.content !== undefined) updateData.content = data.content;
     if (data.diagram !== undefined) updateData.diagram = data.diagram;
@@ -853,13 +774,13 @@ export async function updateRobustnessDiagram(id: string, data: {
         interactions: robustnessDiagram.interactions ? JSON.parse(robustnessDiagram.interactions) : null,
       }
     };
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to update robustness diagram:', error);
     return { success: false, error: 'ロバストネス図の更新に失敗しました' };
   }
 }
 
-export async function deleteRobustnessDiagram(id: string) {
+export async function deleteRobustnessDiagram(id: string): Promise<ActionResponse<void>> {
   try {
     await parasolDb.robustnessDiagram.delete({
       where: { id },
@@ -867,14 +788,14 @@ export async function deleteRobustnessDiagram(id: string) {
 
     revalidatePath('/settings/parasol');
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to delete robustness diagram:', error);
     return { success: false, error: 'ロバストネス図の削除に失敗しました' };
   }
 }
 
 // Get UseCases for a specific Business Operation
-export async function getUseCasesForOperation(operationId: string) {
+export async function getUseCasesForOperation(operationId: string): Promise<ActionResponse<MappedUseCase[]>> {
   try {
     const useCases = await parasolDb.useCase.findMany({
       where: { operationId },
@@ -901,7 +822,7 @@ export async function getUseCasesForOperation(operationId: string) {
     });
 
     return { success: true, data: useCases };
-  } catch (error) {
+  } catch (_error) {
     console.error('Failed to get usecases for operation:', error);
     return { success: false, error: 'ユースケースの取得に失敗しました' };
   }

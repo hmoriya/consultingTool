@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test } from '@playwright/test'
 
 test.describe('スクリーンショット確認', () => {
   test('ログインページのデザイン確認', async ({ page }) => {

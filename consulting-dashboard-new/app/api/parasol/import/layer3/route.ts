@@ -14,6 +14,19 @@ interface Layer3ImportRequest {
   dryRun?: boolean
 }
 
+interface PageInfo {
+  fileName: string
+  filePath: string
+  content: string
+  displayName: string
+  name: string
+  serviceId: string
+  capabilityId: string
+  operationId: string
+  useCaseId: string
+  layerType: string
+}
+
 // Layer 3 (ユースケース専用) 専用インポート
 export async function POST(request: Request) {
   try {
@@ -35,8 +48,8 @@ export async function POST(request: Request) {
     const basePath = process.cwd()
     const servicesPath = path.join(basePath, 'docs', 'parasol', 'services')
 
-    const pages = []
-    const scanErrors = []
+    const pages: PageInfo[] = []
+    const scanErrors: { serviceId: string; operationId: string; error: string }[] = []
 
     try {
       const serviceDirs = await fs.readdir(servicesPath)
@@ -56,7 +69,7 @@ export async function POST(request: Request) {
           scanErrors
         )
       }
-    } catch (error) {
+    } catch (_error) {
       return NextResponse.json({
         success: false,
         error: 'サービスディレクトリのスキャンに失敗しました',
@@ -156,7 +169,7 @@ export async function POST(request: Request) {
             })
             return { ...page, action: 'created' }
           }
-        } catch (error) {
+        } catch (_error) {
           throw {
             page: page.name,
             error: error instanceof Error ? error.message : '未知のエラー'
@@ -167,7 +180,7 @@ export async function POST(request: Request) {
       try {
         const batchResults = await Promise.all(batchPromises)
         processed.push(...batchResults)
-      } catch (error) {
+      } catch (_error) {
         errors.push(error)
       }
     }
@@ -206,7 +219,7 @@ export async function POST(request: Request) {
       }
     })
 
-  } catch (error) {
+  } catch (_error) {
     console.error('Layer 3 インポートエラー:', error)
     return NextResponse.json({
       success: false,
@@ -221,8 +234,8 @@ async function scanServiceDedicatedPages(
   serviceId: string,
   targetOperationId: string | undefined,
   targetUseCaseId: string | undefined,
-  pages: any[],
-  scanErrors: any[]
+  pages: unknown[],
+  scanErrors: unknown[]
 ) {
   try {
     const capabilitiesPath = path.join(servicePath, 'capabilities')
@@ -273,7 +286,7 @@ async function scanServiceDedicatedPages(
                     layerType: 'usecase'
                   })
                 }
-              } catch (error) {
+              } catch (_error) {
                 // dedicated-pages ディレクトリが存在しない場合はスキップ
                 scanErrors.push({
                   serviceId,
@@ -283,7 +296,7 @@ async function scanServiceDedicatedPages(
                 })
               }
             }
-          } catch (error) {
+          } catch (_error) {
             // usecases ディレクトリが存在しない場合はスキップ
             scanErrors.push({
               serviceId,
@@ -292,7 +305,7 @@ async function scanServiceDedicatedPages(
             })
           }
         }
-      } catch (error) {
+      } catch (_error) {
         scanErrors.push({
           serviceId,
           capabilityId: capabilityDir,
@@ -300,7 +313,7 @@ async function scanServiceDedicatedPages(
         })
       }
     }
-  } catch (error) {
+  } catch (_error) {
     scanErrors.push({
       serviceId,
       error: `サービススキャンエラー: ${error}`
@@ -308,7 +321,7 @@ async function scanServiceDedicatedPages(
   }
 }
 
-function validateLayer3Page(page: any, level: string) {
+function validateLayer3Page(page: unknown, level: string) {
   const errors = []
   const warnings = []
 
@@ -357,9 +370,9 @@ function validateLayer3Page(page: any, level: string) {
   }
 }
 
-function analyzePageIndependence(pages: any[]) {
-  const useCaseGroups = new Map<string, any[]>()
-  const operationGroups = new Map<string, any[]>()
+function analyzePageIndependence(pages: PageInfo[]) {
+  const useCaseGroups = new Map<string, PageInfo[]>()
+  const operationGroups = new Map<string, PageInfo[]>()
 
   // ユースケース別グループ化
   for (const page of pages) {

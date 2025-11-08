@@ -2,7 +2,7 @@ import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 
 const parasolDb = new ParasolPrismaClient()
 
-export async function seedAnticipateAndManageRisks(service: any, capability: any) {
+export async function seedAnticipateAndManageRisks(service: unknown, capability: unknown) {
   console.log('    Creating business operation: リスクを先読みして対処する...')
   
   const operation = await parasolDb.businessOperation.create({

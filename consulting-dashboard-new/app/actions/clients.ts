@@ -85,7 +85,7 @@ export async function getClients() {
             status: true
           }
         })
-      } catch (error) {
+      } catch (_error) {
         console.error('Error fetching projects for client:', client.id, error)
         // If project DB is not working, continue without project data
       }

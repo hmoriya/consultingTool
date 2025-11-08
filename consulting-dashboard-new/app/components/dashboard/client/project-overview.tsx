@@ -1,16 +1,15 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Button } from '@/components/ui/button'
-import { Calendar, Users, Target, FileText, Download, ExternalLink } from 'lucide-react'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Calendar, Target, Users, FileText } from 'lucide-react'
 import { useState } from 'react'
 import { ProjectDocuments } from './project-documents'
 
 interface ProjectOverviewProps {
-  projects: any[]
+  projects: unknown[]
 }
 
 export function ProjectOverview({ projects }: ProjectOverviewProps) {
@@ -151,7 +150,7 @@ export function ProjectOverview({ projects }: ProjectOverviewProps) {
                   <div className="space-y-3">
                     <h4 className="font-medium text-sm">マイルストーン</h4>
                     <div className="space-y-2">
-                      {project.milestones.map((milestone: any) => (
+                      {project.milestones.map((milestone: unknown) => (
                         <div
                           key={milestone.id}
                           className="flex items-center justify-between p-3 rounded-lg border bg-muted/50"

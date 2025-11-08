@@ -1,19 +1,17 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { 
-  BarChart, 
   Bar, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
-  Tooltip, 
-  Legend,
+  Tooltip,
   ResponsiveContainer,
-  LineChart,
   Line,
   ComposedChart,
-  Area
+  Area,
+  Legend
 } from 'recharts'
 
 interface RevenueChartProps {
@@ -72,7 +70,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
                 tickFormatter={formatPercent}
               />
               <Tooltip 
-                formatter={(value: any, name: string) => {
+                formatter={(value: unknown, name: string) => {
                   if (name === '利益率') {
                     return formatPercent(value)
                   }

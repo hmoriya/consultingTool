@@ -30,7 +30,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { createDeliverable, getAccessibleProjects, getProjectMilestones } from '@/actions/deliverables'
 import { toast } from 'sonner'
-import { UploadIcon, FileIcon, XIcon } from 'lucide-react'
+import { FileIcon, XIcon } from 'lucide-react'
 
 const deliverableSchema = z.object({
   projectId: z.string().min(1, 'プロジェクトを選択してください'),
@@ -141,7 +141,7 @@ export function CreateDeliverableDialog({ open, onOpenChange }: CreateDeliverabl
       } else {
         toast.error(result.error)
       }
-    } catch (error) {
+    } catch {
       toast.error('ファイルのアップロードに失敗しました')
     } finally {
       setIsUploading(false)
@@ -165,7 +165,7 @@ export function CreateDeliverableDialog({ open, onOpenChange }: CreateDeliverabl
       } else {
         toast.error(result.error)
       }
-    } catch (error) {
+    } catch {
       toast.error('成果物の作成に失敗しました')
     } finally {
       setIsLoading(false)

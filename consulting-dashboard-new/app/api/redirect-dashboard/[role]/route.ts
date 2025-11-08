@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { role: string } }
+  { params }: { params: Promise<{ role: string }> }
 ) {
-  const role = params.role.toLowerCase()
-  return NextResponse.redirect(new URL(`/dashboard/${role}`, request.url))
+  const { role } = await params
+  const roleLower = role.toLowerCase()
+  return NextResponse.redirect(new URL(`/dashboard/${roleLower}`, request.url))
 }

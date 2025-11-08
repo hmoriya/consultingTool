@@ -116,9 +116,9 @@ export const capabilityPresets: Record<string, Partial<GenerationOptions>> = {
  * 生成スコープに基づいてケーパビリティをフィルタリング
  */
 export function filterCapabilitiesByScope(
-  capabilities: any[],
+  capabilities: unknown[],
   config: GenerationConfig
-): any[] {
+): unknown[] {
   switch (config.scope) {
     case 'capability':
       return capabilities.filter(cap => cap.id === config.capabilityId);

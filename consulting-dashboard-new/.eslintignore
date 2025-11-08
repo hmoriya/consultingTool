@@ -1,0 +1,17 @@
+# Ignore generated files
+prisma/knowledge-service/generated/
+prisma/auth-service/generated/
+prisma/parasol-service/generated/
+
+# Ignore build output
+.next/
+out/
+dist/
+
+# Ignore node_modules
+node_modules/
+
+# Ignore other non-source files
+*.log
+.DS_Store
+.env*

@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { login, logout, getCurrentUser } from '../auth'
 import { prismaMock } from '../../__mocks__/db'
 import * as sessionModule from '@/lib/auth/session'
+import type { AuditLog, User, Role, Organization, Session } from '@prisma/client'
 
 // Next.js headersのモック
 jest.mock('next/headers', () => ({
@@ -72,7 +73,16 @@ describe('auth actions', () => {
       prismaMock.user.findUnique.mockResolvedValue(mockUser)
       mockedSession.createSession.mockResolvedValue(mockSession)
       prismaMock.user.update.mockResolvedValue(mockUser)
-      prismaMock.auditLog.create.mockResolvedValue({} as any)
+      prismaMock.auditLog.create.mockResolvedValue({
+        id: 'audit-1',
+        userId: '1',
+        action: 'LOGIN',
+        resource: 'auth',
+        resourceId: null,
+        details: null,
+        ipAddress: null,
+        createdAt: new Date()
+      } as AuditLog)
 
       const result = await login({
         email: 'test@example.com',
@@ -106,7 +116,15 @@ describe('auth actions', () => {
         organization: { name: 'テスト組織' }
       }
 
-      prismaMock.user.findUnique.mockResolvedValue(mockUser as any)
+      prismaMock.user.findUnique.mockResolvedValue({
+        ...mockUser,
+        name: 'テストユーザー',
+        roleId: 'role-1',
+        organizationId: 'org-1',
+        lastLogin: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      } as User & { role: Role; organization: Organization })
 
       const result = await login({
         email: 'test@example.com',
@@ -147,7 +165,30 @@ describe('auth actions', () => {
         isActive: false
       }
 
-      prismaMock.user.findUnique.mockResolvedValue(mockUser as any)
+      prismaMock.user.findUnique.mockResolvedValue({
+        ...mockUser,
+        name: 'テストユーザー',
+        roleId: 'role-1',
+        organizationId: 'org-1',
+        lastLogin: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        role: { 
+          id: 'role-1', 
+          name: 'consultant',
+          description: 'コンサルタント',
+          isSystem: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        } as Role,
+        organization: { 
+          id: 'org-1',
+          name: 'テスト組織',
+          type: 'consultingFirm',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        } as Organization
+      } as User & { role: Role; organization: Organization })
 
       const result = await login({
         email: 'test@example.com',
@@ -173,7 +214,16 @@ describe('auth actions', () => {
       
       mockedSession.getSession.mockResolvedValue(mockSession)
       mockedSession.deleteSession.mockResolvedValue()
-      prismaMock.auditLog.create.mockResolvedValue({} as any)
+      prismaMock.auditLog.create.mockResolvedValue({
+        id: 'audit-2',
+        userId: '1',
+        action: 'LOGOUT',
+        resource: 'auth',
+        resourceId: null,
+        details: null,
+        ipAddress: null,
+        createdAt: new Date()
+      } as AuditLog)
 
       await logout()
 
@@ -233,7 +283,9 @@ describe('auth actions', () => {
         }
       }
 
-      mockedSession.getSession.mockResolvedValue(mockSession as any)
+      mockedSession.getSession.mockResolvedValue(mockSession as Session & {
+        user: User & { role: Role; organization: Organization }
+      })
 
       const user = await getCurrentUser()
 

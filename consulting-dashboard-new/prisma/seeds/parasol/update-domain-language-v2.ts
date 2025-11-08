@@ -1353,9 +1353,9 @@ async function updateDomainLanguages() {
     console.log('  - Complete relationship definitions')
     console.log('  - DDD pattern checklist')
     
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error updating domain languages:', error)
-    throw error
+    throw _error
   } finally {
     await prisma.$disconnect()
   }

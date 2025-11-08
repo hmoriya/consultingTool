@@ -16,56 +16,56 @@ import {
 const parasolDb = new ParasolPrismaClient()
 
 interface ServiceDomainMapping {
-  serviceName: string
+  _serviceName: string
   generateFunction: () => string
 }
 
 // サービス名とドメイン言語生成関数のマッピング
 const serviceDomainMappings: ServiceDomainMapping[] = [
   {
-    serviceName: 'secure-access',
+    _serviceName: 'secure-access',
     generateFunction: generateAuthServiceDomainLanguage
   },
   {
-    serviceName: 'project-success-support',
+    _serviceName: 'project-success-support',
     generateFunction: generateProjectServiceDomainLanguage
   },
   {
-    serviceName: 'talent-optimization',
+    _serviceName: 'talent-optimization',
     generateFunction: generateResourceServiceDomainLanguage
   },
   {
-    serviceName: 'productivity-visualization',
+    _serviceName: 'productivity-visualization',
     generateFunction: generateTimesheetServiceDomainLanguage
   },
   {
-    serviceName: 'knowledge-cocreation',
+    _serviceName: 'knowledge-cocreation',
     generateFunction: generateKnowledgeServiceDomainLanguage
   },
   {
-    serviceName: 'revenue-optimization',
+    _serviceName: 'revenue-optimization',
     generateFunction: generateFinanceServiceDomainLanguage
   },
   {
-    serviceName: 'collaboration-facilitation',
+    _serviceName: 'collaboration-facilitation',
     generateFunction: generateNotificationServiceDomainLanguage
   }
 ]
 
 async function updateServiceDomainLanguage(
-  serviceName: string,
+  _serviceName: string,
   generateFunction: () => string
 ) {
-  console.log(`\n  Updating domain language for ${serviceName}...`)
+  console.log(`\n  Updating domain language for ${_serviceName}...`)
   
   try {
     // サービスを検索
     const service = await parasolDb.service.findFirst({
-      where: { name: serviceName }
+      where: { name: _serviceName }
     })
     
     if (!service) {
-      console.log(`    ⚠️  Service ${serviceName} not found, skipping...`)
+      console.log(`    ⚠️  Service ${_serviceName} not found, skipping...`)
       return
     }
     
@@ -91,8 +91,8 @@ async function updateServiceDomainLanguage(
     console.log(`       - Length: ${domainLanguageMarkdown.length} characters`)
     console.log(`       - Service: ${service.displayName}`)
     
-  } catch (error) {
-    console.error(`    ❌ Error updating ${serviceName}:`, error)
+  } catch (_error) {
+    console.error(`    ❌ Error updating ${_serviceName}:`, error)
   }
 }
 
@@ -103,7 +103,7 @@ export async function generateAndUpdateDomainLanguages() {
     // 各サービスのドメイン言語を更新
     for (const mapping of serviceDomainMappings) {
       await updateServiceDomainLanguage(
-        mapping.serviceName,
+        mapping._serviceName,
         mapping.generateFunction
       )
     }
@@ -125,9 +125,9 @@ export async function generateAndUpdateDomainLanguages() {
     
     console.log('\n✅ Domain language generation completed successfully!')
     
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error generating domain languages:', error)
-    throw error
+    throw _error
   } finally {
     await parasolDb.$disconnect()
   }

@@ -43,7 +43,7 @@ function convertMermaidToTextFlow(mermaidCode: string): string[] {
 
   // ノードを順番に並べてステップとして出力
   const visited = new Set<string>();
-  connections.forEach((nodeId, index) => {
+  connections.forEach((nodeId) => {
     if (!visited.has(nodeId) && nodes.has(nodeId)) {
       const label = nodes.get(nodeId)!;
       // 条件分岐などの特殊なラベルは除外

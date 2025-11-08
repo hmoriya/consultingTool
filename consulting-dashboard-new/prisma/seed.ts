@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { seedCore } from './seeds/core-seed'
 import { seedProjects } from './seeds/project-seed'
 import { seedResources } from './seeds/resource-seed'
@@ -12,7 +14,7 @@ interface SeedResult {
   service: string
   success: boolean
   error?: Error
-  data?: any
+  data?: unknown
 }
 
 async function seedService<T>(
@@ -25,7 +27,7 @@ async function seedService<T>(
     const data = await seedFunction()
     console.log(`✅ ${serviceName} seeded successfully`)
     return { service: serviceName, success: true, data }
-  } catch (error) {
+  } catch (_error) {
     const errorMessage = `❌ Failed to seed ${serviceName}: ${error instanceof Error ? error.message : String(error)}`
     console.error(errorMessage)
     
@@ -59,9 +61,9 @@ async function main() {
   }
   
   const results: SeedResult[] = []
-  let coreData: any = null
-  let projectData: any = null
-  let usersWithDetails: any = null
+  let coreData: unknown = null
+  let projectData: unknown = null
+  let usersWithDetails: unknown = null
   
   try {
     // 1. コアサービス（必須）
@@ -70,19 +72,20 @@ async function main() {
     coreData = coreResult.data
     
     // ユーザー情報の準備
-    if (coreData?.users) {
+    if ((coreData as any)?.users) {
+      const users = (coreData as any).users
       usersWithDetails = {
-        pmUser: coreData.users.find((u: any) => u.email === 'pm@example.com'),
-        consultantUser: coreData.users.find((u: any) => u.email === 'consultant@example.com'),
-        execUser: coreData.users.find((u: any) => u.email === 'exec@example.com'),
-        allUsers: coreData.users
+        pmUser: users.find((u: { email: string }) => u.email === 'pm@example.com'),
+        consultantUser: users.find((u: { email: string }) => u.email === 'consultant@example.com'),
+        execUser: users.find((u: { email: string }) => u.email === 'exec@example.com'),
+        allUsers: users
       }
       
       // 重要なユーザーの存在確認
-      if (!usersWithDetails.pmUser) {
+      if (!(usersWithDetails as any).pmUser) {
         console.warn('⚠️  PM user not found. Some features may not work correctly.')
       }
-      if (!usersWithDetails.consultantUser) {
+      if (!(usersWithDetails as any).consultantUser) {
         console.warn('⚠️  Consultant user not found. Some features may not work correctly.')
       }
     }
@@ -90,7 +93,7 @@ async function main() {
     // 2. プロジェクトサービス（必須）
     const projectResult = await seedService(
       'Project Service', 
-      () => seedProjects(coreData?.users, coreData?.organizations), 
+      () => seedProjects((coreData as any)?.users, (coreData as any)?.organizations), 
       true
     )
     results.push(projectResult)
@@ -99,7 +102,7 @@ async function main() {
     // 3. リソースサービス（オプショナル）
     const resourceResult = await seedService(
       'Resource Service',
-      () => seedResources(usersWithDetails),
+      () => seedResources(usersWithDetails as any),
       false
     )
     results.push(resourceResult)
@@ -107,7 +110,7 @@ async function main() {
     // 4. タイムシートサービス（オプショナル）
     const timesheetResult = await seedService(
       'Timesheet Service',
-      () => seedTimesheets(usersWithDetails, projectData),
+      () => seedTimesheets(usersWithDetails as any, projectData as any),
       false
     )
     results.push(timesheetResult)
@@ -115,7 +118,7 @@ async function main() {
     // 5. 通知サービス（オプショナル）
     const notificationResult = await seedService(
       'Notification Service',
-      () => seedNotifications(usersWithDetails, projectData),
+      () => seedNotifications(usersWithDetails as any, projectData as any),
       false
     )
     results.push(notificationResult)
@@ -123,7 +126,7 @@ async function main() {
     // 6. ナレッジサービス（オプショナル）
     const knowledgeResult = await seedService(
       'Knowledge Service',
-      () => seedKnowledge(usersWithDetails),
+      () => seedKnowledge(usersWithDetails as any),
       false
     )
     results.push(knowledgeResult)
@@ -136,7 +139,7 @@ async function main() {
     )
     results.push(parasolResult)
     
-  } catch (error) {
+  } catch (_error) {
     console.error('\n💥 Critical error during seeding process:')
     console.error(error instanceof Error ? error.message : String(error))
     

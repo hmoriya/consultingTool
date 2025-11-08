@@ -8,7 +8,7 @@ import { seedAlignExpectations } from './project-operations/07-align-expectation
 // import { seedFacilitateCommunication } from './project-operations/08-facilitate-communication' // 通知サービスの責務のため除外
 import { seedDeliverDeliverablesReliably } from './project-operations/09-deliver-deliverables-reliably'
 
-export async function seedProjectOperationsFull(service: any, capability: any) {
+export async function seedProjectOperationsFull(service: unknown, capability: unknown) {
   console.log('  Seeding project operations full data...')
   
   const operations = []

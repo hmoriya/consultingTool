@@ -2,7 +2,7 @@ import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 
 const parasolDb = new ParasolPrismaClient()
 
-export async function seedControlAccessPermissions(service: any, capability: any) {
+export async function seedControlAccessPermissions(service: unknown, capability: unknown) {
   console.log('    Creating business operation: アクセス権限を制御する...')
   
   const operation = await parasolDb.businessOperation.create({

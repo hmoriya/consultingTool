@@ -2,13 +2,13 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Trash2, Save, Edit2, Database, Link2 } from 'lucide-react';
-import { DBSchema, DBTable, DBColumn, DBRelation, DBIndex } from '@/types/parasol';
+import { Plus, Edit2, Database, Link2, Trash2, Save } from 'lucide-react';
+import { DBSchema, DBTable, DBColumn, DBRelation } from '@/types/parasol';
 
 interface DBSchemaEditorProps {
   value: DBSchema;
@@ -130,7 +130,7 @@ export function DBSchemaEditor({ value, onChange, readonly = false }: DBSchemaEd
     });
   };
 
-  const handleUpdateRelation = (index: number, relation: DBRelation) => {
+  const _handleUpdateRelation = (index: number, relation: DBRelation) => {
     const newRelations = [...value.relations];
     newRelations[index] = relation;
     onChange({

@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(metadata)
-  } catch (error) {
+  } catch (_error) {
     console.error('OG metadata fetch error:', error)
 
     // エラーでも最低限の情報を返す

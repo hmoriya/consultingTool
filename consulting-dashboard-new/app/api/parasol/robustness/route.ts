@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       message: 'Robustness diagram created successfully'
     }, { status: 201 });
 
-  } catch (error) {
+  } catch (_error) {
     console.error('Error creating robustness diagram:', error);
 
     if (error instanceof z.ZodError) {
@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
       data: robustnessDiagrams
     });
 
-  } catch (error) {
+  } catch (_error) {
     console.error('Error fetching robustness diagrams:', error);
     return NextResponse.json({
       success: false,

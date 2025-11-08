@@ -1,7 +1,22 @@
 import { NextResponse } from 'next/server'
 import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
+import { UseCase, PageDefinition, TestDefinition } from '@/app/types/parasol'
 
 const parasolDb = new ParasolPrismaClient()
+
+interface UseCaseWithRelations extends UseCase {
+  operation?: {
+    service?: { id: string; name: string; displayName: string }
+  }
+  pageDefinitions?: PageDefinition[]
+  testDefinitions?: TestDefinition[]
+}
+
+interface PageDefinitionWithRelations extends PageDefinition {
+  useCase?: {
+    operation?: { id: string; name: string; displayName: string }
+  }
+}
 
 interface ApplySuggestionRequest {
   type: 'usecase' | 'page'
@@ -145,7 +160,7 @@ class UseCaseConsolidator {
         result.appliedChanges.deleted = toMerge.length
       })
 
-    } catch (error) {
+    } catch (_error) {
       result.success = false
       result.errors.push(error instanceof Error ? error.message : 'Unknown error')
     }
@@ -153,7 +168,7 @@ class UseCaseConsolidator {
     return result
   }
 
-  private selectCanonicalUseCase(useCases: any[], strategy: string): any {
+  private selectCanonicalUseCase(useCases: UseCaseWithRelations[], strategy: string): UseCaseWithRelations {
     switch (strategy) {
       case 'basic-function-integration':
       case 'workflow-template':
@@ -176,7 +191,7 @@ class UseCaseConsolidator {
     }
   }
 
-  private mergeUseCaseDefinitions(canonical: any, duplicates: any[], strategy: string): string {
+  private mergeUseCaseDefinitions(canonical: UseCaseWithRelations, duplicates: UseCaseWithRelations[], strategy: string): string {
     let baseDefinition = canonical.definition || ''
 
     // Add content from duplicates based on strategy
@@ -316,7 +331,7 @@ class PageConsolidator {
         result.appliedChanges.deleted = toMerge.length
       })
 
-    } catch (error) {
+    } catch (_error) {
       result.success = false
       result.errors.push(error instanceof Error ? error.message : 'Unknown error')
     }
@@ -324,7 +339,7 @@ class PageConsolidator {
     return result
   }
 
-  private mergePageContent(canonical: any, duplicates: any[], strategy: string): string {
+  private mergePageContent(canonical: PageDefinitionWithRelations, duplicates: PageDefinitionWithRelations[], strategy: string): string {
     let baseContent = canonical.content || `# ${canonical.displayName}\n\n## 統合されたページ定義\n`
 
     // Add sections from duplicates
@@ -347,7 +362,7 @@ export async function POST(request: Request) {
     const body: ApplySuggestionRequest = await request.json()
     const {
       type,
-      suggestionId,
+      suggestionId: _suggestionId,
       action,
       targetName,
       duplicateIds,
@@ -387,7 +402,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result)
 
-  } catch (error) {
+  } catch (_error) {
     console.error('統合提案適用エラー:', error)
     return NextResponse.json({
       success: false,

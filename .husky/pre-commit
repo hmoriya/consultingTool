@@ -1,0 +1,22 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# consulting-dashboard-newディレクトリでのLintチェック
+cd consulting-dashboard-new
+
+# ステージングされたファイルのうち、consulting-dashboard-new内のファイルをチェック
+staged_files=$(git diff --cached --name-only | grep "^consulting-dashboard-new/" | sed 's|^consulting-dashboard-new/||')
+
+if [ -n "$staged_files" ]; then
+    echo "🔍 Lintチェックを実行中..."
+    
+    # lint-stagedを実行
+    npx lint-staged
+    
+    if [ $? -ne 0 ]; then
+        echo "❌ Lintエラーがあります。修正してから再度コミットしてください。"
+        exit 1
+    fi
+    
+    echo "✅ Lintチェック完了"
+fi

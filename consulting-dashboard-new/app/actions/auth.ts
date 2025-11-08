@@ -59,7 +59,7 @@ export async function login(data: z.infer<typeof LoginSchema>) {
           details: JSON.stringify({ email: user.email, role: user.role.name })
         }
       })
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to create audit log during login:', error)
       // Continue with login even if audit log fails
     }
@@ -73,7 +73,7 @@ export async function login(data: z.infer<typeof LoginSchema>) {
         role: user.role.name
       }
     }
-  } catch (error) {
+  } catch (_error) {
     if (error instanceof z.ZodError) {
       // Handle different ZodError structures
       if (error.errors && Array.isArray(error.errors) && error.errors.length > 0) {
@@ -105,7 +105,7 @@ export async function logout() {
           resourceId: session.userId
         }
       })
-    } catch (error) {
+    } catch (_error) {
       console.error('Failed to create audit log during logout:', error)
       // Continue with logout even if audit log fails
     }

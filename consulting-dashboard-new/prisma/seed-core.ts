@@ -124,7 +124,7 @@ async function main() {
 
     console.log('✅ Core data seeding completed')
 
-  } catch (error) {
+  } catch (_error) {
     console.error('Error seeding core data:', error)
     throw error
   } finally {

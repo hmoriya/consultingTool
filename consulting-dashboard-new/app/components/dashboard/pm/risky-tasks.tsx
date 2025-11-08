@@ -1,16 +1,18 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { AlertTriangle, Clock, User } from 'lucide-react'
 import Link from 'next/link'
 
 interface RiskyTasksProps {
-  tasks: any[]
+  tasks: unknown[]
 }
 
+type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline'
+
 export function RiskyTasks({ tasks }: RiskyTasksProps) {
-  const getPriorityColor = (priority: string) => {
+  const getPriorityColor = (priority: string): BadgeVariant => {
     switch (priority) {
       case 'urgent': return 'destructive'
       case 'high': return 'default'
@@ -89,7 +91,7 @@ export function RiskyTasks({ tasks }: RiskyTasksProps) {
                           {task.project.client?.name || 'クライアント未設定'} - {task.project.name}
                         </p>
                       </div>
-                      <Badge variant={getPriorityColor(task.priority) as any} className="text-xs">
+                      <Badge variant={getPriorityColor(task.priority)} className="text-xs">
                         {getPriorityLabel(task.priority)}
                       </Badge>
                     </div>

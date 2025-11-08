@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight, Clock, Plus, X, Save } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Clock, Plus, Save, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -18,8 +18,7 @@ import {
   useSensor,
   useSensors,
   useDroppable,
-  useDraggable,
-} from '@dnd-kit/core'
+  useDraggable } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
@@ -207,11 +206,11 @@ function DroppableCalendarCell({ date, children }: { date: Date; children: React
 }
 
 
-export function WeeklyCalendar({ projects, initialEntries = [], onRefresh }: WeeklyCalendarProps) {
+export function WeeklyCalendar({ projects, initialEntries = [], onRefresh: _onRefresh }: WeeklyCalendarProps) {
   const [currentWeek, setCurrentWeek] = useState(new Date())
   const [entries, setEntries] = useState<TimeEntry[]>(initialEntries)
-  const [activeId, setActiveId] = useState<string | null>(null)
-  const [overId, setOverId] = useState<string | null>(null)
+  const [_activeId, setActiveId] = useState<string | null>(null)
+  const [_overId, setOverId] = useState<string | null>(null)
   const { toast } = useToast()
 
   const sensors = useSensors(
@@ -311,7 +310,7 @@ export function WeeklyCalendar({ projects, initialEntries = [], onRefresh }: Wee
             variant: 'destructive',
           })
         }
-      } catch (error) {
+      } catch (_error) {
         console.error('エントリ追加エラー:', error)
         toast({
           title: 'エラー',
@@ -341,7 +340,7 @@ export function WeeklyCalendar({ projects, initialEntries = [], onRefresh }: Wee
           description: `工数を${hours}時間に変更`,
         })
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'エラー',
         description: '更新に失敗しました',
@@ -360,7 +359,7 @@ export function WeeklyCalendar({ projects, initialEntries = [], onRefresh }: Wee
           title: '削除しました',
         })
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'エラー',
         description: '削除に失敗しました',

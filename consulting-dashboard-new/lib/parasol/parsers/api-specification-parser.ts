@@ -2,6 +2,7 @@
  * API仕様書パーサー
  * MD形式のAPI仕様書からJSON構造を抽出
  */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export interface ParsedEndpoint {
   path: string
@@ -18,13 +19,13 @@ export interface ParsedEndpoint {
   }[]
   requestBody?: {
     contentType: string
-    schema: any
+    schema: Record<string, any>
     example?: string
   }
   responses: {
     status: number
     description: string
-    schema?: any
+    schema?: Record<string, any>
     example?: string
   }[]
 }

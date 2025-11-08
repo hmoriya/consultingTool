@@ -5,7 +5,7 @@ const notificationDb = new NotificationPrismaClient({
   log: ['error', 'warn']
 })
 
-export async function seedNotifications(users?: any, projects?: any) {
+export async function seedNotifications(users?: unknown, projects?: unknown) {
   console.log('🌱 Seeding Notification Service...')
   
   try {
@@ -21,15 +21,15 @@ export async function seedNotifications(users?: any, projects?: any) {
       pm: users.pmUser?.id,
       consultant: users.consultantUser?.id,
       client: users.clientUser?.id,
-      takahashi: users.allUsers?.find((u: any) => u.name === '高橋 愛')?.id,
-      watanabe: users.allUsers?.find((u: any) => u.name === '渡辺 健')?.id
+      takahashi: users.allUsers?.find((u: unknown) => (u as { name: string }).name === '高橋 愛')?.id,
+      watanabe: users.allUsers?.find((u: unknown) => (u as { name: string }).name === '渡辺 健')?.id
     }
 
     // プロジェクトIDマッピング
     const projectIds = {
-      dataAnalysis: projects.find((p: any) => p.name === 'データ分析基盤構築')?.id,
-      businessProcess: projects.find((p: any) => p.name === 'ビジネスオペレーション最適化')?.id,
-      dx: projects.find((p: any) => p.name === 'デジタルトランスフォーメーション推進')?.id
+      dataAnalysis: projects.find((p: unknown) => (p as { name: string }).name === 'データ分析基盤構築')?.id,
+      businessProcess: projects.find((p: unknown) => (p as { name: string }).name === 'ビジネスオペレーション最適化')?.id,
+      dx: projects.find((p: unknown) => (p as { name: string }).name === 'デジタルトランスフォーメーション推進')?.id
     }
 
     // IDが不足している場合はスキップ
@@ -350,9 +350,9 @@ export async function seedNotifications(users?: any, projects?: any) {
     console.log(`   - Notifications: ${notifications.length}`)
     console.log(`   - Notification Preferences: ${notificationPreferences.length}`)
     
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ Error seeding Notification Service:', error)
-    throw error
+    throw _error
   } finally {
     await notificationDb.$disconnect()
   }

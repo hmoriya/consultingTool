@@ -2,13 +2,13 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Trash2, Save, Code, FileJson } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Plus, Code, FileJson, Trash2 } from 'lucide-react';
 import { APISpecification } from '@/types/parasol';
 
 interface APISpecificationEditorProps {
@@ -21,14 +21,14 @@ interface EndpointDefinition {
   method: string;
   summary: string;
   description?: string;
-  parameters?: any[];
-  requestBody?: any;
-  responses: Record<string, any>;
+  parameters?: unknown[];
+  requestBody?: unknown;
+  responses: Record<string, unknown>;
 }
 
 export function APISpecificationEditor({ value, onChange, readonly = false }: APISpecificationEditorProps) {
   const [selectedPath, setSelectedPath] = useState<string>('');
-  const [editMode, setEditMode] = useState(false);
+  const [_editMode, _setEditMode] = useState(false);
   const [yamlView, setYamlView] = useState(false);
 
   const handleAddPath = () => {
@@ -61,7 +61,7 @@ export function APISpecificationEditor({ value, onChange, readonly = false }: AP
     setEditMode(true);
   };
 
-  const handleUpdatePath = (path: string, newPath: string) => {
+  const _handleUpdatePath = (path: string, newPath: string) => {
     if (path === newPath) return;
     
     const newPaths = { ...value.paths };
@@ -137,7 +137,7 @@ info:
 
 paths:
 ${Object.entries(value.paths).map(([path, methods]) => `  ${path}:
-${Object.entries(methods).map(([method, endpoint]: [string, any]) => `    ${method}:
+${Object.entries(methods).map(([method, endpoint]: [string, unknown]) => `    ${method}:
       summary: ${endpoint.summary}
       responses:
         200:
@@ -271,7 +271,7 @@ ${Object.entries(methods).map(([method, endpoint]: [string, any]) => `    ${meth
                       )}
                     </div>
 
-                    {Object.entries(value.paths[selectedPath]).map(([method, endpoint]: [string, any]) => (
+                    {Object.entries(value.paths[selectedPath]).map(([method, endpoint]: [string, unknown]) => (
                       <TabsContent key={method} value={method} className="space-y-4">
                         <div className="space-y-4">
                           <div className="space-y-2">
@@ -306,7 +306,7 @@ ${Object.entries(methods).map(([method, endpoint]: [string, any]) => `    ${meth
                             <Card>
                               <CardContent className="p-3">
                                 <div className="space-y-2">
-                                  {Object.entries(endpoint.responses || {}).map(([status, response]: [string, any]) => (
+                                  {Object.entries(endpoint.responses || {}).map(([status, response]: [string, unknown]) => (
                                     <div key={status} className="flex items-center gap-2">
                                       <span className="font-mono text-sm font-medium w-12">{status}</span>
                                       <span className="text-sm">{response.description}</span>

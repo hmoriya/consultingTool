@@ -10,8 +10,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+  TableRow } from '@/components/ui/table'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,8 +19,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+  AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { ContactCreateDialog } from './contact-create-dialog'
 import { ContactEditDialog } from './contact-edit-dialog'
 import { 
@@ -32,11 +30,11 @@ import {
 import { 
   UserPlus, 
   Edit3, 
-  Trash2, 
   Star, 
   Mail, 
   Phone, 
-  Smartphone 
+  Smartphone,
+  Trash2 
 } from 'lucide-react'
 
 interface ContactListProps {
@@ -74,7 +72,7 @@ export function ContactList({
       await deleteOrganizationContact(deletingContact.id)
       setContacts(prev => prev.filter(contact => contact.id !== deletingContact.id))
       setDeletingContact(null)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to delete contact:', error)
       alert(error.message || '担当者の削除に失敗しました')
     } finally {
@@ -89,7 +87,7 @@ export function ContactList({
         ...contact,
         isPrimary: contact.id === contactId
       })))
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to set primary contact:', error)
       alert(error.message || '主担当者の設定に失敗しました')
     }

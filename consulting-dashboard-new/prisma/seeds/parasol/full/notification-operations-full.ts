@@ -1,7 +1,7 @@
 import { seedDeliverNotifications } from './notification-operations/00-deliver-notifications'
 import { seedFacilitateCommunication } from './notification-operations/01-facilitate-communication'
 
-export async function seedNotificationOperationsFull(service: any, capability: any) {
+export async function seedNotificationOperationsFull(service: unknown, capability: unknown) {
   console.log('  Seeding notification operations full data...')
   
   const operations = []

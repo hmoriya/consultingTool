@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server'
 import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 import fs from 'fs/promises'
 import path from 'path'
+import type { 
+  UseCaseImport,
+  UseCaseLayerClassification
+} from '@/app/types/parasol-api'
 
 const parasolDb = new ParasolPrismaClient()
 
@@ -12,10 +16,7 @@ interface UseCaseCentric2LayerImportRequest {
   dryRun?: boolean
 }
 
-interface UseCaseLayerClassification {
-  shared: any[]
-  individual: any[]
-}
+// Using imported type from parasol-api.ts
 
 interface UseCaseMigrationSummary {
   sharedUseCases: number
@@ -58,7 +59,7 @@ class UseCaseCentric2LayerClassifier {
       'ウィザード', '専用', '固有', '特別', 'カスタム', '個別', '特殊'
     ]
 
-    const lowerContent = content.toLowerCase()
+    const _lowerContent = content.toLowerCase()
 
     // Shared indicators (オペレーション共有ユースケース)
     if (sharedIndicators.some(term => content.includes(term))) {
@@ -77,8 +78,8 @@ class UseCaseCentric2LayerClassifier {
 
 // 重複解決ロジック (ユースケース中心)
 class UseCaseDuplicationResolver {
-  async resolveDuplication(useCases: any[], conflictResolution: string = 'merge') {
-    const duplicateGroups = new Map<string, any[]>()
+  async resolveDuplication(useCases: UseCaseImport[], conflictResolution: string = 'merge') {
+    const duplicateGroups = new Map<string, UseCaseImport[]>()
 
     // グループ化
     for (const useCase of useCases) {
@@ -90,13 +91,13 @@ class UseCaseDuplicationResolver {
     }
 
     const plan = {
-      merge: [] as any[],
-      sharedCandidates: [] as any[],
-      individualCandidates: [] as any[],
-      conflicts: [] as any[]
+      merge: [] as UseCaseImport[],
+      sharedCandidates: [] as UseCaseImport[],
+      individualCandidates: [] as UseCaseImport[],
+      conflicts: [] as UseCaseImport[][]
     }
 
-    for (const [name, group] of duplicateGroups.entries()) {
+    for (const [_name, group] of duplicateGroups.entries()) {
       if (group.length === 1) {
         plan.merge.push(group[0])
         continue
@@ -113,7 +114,7 @@ class UseCaseDuplicationResolver {
     return plan
   }
 
-  private isSharedCandidate(useCases: any[]): boolean {
+  private isSharedCandidate(useCases: UseCaseImport[]): boolean {
     // オペレーション共有候補（複数オペレーションで利用される可能性）
     const sharedKeywords = ['成果物提出', 'メンバー検索', '承認', '進捗報告']
     return useCases.some(useCase =>
@@ -123,7 +124,7 @@ class UseCaseDuplicationResolver {
     )
   }
 
-  private selectCanonical(useCases: any[], resolution: string): any {
+  private selectCanonical(useCases: UseCaseImport[], resolution: string): UseCaseImport {
     switch (resolution) {
       case 'merge':
         // 最も包括的なコンテンツを持つユースケースを選択
@@ -157,7 +158,7 @@ async function scanUseCaseCentric2LayerStructure(basePath: string) {
     for (const serviceDir of serviceDirs.filter(d => d !== 'global-shared-pages')) {
       await scanServiceUseCases(path.join(servicesPath, serviceDir), serviceDir, classifier, useCases)
     }
-  } catch (error) {
+  } catch (_error) {
     console.error('ユースケースファイルスキャンエラー:', error)
     throw error
   }
@@ -165,7 +166,7 @@ async function scanUseCaseCentric2LayerStructure(basePath: string) {
   return useCases
 }
 
-async function scanServiceUseCases(servicePath: string, serviceId: string, classifier: any, useCases: any[]) {
+async function scanServiceUseCases(servicePath: string, serviceId: string, classifier: unknown, useCases: unknown[]) {
   try {
     const capabilitiesPath = path.join(servicePath, 'capabilities')
     const capabilityDirs = await fs.readdir(capabilitiesPath)
@@ -224,7 +225,7 @@ async function scanServiceUseCases(servicePath: string, serviceId: string, class
         }
       }
     }
-  } catch (error) {
+  } catch (_error) {
     console.error(`サービス ${serviceId} のユースケーススキャンエラー:`, error)
   }
 }
@@ -234,7 +235,7 @@ async function scanUseCasesDirectory(
   layer: 'shared' | 'individual',
   serviceId: string,
   operationId: string,
-  useCases: any[]
+  useCases: unknown[]
 ) {
   try {
     const useCaseDirs = await fs.readdir(useCasesPath)
@@ -256,7 +257,7 @@ async function scanUseCasesDirectory(
         pages: await scanUseCasePages(path.join(useCasesPath, useCaseDir, 'pages'))
       })
     }
-  } catch (error) {
+  } catch {
     // ディレクトリが存在しない場合はスキップ
   }
 }
@@ -374,7 +375,7 @@ export async function POST(request: Request) {
         })
         migrationSummary.sharedUseCases++
         layerClassification.shared.push(useCase.displayName)
-      } catch (error) {
+      } catch (_error) {
         migrationSummary.errors.push(`共有ユースケース作成エラー: ${useCase.displayName} - ${error}`)
       }
     }
@@ -396,7 +397,7 @@ export async function POST(request: Request) {
         })
         migrationSummary.individualUseCases++
         layerClassification.individual.push(useCase.displayName)
-      } catch (error) {
+      } catch (_error) {
         migrationSummary.errors.push(`個別ユースケース作成エラー: ${useCase.displayName} - ${error}`)
       }
     }
@@ -412,7 +413,7 @@ export async function POST(request: Request) {
       layerClassification
     })
 
-  } catch (error) {
+  } catch (_error) {
     console.error('ユースケース中心2層分離インポートエラー:', error)
     return NextResponse.json({
       success: false,

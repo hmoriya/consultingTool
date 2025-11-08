@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     try {
       const files = await fs.readdir(layer1Path)
       pageFiles = files.filter(f => f.endsWith('.md'))
-    } catch (error) {
+    } catch {
       return NextResponse.json({
         success: false,
         error: `Layer 1 ディレクトリが見つかりません: ${sourceDirectory}`,
@@ -130,7 +130,7 @@ export async function POST(request: Request) {
           })
           created.push({ ...page, action: 'created' })
         }
-      } catch (error) {
+      } catch (_error) {
         errors.push({
           page: page.name,
           error: error instanceof Error ? error.message : '未知のエラー'
@@ -164,7 +164,7 @@ export async function POST(request: Request) {
       validationErrors
     })
 
-  } catch (error) {
+  } catch (_error) {
     console.error('Layer 1 インポートエラー:', error)
     return NextResponse.json({
       success: false,
@@ -189,7 +189,7 @@ function extractDisplayName(content: string): string | null {
   return title
 }
 
-function validateLayer1Page(page: any, level: string) {
+function validateLayer1Page(page: unknown, level: string) {
   const errors = []
 
   // 基本検証
@@ -227,7 +227,7 @@ function validateLayer1Page(page: any, level: string) {
   }
 }
 
-async function analyzeGlobalPageImpact(pages: any[]) {
+async function analyzeGlobalPageImpact(_pages: unknown[]) {
   // 全サービス影響分析
   try {
     const services = await parasolDb.service.findMany({
@@ -253,7 +253,7 @@ async function analyzeGlobalPageImpact(pages: any[]) {
         '各サービスチームへの事前通知が必要です'
       ]
     }
-  } catch (error) {
+  } catch {
     return {
       totalServices: 0,
       affectedServices: 0,

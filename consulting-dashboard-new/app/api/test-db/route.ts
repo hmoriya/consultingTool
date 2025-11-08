@@ -42,7 +42,7 @@ export async function GET() {
       projectCount,
       projectDbPath
     })
-  } catch (error) {
+  } catch (_error) {
     console.error('DB Test Error:', error)
     return NextResponse.json({
       error: error.message,

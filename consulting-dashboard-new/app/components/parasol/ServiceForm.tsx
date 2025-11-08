@@ -8,17 +8,15 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { createService, updateService } from '@/app/actions/parasol';
+import type { ServiceFormProps, ServiceFormData } from '@/app/types/parasol-components';
+import type { DomainLanguageDefinition, ApiSpecification, DbDesign } from '@/app/types/parasol';
 
-interface ServiceFormProps {
-  service?: any | null;
-  onClose: () => void;
-  onSuccess: (service: any) => void;
-}
+// Types imported from parasol-components.ts
 
 export function ServiceForm({ service, onClose, onSuccess }: ServiceFormProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ServiceFormData>({
     name: service?.name || '',
     displayName: service?.displayName || '',
     description: service?.description || ''
@@ -31,14 +29,14 @@ export function ServiceForm({ service, onClose, onSuccess }: ServiceFormProps) {
     try {
       const data = {
         ...formData,
-        domainLanguage: service?.domainLanguage || {
+        domainLanguage: (service?.domainLanguage || {
           entities: [],
           valueObjects: [],
           domainServices: [],
           version: '1.0.0',
           lastModified: new Date().toISOString()
-        },
-        apiSpecification: service?.apiSpecification || {
+        }) as DomainLanguageDefinition,
+        apiSpecification: (service?.apiSpecification || {
           openapi: '3.0.0',
           info: {
             title: formData.displayName + ' API',
@@ -46,12 +44,12 @@ export function ServiceForm({ service, onClose, onSuccess }: ServiceFormProps) {
             description: formData.description || ''
           },
           paths: {}
-        },
-        dbSchema: service?.dbSchema || {
+        }) as ApiSpecification,
+        dbSchema: (service?.dbSchema || {
           tables: [],
           relations: [],
           indexes: []
-        }
+        }) as DbDesign
       };
 
       const result = service
@@ -71,7 +69,7 @@ export function ServiceForm({ service, onClose, onSuccess }: ServiceFormProps) {
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'エラー',
         description: 'サービスの保存中にエラーが発生しました',

@@ -39,7 +39,7 @@ export function LoginForm() {
       } else {
         setError(result.error || 'ログインに失敗しました')
       }
-    } catch (err) {
+    } catch {
       setError('予期しないエラーが発生しました')
     } finally {
       setIsLoading(false)

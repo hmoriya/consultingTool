@@ -9,6 +9,8 @@
  * npx tsx prisma/reset-and-seed.ts
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { execSync } from 'child_process'
 import fs from 'fs'
 import path from 'path'
@@ -132,7 +134,7 @@ function seedData() {
       stdio: 'inherit',
       cwd: path.resolve(__dirname, '..')
     })
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ シードデータの投入に失敗しました:', error)
     throw error
   }
@@ -162,7 +164,7 @@ async function main() {
     console.log('\n✨ データベースのリセット＆シードが完了しました！')
     console.log('\n🎉 別のPCでもこのスクリプトを実行すれば、同じデータ状態になります。')
     
-  } catch (error) {
+  } catch (_error) {
     console.error('\n💥 処理中にエラーが発生しました:', error)
     process.exit(1)
   }

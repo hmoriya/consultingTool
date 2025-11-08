@@ -8,9 +8,9 @@ import { UpcomingMilestones } from '@/components/dashboard/pm/upcoming-milestone
 import { RiskyTasks } from '@/components/dashboard/pm/risky-tasks'
 import { TeamUtilization } from '@/components/dashboard/pm/team-utilization'
 import { PendingTimesheetApprovals } from '@/components/dashboard/pm/pending-timesheet-approvals'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, BarChart3, Users, Calendar, AlertTriangle, Clock } from 'lucide-react'
+import { Plus, BarChart3, Calendar, AlertTriangle, Clock } from 'lucide-react'
 import Link from 'next/link'
 
 export default async function PMDashboard() {

@@ -1,11 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { BookOpen, Users, Target, FileText, MessageSquare, ZoomIn, ChevronDown, ChevronUp } from 'lucide-react'
+import { BookOpen, Target, MessageSquare, ZoomIn, ChevronDown, ChevronUp } from 'lucide-react'
 import { USE_CASES, USE_CASE_CATEGORIES } from '@/constants/use-cases'
 import type { UseCase } from '@/constants/use-cases'
 import { getUseCaseDetails } from '@/constants/use-case-details'
@@ -22,7 +22,7 @@ const categoryIcons = {
 export default function HelpPage() {
   const [selectedUseCase, setSelectedUseCase] = useState<UseCase | null>(null)
   const [expandedImage, setExpandedImage] = useState<string | null>(null)
-  const [imageLoadingStates, setImageLoadingStates] = useState<Record<string, boolean>>({})
+  // const [imageLoadingStates, setImageLoadingStates] = useState<Record<string, boolean>>({})
   const [expandedSteps, setExpandedSteps] = useState<Record<number, boolean>>({})
 
   const toggleStepDetails = (stepIndex: number) => {
@@ -178,7 +178,6 @@ export default function HelpPage() {
                   {selectedUseCase.steps.map((step, index) => {
                     // PNGを優先、なければSVG
                     const pngPath = `/captures/${selectedUseCase.category}/${selectedUseCase.id}/step-${index + 1}.png`
-                    const svgPath = `/captures/${selectedUseCase.category}/${selectedUseCase.id}/step-${index + 1}.svg`
                     const imagePath = pngPath // PNGを使用
                     const hasImage = true // すべてのステップで画像を表示
                     const detailedStep = getUseCaseDetails(selectedUseCase.id, index + 1)

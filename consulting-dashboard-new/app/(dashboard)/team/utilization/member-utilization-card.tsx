@@ -66,7 +66,7 @@ export function MemberUtilizationCard({ member }: MemberUtilizationCardProps) {
                                   member.currentAllocation >= 70 ? '#22c55e' :
                                   member.currentAllocation >= 50 ? '#f59e0b' :
                                   '#3b82f6'
-            } as any}
+            } as React.CSSProperties}
           />
         </div>
 
@@ -100,7 +100,7 @@ export function MemberUtilizationCard({ member }: MemberUtilizationCardProps) {
         <div>
           <p className="text-sm font-medium mb-2">月次稼働率</p>
           <div className="flex gap-2 justify-between">
-            {member.monthlyUtilization.map((month, index) => (
+            {member.monthlyUtilization.map((month) => (
               <div key={month.month} className="text-center flex-1">
                 <p className="text-xs text-muted-foreground mb-1">
                   {new Date(month.month).toLocaleDateString('ja-JP', { month: 'short' })}

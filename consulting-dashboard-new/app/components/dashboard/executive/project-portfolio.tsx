@@ -23,6 +23,7 @@ type Project = {
   } | null
   _count: {
     projectMembers: number
+    tasks?: number
   }
   latestMetrics: {
     progressRate: number
@@ -104,7 +105,7 @@ export function ProjectPortfolio({ projects }: ProjectPortfolioProps) {
                   <div className="flex items-center gap-2 text-sm">
                     <Circle className={`h-2 w-2 ${project.status === 'active' ? 'fill-green-500' : 'fill-gray-400'}`} />
                     <span className="text-muted-foreground">
-                      使用率 {((project.latestMetrics?.utilization || 0) * 100).toFixed(0)}%
+                      使用率 {(project.latestMetrics?.utilization || 0).toFixed(0)}%
                     </span>
                   </div>
                   <Link

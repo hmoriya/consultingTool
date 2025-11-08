@@ -6,6 +6,7 @@ import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek } from 'date-fns'
 import { USER_ROLES } from '@/constants/roles'
+import type { TaskWithDetails } from '@/app/types/parasol-components'
 
 export async function getConsultantDashboardData() {
   const user = await getCurrentUser()
@@ -111,7 +112,11 @@ export async function getConsultantDashboardData() {
   })
 
   return {
-    tasks: myTasks,
+    tasks: myTasks.map(task => ({
+      ...task,
+      status: task.status as 'todo' | 'in_progress' | 'in_review' | 'completed',
+      priority: task.priority as 'low' | 'medium' | 'high' | 'critical' | null
+    })) as TaskWithDetails[],
     weeklyTasks,
     taskStats: {
       total: taskStats.reduce((sum, stat) => sum + stat._count, 0),

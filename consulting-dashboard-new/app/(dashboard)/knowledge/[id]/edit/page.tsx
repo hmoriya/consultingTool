@@ -19,6 +19,11 @@ export default async function KnowledgeEditPage({ params }: { params: Promise<{ 
 
   const article = articleResult.data
 
+  // idが存在しない場合はエラー
+  if (!article.id) {
+    notFound()
+  }
+
   // 作成者またはエグゼクティブのみ編集可能
   const userRole = typeof user.role === 'object' ? (user.role as { name: string }).name : user.role
   if (article.authorId !== user.id && userRole !== 'Executive') {
@@ -28,9 +33,9 @@ export default async function KnowledgeEditPage({ params }: { params: Promise<{ 
   // KnowledgeEditFormが期待する型に合わせてデータを整形
   const editFormData = {
     id: article.id,
-    title: article.title,
-    content: article.content,
-    status: article.status,
+    title: article.title || '',
+    content: article.content || '',
+    status: article.status || 'DRAFT',
     tags: article.tags,
     category: article.category ? {
       id: article.category.id,

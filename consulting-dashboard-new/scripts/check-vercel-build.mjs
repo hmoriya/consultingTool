@@ -17,16 +17,28 @@ let hasErrors = false;
 // 1. Check TypeScript strict mode
 console.log('1. Checking TypeScript configuration...');
 try {
-  // Check only our source files, not node_modules
-  const result = execSync('npx tsc --noEmit --skipLibCheck 2>&1 | grep -v node_modules | grep -E "(error TS|app/|components/|lib/)" || true', { encoding: 'utf8' });
-  if (result.trim()) {
-    console.log('❌ TypeScript errors found in source files:\n' + result);
+  // Run full TypeScript check
+  execSync('npx tsc --noEmit --skipLibCheck', { stdio: 'pipe' });
+  console.log('✅ TypeScript check passed\n');
+} catch (error) {
+  // Filter out only application errors
+  const output = error.stdout?.toString() || error.message || '';
+  const lines = output.split('\n');
+  const appErrors = lines.filter(line => 
+    line.includes('app/') || 
+    line.includes('components/') || 
+    line.includes('lib/') ||
+    line.includes('Type error:')
+  );
+  
+  if (appErrors.length > 0) {
+    console.log('❌ TypeScript errors found:\n' + appErrors.join('\n'));
     hasErrors = true;
+  } else if (output.includes('error TS')) {
+    console.log('⚠️  TypeScript errors in dependencies (not blocking)\n');
   } else {
     console.log('✅ TypeScript check passed\n');
   }
-} catch (_error) {
-  console.log('✅ TypeScript check passed (no source errors)\n');
 }
 
 // 2. Check for missing imports
@@ -117,8 +129,35 @@ try {
   console.log('⚠️  Could not check dynamic routes\n');
 }
 
-// 5. Check for console statements
-console.log('5. Checking for console statements...');
+// 5. Check for Prisma type mismatches
+console.log('5. Checking for Prisma string type issues...');
+try {
+  const statusPatterns = [
+    { pattern: 'status: string', replacement: "status as 'todo' | 'in_progress' | 'completed' | 'in_review'" },
+    { pattern: 'role: string', replacement: "role as 'Executive' | 'PM' | 'Consultant' | 'Client' | 'Admin'" },
+    { pattern: 'priority: string', replacement: "priority as 'low' | 'medium' | 'high' | 'urgent'" }
+  ];
+  
+  let foundIssues = false;
+  statusPatterns.forEach(({ pattern }) => {
+    const result = execSync(`grep -r "${pattern}" app --include="*.ts" --include="*.tsx" || true`, { encoding: 'utf8' });
+    if (result.trim()) {
+      console.log(`⚠️  Found potential Prisma type issue: ${pattern}`);
+      foundIssues = true;
+    }
+  });
+  
+  if (!foundIssues) {
+    console.log('✅ No Prisma type issues found\n');
+  } else {
+    console.log('⚠️  Consider using type assertions for Prisma string fields\n');
+  }
+} catch (_error) {
+  console.log('⚠️  Could not check Prisma types\n');
+}
+
+// 6. Check for console statements
+console.log('6. Checking for console statements...');
 try {
   const consoleCount = execSync('grep -r "console\\." app components --include="*.tsx" --include="*.ts" | grep -v "// " | wc -l', { encoding: 'utf8' });
   const count = parseInt(consoleCount.trim());

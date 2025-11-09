@@ -296,6 +296,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
       if (result.success && result.data) {
         const tempMsg: Message = {
           ...result.data,
+          createdAt: result.data.createdAt.toISOString(),
           metadata: result.data.metadata || undefined,
           editedAt: result.data.editedAt ? result.data.editedAt.toISOString() : undefined,
           deletedAt: result.data.deletedAt ? result.data.deletedAt.toISOString() : undefined,

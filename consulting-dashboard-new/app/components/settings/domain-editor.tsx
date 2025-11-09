@@ -120,8 +120,8 @@ interface Repository {
         setContent(template)
         setOriginalContent(template)
       }
-    } catch (error) {
-      console.error('Failed to load content:', error)
+    } catch (_error) {
+      console.error('Failed to load content:', _error)
       setSaveMessage({ type: 'error', message: 'コンテンツの読み込みに失敗しました' })
     } finally {
       setIsLoading(false)

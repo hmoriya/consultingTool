@@ -97,8 +97,8 @@ Authorization: Bearer <token>
         setContent(template)
         setOriginalContent(template)
       }
-    } catch (error) {
-      console.error('Failed to load content:', error)
+    } catch (_error) {
+      console.error('Failed to load content:', _error)
       setSaveMessage({ type: 'error', message: 'コンテンツの読み込みに失敗しました' })
     } finally {
       setIsLoading(false)
@@ -121,8 +121,8 @@ Authorization: Bearer <token>
       } else {
         setSaveMessage({ type: 'error', message: result.error || '保存に失敗しました' })
       }
-    } catch (error) {
-      console.error('Failed to save content:', error)
+    } catch (_error) {
+      console.error('Failed to save content:', _error)
       setSaveMessage({ type: 'error', message: '保存中にエラーが発生しました' })
     } finally {
       setIsSaving(false)

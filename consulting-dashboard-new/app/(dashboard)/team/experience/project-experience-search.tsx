@@ -78,8 +78,8 @@ export function ProjectExperienceSearch({ allSkills }: ProjectExperienceSearchPr
         if (results.length === 0) {
           toast.info('条件に合うプロジェクト経験が見つかりませんでした')
         }
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : '検索に失敗しました')
+      } catch (_error) {
+        toast.error(_error instanceof Error ? _error.message : '検索に失敗しました')
       }
     })
   }

@@ -207,7 +207,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
   }
 
   // キーボードナビゲーション
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (!showMentionList) return
 
     if (e.key === 'ArrowDown') {

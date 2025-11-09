@@ -465,9 +465,18 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
     })
 
     if (result.success && result.data) {
-      // 送信者情報を追加
-      const newMessage = {
-        ...result.data,
+      // APIレスポンスをMessage型に変換
+      const apiResponse = result.data as MessageApiResponse
+      const newMessage: Message = {
+        ...apiResponse,
+        createdAt: apiResponse.createdAt.toISOString(),
+        metadata: apiResponse.metadata || undefined,
+        editedAt: apiResponse.editedAt ? apiResponse.editedAt.toISOString() : undefined,
+        deletedAt: apiResponse.deletedAt ? apiResponse.deletedAt.toISOString() : undefined,
+        reactions: apiResponse.reactions || [],
+        mentions: apiResponse.mentions || [],
+        readReceipts: apiResponse.readReceipts || [],
+        _count: apiResponse._count || { threadMessages: 0 },
         sender: currentUser || {
           id: currentUserId,
           name: 'You',

@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# Enable debug mode
+export HUSKY_DEBUG=1
+
+# Ensure Node.js is available in Git hooks
+export PATH="/usr/local/bin:$PATH"

@@ -115,9 +115,15 @@ export async function getConsultantDashboardData() {
     tasks: myTasks.map(task => ({
       ...task,
       status: task.status as 'todo' | 'in_progress' | 'in_review' | 'completed',
-      priority: task.priority as 'low' | 'medium' | 'high' | 'critical' | null
-    })) as TaskWithDetails[],
-    weeklyTasks,
+      priority: (task.priority as string | null) === null ? null : task.priority as 'low' | 'medium' | 'high' | 'critical',
+      tags: task.tags ? task.tags.split(',').map(tag => tag.trim()) : undefined
+    })),
+    weeklyTasks: weeklyTasks.map(task => ({
+      ...task,
+      status: task.status as 'todo' | 'in_progress' | 'in_review' | 'completed',
+      priority: (task.priority as string | null) === null ? null : task.priority as 'low' | 'medium' | 'high' | 'critical',
+      tags: task.tags ? task.tags.split(',').map(tag => tag.trim()) : undefined
+    })),
     taskStats: {
       total: taskStats.reduce((sum, stat) => sum + stat._count, 0),
       todo: taskStats.find(s => s.status === 'todo')?._count || 0,

@@ -128,6 +128,11 @@ export async function getDashboardData() {
       return {
         id: project.id,
         name: project.name,
+<<<<<<< HEAD
+        code: project.code,
+        status: project.status,
+        budget: project.budget,
+=======
         description: project.description,
         code: project.code,
         status: project.status,
@@ -137,6 +142,7 @@ export async function getDashboardData() {
         createdAt: project.createdAt,
         updatedAt: project.updatedAt,
         organizationId: project.organizationId,
+>>>>>>> origin/main
         clientId: project.clientId,
         client: project.client,
         _count: project._count,

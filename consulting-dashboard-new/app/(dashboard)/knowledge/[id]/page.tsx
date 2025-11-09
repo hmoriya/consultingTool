@@ -11,13 +11,24 @@ import { MarkdownRenderer } from '@/components/markdown-renderer'
 import { LikeButton } from '@/components/knowledge/like-button'
 
 // ユーザー名を取得するダミー関数
-function getUserName(authorId: string): string {
+function getUserName(authorId: string | undefined): string {
+  if (!authorId) return '不明なユーザー'
   const userMap: Record<string, string> = {
     'consultant-user-id': '山田太郎',
     'pm-user-id': '佐藤花子',
     'exec-user-id': '鈴木一郎'
   }
   return userMap[authorId] || '不明なユーザー'
+}
+
+// 安全な日付フォーマット関数
+function formatDate(date: Date | string | undefined | null): string {
+  if (!date) return '不明な日付'
+  try {
+    return new Date(date).toLocaleDateString('ja-JP')
+  } catch {
+    return '不明な日付'
+  }
 }
 
 export default async function KnowledgeDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -80,7 +91,7 @@ export default async function KnowledgeDetailPage({ params }: { params: Promise<
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      {new Date(article.createdAt).toLocaleDateString('ja-JP')}
+                      {formatDate(article.createdAt)}
                     </div>
                   </div>
                 </div>
@@ -104,7 +115,7 @@ export default async function KnowledgeDetailPage({ params }: { params: Promise<
               </div>
             </CardHeader>
             <CardContent>
-              <MarkdownRenderer content={article.content} />
+              <MarkdownRenderer content={article.content || 'コンテンツがありません。'} />
             </CardContent>
           </Card>
 
@@ -150,7 +161,7 @@ export default async function KnowledgeDetailPage({ params }: { params: Promise<
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium">{getUserName(comment.authorId)}</span>
                           <span className="text-xs text-muted-foreground">
-                            {new Date(comment.createdAt).toLocaleDateString('ja-JP')}
+                            {formatDate(comment.createdAt)}
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground">{comment.content}</p>
@@ -165,7 +176,7 @@ export default async function KnowledgeDetailPage({ params }: { params: Promise<
                           <div className="flex items-center gap-2">
                             <span className="text-xs font-medium">{getUserName(reply.authorId)}</span>
                             <span className="text-xs text-muted-foreground">
-                              {new Date(reply.createdAt).toLocaleDateString('ja-JP')}
+                              {formatDate(reply.createdAt)}
                             </span>
                           </div>
                           <p className="text-xs text-muted-foreground">{reply.content}</p>
@@ -225,26 +236,30 @@ export default async function KnowledgeDetailPage({ params }: { params: Promise<
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">いいね</span>
-                <LikeButton
-                  articleId={article.id}
-                  initialLikeCount={article.likeCount}
-                  isInitiallyLiked={article.isLikedByUser}
-                />
+                {article.id ? (
+                  <LikeButton
+                    articleId={article.id}
+                    initialLikeCount={article.likeCount}
+                    isInitiallyLiked={article.isLikedByUser}
+                  />
+                ) : (
+                  <span className="text-sm font-medium">0</span>
+                )}
               </div>
               <Separator />
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">作成日</span>
-                  <span className="text-xs">{new Date(article.createdAt).toLocaleDateString('ja-JP')}</span>
+                  <span className="text-xs">{formatDate(article.createdAt)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">最終更新</span>
-                  <span className="text-xs">{new Date(article.updatedAt).toLocaleDateString('ja-JP')}</span>
+                  <span className="text-xs">{formatDate(article.updatedAt)}</span>
                 </div>
                 {article.publishedAt && (
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">公開日</span>
-                    <span className="text-xs">{new Date(article.publishedAt).toLocaleDateString('ja-JP')}</span>
+                    <span className="text-xs">{formatDate(article.publishedAt)}</span>
                   </div>
                 )}
               </div>

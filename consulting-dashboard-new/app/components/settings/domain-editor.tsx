@@ -145,7 +145,7 @@ interface Repository {
         setSaveMessage({ type: 'error', message: result.error || '保存に失敗しました' })
       }
     } catch (_error) {
-      console.error('Failed to save content:', error)
+      console.error('Failed to save content:', _error)
       setSaveMessage({ type: 'error', message: '保存中にエラーが発生しました' })
     } finally {
       setIsSaving(false)

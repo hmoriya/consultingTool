@@ -66,6 +66,37 @@ interface Message {
   }
 }
 
+// APIから返される部分的なMessageデータの型
+interface MessageApiResponse {
+  id: string
+  channelId: string
+  senderId: string
+  content: string
+  type: string
+  metadata?: string | null
+  editedAt?: Date | null
+  deletedAt?: Date | null
+  createdAt: Date
+  reactions?: Array<{
+    id: string
+    userId: string
+    emoji: string
+  }>
+  mentions?: Array<{
+    id: string
+    userId: string
+    type: string
+  }>
+  readReceipts?: Array<{
+    id: string
+    userId: string
+    readAt: string
+  }>
+  _count?: {
+    threadMessages: number
+  }
+}
+
 interface Channel {
   id: string
   name?: string | null

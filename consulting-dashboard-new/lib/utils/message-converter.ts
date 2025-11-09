@@ -148,3 +148,37 @@ export function convertMessageToThreadMessage(message: Message, parentMessageId:
 export function convertMessagesToThreadMessages(messages: Message[], parentMessageId: string): ThreadMessage[] {
   return messages.map(message => convertMessageToThreadMessage(message, parentMessageId))
 }
+
+// Channel型定義（統一）
+export interface Channel {
+  id: string
+  name?: string | null
+  description?: string | null
+  type: string
+  isPrivate: boolean
+  createdBy?: string
+  projectId?: string | null
+  members: Array<{
+    userId: string
+    role: string
+    lastReadAt?: Date | string | null
+  }>
+  _count: {
+    messages: number
+  }
+  lastMessage?: any
+  lastMessageId?: string | null
+  unreadCount?: number
+  memberUsers?: Array<{
+    userId: string
+    role: string
+    lastReadAt?: Date | string | null
+    user: {
+      id: string
+      name: string
+      email: string
+    }
+  }>
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}

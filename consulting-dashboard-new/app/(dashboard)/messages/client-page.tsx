@@ -21,38 +21,8 @@ import { ja } from 'date-fns/locale'
 import { NewChannelDialog } from '@/components/messages/new-channel-dialog'
 import { cn } from '@/lib/utils'
 import { useUser } from '@/contexts/user-context'
+import { Channel } from '@/lib/utils/message-converter'
 
-interface Channel {
-  id: string
-  name?: string | null
-  type: string
-  isPrivate: boolean
-  updatedAt: string
-  lastMessage?: {
-    id: string
-    content: string
-    createdAt: string
-    senderId: string
-  } | null
-  members: Array<{
-    userId: string
-    role: string
-  }>
-  memberUsers?: Array<{
-    userId: string
-    role: string
-    lastReadAt?: Date | null
-    user: {
-      id: string
-      name: string
-      email: string
-    }
-  }>
-  unreadCount: number
-  _count: {
-    messages: number
-  }
-}
 
 interface MessageListClientProps {
   initialChannels: Channel[]

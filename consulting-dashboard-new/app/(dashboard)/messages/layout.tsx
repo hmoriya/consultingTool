@@ -19,7 +19,13 @@ export default async function MessagesLayout({
   // 型変換してChannelSidebarが期待する形式にする
   const channels = rawChannels.map(channel => ({
     ...channel,
-    type: channel.type as 'PROJECT' | 'GROUP' | 'DIRECT'
+    type: channel.type as 'PROJECT' | 'GROUP' | 'DIRECT',
+    lastMessage: channel.lastMessage ? {
+      content: channel.lastMessage.content,
+      createdAt: channel.lastMessage.createdAt instanceof Date 
+        ? channel.lastMessage.createdAt.toISOString() 
+        : channel.lastMessage.createdAt
+    } : null
   }))
 
   return (

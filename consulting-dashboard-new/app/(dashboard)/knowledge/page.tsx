@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { BookOpen, Lightbulb, Search, Plus } from 'lucide-react'
+import { BookOpen, Lightbulb, Search, Plus, FileText } from 'lucide-react'
 import Link from 'next/link'
 
 // ユーザー名を取得するダミー関数
@@ -30,13 +30,13 @@ export default async function KnowledgePage() {
 
   // 記事データをUI表示用に変換
   const knowledgeItems = articles.map((article) => {
-    const tags = article.tags ? JSON.parse(article.tags as string) : []
+    const tags: string[] = article.tags ? JSON.parse(article.tags as string) : []
 
     return {
       id: article.id,
       title: article.title,
       category: article.category?.name || 'その他',
-      type: 'article',
+      type: 'article' as const,
       author: getUserName(article.authorId),
       createdAt: new Date(article.publishedAt || article.createdAt),
       tags: tags
@@ -119,7 +119,7 @@ export default async function KnowledgePage() {
               <CardContent>
                 <div className="flex items-center justify-between">
                   <div className="flex gap-2">
-                    {item.tags.map((tag) => (
+                    {item.tags.map((tag: string) => (
                       <Badge key={tag} variant="outline" className="text-xs">
                         #{tag}
                       </Badge>

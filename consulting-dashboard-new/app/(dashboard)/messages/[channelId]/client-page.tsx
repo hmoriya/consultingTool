@@ -142,7 +142,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
   const fileInputRef = useRef<HTMLInputElement>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
   // よく使う絵文字のリスト
   const quickEmojis = ['😊', '👍', '❤️', '🎉', '😂', '🙏', '👏', '🔥', '✨', '💪', '🚀', '💯']

@@ -14,7 +14,13 @@ export default async function MessagesLayout({
   }
 
   const channelsResult = await getUserChannels()
-  const channels = channelsResult.success ? channelsResult.data || [] : []
+  const rawChannels = channelsResult.success ? channelsResult.data || [] : []
+  
+  // 型変換してChannelSidebarが期待する形式にする
+  const channels = rawChannels.map(channel => ({
+    ...channel,
+    type: channel.type as 'PROJECT' | 'GROUP' | 'DIRECT'
+  }))
 
   return (
     <div className="flex h-[calc(100vh-4rem)]">

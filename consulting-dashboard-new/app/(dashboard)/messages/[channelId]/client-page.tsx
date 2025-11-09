@@ -325,16 +325,17 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
       setUploadProgress(100)
 
       if (result.success && result.data) {
+        const apiResponse = result.data as MessageApiResponse
         const tempMsg: Message = {
-          ...result.data,
-          createdAt: result.data.createdAt.toISOString(),
-          metadata: result.data.metadata || undefined,
-          editedAt: result.data.editedAt ? result.data.editedAt.toISOString() : undefined,
-          deletedAt: result.data.deletedAt ? result.data.deletedAt.toISOString() : undefined,
-          reactions: (result.data as any).reactions || [],
-          mentions: (result.data as any).mentions || [],
-          readReceipts: (result.data as any).readReceipts || [],
-          _count: (result.data as any)._count || { threadMessages: 0 },
+          ...apiResponse,
+          createdAt: apiResponse.createdAt.toISOString(),
+          metadata: apiResponse.metadata || undefined,
+          editedAt: apiResponse.editedAt ? apiResponse.editedAt.toISOString() : undefined,
+          deletedAt: apiResponse.deletedAt ? apiResponse.deletedAt.toISOString() : undefined,
+          reactions: apiResponse.reactions || [],
+          mentions: apiResponse.mentions || [],
+          readReceipts: apiResponse.readReceipts || [],
+          _count: apiResponse._count || { threadMessages: 0 },
           sender: currentUser || {
             id: currentUserId,
             name: 'You',
@@ -380,16 +381,17 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
 
       if (result.success && result.data) {
         // 送信したメッセージを一時的に追加（sender情報を含む）
+        const apiResponse = result.data as MessageApiResponse
         const tempMsg: Message = {
-          ...result.data,
-          createdAt: result.data.createdAt.toISOString(),
-          metadata: result.data.metadata || undefined,
-          editedAt: result.data.editedAt ? result.data.editedAt.toISOString() : undefined,
-          deletedAt: result.data.deletedAt ? result.data.deletedAt.toISOString() : undefined,
-          reactions: (result.data as any).reactions || [],
-          mentions: (result.data as any).mentions || [],
-          readReceipts: (result.data as any).readReceipts || [],
-          _count: (result.data as any)._count || { threadMessages: 0 },
+          ...apiResponse,
+          createdAt: apiResponse.createdAt.toISOString(),
+          metadata: apiResponse.metadata || undefined,
+          editedAt: apiResponse.editedAt ? apiResponse.editedAt.toISOString() : undefined,
+          deletedAt: apiResponse.deletedAt ? apiResponse.deletedAt.toISOString() : undefined,
+          reactions: apiResponse.reactions || [],
+          mentions: apiResponse.mentions || [],
+          readReceipts: apiResponse.readReceipts || [],
+          _count: apiResponse._count || { threadMessages: 0 },
           sender: currentUser || {
             id: currentUserId,
             name: 'You',

@@ -168,7 +168,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
   }
 
   // メッセージ入力のハンドラ
-  const handleMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value
     setNewMessage(value)
 

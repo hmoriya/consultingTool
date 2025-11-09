@@ -84,8 +84,8 @@ export function ProjectMilestones({ project }: ProjectMilestonesProps) {
       ])
       setMilestones(milestoneData)
       setStats(statsData)
-    } catch (error) {
-      console.error('Failed to load milestone data:', error)
+    } catch (_error) {
+      console.error('Failed to load milestone data:', _error)
     } finally {
       setLoading(false)
     }

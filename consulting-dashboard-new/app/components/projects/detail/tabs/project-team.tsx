@@ -66,8 +66,8 @@ export function ProjectTeam({ project }: ProjectTeamProps) {
       ])
       setMembers(teamMembers)
       setStats(teamStats)
-    } catch (error) {
-      console.error('Failed to load team data:', error)
+    } catch (_error) {
+      console.error('Failed to load team data:', _error)
     } finally {
       setLoading(false)
     }

@@ -61,8 +61,8 @@ export function ProjectTasks({ project }: ProjectTasksProps) {
       ])
       setTasks(projectTasks)
       setMilestones(projectMilestones)
-    } catch (error) {
-      console.error('Failed to load tasks:', error)
+    } catch (_error) {
+      console.error('Failed to load tasks:', _error)
     } finally {
       setLoading(false)
     }

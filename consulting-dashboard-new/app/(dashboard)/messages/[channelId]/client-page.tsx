@@ -350,6 +350,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
         // 送信したメッセージを一時的に追加（sender情報を含む）
         const tempMsg: Message = {
           ...result.data,
+          createdAt: result.data.createdAt.toISOString(),
           metadata: result.data.metadata || undefined,
           editedAt: result.data.editedAt ? result.data.editedAt.toISOString() : undefined,
           deletedAt: result.data.deletedAt ? result.data.deletedAt.toISOString() : undefined,

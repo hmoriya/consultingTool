@@ -297,6 +297,8 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
         const tempMsg: Message = {
           ...result.data,
           metadata: result.data.metadata || undefined,
+          editedAt: result.data.editedAt ? result.data.editedAt.toISOString() : undefined,
+          deletedAt: result.data.deletedAt ? result.data.deletedAt.toISOString() : undefined,
           reactions: result.data.reactions || [],
           mentions: result.data.mentions || [],
           readReceipts: result.data.readReceipts || [],
@@ -349,6 +351,8 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
         const tempMsg: Message = {
           ...result.data,
           metadata: result.data.metadata || undefined,
+          editedAt: result.data.editedAt ? result.data.editedAt.toISOString() : undefined,
+          deletedAt: result.data.deletedAt ? result.data.deletedAt.toISOString() : undefined,
           reactions: result.data.reactions || [],
           mentions: result.data.mentions || [],
           readReceipts: result.data.readReceipts || [],

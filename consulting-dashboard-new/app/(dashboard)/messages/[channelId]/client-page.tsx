@@ -439,7 +439,19 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
     // スレッドメッセージを取得
     const result = await getThreadMessages(message.id)
     if (result.success && result.data) {
-      setThreadMessages(result.data)
+      // APIレスポンスをMessage型に変換
+      const convertedMessages: Message[] = result.data.map((threadMsg: MessageApiResponse) => ({
+        ...threadMsg,
+        createdAt: threadMsg.createdAt.toISOString(),
+        metadata: threadMsg.metadata || undefined,
+        editedAt: threadMsg.editedAt ? threadMsg.editedAt.toISOString() : undefined,
+        deletedAt: threadMsg.deletedAt ? threadMsg.deletedAt.toISOString() : undefined,
+        reactions: threadMsg.reactions || [],
+        mentions: threadMsg.mentions || [],
+        readReceipts: threadMsg.readReceipts || [],
+        _count: threadMsg._count || { threadMessages: 0 }
+      }))
+      setThreadMessages(convertedMessages)
     }
   }
 

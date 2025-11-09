@@ -296,6 +296,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
       if (result.success && result.data) {
         const tempMsg: Message = {
           ...result.data,
+          metadata: result.data.metadata || undefined,
           reactions: result.data.reactions || [],
           mentions: result.data.mentions || [],
           readReceipts: result.data.readReceipts || [],
@@ -347,6 +348,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
         // 送信したメッセージを一時的に追加（sender情報を含む）
         const tempMsg: Message = {
           ...result.data,
+          metadata: result.data.metadata || undefined,
           reactions: result.data.reactions || [],
           mentions: result.data.mentions || [],
           readReceipts: result.data.readReceipts || [],

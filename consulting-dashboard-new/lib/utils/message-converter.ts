@@ -27,7 +27,7 @@ interface DbMessage {
   readReceipts?: Array<{
     id: string
     userId: string
-    readAt: string
+    readAt: string | Date
   }>
   flags?: Array<{
     id: string
@@ -95,7 +95,10 @@ export function convertDbMessageToMessage(dbMessage: DbMessage): Message {
     createdAt: dbMessage.createdAt.toISOString(),
     reactions: dbMessage.reactions || [],
     mentions: dbMessage.mentions || [],
-    readReceipts: dbMessage.readReceipts || [],
+    readReceipts: dbMessage.readReceipts?.map(receipt => ({
+      ...receipt,
+      readAt: receipt.readAt instanceof Date ? receipt.readAt.toISOString() : receipt.readAt
+    })) || [],
     flags: dbMessage.flags || undefined,
     _count: dbMessage._count || undefined,
     sender: dbMessage.sender || undefined

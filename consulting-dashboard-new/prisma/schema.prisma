@@ -4,7 +4,6 @@
 generator client {
   provider = "prisma-client-js"
   // Vercel最適化設定
-  output   = "../node_modules/@prisma/client"
   binaryTargets = ["native", "rhel-openssl-1.0.x"]
   previewFeatures = ["strictUndefinedChecks"]
 }

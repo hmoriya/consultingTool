@@ -27,17 +27,7 @@ export default async function ChatPage({ params }: Props) {
     notFound()
   }
 
-  const messages = messagesResult.success ? (messagesResult.data || []).map(msg => ({
-    ...msg,
-    metadata: msg.metadata || undefined,
-    editedAt: msg.editedAt ? msg.editedAt.toISOString() : undefined,
-    deletedAt: msg.deletedAt ? msg.deletedAt.toISOString() : undefined,
-    createdAt: msg.createdAt.toISOString(),
-    readReceipts: msg.readReceipts?.map(receipt => ({
-      ...receipt,
-      readAt: receipt.readAt
-    })) || []
-  })) : []
+  const messages = messagesResult.success ? messagesResult.data || [] : []
 
   return (
     <ChatClient 

@@ -115,7 +115,7 @@ export default async function KnowledgeDetailPage({ params }: { params: Promise<
               </div>
             </CardHeader>
             <CardContent>
-              <MarkdownRenderer content={article.content} />
+              <MarkdownRenderer content={article.content || 'コンテンツがありません。'} />
             </CardContent>
           </Card>
 

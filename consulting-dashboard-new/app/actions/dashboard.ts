@@ -31,13 +31,21 @@ export async function getDashboardData() {
     select: {
       id: true,
       name: true,
+      description: true,
       code: true,
       status: true,
       budget: true,
+      startDate: true,
+      endDate: true,
+      createdAt: true,
+      updatedAt: true,
+      organizationId: true,
       clientId: true,
       client: {
         select: {
+          id: true,
           name: true,
+          industry: true,
         },
       },
       _count: {
@@ -120,9 +128,21 @@ export async function getDashboardData() {
       return {
         id: project.id,
         name: project.name,
+<<<<<<< HEAD
         code: project.code,
         status: project.status,
         budget: project.budget,
+=======
+        description: project.description,
+        code: project.code,
+        status: project.status,
+        budget: project.budget,
+        startDate: project.startDate,
+        endDate: project.endDate,
+        createdAt: project.createdAt,
+        updatedAt: project.updatedAt,
+        organizationId: project.organizationId,
+>>>>>>> origin/main
         clientId: project.clientId,
         client: project.client,
         _count: project._count,

@@ -18,11 +18,12 @@ type Project = {
   code: string
   status: string
   budget: number
-  client: {
+  client?: {
     name: string
-  }
+  } | null
   _count: {
     projectMembers: number
+    tasks?: number
   }
   latestMetrics: {
     progressRate: number
@@ -59,7 +60,7 @@ export function ProjectPortfolio({ projects }: ProjectPortfolioProps) {
                 <div className="space-y-1">
                   <CardTitle className="text-lg">{project.name}</CardTitle>
                   <CardDescription className="text-xs">
-                    {project.code}
+                    {project.code} {project.client && `・ ${project.client.name}`}
                   </CardDescription>
                 </div>
                 <Badge className={`${status.color} text-xs`}>
@@ -104,7 +105,7 @@ export function ProjectPortfolio({ projects }: ProjectPortfolioProps) {
                   <div className="flex items-center gap-2 text-sm">
                     <Circle className={`h-2 w-2 ${project.status === 'active' ? 'fill-green-500' : 'fill-gray-400'}`} />
                     <span className="text-muted-foreground">
-                      使用率 {((project.latestMetrics?.utilization || 0) * 100).toFixed(0)}%
+                      使用率 {(project.latestMetrics?.utilization || 0).toFixed(0)}%
                     </span>
                   </div>
                   <Link

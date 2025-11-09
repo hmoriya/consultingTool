@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Flag, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { convertDbMessagesToMessages } from '@/lib/utils/message-converter'
+import { convertDbMessageToMessage } from '@/lib/utils/message-converter'
 
 export default async function FlaggedMessagesPage() {
   const user = await getCurrentUser()
@@ -15,8 +15,7 @@ export default async function FlaggedMessagesPage() {
   }
 
   const result = await getFlaggedMessages()
-  const rawMessages = result.success ? result.data || [] : []
-  const messages = convertDbMessagesToMessages(rawMessages)
+  const messages = result.success ? result.data || [] : []
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
@@ -65,7 +64,7 @@ export default async function FlaggedMessagesPage() {
                   </time>
                 </div>
                 <MessageItem
-                  message={message}
+                  message={convertDbMessageToMessage(message)}
                   isOwn={message.senderId === user.id}
                   showAvatar={true}
                   currentUserId={user.id}

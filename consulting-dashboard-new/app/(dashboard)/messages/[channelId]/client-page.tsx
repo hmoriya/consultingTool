@@ -209,7 +209,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
         const result = await markChannelAsRead(channel.id)
         console.log('markChannelAsRead result:', result)
       } catch (_error) {
-        console.error('Failed to mark channel as read:', error)
+        console.error('Failed to mark channel as read:', _error)
       }
     }, 500)
 

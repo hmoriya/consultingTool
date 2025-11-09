@@ -236,11 +236,15 @@ export default async function KnowledgeDetailPage({ params }: { params: Promise<
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">いいね</span>
-                <LikeButton
-                  articleId={article.id}
-                  initialLikeCount={article.likeCount}
-                  isInitiallyLiked={article.isLikedByUser}
-                />
+                {article.id ? (
+                  <LikeButton
+                    articleId={article.id}
+                    initialLikeCount={article.likeCount}
+                    isInitiallyLiked={article.isLikedByUser}
+                  />
+                ) : (
+                  <span className="text-sm font-medium">0</span>
+                )}
               </div>
               <Separator />
               <div className="space-y-2">

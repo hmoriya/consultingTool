@@ -166,7 +166,13 @@ export interface Channel {
   _count: {
     messages: number
   }
-  lastMessage?: any
+  lastMessage?: {
+    id: string
+    content: string
+    createdAt: string | Date
+    senderId: string
+    type?: string
+  } | null
   lastMessageId?: string | null
   unreadCount?: number
   memberUsers?: Array<{

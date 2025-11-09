@@ -27,6 +27,19 @@ import { EditMessageDialog } from '@/components/messages/edit-message-dialog'
 import { DeleteMessageDialog } from '@/components/messages/delete-message-dialog'
 import { sendThreadMessage, getThreadMessages } from '@/actions/messages'
 
+interface ThreadMessage {
+  id: string
+  messageId: string
+  senderId: string
+  content: string
+  createdAt: string
+  sender?: {
+    id: string
+    name: string
+    email: string
+  }
+}
+
 interface Message {
   id: string
   channelId: string
@@ -136,7 +149,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
   const [mentionSearch, setMentionSearch] = useState('')
   const [mentionIndex, setMentionIndex] = useState(0)
   const [selectedThread, setSelectedThread] = useState<Message | null>(null)
-  const [threadMessages, setThreadMessages] = useState<Message[]>([])
+  const [threadMessages, setThreadMessages] = useState<ThreadMessage[]>([])
   const [editingMessage, setEditingMessage] = useState<{ id: string; content: string } | null>(null)
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -439,17 +452,18 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
     // スレッドメッセージを取得
     const result = await getThreadMessages(message.id)
     if (result.success && result.data) {
-      // APIレスポンスをMessage型に変換
-      const convertedMessages: Message[] = result.data.map((threadMsg: MessageApiResponse) => ({
-        ...threadMsg,
+      // APIレスポンスをThreadMessage型に変換
+      const convertedMessages: ThreadMessage[] = result.data.map((threadMsg: MessageApiResponse) => ({
+        id: threadMsg.id,
+        messageId: message.id, // 親メッセージのIDを設定
+        senderId: threadMsg.senderId,
+        content: threadMsg.content,
         createdAt: threadMsg.createdAt.toISOString(),
-        metadata: threadMsg.metadata || undefined,
-        editedAt: threadMsg.editedAt ? threadMsg.editedAt.toISOString() : undefined,
-        deletedAt: threadMsg.deletedAt ? threadMsg.deletedAt.toISOString() : undefined,
-        reactions: threadMsg.reactions || [],
-        mentions: threadMsg.mentions || [],
-        readReceipts: threadMsg.readReceipts || [],
-        _count: threadMsg._count || { threadMessages: 0 }
+        sender: {
+          id: threadMsg.senderId,
+          name: 'User', // 実際の実装では適切なユーザー情報を取得
+          email: ''
+        }
       }))
       setThreadMessages(convertedMessages)
     }
@@ -465,25 +479,21 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
     })
 
     if (result.success && result.data) {
-      // APIレスポンスをMessage型に変換
+      // APIレスポンスをThreadMessage型に変換
       const apiResponse = result.data as MessageApiResponse
-      const newMessage: Message = {
-        ...apiResponse,
+      const newThreadMessage: ThreadMessage = {
+        id: apiResponse.id,
+        messageId: selectedThread.id, // 親メッセージのIDを設定
+        senderId: apiResponse.senderId,
+        content: apiResponse.content,
         createdAt: apiResponse.createdAt.toISOString(),
-        metadata: apiResponse.metadata || undefined,
-        editedAt: apiResponse.editedAt ? apiResponse.editedAt.toISOString() : undefined,
-        deletedAt: apiResponse.deletedAt ? apiResponse.deletedAt.toISOString() : undefined,
-        reactions: apiResponse.reactions || [],
-        mentions: apiResponse.mentions || [],
-        readReceipts: apiResponse.readReceipts || [],
-        _count: apiResponse._count || { threadMessages: 0 },
         sender: currentUser || {
           id: currentUserId,
           name: 'You',
           email: ''
         }
       }
-      setThreadMessages(prev => [...prev, newMessage])
+      setThreadMessages(prev => [...prev, newThreadMessage])
       // メインメッセージのスレッドカウントを更新
       setMessages(prev => prev.map(msg =>
         msg.id === selectedThread.id

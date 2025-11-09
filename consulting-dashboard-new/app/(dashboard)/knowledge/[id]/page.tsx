@@ -239,8 +239,8 @@ export default async function KnowledgeDetailPage({ params }: { params: Promise<
                 {article.id ? (
                   <LikeButton
                     articleId={article.id}
-                    initialLikeCount={article.likeCount}
-                    isInitiallyLiked={article.isLikedByUser}
+                    initialLikeCount={article.likeCount || 0}
+                    isInitiallyLiked={article.isLikedByUser || false}
                   />
                 ) : (
                   <span className="text-sm font-medium">0</span>

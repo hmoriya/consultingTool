@@ -350,8 +350,8 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
         throw new Error(result.error || 'メッセージの送信に失敗しました')
       }
     } catch (_error) {
-      console.error('File upload error:', error)
-      toast.error(error instanceof Error ? error.message : 'ファイルの送信に失敗しました')
+      console.error('File upload error:', _error)
+      toast.error(_error instanceof Error ? _error.message : 'ファイルの送信に失敗しました')
     } finally {
       setIsUploading(false)
       setUploadProgress(0)

@@ -816,7 +816,10 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
           isOpen={!!selectedThread}
           onClose={() => setSelectedThread(null)}
           onSendReply={handleSendThreadReply}
-          threadMessages={threadMessages}
+          threadMessages={threadMessages.map(msg => ({
+            ...msg,
+            messageId: selectedThread.id // スレッドの親メッセージID
+          }))}
           currentUserId={currentUserId}
         />
       )}

@@ -188,7 +188,7 @@ export default function MessageListClient({ initialChannels }: MessageListClient
                               {getChannelName(channel)}
                             </h3>
                             <div className="flex items-center gap-2">
-                              {channel.unreadCount > 0 && (
+                              {(channel.unreadCount || 0) > 0 && (
                                 <Badge variant="default" className="h-5 px-2 text-xs font-medium">
                                   {channel.unreadCount}
                                 </Badge>

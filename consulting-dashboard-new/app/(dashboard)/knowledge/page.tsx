@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { BookOpen, Lightbulb, Search, Plus } from 'lucide-react'
+import { BookOpen, Lightbulb, Search, Plus, FileText } from 'lucide-react'
 import Link from 'next/link'
 
 // ユーザー名を取得するダミー関数

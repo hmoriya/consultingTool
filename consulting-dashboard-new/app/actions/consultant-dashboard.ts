@@ -6,7 +6,6 @@ import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek } from 'date-fns'
 import { USER_ROLES } from '@/constants/roles'
-import type { TaskWithDetails } from '@/app/types/parasol-components'
 
 export async function getConsultantDashboardData() {
   const user = await getCurrentUser()

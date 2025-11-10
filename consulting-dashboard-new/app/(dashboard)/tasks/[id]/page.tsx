@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { CheckCircle2, Circle, Clock, AlertCircle, Calendar, Timer, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { timesheetDb } from '@/lib/prisma-vercel'
 import { TaskActions } from '@/components/tasks/task-actions'
 import { getTaskById } from '@/actions/tasks'
 
@@ -23,18 +22,6 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
     notFound()
   }
 
-
-  // timesheet-serviceから工数エントリを取得
-  const timeEntries = await timesheetDb.timeEntry.findMany({
-    where: {
-      consultantId: user.id,
-      taskId: task.id
-    },
-    orderBy: {
-      date: 'desc'
-    },
-    take: 10
-  })
 
   const statusConfig = {
     todo: { label: '未着手', color: 'bg-gray-500', icon: Circle },
@@ -57,7 +44,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
   const priorityInfo = priorityConfig[task.priority as keyof typeof priorityConfig] || priorityConfig.medium
 
   // 実績時間の計算
-  const totalActualHours = timeEntries.reduce((sum, entry) => sum + entry.hours, 0)
+  const totalActualHours = task.timeEntries?.reduce((sum, entry) => sum + entry.hours, 0) || 0
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -147,9 +134,9 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
 
           <div>
             <h3 className="text-sm font-medium text-muted-foreground mb-3">最近の工数記録</h3>
-            {timeEntries.length > 0 ? (
+            {task.timeEntries && task.timeEntries.length > 0 ? (
               <div className="space-y-2">
-                {timeEntries.map((entry) => (
+                {task.timeEntries.map((entry) => (
                   <div key={entry.id} className="flex items-center justify-between p-3 rounded-lg border">
                     <div className="flex items-center gap-4">
                       <div className="text-sm">

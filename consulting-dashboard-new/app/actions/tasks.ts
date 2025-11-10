@@ -2,6 +2,7 @@
 
 import { db } from '@/lib/db'
 import { projectDb } from '@/lib/db/project-db'
+import { timesheetDb } from '@/lib/prisma-vercel'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
 import { USER_ROLES } from '@/constants/roles'
@@ -119,9 +120,22 @@ export async function getTaskById(taskId: string) {
     where: { id: task.project.clientId }
   })
 
+  // timesheet-serviceから工数エントリを取得
+  const timeEntries = await timesheetDb.timeEntry.findMany({
+    where: {
+      consultantId: user.id,
+      taskId: task.id
+    },
+    orderBy: {
+      date: 'desc'
+    },
+    take: 10
+  })
+
   return {
     ...task,
-    client
+    client,
+    timeEntries
   }
 }
 

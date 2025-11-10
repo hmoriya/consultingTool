@@ -110,7 +110,19 @@ export async function getTaskById(taskId: string) {
     }
   })
 
-  return task
+  if (!task) {
+    return null
+  }
+
+  // クライアント情報を取得（auth serviceから）
+  const client = await db.organization.findUnique({
+    where: { id: task.project.clientId }
+  })
+
+  return {
+    ...task,
+    client
+  }
 }
 
 export async function createTask(data: {

@@ -17,5 +17,5 @@ export default async function ParasolDomainLanguagePage() {
     }
   });
 
-  return <ParasolSettingsPage2 initialServices={services} />;
+  return <ParasolSettingsPage2 initialServices={services as any} />;
 }

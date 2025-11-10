@@ -3,16 +3,7 @@
  * データベース経由での取得を基本とする
  */
 
-import { PrismaClient } from '@prisma/parasol-client'
-import path from 'path'
-
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: `file:${path.join(process.cwd(), 'prisma/parasol-service/data/parasol.db')}`
-    }
-  }
-})
+import { parasolDb as prisma } from '@/lib/prisma-vercel'
 
 /**
  * データベースからAPI利用仕様を取得

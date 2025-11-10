@@ -20,10 +20,10 @@ export default async function TasksPage() {
   const tasksWithClient = await getUserTasks()
   
   // クライアントマップを作成
-  const clientMap = new Map(
+  const clientMap = new Map<string, { name: string }>(
     tasksWithClient
       .filter((task: TaskWithClient) => task.client)
-      .map((task: TaskWithClient) => [task.client!.id, task.client!])
+      .map((task: TaskWithClient) => [task.client!.id, { name: task.client!.name }])
   )
 
   // 利用可能なプロジェクトを抽出（フィルター用）

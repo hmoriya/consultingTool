@@ -3,42 +3,9 @@ import { getCurrentUser } from '../../../actions/auth'
 import { getSkills } from '../../../actions/skills'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ProjectExperienceList } from './project-experience-list'
+import { ProjectExperienceList, type ProjectExperience } from './project-experience-list'
 import { ProjectExperienceSearch } from './project-experience-search'
 import { Briefcase, Calendar, TrendingUp, Users } from 'lucide-react'
-
-// プロジェクト経験の型定義
-interface ProjectExperience {
-  id: string
-  projectId: string
-  userId: string
-  role: string
-  allocation: number
-  startDate: Date
-  endDate: Date | null
-  achievements: string | null
-  responsibilities: string | null
-  duration: number
-  project: {
-    id: string
-    name: string
-    clientId: string
-    client: {
-      id: string
-      name: string
-    } | null
-  }
-  skills: Array<{
-    id: string
-    projectMemberId: string
-    skillId: string
-    usageLevel: number
-    skill: {
-      id: string
-      name: string
-    } | null
-  }>
-}
 
 export default async function ProjectExperiencePage() {
   const [user, myExperiences, allSkills] = await Promise.all([
@@ -47,8 +14,40 @@ export default async function ProjectExperiencePage() {
     getSkills()
   ])
 
-  // 型アサーションで明示的にキャスト
-  const typedExperiences = myExperiences as ProjectExperience[]
+  // データ変換関数：実際のデータをProjectExperience型に変換
+  const convertToProjectExperience = (data: any[]): ProjectExperience[] => {
+    return data.map(exp => ({
+      id: exp.id,
+      project: {
+        id: exp.project.id,
+        name: exp.project.name,
+        client: exp.project.client
+      },
+      role: exp.role,
+      startDate: exp.startDate,
+      endDate: exp.endDate,
+      allocation: exp.allocation,
+      achievements: exp.achievements,
+      responsibilities: exp.responsibilities,
+      duration: exp.duration,
+      skills: exp.skills.map((skill: any) => ({
+        id: skill.id,
+        skillId: skill.skillId,
+        usageLevel: skill.usageLevel,
+        skill: skill.skill ? {
+          id: skill.skill.id,
+          name: skill.skill.name,
+          category: skill.skill.category || { id: '', name: 'その他' }
+        } : {
+          id: skill.skillId,
+          name: '不明',
+          category: { id: '', name: 'その他' }
+        }
+      }))
+    }))
+  }
+
+  const typedExperiences = convertToProjectExperience(myExperiences)
 
   if (!user) {
     return null

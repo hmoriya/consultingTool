@@ -9,7 +9,7 @@ import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import { ProjectExperienceDetail } from './project-experience-detail'
 
-interface Project {
+export interface Project {
   id: string
   name: string
   client?: {
@@ -18,7 +18,7 @@ interface Project {
   } | null
 }
 
-interface ProjectSkill {
+export interface ProjectSkill {
   id: string
   skillId: string
   usageLevel: number
@@ -32,7 +32,7 @@ interface ProjectSkill {
   }
 }
 
-interface ProjectExperience {
+export interface ProjectExperience {
   id: string
   project: Project
   role: string

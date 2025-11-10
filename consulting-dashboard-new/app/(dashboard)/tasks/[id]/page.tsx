@@ -7,9 +7,9 @@ import { Separator } from '@/components/ui/separator'
 import { CheckCircle2, Circle, Clock, AlertCircle, Calendar, Timer, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { db } from '@/lib/db'
-import { projectDb } from '@/lib/db/project-db'
 import { timesheetDb } from '@/lib/prisma-vercel'
 import { TaskActions } from '@/components/tasks/task-actions'
+import { getTaskById } from '@/actions/tasks'
 
 export default async function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -18,16 +18,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
     redirect('/login')
   }
 
-  const task = await projectDb.task.findUnique({
-    where: {
-      id,
-      assigneeId: user.id // ユーザーに割り当てられたタスクのみ表示
-    },
-    include: {
-      project: true,
-      milestone: true
-    }
-  })
+  const task = await getTaskById(id)
 
   if (!task) {
     notFound()

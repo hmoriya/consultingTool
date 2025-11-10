@@ -93,6 +93,26 @@ export async function getProjectTasks(projectId: string) {
   }))
 }
 
+export async function getTaskById(taskId: string) {
+  const user = await getCurrentUser()
+  if (!user) {
+    return null
+  }
+
+  const task = await projectDb.task.findUnique({
+    where: {
+      id: taskId,
+      assigneeId: user.id // ユーザーに割り当てられたタスクのみ表示
+    },
+    include: {
+      project: true,
+      milestone: true
+    }
+  })
+
+  return task
+}
+
 export async function createTask(data: {
   projectId: string
   title: string

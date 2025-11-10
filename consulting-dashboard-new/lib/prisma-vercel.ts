@@ -5,7 +5,6 @@
 // Vercel環境対応統合Prismaクライアント
 // 注意: 各サービスは環境変数で異なるデータベースを参照
 import { PrismaClient } from '@prisma/client'
-import { PrismaClient as ProjectPrismaClient } from '@prisma/project-client'
 
 // Vercel環境検出
 const isVercel = !!process.env.VERCEL
@@ -20,7 +19,7 @@ const basePrismaConfig = {
 // グローバル接続管理（Vercel Hot Reload対応）
 const globalForPrisma = globalThis as unknown as {
   authDb: PrismaClient | undefined
-  projectDb: ProjectPrismaClient | undefined
+  projectDb: PrismaClient | undefined
   resourceDb: PrismaClient | undefined
   timesheetDb: PrismaClient | undefined
   notificationDb: PrismaClient | undefined
@@ -40,7 +39,7 @@ export const authDb = globalForPrisma.authDb ?? new PrismaClient({
 })
 
 // プロジェクトサービス - 環境変数: PROJECT_DATABASE_URL
-export const projectDb = globalForPrisma.projectDb ?? new ProjectPrismaClient({
+export const projectDb = globalForPrisma.projectDb ?? new PrismaClient({
   ...basePrismaConfig,
   datasources: {
     db: {

@@ -345,7 +345,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
         const tempMsg: Message = {
           ...apiResponse,
           createdAt: apiResponse.createdAt.toISOString(),
-          metadata: apiResponse.metadata || undefined,
+          metadata: apiResponse.metadata || '',
           editedAt: apiResponse.editedAt ? apiResponse.editedAt.toISOString() : undefined,
           deletedAt: apiResponse.deletedAt ? apiResponse.deletedAt.toISOString() : undefined,
           reactions: apiResponse.reactions || [],
@@ -401,7 +401,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
         const tempMsg: Message = {
           ...apiResponse,
           createdAt: apiResponse.createdAt.toISOString(),
-          metadata: apiResponse.metadata || undefined,
+          metadata: apiResponse.metadata || '',
           editedAt: apiResponse.editedAt ? apiResponse.editedAt.toISOString() : undefined,
           deletedAt: apiResponse.deletedAt ? apiResponse.deletedAt.toISOString() : undefined,
           reactions: apiResponse.reactions || [],

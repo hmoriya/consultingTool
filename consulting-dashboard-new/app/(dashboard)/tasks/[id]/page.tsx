@@ -18,7 +18,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
     redirect('/login')
   }
 
-  const task = await projectDb.task.findUnique({
+  const task = await projectDb.Task.findUnique({
     where: {
       id,
       assigneeId: user.id // ユーザーに割り当てられたタスクのみ表示

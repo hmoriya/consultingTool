@@ -144,7 +144,7 @@ export function MessageItem({ message, isOwn, showAvatar, currentUserId, onReact
                             link.click()
                             document.body.removeChild(link)
                             window.URL.revokeObjectURL(url)
-                          } catch (_error) {
+                          } catch (error) {
                             console.error('Download error:', error)
                           }
                         }}
@@ -201,7 +201,7 @@ export function MessageItem({ message, isOwn, showAvatar, currentUserId, onReact
                         link.click()
                         document.body.removeChild(link)
                         window.URL.revokeObjectURL(url)
-                      } catch (_error) {
+                      } catch (error) {
                         console.error('Download error:', error)
                       }
                     }}

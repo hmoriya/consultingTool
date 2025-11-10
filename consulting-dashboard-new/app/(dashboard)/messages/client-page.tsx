@@ -243,7 +243,7 @@ export default function MessageListClient({ initialChannels }: MessageListClient
       <NewChannelDialog
         open={showNewChannelDialog}
         onClose={() => setShowNewChannelDialog(false)}
-        onSuccess={(newChannel: Channel) => {
+        onSuccess={(newChannel) => {
           setChannels([newChannel, ...channels])
           router.push(`/messages/${newChannel.id}`)
         }}

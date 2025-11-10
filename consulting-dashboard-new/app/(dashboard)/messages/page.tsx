@@ -15,7 +15,7 @@ export default async function MessagesPage() {
   
   // デバッグ: 全チャンネルデータの構造を確認
   console.log('Total channels:', channels.length)
-  channels.forEach((channel: Channel, index) => {
+  channels.forEach((channel: Channel, index: number) => {
     console.log(`Channel ${index + 1}:`, {
       name: channel.name,
       type: channel.type,

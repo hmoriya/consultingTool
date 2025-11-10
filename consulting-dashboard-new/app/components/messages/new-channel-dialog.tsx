@@ -15,11 +15,12 @@ import { getActiveProjects } from '@/actions/projects'
 import { toast } from 'sonner'
 import { useEffect } from 'react'
 import { Loader2 } from 'lucide-react'
+import { Channel } from '@/lib/utils/message-converter'
 
 interface NewChannelDialogProps {
   open: boolean
   onClose: () => void
-  onSuccess: (channel: unknown) => void
+  onSuccess: (channel: Channel) => void
 }
 
 interface User {

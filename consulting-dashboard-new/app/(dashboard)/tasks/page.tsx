@@ -3,6 +3,13 @@ import { redirect } from 'next/navigation'
 import { getUserTasks } from '@/actions/tasks'
 import { TaskList } from '../../components/tasks/task-list'
 
+// タスクの型定義
+type TaskWithClient = {
+  id: string
+  project: { id: string; name: string; clientId: string }
+  client: { id: string; name: string } | null
+}
+
 export default async function TasksPage() {
   const user = await getCurrentUser()
   if (!user) {
@@ -15,13 +22,13 @@ export default async function TasksPage() {
   // クライアントマップを作成
   const clientMap = new Map(
     tasksWithClient
-      .filter((task: any) => task.client)
-      .map((task: any) => [task.client!.id, task.client!])
+      .filter((task: TaskWithClient) => task.client)
+      .map((task: TaskWithClient) => [task.client!.id, task.client!])
   )
 
   // 利用可能なプロジェクトを抽出（フィルター用）
   const projects = [...new Map(
-    tasksWithClient.map((task: any) => [task.project.id, {
+    tasksWithClient.map((task: TaskWithClient) => [task.project.id, {
       id: task.project.id,
       name: task.project.name
     }])

@@ -22,10 +22,10 @@ export default async function ProjectExperiencePage() {
 
   // 統計情報の計算
   const totalProjects = myExperiences.length
-  const activeProjects = myExperiences.filter(exp => !exp.endDate).length
-  const totalMonths = myExperiences.reduce((sum, exp) => sum + exp.duration, 0)
+  const activeProjects = myExperiences.filter((exp: any) => !exp.endDate).length
+  const totalMonths = myExperiences.reduce((sum: number, exp: any) => sum + exp.duration, 0)
   const uniqueSkills = new Set(
-    myExperiences.flatMap(exp => exp.skills.map(s => s.skillId))
+    myExperiences.flatMap((exp: any) => exp.skills.map((s: any) => s.skillId))
   ).size
 
   return (

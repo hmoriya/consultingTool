@@ -8,10 +8,8 @@ import { CheckCircle2, Circle, Clock, AlertCircle, Calendar, Timer, ArrowLeft } 
 import Link from 'next/link'
 import { db } from '@/lib/db'
 import { projectDb } from '@/lib/db/project-db'
-import { PrismaClient as TimesheetPrismaClient } from '@prisma/timesheet-service'
+import { timesheetDb } from '@/lib/prisma-vercel'
 import { TaskActions } from '@/components/tasks/task-actions'
-
-const timesheetDb = new TimesheetPrismaClient()
 
 export default async function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params

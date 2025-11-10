@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server'
-import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
-
-const parasolDb = new ParasolPrismaClient()
+import { parasolDb } from '@/lib/prisma-vercel'
 
 export async function GET(
   request: Request,

@@ -47,6 +47,9 @@ export default async function ProjectExperiencePage() {
     getSkills()
   ])
 
+  // 型アサーションで明示的にキャスト
+  const typedExperiences = myExperiences as ProjectExperience[]
+
   if (!user) {
     return null
   }
@@ -54,11 +57,11 @@ export default async function ProjectExperiencePage() {
   const isPMOrExecutive = user.role.name === 'pm' || user.role.name === 'executive'
 
   // 統計情報の計算
-  const totalProjects = myExperiences.length
-  const activeProjects = myExperiences.filter((exp: ProjectExperience) => !exp.endDate).length
-  const totalMonths = myExperiences.reduce((sum: number, exp: ProjectExperience) => sum + exp.duration, 0)
+  const totalProjects = typedExperiences.length
+  const activeProjects = typedExperiences.filter((exp: ProjectExperience) => !exp.endDate).length
+  const totalMonths = typedExperiences.reduce((sum: number, exp: ProjectExperience) => sum + exp.duration, 0)
   const uniqueSkills = new Set(
-    myExperiences.flatMap((exp: ProjectExperience) => exp.skills.map((s) => s.skillId))
+    typedExperiences.flatMap((exp: ProjectExperience) => exp.skills.map((s) => s.skillId))
   ).size
 
   return (
@@ -146,7 +149,7 @@ export default async function ProjectExperiencePage() {
 
         <TabsContent value="my-experience" className="space-y-4">
           <ProjectExperienceList 
-            experiences={myExperiences}
+            experiences={typedExperiences}
             allSkills={allSkills}
             isOwner={true}
           />

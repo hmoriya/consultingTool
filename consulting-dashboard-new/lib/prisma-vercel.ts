@@ -2,65 +2,111 @@
  * Vercel環境対応Prismaクライアント統合管理
  */
 
-import { PrismaClient as AuthPrismaClient } from '@prisma/auth-client'
-import { PrismaClient as ProjectPrismaClient } from '@prisma/project-client'
-import { PrismaClient as ResourcePrismaClient } from '@prisma/resource-client'
-import { PrismaClient as TimesheetPrismaClient } from '@prisma/timesheet-service'
-import { PrismaClient as NotificationPrismaClient } from '@prisma/notification-client'
-import { PrismaClient as FinancePrismaClient } from '@prisma/finance-client'
-import { PrismaClient as KnowledgePrismaClient } from '../prisma/knowledge-service/generated/client'
-import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
+// Vercel環境対応統合Prismaクライアント
+// 注意: 各サービスは環境変数で異なるデータベースを参照
+import { PrismaClient } from '@prisma/client'
 
 // Vercel環境検出
 const isVercel = !!process.env.VERCEL
 const isProduction = process.env.NODE_ENV === 'production'
 
-// Prismaクライアント設定
-const prismaConfig = {
-  log: isProduction ? ['error'] : ['query', 'info', 'warn', 'error'],
-  errorFormat: 'pretty' as const,
-  datasources: {
-    db: {
-      url: undefined // 環境変数から自動取得
-    }
-  }
+// 基本Prisma設定
+const basePrismaConfig = {
+  log: isProduction ? ['error'] : ['error', 'warn'] as any,
+  errorFormat: 'pretty' as const
 }
 
 // グローバル接続管理（Vercel Hot Reload対応）
 const globalForPrisma = globalThis as unknown as {
-  authDb: AuthPrismaClient | undefined
-  projectDb: ProjectPrismaClient | undefined
-  resourceDb: ResourcePrismaClient | undefined
-  timesheetDb: TimesheetPrismaClient | undefined
-  notificationDb: NotificationPrismaClient | undefined
-  financeDb: FinancePrismaClient | undefined
-  knowledgeDb: KnowledgePrismaClient | undefined
-  parasolDb: ParasolPrismaClient | undefined
+  authDb: PrismaClient | undefined
+  projectDb: PrismaClient | undefined
+  resourceDb: PrismaClient | undefined
+  timesheetDb: PrismaClient | undefined
+  notificationDb: PrismaClient | undefined
+  financeDb: PrismaClient | undefined
+  knowledgeDb: PrismaClient | undefined
+  parasolDb: PrismaClient | undefined
 }
 
-// 認証サービス
-export const authDb = globalForPrisma.authDb ?? new AuthPrismaClient(prismaConfig)
+// 認証サービス - 環境変数: AUTH_DATABASE_URL
+export const authDb = globalForPrisma.authDb ?? new PrismaClient({
+  ...basePrismaConfig,
+  datasources: {
+    db: {
+      url: process.env.AUTH_DATABASE_URL || 'file:./prisma/auth-service/data/auth.db'
+    }
+  }
+})
 
-// プロジェクトサービス
-export const projectDb = globalForPrisma.projectDb ?? new ProjectPrismaClient(prismaConfig)
+// プロジェクトサービス - 環境変数: PROJECT_DATABASE_URL
+export const projectDb = globalForPrisma.projectDb ?? new PrismaClient({
+  ...basePrismaConfig,
+  datasources: {
+    db: {
+      url: process.env.PROJECT_DATABASE_URL || 'file:./prisma/project-service/data/project.db'
+    }
+  }
+})
 
-// リソースサービス
-export const resourceDb = globalForPrisma.resourceDb ?? new ResourcePrismaClient(prismaConfig)
+// リソースサービス - 環境変数: RESOURCE_DATABASE_URL
+export const resourceDb = globalForPrisma.resourceDb ?? new PrismaClient({
+  ...basePrismaConfig,
+  datasources: {
+    db: {
+      url: process.env.RESOURCE_DATABASE_URL || 'file:./prisma/resource-service/data/resource.db'
+    }
+  }
+})
 
-// タイムシートサービス
-export const timesheetDb = globalForPrisma.timesheetDb ?? new TimesheetPrismaClient(prismaConfig)
+// タイムシートサービス - 環境変数: TIMESHEET_DATABASE_URL
+export const timesheetDb = globalForPrisma.timesheetDb ?? new PrismaClient({
+  ...basePrismaConfig,
+  datasources: {
+    db: {
+      url: process.env.TIMESHEET_DATABASE_URL || 'file:./prisma/timesheet-service/data/timesheet.db'
+    }
+  }
+})
 
-// 通知サービス
-export const notificationDb = globalForPrisma.notificationDb ?? new NotificationPrismaClient(prismaConfig)
+// 通知サービス - 環境変数: NOTIFICATION_DATABASE_URL
+export const notificationDb = globalForPrisma.notificationDb ?? new PrismaClient({
+  ...basePrismaConfig,
+  datasources: {
+    db: {
+      url: process.env.NOTIFICATION_DATABASE_URL || 'file:./prisma/notification-service/data/notification.db'
+    }
+  }
+})
 
-// 財務サービス
-export const financeDb = globalForPrisma.financeDb ?? new FinancePrismaClient(prismaConfig)
+// 財務サービス - 環境変数: FINANCE_DATABASE_URL
+export const financeDb = globalForPrisma.financeDb ?? new PrismaClient({
+  ...basePrismaConfig,
+  datasources: {
+    db: {
+      url: process.env.FINANCE_DATABASE_URL || 'file:./prisma/finance-service/data/finance.db'
+    }
+  }
+})
 
-// ナレッジサービス
-export const knowledgeDb = globalForPrisma.knowledgeDb ?? new KnowledgePrismaClient(prismaConfig)
+// ナレッジサービス - 環境変数: KNOWLEDGE_DATABASE_URL
+export const knowledgeDb = globalForPrisma.knowledgeDb ?? new PrismaClient({
+  ...basePrismaConfig,
+  datasources: {
+    db: {
+      url: process.env.KNOWLEDGE_DATABASE_URL || 'file:./prisma/knowledge-service/data/knowledge.db'
+    }
+  }
+})
 
-// パラソルサービス
-export const parasolDb = globalForPrisma.parasolDb ?? new ParasolPrismaClient(prismaConfig)
+// パラソルサービス - 環境変数: PARASOL_DATABASE_URL
+export const parasolDb = globalForPrisma.parasolDb ?? new PrismaClient({
+  ...basePrismaConfig,
+  datasources: {
+    db: {
+      url: process.env.PARASOL_DATABASE_URL || 'file:./prisma/parasol-service/data/parasol.db'
+    }
+  }
+})
 
 // 開発環境でのグローバル保持（Hot Reload対応）
 if (!isProduction) {

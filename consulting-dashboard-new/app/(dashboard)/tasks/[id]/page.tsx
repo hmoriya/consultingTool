@@ -136,7 +136,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
             <h3 className="text-sm font-medium text-muted-foreground mb-3">最近の工数記録</h3>
             {task.timeEntries && task.timeEntries.length > 0 ? (
               <div className="space-y-2">
-                {task.timeEntries.map((entry) => (
+                {task.timeEntries.map((entry: { id: string; date: Date | string; description: string | null; hours: number }) => (
                   <div key={entry.id} className="flex items-center justify-between p-3 rounded-lg border">
                     <div className="flex items-center gap-4">
                       <div className="text-sm">

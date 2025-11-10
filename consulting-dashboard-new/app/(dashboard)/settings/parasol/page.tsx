@@ -3,7 +3,7 @@ import { ParasolSettingsPage2 } from '@/app/components/parasol/ParasolSettingsPa
 
 export default async function ParasolDomainLanguagePage() {
   const result = await getServices();
-  const services = result.success ? result.data : [];
+  const services = result.success ? result.data || [] : [];
 
   // デバッグログ
   console.log('ParasolDomainLanguagePage: services loaded');

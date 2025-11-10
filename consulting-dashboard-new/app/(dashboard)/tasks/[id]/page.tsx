@@ -44,7 +44,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
   const priorityInfo = priorityConfig[task.priority as keyof typeof priorityConfig] || priorityConfig.medium
 
   // 実績時間の計算
-  const totalActualHours = task.timeEntries?.reduce((sum, entry) => sum + entry.hours, 0) || 0
+  const totalActualHours = task.timeEntries?.reduce((sum: number, entry) => sum + entry.hours, 0) || 0
 
   return (
     <div className="container mx-auto py-6 space-y-6">

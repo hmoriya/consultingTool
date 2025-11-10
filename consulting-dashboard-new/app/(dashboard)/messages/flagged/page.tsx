@@ -47,7 +47,7 @@ export default async function FlaggedMessagesPage() {
           </Card>
         ) : (
           <div className="space-y-6">
-            {messages.map((message) => (
+            {messages.map((message: any) => (
               <Card key={message.id} className="p-4">
                 <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground">
                   <span>#{message.channel?.name || 'チャンネル'}</span>

@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server'
-import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
+import { parasolDb } from '@/lib/prisma-vercel'
 import fs from 'fs/promises'
 import path from 'path'
-
-const parasolDb = new ParasolPrismaClient()
 
 interface Layer3ImportRequest {
   useCaseId?: string

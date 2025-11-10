@@ -31,7 +31,7 @@ export async function GET() {
       projectCount,
       source: 'unified-prisma-vercel'
     })
-  } catch (_error) {
+  } catch (error) {
     console.error('DB Test Error:', error)
     return NextResponse.json({
       error: error.message,

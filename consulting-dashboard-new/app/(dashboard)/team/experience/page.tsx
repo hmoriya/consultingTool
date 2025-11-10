@@ -7,6 +7,43 @@ import { ProjectExperienceList, type ProjectExperience } from './project-experie
 import { ProjectExperienceSearch } from './project-experience-search'
 import { Briefcase, Calendar, TrendingUp, Users } from 'lucide-react'
 
+// getUserProjectExperience の実際の戻り値型定義
+interface APIProjectExperience {
+  id: string
+  projectId: string
+  userId: string
+  role: string
+  allocation: number
+  startDate: Date
+  endDate: Date | null
+  achievements: string | null
+  responsibilities: string | null
+  duration: number
+  project: {
+    id: string
+    name: string
+    clientId: string
+    client: {
+      id: string
+      name: string
+    } | null
+  }
+  skills: Array<{
+    id: string
+    projectMemberId: string
+    skillId: string
+    usageLevel: number
+    skill: {
+      id: string
+      name: string
+      category?: {
+        id: string
+        name: string
+      }
+    } | null
+  }>
+}
+
 export default async function ProjectExperiencePage() {
   const [user, myExperiences, allSkills] = await Promise.all([
     getCurrentUser(),
@@ -14,9 +51,9 @@ export default async function ProjectExperiencePage() {
     getSkills()
   ])
 
-  // データ変換関数：実際のデータをProjectExperience型に変換
-  const convertToProjectExperience = (data: any[]): ProjectExperience[] => {
-    return data.map(exp => ({
+  // データ変換関数：APIデータをProjectExperience型に変換
+  const convertToProjectExperience = (data: APIProjectExperience[]): ProjectExperience[] => {
+    return data.map((exp: APIProjectExperience) => ({
       id: exp.id,
       project: {
         id: exp.project.id,
@@ -30,7 +67,7 @@ export default async function ProjectExperiencePage() {
       achievements: exp.achievements,
       responsibilities: exp.responsibilities,
       duration: exp.duration,
-      skills: exp.skills.map((skill: any) => ({
+      skills: exp.skills.map((skill) => ({
         id: skill.id,
         skillId: skill.skillId,
         usageLevel: skill.usageLevel,
@@ -47,7 +84,7 @@ export default async function ProjectExperiencePage() {
     }))
   }
 
-  const typedExperiences = convertToProjectExperience(myExperiences)
+  const typedExperiences = convertToProjectExperience(myExperiences as APIProjectExperience[])
 
   if (!user) {
     return null

@@ -7,6 +7,39 @@ import { ProjectExperienceList } from './project-experience-list'
 import { ProjectExperienceSearch } from './project-experience-search'
 import { Briefcase, Calendar, TrendingUp, Users } from 'lucide-react'
 
+// プロジェクト経験の型定義
+interface ProjectExperience {
+  id: string
+  projectId: string
+  userId: string
+  role: string
+  allocation: number
+  startDate: Date
+  endDate: Date | null
+  achievements: string | null
+  responsibilities: string | null
+  duration: number
+  project: {
+    id: string
+    name: string
+    clientId: string
+    client: {
+      id: string
+      name: string
+    } | null
+  }
+  skills: Array<{
+    id: string
+    projectMemberId: string
+    skillId: string
+    usageLevel: number
+    skill: {
+      id: string
+      name: string
+    } | null
+  }>
+}
+
 export default async function ProjectExperiencePage() {
   const [user, myExperiences, allSkills] = await Promise.all([
     getCurrentUser(),
@@ -22,10 +55,10 @@ export default async function ProjectExperiencePage() {
 
   // 統計情報の計算
   const totalProjects = myExperiences.length
-  const activeProjects = myExperiences.filter((exp: any) => !exp.endDate).length
-  const totalMonths = myExperiences.reduce((sum: number, exp: any) => sum + exp.duration, 0)
+  const activeProjects = myExperiences.filter((exp: ProjectExperience) => !exp.endDate).length
+  const totalMonths = myExperiences.reduce((sum: number, exp: ProjectExperience) => sum + exp.duration, 0)
   const uniqueSkills = new Set(
-    myExperiences.flatMap((exp: any) => exp.skills.map((s: any) => s.skillId))
+    myExperiences.flatMap((exp: ProjectExperience) => exp.skills.map((s) => s.skillId))
   ).size
 
   return (

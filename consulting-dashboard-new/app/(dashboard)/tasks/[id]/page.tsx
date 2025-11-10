@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { CheckCircle2, Circle, Clock, AlertCircle, Calendar, Timer, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { db } from '@/lib/db'
+import { authDb } from '@/lib/prisma-vercel'
 import { timesheetDb } from '@/lib/prisma-vercel'
 import { TaskActions } from '@/components/tasks/task-actions'
 import { getTaskById } from '@/actions/tasks'
@@ -25,7 +25,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
   }
 
   // クライアント情報を取得
-  const client = await db.organization.findUnique({
+  const client = await authDb.organization.findUnique({
     where: { id: task.project.clientId }
   })
 

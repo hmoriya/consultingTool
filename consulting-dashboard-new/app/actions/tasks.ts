@@ -94,6 +94,42 @@ export async function getProjectTasks(projectId: string) {
   }))
 }
 
+export async function getUserTasks() {
+  const user = await getCurrentUser()
+  if (!user) {
+    return []
+  }
+
+  const tasks = await projectDb.task.findMany({
+    where: {
+      assigneeId: user.id
+    },
+    include: {
+      project: true,
+      milestone: true
+    },
+    orderBy: [
+      { status: 'asc' },
+      { dueDate: 'asc' }
+    ]
+  })
+
+  // クライアント情報を取得
+  const clientIds = [...new Set(tasks.map(t => t.project.clientId))]
+  const clients = await db.organization.findMany({
+    where: {
+      id: { in: clientIds }
+    }
+  })
+  const clientMap = new Map(clients.map(c => [c.id, c]))
+
+  // タスクにクライアント情報を付与
+  return tasks.map(task => ({
+    ...task,
+    client: clientMap.get(task.project.clientId) || null
+  }))
+}
+
 export async function getTaskById(taskId: string) {
   const user = await getCurrentUser()
   if (!user) {

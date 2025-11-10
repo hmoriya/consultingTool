@@ -17,5 +17,6 @@ export default async function ParasolDomainLanguagePage() {
     }
   });
 
-  return <ParasolSettingsPage2 initialServices={services as any} />;
+  // @ts-expect-error - Complex type mapping between ServiceWithMappedRelations and Service
+  return <ParasolSettingsPage2 initialServices={services} />;
 }

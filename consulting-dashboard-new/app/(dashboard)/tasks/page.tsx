@@ -15,13 +15,13 @@ export default async function TasksPage() {
   // クライアントマップを作成
   const clientMap = new Map(
     tasksWithClient
-      .filter(task => task.client)
-      .map(task => [task.client!.id, task.client!])
+      .filter((task: any) => task.client)
+      .map((task: any) => [task.client!.id, task.client!])
   )
 
   // 利用可能なプロジェクトを抽出（フィルター用）
   const projects = [...new Map(
-    tasksWithClient.map(task => [task.project.id, {
+    tasksWithClient.map((task: any) => [task.project.id, {
       id: task.project.id,
       name: task.project.name
     }])

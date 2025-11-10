@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server'
-import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
+import { parasolDb } from '@/lib/prisma-vercel'
 import fs from 'fs/promises'
 import path from 'path'
 import type { 
   UseCaseImport,
   UseCaseLayerClassification
 } from '@/app/types/parasol-api'
-
-const parasolDb = new ParasolPrismaClient()
 
 interface UseCaseCentric2LayerImportRequest {
   sourceDirectory?: string

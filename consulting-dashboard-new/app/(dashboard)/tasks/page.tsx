@@ -27,7 +27,7 @@ export default async function TasksPage() {
   )
 
   // 利用可能なプロジェクトを抽出（フィルター用）
-  const projects: Array<{ id: string; name: string }> = [...new Map(
+  const projects: Array<{ id: string; name: string }> = [...new Map<string, { id: string; name: string }>(
     tasksWithClient.map((task: TaskWithClient) => [task.project.id, {
       id: task.project.id,
       name: task.project.name

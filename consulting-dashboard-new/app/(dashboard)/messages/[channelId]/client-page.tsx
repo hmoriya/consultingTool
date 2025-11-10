@@ -233,7 +233,10 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
       setMentionIndex(prev => prev > 0 ? prev - 1 : 0)
     } else if (e.key === 'Enter' && filteredMentionUsers.length > 0) {
       e.preventDefault()
-      selectMention(filteredMentionUsers[mentionIndex])
+      const mentionUser = filteredMentionUsers[mentionIndex]
+      if (mentionUser) {
+        selectMention(mentionUser)
+      }
     } else if (e.key === 'Escape') {
       setShowMentionList(false)
     }
@@ -252,8 +255,8 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
         console.log('Calling markChannelAsRead for channel:', channel.id)
         const result = await markChannelAsRead(channel.id)
         console.log('markChannelAsRead result:', result)
-      } catch (_error) {
-        console.error('Failed to mark channel as read:', _error)
+      } catch (error) {
+        console.error('Failed to mark channel as read:', error)
       }
     }, 500)
 

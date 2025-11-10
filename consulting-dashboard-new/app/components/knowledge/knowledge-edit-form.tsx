@@ -111,7 +111,7 @@ export function KnowledgeEditForm({ article }: KnowledgeEditFormProps) {
       })
 
       router.push(`/knowledge/${article.id}`)
-    } catch (_error) {
+    } catch (error) {
       console.error('Error updating knowledge:', error)
       toast({
         title: 'エラー',

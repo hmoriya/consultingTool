@@ -38,9 +38,12 @@ export default function MessageListClient({ initialChannels }: MessageListClient
   // デバッグ: チャンネルデータを確認
   useEffect(() => {
     if (channels.length > 0) {
-      console.log('First channel:', channels[0])
-      console.log('Channel type:', channels[0].type)
-      console.log('Channel memberUsers:', channels[0].memberUsers)
+      const firstChannel = channels[0]
+      if (firstChannel) {
+        console.log('First channel:', firstChannel)
+        console.log('Channel type:', firstChannel.type)
+        console.log('Channel memberUsers:', firstChannel.memberUsers)
+      }
     }
   }, [channels])
 

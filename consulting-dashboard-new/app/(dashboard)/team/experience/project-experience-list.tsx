@@ -37,7 +37,7 @@ export interface ProjectExperience {
   project: Project
   role: string
   startDate: string | Date
-  endDate?: string | Date | null
+  endDate: string | Date | null
   allocation: number
   achievements?: string | null
   responsibilities?: string | null
@@ -75,7 +75,7 @@ export function ProjectExperienceList({ experiences, allSkills, isOwner }: Proje
     return roles[role] || role
   }
 
-  const getStatusVariant = (endDate: Date | null) => {
+  const getStatusVariant = (endDate: string | Date | null) => {
     return endDate ? 'secondary' : 'default'
   }
 

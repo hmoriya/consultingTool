@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { projectDb } from '@/lib/prisma-vercel'
 import { db } from '@/lib/db'
-import path from 'path'
 
 export async function GET() {
   try {

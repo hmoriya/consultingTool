@@ -12,7 +12,7 @@ const isProduction = process.env.NODE_ENV === 'production'
 
 // 基本Prisma設定
 const basePrismaConfig = {
-  log: isProduction ? ['error'] : ['error', 'warn'] as any,
+  log: isProduction ? ['error'] : (['error', 'warn'] as const),
   errorFormat: 'pretty' as const
 }
 

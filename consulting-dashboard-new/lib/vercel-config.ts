@@ -24,7 +24,7 @@ export const VERCEL_CONFIG = {
 }
 
 // APIレスポンス統一フォーマット
-export interface VercelApiResponse<T = any> {
+export interface VercelApiResponse<T = unknown> {
   success: boolean
   data?: T
   error?: string
@@ -52,7 +52,7 @@ export function createApiResponse<T>(
 /**
  * Vercel Function最適化ヘルパー
  */
-export function withVercelOptimization<T extends (...args: any[]) => any>(
+export function withVercelOptimization<T extends (...args: unknown[]) => unknown>(
   handler: T,
   options?: {
     maxDuration?: number

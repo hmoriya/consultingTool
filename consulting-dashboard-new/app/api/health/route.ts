@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { VERCEL_CONFIG, createApiResponse } from '@/lib/vercel-config'
+import { createApiResponse } from '@/lib/vercel-config'
 
 // Vercel Function設定
 export const runtime = 'nodejs'
 export const maxDuration = 10
 export const dynamic = 'force-dynamic'
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const health = {
       status: 'healthy',

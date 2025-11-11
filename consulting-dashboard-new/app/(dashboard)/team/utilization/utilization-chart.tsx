@@ -27,12 +27,12 @@ export function UtilizationChart({ data, type }: UtilizationChartProps) {
 
         data.forEach(member => {
           const util = member.currentAllocation
-          if (util <= 20) ranges[0].count++
-          else if (util <= 40) ranges[1].count++
-          else if (util <= 60) ranges[2].count++
-          else if (util <= 80) ranges[3].count++
-          else if (util <= 100) ranges[4].count++
-          else ranges[5].count++
+          if (util <= 20) ranges[0]!.count++
+          else if (util <= 40) ranges[1]!.count++
+          else if (util <= 60) ranges[2]!.count++
+          else if (util <= 80) ranges[3]!.count++
+          else if (util <= 100) ranges[4]!.count++
+          else ranges[5]!.count++
         })
 
         return ranges.filter(r => r.count > 0)

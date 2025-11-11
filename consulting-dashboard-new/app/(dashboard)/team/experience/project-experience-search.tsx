@@ -130,7 +130,7 @@ export function ProjectExperienceSearch({ allSkills }: ProjectExperienceSearchPr
                       >
                         {skill.name}
                         {(skill.userCount ?? 0) > 0 && (
-                          <span className="ml-1">({skill.userCount})</span>
+                          <span className="ml-1">({skill.userCount ?? 0})</span>
                         )}
                       </Badge>
                     ))}

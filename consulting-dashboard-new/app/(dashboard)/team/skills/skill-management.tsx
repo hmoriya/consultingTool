@@ -117,6 +117,8 @@ export function SkillManagement({ categories }: SkillManagementProps) {
         // カテゴリの作成
         for (let i = 0; i < defaultCategories.length; i++) {
           const category = defaultCategories[i]
+          if (!category) continue
+          
           const createdCategory = await createSkillCategory({
             name: category.name,
             order: i + 1

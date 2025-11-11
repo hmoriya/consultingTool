@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { searchProjectExperiences } from '../../../actions/project-experience'
-import { ProjectExperienceList } from './project-experience-list'
+import { ProjectExperienceList, type ProjectExperience } from './project-experience-list'
 
 interface Skill {
   id: string
@@ -28,11 +28,7 @@ interface User {
   email: string
 }
 
-interface ProjectExperience {
-  id: string
-  user: User
-  [key: string]: unknown
-}
+// ProjectExperience型は project-experience-list.tsx からインポート
 
 interface SearchResult {
   user: User

@@ -209,9 +209,9 @@ export function SkillSearch({ skills, categories }: SkillSearchProps) {
                   </div>
                   <div className="text-right">
                     <Badge variant="secondary">{member.role.name}</Badge>
-                    {member.totalAllocation > 0 && (
+                    {(member.totalAllocation ?? 0) > 0 && (
                       <p className="text-sm text-muted-foreground mt-1">
-                        稼働率: {member.totalAllocation}%
+                        稼働率: {member.totalAllocation ?? 0}%
                       </p>
                     )}
                   </div>

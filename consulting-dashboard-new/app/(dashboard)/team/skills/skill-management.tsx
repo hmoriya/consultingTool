@@ -61,15 +61,20 @@ export function SkillManagement({ categories }: SkillManagementProps) {
 
     startTransition(async () => {
       try {
-        await createSkillCategory({
-          name: categoryName,
-          order: categoryOrder ? parseInt(categoryOrder) : undefined
-        })
+        const categoryData: { name: string; order?: number } = {
+          name: categoryName
+        }
+        
+        if (categoryOrder) {
+          categoryData.order = parseInt(categoryOrder)
+        }
+        
+        await createSkillCategory(categoryData)
         toast.success('カテゴリを作成しました')
         setCategoryOpen(false)
         setCategoryName('')
         setCategoryOrder('')
-      } catch (_error) {
+      } catch (error) {
         toast.error(error instanceof Error ? error.message : 'カテゴリの作成に失敗しました')
       }
     })
@@ -91,7 +96,7 @@ export function SkillManagement({ categories }: SkillManagementProps) {
         setSkillOpen(false)
         setSkillName('')
         setSelectedCategoryId('')
-      } catch (_error) {
+      } catch (error) {
         toast.error(error instanceof Error ? error.message : 'スキルの作成に失敗しました')
       }
     })

@@ -65,8 +65,8 @@ export function UtilizationChart({ data, type }: UtilizationChartProps) {
             if (!monthlyData[month.month]) {
               monthlyData[month.month] = { total: 0, count: 0 }
             }
-            monthlyData[month.month].total += month.utilization
-            monthlyData[month.month].count++
+            monthlyData[month.month]!.total += month.utilization
+            monthlyData[month.month]!.count++
           })
         })
 

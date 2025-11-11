@@ -21,38 +21,7 @@ import { ja } from 'date-fns/locale'
 import { NewChannelDialog } from '@/components/messages/new-channel-dialog'
 import { cn } from '@/lib/utils'
 import { useUser } from '@/contexts/user-context'
-
-interface Channel {
-  id: string
-  name?: string | null
-  type: string
-  isPrivate: boolean
-  updatedAt: string
-  lastMessage?: {
-    id: string
-    content: string
-    createdAt: string
-    senderId: string
-  } | null
-  members: Array<{
-    userId: string
-    role: string
-  }>
-  memberUsers?: Array<{
-    userId: string
-    role: string
-    lastReadAt?: Date | null
-    user: {
-      id: string
-      name: string
-      email: string
-    }
-  }>
-  unreadCount: number
-  _count: {
-    messages: number
-  }
-}
+import { Channel } from '@/lib/utils/message-converter'
 
 interface MessageListClientProps {
   initialChannels: Channel[]
@@ -69,9 +38,12 @@ export default function MessageListClient({ initialChannels }: MessageListClient
   // デバッグ: チャンネルデータを確認
   useEffect(() => {
     if (channels.length > 0) {
-      console.log('First channel:', channels[0])
-      console.log('Channel type:', channels[0].type)
-      console.log('Channel memberUsers:', channels[0].memberUsers)
+      const firstChannel = channels[0]
+      if (firstChannel) {
+        console.log('First channel:', firstChannel)
+        console.log('Channel type:', firstChannel.type)
+        console.log('Channel memberUsers:', firstChannel.memberUsers)
+      }
     }
   }, [channels])
 
@@ -179,7 +151,7 @@ export default function MessageListClient({ initialChannels }: MessageListClient
                     key={channel.id}
                     className={cn(
                       "cursor-pointer hover:shadow-md transition-all duration-200 border-l-4",
-                      channel.unreadCount > 0 
+                      (channel.unreadCount || 0) > 0 
                         ? "border-l-primary bg-primary/5" 
                         : "border-l-transparent hover:border-l-primary/30"
                     )}
@@ -218,9 +190,9 @@ export default function MessageListClient({ initialChannels }: MessageListClient
                               {getChannelName(channel)}
                             </h3>
                             <div className="flex items-center gap-2">
-                              {channel.unreadCount > 0 && (
+                              {(channel.unreadCount || 0) > 0 && (
                                 <Badge variant="default" className="h-5 px-2 text-xs font-medium">
-                                  {channel.unreadCount}
+                                  {channel.unreadCount || 0}
                                 </Badge>
                               )}
                               {channel.lastMessage && (

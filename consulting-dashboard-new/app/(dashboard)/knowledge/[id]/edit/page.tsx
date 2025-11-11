@@ -36,7 +36,7 @@ export default async function KnowledgeEditPage({ params }: { params: Promise<{ 
     title: article.title || '',
     content: article.content || '',
     status: article.status || 'DRAFT',
-    tags: article.tags,
+    tags: article.tags || null,
     category: article.category ? {
       id: article.category.id,
       name: article.category.name

@@ -6,6 +6,36 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Flag, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { convertDbMessageToMessage } from '@/lib/utils/message-converter'
+
+interface FlaggedMessage {
+  id: string
+  senderId: string
+  content: string
+  type?: string
+  metadata?: string | null
+  createdAt: string
+  editedAt?: string
+  channelId: string
+  channel?: {
+    name: string
+  }
+  reactions: Array<{
+    userId: string
+    emoji: string
+  }>
+  _count?: {
+    threadMessages: number
+  }
+  sender?: {
+    id: string
+    name: string
+    email: string
+  }
+  flags?: Array<{
+    userId: string
+  }>
+}
 
 export default async function FlaggedMessagesPage() {
   const user = await getCurrentUser()
@@ -47,7 +77,7 @@ export default async function FlaggedMessagesPage() {
           </Card>
         ) : (
           <div className="space-y-6">
-            {messages.map((message) => (
+            {messages.map((message: FlaggedMessage) => (
               <Card key={message.id} className="p-4">
                 <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground">
                   <span>#{message.channel?.name || 'チャンネル'}</span>
@@ -63,7 +93,7 @@ export default async function FlaggedMessagesPage() {
                   </time>
                 </div>
                 <MessageItem
-                  message={message}
+                  message={convertDbMessageToMessage(message)}
                   isOwn={message.senderId === user.id}
                   showAvatar={true}
                   currentUserId={user.id}

@@ -5,6 +5,7 @@ import { db } from '@/lib/db'
 import { getCurrentUser } from './auth'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { convertDbMessagesToMessages, convertDbMessageToMessage } from '@/lib/utils/message-converter'
 
 // メンション抽出関数
 function extractMentions(content: string): string[] {
@@ -165,7 +166,7 @@ export async function sendMessage(data: z.infer<typeof sendMessageSchema>) {
 
     revalidatePath('/messages')
     revalidatePath(`/messages/${validated.channelId}`)
-    return { success: true, data: message }
+    return { success: true, data: convertDbMessageToMessage(message) }
   } catch (_error) {
     console.error('sendMessage error:', error)
     if (error instanceof z.ZodError) {
@@ -340,13 +341,13 @@ export async function getChannelMessages(channelId: string, limit = 50, cursor?:
     })
     const senderMap = new Map(senders.map(s => [s.id, s]))
     
-    // メッセージにユーザー情報を追加
+    // メッセージにユーザー情報を追加してから型変換
     const messagesWithSender = messages.map(msg => ({
       ...msg,
       sender: senderMap.get(msg.senderId) || { id: msg.senderId, name: 'Unknown', email: '' }
     }))
 
-    return { success: true, data: messagesWithSender.reverse() }
+    return { success: true, data: convertDbMessagesToMessages(messagesWithSender).reverse() }
   } catch (_error) {
     console.error('getChannelMessages error:', error)
     return { success: false, error: 'メッセージの取得に失敗しました' }
@@ -613,7 +614,7 @@ export async function sendThreadMessage({
       }
     })
 
-    return { success: true, data: threadMessage }
+    return { success: true, data: convertDbMessageToMessage(threadMessage) }
   } catch (_error) {
     console.error('sendThreadMessage error:', error)
     return { success: false, error: 'スレッドメッセージの送信に失敗しました' }
@@ -642,13 +643,13 @@ export async function getThreadMessages(messageId: string) {
     })
     const senderMap = new Map(senders.map(s => [s.id, s]))
 
-    // メッセージにユーザー情報を追加
+    // メッセージにユーザー情報を追加してから型変換
     const messagesWithSender = threadMessages.map(msg => ({
       ...msg,
       sender: senderMap.get(msg.senderId) || { id: msg.senderId, name: 'Unknown', email: '' }
     }))
 
-    return { success: true, data: messagesWithSender }
+    return { success: true, data: convertDbMessagesToMessages(messagesWithSender) }
   } catch (_error) {
     console.error('getThreadMessages error:', error)
     return { success: false, error: 'スレッドメッセージの取得に失敗しました' }

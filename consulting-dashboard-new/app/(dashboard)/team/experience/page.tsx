@@ -3,9 +3,46 @@ import { getCurrentUser } from '../../../actions/auth'
 import { getSkills } from '../../../actions/skills'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ProjectExperienceList } from './project-experience-list'
+import { ProjectExperienceList, type ProjectExperience } from './project-experience-list'
 import { ProjectExperienceSearch } from './project-experience-search'
 import { Briefcase, Calendar, TrendingUp, Users } from 'lucide-react'
+
+// getUserProjectExperience の実際の戻り値型定義
+interface APIProjectExperience {
+  id: string
+  projectId: string
+  userId: string
+  role: string
+  allocation: number
+  startDate: Date
+  endDate: Date | null
+  achievements: string | null
+  responsibilities: string | null
+  duration: number
+  project: {
+    id: string
+    name: string
+    clientId: string
+    client: {
+      id: string
+      name: string
+    } | null
+  }
+  skills: Array<{
+    id: string
+    projectMemberId: string
+    skillId: string
+    usageLevel: number
+    skill: {
+      id: string
+      name: string
+      category?: {
+        id: string
+        name: string
+      }
+    } | null
+  }>
+}
 
 export default async function ProjectExperiencePage() {
   const [user, myExperiences, allSkills] = await Promise.all([
@@ -14,6 +51,41 @@ export default async function ProjectExperiencePage() {
     getSkills()
   ])
 
+  // データ変換関数：APIデータをProjectExperience型に変換
+  const convertToProjectExperience = (data: APIProjectExperience[]): ProjectExperience[] => {
+    return data.map((exp: APIProjectExperience) => ({
+      id: exp.id,
+      project: {
+        id: exp.project.id,
+        name: exp.project.name,
+        client: exp.project.client
+      },
+      role: exp.role,
+      startDate: exp.startDate,
+      endDate: exp.endDate,
+      allocation: exp.allocation,
+      achievements: exp.achievements,
+      responsibilities: exp.responsibilities,
+      duration: exp.duration,
+      skills: exp.skills.map((skill) => ({
+        id: skill.id,
+        skillId: skill.skillId,
+        usageLevel: skill.usageLevel,
+        skill: skill.skill ? {
+          id: skill.skill.id,
+          name: skill.skill.name,
+          category: skill.skill.category || { id: '', name: 'その他' }
+        } : {
+          id: skill.skillId,
+          name: '不明',
+          category: { id: '', name: 'その他' }
+        }
+      }))
+    }))
+  }
+
+  const typedExperiences = convertToProjectExperience(myExperiences as APIProjectExperience[])
+
   if (!user) {
     return null
   }
@@ -21,11 +93,11 @@ export default async function ProjectExperiencePage() {
   const isPMOrExecutive = user.role.name === 'pm' || user.role.name === 'executive'
 
   // 統計情報の計算
-  const totalProjects = myExperiences.length
-  const activeProjects = myExperiences.filter(exp => !exp.endDate).length
-  const totalMonths = myExperiences.reduce((sum, exp) => sum + exp.duration, 0)
+  const totalProjects = typedExperiences.length
+  const activeProjects = typedExperiences.filter((exp: ProjectExperience) => !exp.endDate).length
+  const totalMonths = typedExperiences.reduce((sum: number, exp: ProjectExperience) => sum + exp.duration, 0)
   const uniqueSkills = new Set(
-    myExperiences.flatMap(exp => exp.skills.map(s => s.skillId))
+    typedExperiences.flatMap((exp: ProjectExperience) => exp.skills.map((s) => s.skillId))
   ).size
 
   return (
@@ -113,7 +185,7 @@ export default async function ProjectExperiencePage() {
 
         <TabsContent value="my-experience" className="space-y-4">
           <ProjectExperienceList 
-            experiences={myExperiences}
+            experiences={typedExperiences}
             allSkills={allSkills}
             isOwner={true}
           />

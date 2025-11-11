@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server'
-import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
+import { parasolDb as _parasolDb } from '@/lib/prisma-vercel'
 import fs from 'fs/promises'
 import path from 'path'
-
-const _parasolDb = new ParasolPrismaClient()
 
 interface MigrationRequest {
   sourceDirectory?: string

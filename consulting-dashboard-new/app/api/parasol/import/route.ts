@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
+import { parasolDb } from '@/lib/prisma-vercel'
 import fs from 'fs/promises'
 import path from 'path'
 // TODO: Issue #103 - パーサーファイルの実装待ち
@@ -20,7 +20,6 @@ import path from 'path'
 //   stringifyParsedData as stringifyIntegrationSpec
 // } from '@/lib/parasol/parsers/integration-specification-parser'
 
-const parasolDb = new ParasolPrismaClient()
 
 // interface ServiceMetadata {
 //   name: string

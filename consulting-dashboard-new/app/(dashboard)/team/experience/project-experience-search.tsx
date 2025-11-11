@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { searchProjectExperiences } from '../../../actions/project-experience'
-import { ProjectExperienceList } from './project-experience-list'
+import { ProjectExperienceList, type ProjectExperience } from './project-experience-list'
 
 interface Skill {
   id: string
@@ -28,10 +28,9 @@ interface User {
   email: string
 }
 
-interface ProjectExperience {
-  id: string
+// 検索結果用のProjectExperience型（userプロパティを含む）
+interface SearchProjectExperience extends ProjectExperience {
   user: User
-  [key: string]: unknown
 }
 
 interface SearchResult {
@@ -60,7 +59,7 @@ export function ProjectExperienceSearch({ allSkills }: ProjectExperienceSearchPr
         const results = await searchProjectExperiences(filters)
         
         // ユーザーごとにグループ化
-        const groupedResults = results.reduce((acc: Record<string, SearchResult>, exp: ProjectExperience) => {
+        const groupedResults = results.reduce((acc: Record<string, SearchResult>, exp: SearchProjectExperience) => {
           const userId = exp.user.id
           if (!acc[userId]) {
             acc[userId] = {
@@ -68,7 +67,9 @@ export function ProjectExperienceSearch({ allSkills }: ProjectExperienceSearchPr
               experiences: []
             }
           }
-          acc[userId].experiences.push(exp)
+          // userプロパティを除いてProjectExperience型に変換
+          const { user, ...projectExp } = exp
+          acc[userId].experiences.push(projectExp as ProjectExperience)
           return acc
         }, {})
 
@@ -78,8 +79,8 @@ export function ProjectExperienceSearch({ allSkills }: ProjectExperienceSearchPr
         if (results.length === 0) {
           toast.info('条件に合うプロジェクト経験が見つかりませんでした')
         }
-      } catch (_error) {
-        toast.error(_error instanceof Error ? _error.message : '検索に失敗しました')
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : '検索に失敗しました')
       }
     })
   }
@@ -94,10 +95,11 @@ export function ProjectExperienceSearch({ allSkills }: ProjectExperienceSearchPr
 
   // カテゴリごとにスキルをグループ化
   const skillsByCategory = allSkills.reduce((acc: Record<string, Skill[]>, skill) => {
-    if (!acc[skill.category.name]) {
-      acc[skill.category.name] = []
+    const categoryName = skill.category?.name || 'その他'
+    if (!acc[categoryName]) {
+      acc[categoryName] = []
     }
-    acc[skill.category.name].push(skill)
+    acc[categoryName].push(skill)
     return acc
   }, {})
 
@@ -128,8 +130,8 @@ export function ProjectExperienceSearch({ allSkills }: ProjectExperienceSearchPr
                         onClick={() => toggleSkill(skill.id)}
                       >
                         {skill.name}
-                        {skill.userCount > 0 && (
-                          <span className="ml-1">({skill.userCount})</span>
+                        {(skill.userCount ?? 0) > 0 && (
+                          <span className="ml-1">({skill.userCount ?? 0})</span>
                         )}
                       </Badge>
                     ))}
@@ -189,7 +191,7 @@ export function ProjectExperienceSearch({ allSkills }: ProjectExperienceSearchPr
                     <div>
                       <CardTitle className="text-lg">{user.name}</CardTitle>
                       <CardDescription>
-                        {user.email} • {user.role.name}
+                        {user.email}
                       </CardDescription>
                     </div>
                   </div>

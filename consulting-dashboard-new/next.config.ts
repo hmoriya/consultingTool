@@ -6,7 +6,19 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: false,
   },
   images: {
-    unoptimized: true, // 開発環境では画像最適化を無効化
+    unoptimized: process.env.NODE_ENV === 'development', // 本番では最適化有効
+    domains: ['localhost'], // 必要なドメインを追加
+  },
+  
+  // Vercel最適化設定
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: ['@prisma/client', 'lucide-react'],
+  },
+  
+  // パフォーマンス最適化
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
   },
   webpack: (config, { isServer }) => {
     // ブラウザ側でNode.jsモジュールの互換性設定

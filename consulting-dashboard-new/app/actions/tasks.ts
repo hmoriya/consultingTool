@@ -2,6 +2,7 @@
 
 import { db } from '@/lib/db'
 import { projectDb } from '@/lib/db/project-db'
+import { timesheetDb } from '@/lib/prisma-vercel'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
 import { USER_ROLES } from '@/constants/roles'
@@ -91,6 +92,87 @@ export async function getProjectTasks(projectId: string) {
     priority: task.priority as TaskPriority,
     assignee: task.assigneeId ? assigneeMap.get(task.assigneeId) || null : null
   }))
+}
+
+export async function getUserTasks() {
+  const user = await getCurrentUser()
+  if (!user) {
+    return []
+  }
+
+  const tasks = await projectDb.task.findMany({
+    where: {
+      assigneeId: user.id
+    },
+    include: {
+      project: true,
+      milestone: true
+    },
+    orderBy: [
+      { status: 'asc' },
+      { dueDate: 'asc' }
+    ]
+  })
+
+  // クライアント情報を取得
+  const clientIds = [...new Set(tasks.map(t => t.project.clientId))]
+  const clients = await db.organization.findMany({
+    where: {
+      id: { in: clientIds }
+    }
+  })
+  const clientMap = new Map(clients.map(c => [c.id, c]))
+
+  // タスクにクライアント情報を付与
+  return tasks.map(task => ({
+    ...task,
+    client: clientMap.get(task.project.clientId) || null
+  }))
+}
+
+export async function getTaskById(taskId: string) {
+  const user = await getCurrentUser()
+  if (!user) {
+    return null
+  }
+
+  const task = await projectDb.task.findUnique({
+    where: {
+      id: taskId,
+      assigneeId: user.id // ユーザーに割り当てられたタスクのみ表示
+    },
+    include: {
+      project: true,
+      milestone: true
+    }
+  })
+
+  if (!task) {
+    return null
+  }
+
+  // クライアント情報を取得（auth serviceから）
+  const client = await db.organization.findUnique({
+    where: { id: task.project.clientId }
+  })
+
+  // timesheet-serviceから工数エントリを取得
+  const timeEntries = await timesheetDb.timeEntry.findMany({
+    where: {
+      consultantId: user.id,
+      taskId: task.id
+    },
+    orderBy: {
+      date: 'desc'
+    },
+    take: 10
+  })
+
+  return {
+    ...task,
+    client,
+    timeEntries
+  }
 }
 
 export async function createTask(data: {

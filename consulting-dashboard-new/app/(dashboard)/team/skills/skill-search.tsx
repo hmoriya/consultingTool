@@ -90,7 +90,7 @@ export function SkillSearch({ skills, categories }: SkillSearchProps) {
         if (results.length === 0) {
           toast.info('条件に合うメンバーが見つかりませんでした')
         }
-      } catch (_error) {
+      } catch (error) {
         toast.error(error instanceof Error ? error.message : '検索に失敗しました')
       }
     })
@@ -144,8 +144,8 @@ export function SkillSearch({ skills, categories }: SkillSearchProps) {
                           onClick={() => toggleSkill(skill.id)}
                         >
                           {skill.name}
-                          {skill.userCount > 0 && (
-                            <span className="ml-1 text-xs">({skill.userCount})</span>
+                          {(skill.userCount ?? 0) > 0 && (
+                            <span className="ml-1 text-xs">({skill.userCount ?? 0})</span>
                           )}
                         </Badge>
                       ))}
@@ -209,9 +209,9 @@ export function SkillSearch({ skills, categories }: SkillSearchProps) {
                   </div>
                   <div className="text-right">
                     <Badge variant="secondary">{member.role.name}</Badge>
-                    {member.totalAllocation > 0 && (
+                    {(member.totalAllocation ?? 0) > 0 && (
                       <p className="text-sm text-muted-foreground mt-1">
-                        稼働率: {member.totalAllocation}%
+                        稼働率: {member.totalAllocation ?? 0}%
                       </p>
                     )}
                   </div>

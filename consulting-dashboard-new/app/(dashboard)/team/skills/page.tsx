@@ -118,8 +118,8 @@ export default async function SkillsPage() {
         {isPMOrExecutive && (
           <TabsContent value="skills" className="space-y-4">
             <div className="space-y-6">
-              {categories.map(category => {
-                const categorySkills = allSkills.filter(s => s.categoryId === category.id)
+              {categories.map((category: { id: string; name: string }) => {
+                const categorySkills = allSkills.filter((s: { categoryId: string }) => s.categoryId === category.id)
                 
                 return (
                   <Card key={category.id}>
@@ -131,7 +131,12 @@ export default async function SkillsPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        {categorySkills.map(skill => {
+                        {categorySkills.map((skill: { 
+                          id: string; 
+                          name: string; 
+                          userCount: number; 
+                          averageLevel: number 
+                        }) => {
                           const avgLevel = skill.averageLevel
                           const progressValue = (avgLevel / 5) * 100
 

@@ -144,8 +144,8 @@ export function SkillSearch({ skills, categories }: SkillSearchProps) {
                           onClick={() => toggleSkill(skill.id)}
                         >
                           {skill.name}
-                          {skill.userCount > 0 && (
-                            <span className="ml-1 text-xs">({skill.userCount})</span>
+                          {(skill.userCount ?? 0) > 0 && (
+                            <span className="ml-1 text-xs">({skill.userCount ?? 0})</span>
                           )}
                         </Badge>
                       ))}

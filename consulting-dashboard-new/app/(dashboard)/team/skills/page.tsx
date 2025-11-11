@@ -24,7 +24,11 @@ export default async function SkillsPage() {
 
   // 統計情報の計算
   const totalSkills = allSkills.length
-  const totalUsers = new Set(allSkills.flatMap(skill => skill.users.map(u => u.userId))).size
+  const totalUsers = new Set(
+    allSkills.flatMap((skill: { users: Array<{ userId: string }> }) => 
+      skill.users.map((u: { userId: string }) => u.userId)
+    )
+  ).size
   const mySkillsCount = mySkills.length
 
   const isPMOrExecutive = user.role.name === USER_ROLES.PM || user.role.name === USER_ROLES.EXECUTIVE

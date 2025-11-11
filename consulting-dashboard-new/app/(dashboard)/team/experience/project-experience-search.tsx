@@ -28,7 +28,10 @@ interface User {
   email: string
 }
 
-// ProjectExperience型は project-experience-list.tsx からインポート
+// 検索結果用のProjectExperience型（userプロパティを含む）
+interface SearchProjectExperience extends ProjectExperience {
+  user: User
+}
 
 interface SearchResult {
   user: User
@@ -56,7 +59,7 @@ export function ProjectExperienceSearch({ allSkills }: ProjectExperienceSearchPr
         const results = await searchProjectExperiences(filters)
         
         // ユーザーごとにグループ化
-        const groupedResults = results.reduce((acc: Record<string, SearchResult>, exp: ProjectExperience) => {
+        const groupedResults = results.reduce((acc: Record<string, SearchResult>, exp: SearchProjectExperience) => {
           const userId = exp.user.id
           if (!acc[userId]) {
             acc[userId] = {
@@ -64,7 +67,9 @@ export function ProjectExperienceSearch({ allSkills }: ProjectExperienceSearchPr
               experiences: []
             }
           }
-          acc[userId].experiences.push(exp)
+          // userプロパティを除いてProjectExperience型に変換
+          const { user, ...projectExp } = exp
+          acc[userId].experiences.push(projectExp as ProjectExperience)
           return acc
         }, {})
 

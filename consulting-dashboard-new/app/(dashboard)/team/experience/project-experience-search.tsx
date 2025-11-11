@@ -78,8 +78,8 @@ export function ProjectExperienceSearch({ allSkills }: ProjectExperienceSearchPr
         if (results.length === 0) {
           toast.info('条件に合うプロジェクト経験が見つかりませんでした')
         }
-      } catch (_error) {
-        toast.error(_error instanceof Error ? _error.message : '検索に失敗しました')
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : '検索に失敗しました')
       }
     })
   }
@@ -129,7 +129,7 @@ export function ProjectExperienceSearch({ allSkills }: ProjectExperienceSearchPr
                         onClick={() => toggleSkill(skill.id)}
                       >
                         {skill.name}
-                        {skill.userCount > 0 && (
+                        {(skill.userCount ?? 0) > 0 && (
                           <span className="ml-1">({skill.userCount})</span>
                         )}
                       </Badge>
@@ -190,7 +190,7 @@ export function ProjectExperienceSearch({ allSkills }: ProjectExperienceSearchPr
                     <div>
                       <CardTitle className="text-lg">{user.name}</CardTitle>
                       <CardDescription>
-                        {user.email} • {user.role.name}
+                        {user.email}
                       </CardDescription>
                     </div>
                   </div>

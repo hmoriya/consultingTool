@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation'
 import { getChannelDetails, getChannelMessages } from '@/actions/messages'
 import { notFound } from 'next/navigation'
 import ChatClient from './client-page'
-import { convertDbMessagesToMessages } from '@/lib/utils/message-converter'
 
 interface Props {
   params: Promise<{
@@ -28,8 +27,7 @@ export default async function ChatPage({ params }: Props) {
     notFound()
   }
 
-  const rawMessages = messagesResult.success ? messagesResult.data || [] : []
-  const messages = convertDbMessagesToMessages(rawMessages)
+  const messages = messagesResult.success ? messagesResult.data || [] : []
 
   return (
     <ChatClient 

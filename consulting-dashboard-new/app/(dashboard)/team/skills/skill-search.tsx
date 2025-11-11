@@ -90,7 +90,7 @@ export function SkillSearch({ skills, categories }: SkillSearchProps) {
         if (results.length === 0) {
           toast.info('条件に合うメンバーが見つかりませんでした')
         }
-      } catch (_error) {
+      } catch (error) {
         toast.error(error instanceof Error ? error.message : '検索に失敗しました')
       }
     })

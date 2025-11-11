@@ -94,7 +94,13 @@ export function MySkills({ mySkills, categories, allSkills }: MySkillsProps) {
 
     startTransition(async () => {
       try {
-        const skillData: any = {
+        const skillData: {
+          userId?: string
+          skillId: string
+          level: number
+          experienceYears?: number
+          certifications?: string[]
+        } = {
           skillId: editingSkill?.skillId || selectedSkillId,
           level
         }

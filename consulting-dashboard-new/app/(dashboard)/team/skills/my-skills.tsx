@@ -94,17 +94,31 @@ export function MySkills({ mySkills, categories, allSkills }: MySkillsProps) {
 
     startTransition(async () => {
       try {
-        await upsertUserSkill({
+        const skillData: {
+          userId?: string
+          skillId: string
+          level: number
+          experienceYears?: number
+          certifications?: string[]
+        } = {
           skillId: editingSkill?.skillId || selectedSkillId,
-          level,
-          experienceYears: experienceYears ? parseFloat(experienceYears) : undefined,
-          certifications: certArray.length > 0 ? certArray : undefined
-        })
+          level
+        }
+        
+        if (experienceYears) {
+          skillData.experienceYears = parseFloat(experienceYears)
+        }
+        
+        if (certArray.length > 0) {
+          skillData.certifications = certArray
+        }
+        
+        await upsertUserSkill(skillData)
         
         toast.success(editingSkill ? 'スキルを更新しました' : 'スキルを追加しました')
         setOpen(false)
         resetForm()
-      } catch (_error) {
+      } catch (error) {
         toast.error(error instanceof Error ? error.message : '処理に失敗しました')
       }
     })
@@ -117,7 +131,7 @@ export function MySkills({ mySkills, categories, allSkills }: MySkillsProps) {
       try {
         await deleteUserSkill(userSkillId)
         toast.success('スキルを削除しました')
-      } catch (_error) {
+      } catch (error) {
         toast.error(error instanceof Error ? error.message : '削除に失敗しました')
       }
     })

@@ -6,12 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { CheckCircle2, Circle, Clock, AlertCircle, Calendar, Timer, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { db } from '@/lib/db'
-import { projectDb } from '@/lib/db/project-db'
-import { PrismaClient as TimesheetPrismaClient } from '@prisma/timesheet-service'
 import { TaskActions } from '@/components/tasks/task-actions'
-
-const timesheetDb = new TimesheetPrismaClient()
+import { getTaskById } from '@/actions/tasks'
 
 export default async function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -20,37 +16,12 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
     redirect('/login')
   }
 
-  const task = await projectDb.task.findUnique({
-    where: {
-      id,
-      assigneeId: user.id // ユーザーに割り当てられたタスクのみ表示
-    },
-    include: {
-      project: true,
-      milestone: true
-    }
-  })
+  const task = await getTaskById(id)
 
   if (!task) {
     notFound()
   }
 
-  // クライアント情報を取得
-  const client = await db.organization.findUnique({
-    where: { id: task.project.clientId }
-  })
-
-  // timesheet-serviceから工数エントリを取得
-  const timeEntries = await timesheetDb.timeEntry.findMany({
-    where: {
-      consultantId: user.id,
-      taskId: task.id
-    },
-    orderBy: {
-      date: 'desc'
-    },
-    take: 10
-  })
 
   const statusConfig = {
     todo: { label: '未着手', color: 'bg-gray-500', icon: Circle },
@@ -73,7 +44,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
   const priorityInfo = priorityConfig[task.priority as keyof typeof priorityConfig] || priorityConfig.medium
 
   // 実績時間の計算
-  const totalActualHours = timeEntries.reduce((sum, entry) => sum + entry.hours, 0)
+  const totalActualHours = task.timeEntries?.reduce((sum: number, entry: { hours: number }) => sum + entry.hours, 0) || 0
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -95,7 +66,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
                 {task.title}
               </CardTitle>
               <CardDescription className="text-base">
-                {client?.name || 'Unknown'} - {task.project.name}
+                {task.client?.name || 'Unknown'} - {task.project.name}
                 {task.milestone && ` / ${task.milestone.name}`}
               </CardDescription>
             </div>
@@ -163,9 +134,9 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
 
           <div>
             <h3 className="text-sm font-medium text-muted-foreground mb-3">最近の工数記録</h3>
-            {timeEntries.length > 0 ? (
+            {task.timeEntries && task.timeEntries.length > 0 ? (
               <div className="space-y-2">
-                {timeEntries.map((entry) => (
+                {task.timeEntries.map((entry: { id: string; date: Date | string; description: string | null; hours: number }) => (
                   <div key={entry.id} className="flex items-center justify-between p-3 rounded-lg border">
                     <div className="flex items-center gap-4">
                       <div className="text-sm">

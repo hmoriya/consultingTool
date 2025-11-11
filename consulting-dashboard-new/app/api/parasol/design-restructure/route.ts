@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server'
-import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
+import { parasolDb } from '@/lib/prisma-vercel'
 import fs from 'fs'
 import path from 'path'
 import { FileMapping, RestructureResult } from '@/app/types/parasol'
-
-const parasolDb = new ParasolPrismaClient()
 
 interface PageUseCaseMapping {
   operationId: string

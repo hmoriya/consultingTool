@@ -1,5 +1,4 @@
 'use client'
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
@@ -159,7 +158,7 @@ export function TaskList({ tasks, clients, projects }: TaskListProps) {
                       </CardDescription>
                     </div>
                     <div className="flex gap-2">
-                      <Badge variant={priorityInfo.color as any}>
+                      <Badge variant={priorityInfo.color as 'default' | 'secondary' | 'destructive' | 'outline' | null | undefined}>
                         優先度: {priorityInfo.label}
                       </Badge>
                       <Badge className={statusInfo.color}>

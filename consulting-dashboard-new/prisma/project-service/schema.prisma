@@ -2,7 +2,9 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../../node_modules/@prisma/project-client"
+  // Vercel最適化設定
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+  previewFeatures = ["strictUndefinedChecks"]
 }
 
 datasource db {

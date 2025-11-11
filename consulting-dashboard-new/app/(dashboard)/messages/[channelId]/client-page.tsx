@@ -69,7 +69,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
   const [mentionSearch, setMentionSearch] = useState('')
   const [mentionIndex, setMentionIndex] = useState(0)
   const [selectedThread, setSelectedThread] = useState<Message | null>(null)
-  const [threadMessages, setThreadMessages] = useState<Message[]>([])
+  const [threadMessages, setThreadMessages] = useState<ThreadMessage[]>([])
   const [editingMessage, setEditingMessage] = useState<{ id: string; content: string } | null>(null)
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -153,7 +153,10 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
       setMentionIndex(prev => prev > 0 ? prev - 1 : 0)
     } else if (e.key === 'Enter' && filteredMentionUsers.length > 0) {
       e.preventDefault()
-      selectMention(filteredMentionUsers[mentionIndex])
+      const mentionUser = filteredMentionUsers[mentionIndex]
+      if (mentionUser) {
+        selectMention(mentionUser)
+      }
     } else if (e.key === 'Escape') {
       setShowMentionList(false)
     }
@@ -172,8 +175,8 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
         console.log('Calling markChannelAsRead for channel:', channel.id)
         const result = await markChannelAsRead(channel.id)
         console.log('markChannelAsRead result:', result)
-      } catch (_error) {
-        console.error('Failed to mark channel as read:', _error)
+      } catch (error) {
+        console.error('Failed to mark channel as read:', error)
       }
     }, 500)
 
@@ -273,9 +276,9 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
       } else {
         throw new Error(result.error || 'メッセージの送信に失敗しました')
       }
-    } catch (_error) {
-      console.error('File upload error:', _error)
-      toast.error(_error instanceof Error ? _error.message : 'ファイルの送信に失敗しました')
+    } catch (error) {
+      console.error('File upload error:', error)
+      toast.error(error instanceof Error ? error.message : 'ファイルの送信に失敗しました')
     } finally {
       setIsUploading(false)
       setUploadProgress(0)

@@ -2,6 +2,7 @@ import { getCurrentUser } from '@/actions/auth'
 import { redirect } from 'next/navigation'
 import { getUserChannels } from '@/actions/messages'
 import MessageListClient from './client-page'
+import { Channel } from '@/lib/utils/message-converter'
 
 export default async function MessagesPage() {
   const user = await getCurrentUser()
@@ -14,7 +15,7 @@ export default async function MessagesPage() {
   
   // デバッグ: 全チャンネルデータの構造を確認
   console.log('Total channels:', channels.length)
-  channels.forEach((channel, index) => {
+  channels.forEach((channel: Channel, index: number) => {
     console.log(`Channel ${index + 1}:`, {
       name: channel.name,
       type: channel.type,

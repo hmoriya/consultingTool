@@ -23,7 +23,6 @@ import { cn } from '@/lib/utils'
 import { useUser } from '@/contexts/user-context'
 import { Channel } from '@/lib/utils/message-converter'
 
-
 interface MessageListClientProps {
   initialChannels: Channel[]
 }
@@ -39,9 +38,12 @@ export default function MessageListClient({ initialChannels }: MessageListClient
   // デバッグ: チャンネルデータを確認
   useEffect(() => {
     if (channels.length > 0) {
-      console.log('First channel:', channels[0])
-      console.log('Channel type:', channels[0].type)
-      console.log('Channel memberUsers:', channels[0].memberUsers)
+      const firstChannel = channels[0]
+      if (firstChannel) {
+        console.log('First channel:', firstChannel)
+        console.log('Channel type:', firstChannel.type)
+        console.log('Channel memberUsers:', firstChannel.memberUsers)
+      }
     }
   }, [channels])
 
@@ -190,7 +192,7 @@ export default function MessageListClient({ initialChannels }: MessageListClient
                             <div className="flex items-center gap-2">
                               {(channel.unreadCount || 0) > 0 && (
                                 <Badge variant="default" className="h-5 px-2 text-xs font-medium">
-                                  {channel.unreadCount}
+                                  {channel.unreadCount || 0}
                                 </Badge>
                               )}
                               {channel.lastMessage && (

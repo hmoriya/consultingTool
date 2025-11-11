@@ -24,7 +24,11 @@ export default async function SkillsPage() {
 
   // 統計情報の計算
   const totalSkills = allSkills.length
-  const totalUsers = new Set(allSkills.flatMap(skill => skill.users.map(u => u.userId))).size
+  const totalUsers = new Set(
+    allSkills.flatMap((skill: { users: Array<{ userId: string }> }) => 
+      skill.users.map((u: { userId: string }) => u.userId)
+    )
+  ).size
   const mySkillsCount = mySkills.length
 
   const isPMOrExecutive = user.role.name === USER_ROLES.PM || user.role.name === USER_ROLES.EXECUTIVE
@@ -114,8 +118,8 @@ export default async function SkillsPage() {
         {isPMOrExecutive && (
           <TabsContent value="skills" className="space-y-4">
             <div className="space-y-6">
-              {categories.map(category => {
-                const categorySkills = allSkills.filter(s => s.categoryId === category.id)
+              {categories.map((category: { id: string; name: string }) => {
+                const categorySkills = allSkills.filter((s: { categoryId: string }) => s.categoryId === category.id)
                 
                 return (
                   <Card key={category.id}>
@@ -127,7 +131,12 @@ export default async function SkillsPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
-                        {categorySkills.map(skill => {
+                        {categorySkills.map((skill: { 
+                          id: string; 
+                          name: string; 
+                          userCount: number; 
+                          averageLevel: number 
+                        }) => {
                           const avgLevel = skill.averageLevel
                           const progressValue = (avgLevel / 5) * 100
 

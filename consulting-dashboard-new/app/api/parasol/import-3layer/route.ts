@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server'
-import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
+import { parasolDb } from '@/lib/prisma-vercel'
 import fs from 'fs/promises'
 import path from 'path'
 import type { 
   PageImport
 } from '@/app/types/parasol-api'
-
-const parasolDb = new ParasolPrismaClient()
 
 interface ImportRequest {
   migrationMode?: boolean

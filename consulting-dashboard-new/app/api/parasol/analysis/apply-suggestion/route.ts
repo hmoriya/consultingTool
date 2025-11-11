@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server'
-import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
+import { parasolDb } from '@/lib/prisma-vercel'
 import { UseCase, PageDefinition, TestDefinition } from '@/app/types/parasol'
-
-const parasolDb = new ParasolPrismaClient()
 
 interface UseCaseWithRelations extends UseCase {
   operation?: {

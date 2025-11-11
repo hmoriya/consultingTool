@@ -4,10 +4,8 @@
  * パラソルドメイン言語へのアグリゲート追加アクション
  */
 
-import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
+import { parasolDb } from '@/lib/prisma-vercel'
 import { analyzeAggregates, generateDomainLanguageWithAggregates } from '@/lib/parasol/aggregate-analyzer'
-
-const parasolDb = new ParasolPrismaClient()
 
 interface EntityDefinition {
   name: string

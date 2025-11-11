@@ -1,8 +1,14 @@
 import { getCurrentUser } from '@/actions/auth'
 import { redirect } from 'next/navigation'
-import { db } from '@/lib/db'
-import { projectDb } from '@/lib/db/project-db'
+import { getUserTasks } from '@/actions/tasks'
 import { TaskList } from '../../components/tasks/task-list'
+
+// タスクの型定義
+type TaskWithClient = {
+  id: string
+  project: { id: string; name: string; clientId: string }
+  client: { id: string; name: string } | null
+}
 
 export default async function TasksPage() {
   const user = await getCurrentUser()
@@ -10,38 +16,23 @@ export default async function TasksPage() {
     redirect('/login')
   }
 
-  // ユーザーに割り当てられたタスクを取得
-  const tasks = await projectDb.task.findMany({
-    where: {
-      assigneeId: user.id
-    },
-    include: {
-      project: true,
-      milestone: true
-    },
-    orderBy: [
-      { status: 'asc' },
-      { dueDate: 'asc' }
-    ]
-  })
+  // ユーザーに割り当てられたタスクを取得（クライアント情報も含む）
+  const tasksWithClient = await getUserTasks()
+  
+  // クライアントマップを作成
+  const clientMap = new Map<string, { name: string }>(
+    tasksWithClient
+      .filter((task: TaskWithClient) => task.client)
+      .map((task: TaskWithClient) => [task.client!.id, { name: task.client!.name }])
+  )
 
-  // クライアント情報を取得
-  const clientIds = [...new Set(tasks.map(t => t.project.clientId))]
-  const clients = await db.organization.findMany({
-    where: { id: { in: clientIds } }
-  })
-  const clientMap = new Map(clients.map(c => [c.id, c]))
-
-  // 利用可能なプロジェクトを取得（フィルター用）
-  const projects = await projectDb.project.findMany({
-    where: {
-      id: { in: [...new Set(tasks.map(t => t.project.id))] }
-    },
-    select: {
-      id: true,
-      name: true
-    }
-  })
+  // 利用可能なプロジェクトを抽出（フィルター用）
+  const projects: Array<{ id: string; name: string }> = [...new Map<string, { id: string; name: string }>(
+    tasksWithClient.map((task: TaskWithClient) => [task.project.id, {
+      id: task.project.id,
+      name: task.project.name
+    }])
+  ).values()]
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -53,7 +44,7 @@ export default async function TasksPage() {
       </div>
 
       <TaskList 
-        tasks={tasks}
+        tasks={tasksWithClient}
         clients={clientMap}
         projects={projects}
       />

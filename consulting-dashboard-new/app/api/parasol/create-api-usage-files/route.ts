@@ -1,15 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/parasol-client'
+import { parasolDb as prisma } from '@/lib/prisma-vercel'
 import fs from 'fs/promises'
 import path from 'path'
-
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: `file:${path.join(process.cwd(), 'prisma/parasol-service/data/parasol.db')}`
-    }
-  }
-})
 
 export async function POST(request: NextRequest) {
   try {

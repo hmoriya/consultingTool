@@ -27,12 +27,12 @@ export function UtilizationChart({ data, type }: UtilizationChartProps) {
 
         data.forEach(member => {
           const util = member.currentAllocation
-          if (util <= 20) ranges[0].count++
-          else if (util <= 40) ranges[1].count++
-          else if (util <= 60) ranges[2].count++
-          else if (util <= 80) ranges[3].count++
-          else if (util <= 100) ranges[4].count++
-          else ranges[5].count++
+          if (util <= 20) ranges[0]!.count++
+          else if (util <= 40) ranges[1]!.count++
+          else if (util <= 60) ranges[2]!.count++
+          else if (util <= 80) ranges[3]!.count++
+          else if (util <= 100) ranges[4]!.count++
+          else ranges[5]!.count++
         })
 
         return ranges.filter(r => r.count > 0)
@@ -44,8 +44,8 @@ export function UtilizationChart({ data, type }: UtilizationChartProps) {
           if (!acc[member.role]) {
             acc[member.role] = { total: 0, count: 0 }
           }
-          acc[member.role].total += member.currentAllocation
-          acc[member.role].count++
+          acc[member.role]!.total += member.currentAllocation
+          acc[member.role]!.count++
           return acc
         }, {} as Record<string, { total: number; count: number }>)
 
@@ -65,8 +65,8 @@ export function UtilizationChart({ data, type }: UtilizationChartProps) {
             if (!monthlyData[month.month]) {
               monthlyData[month.month] = { total: 0, count: 0 }
             }
-            monthlyData[month.month].total += month.utilization
-            monthlyData[month.month].count++
+            monthlyData[month.month]!.total += month.utilization
+            monthlyData[month.month]!.count++
           })
         })
 

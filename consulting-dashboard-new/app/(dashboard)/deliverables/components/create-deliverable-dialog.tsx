@@ -191,7 +191,7 @@ export function CreateDeliverableDialog({ open, onOpenChange }: CreateDeliverabl
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>プロジェクト *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value || ''}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="プロジェクトを選択" />
@@ -216,7 +216,7 @@ export function CreateDeliverableDialog({ open, onOpenChange }: CreateDeliverabl
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>マイルストーン</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value || ''}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="マイルストーンを選択（任意）" />
@@ -275,7 +275,7 @@ export function CreateDeliverableDialog({ open, onOpenChange }: CreateDeliverabl
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>種別 *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value || ''}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="種別を選択" />

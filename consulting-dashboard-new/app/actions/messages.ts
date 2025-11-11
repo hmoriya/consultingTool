@@ -967,7 +967,7 @@ export async function getFlaggedMessages() {
       }
     }))
 
-    return { success: true, data: messagesWithSender }
+    return { success: true, data: convertDbMessagesToMessages(messagesWithSender) }
   } catch (_error) {
     console.error('getFlaggedMessages error:', error)
     return { success: false, error: 'フラグ付きメッセージの取得に失敗しました' }

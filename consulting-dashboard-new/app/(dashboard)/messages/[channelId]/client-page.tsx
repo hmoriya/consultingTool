@@ -20,7 +20,7 @@ import { ja } from 'date-fns/locale'
 import { sendMessage, addReaction, pinMessage, markChannelAsRead, toggleMessageFlag } from '@/actions/messages'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { Message, convertMessagesToThreadMessages } from '@/lib/utils/message-converter'
+import { Message, ThreadMessage, convertMessagesToThreadMessages } from '@/lib/utils/message-converter'
 import { MessageItem } from '@/components/messages/message-item'
 import { ChannelHeader } from '@/components/messages/channel-header'
 import { ThreadView } from '@/components/messages/thread-view'
@@ -69,7 +69,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
   const [mentionSearch, setMentionSearch] = useState('')
   const [mentionIndex, setMentionIndex] = useState(0)
   const [selectedThread, setSelectedThread] = useState<Message | null>(null)
-  const [threadMessages, setThreadMessages] = useState<ThreadMessage[]>([])
+  const [threadMessages, setThreadMessages] = useState<Message[]>([])
   const [editingMessage, setEditingMessage] = useState<{ id: string; content: string } | null>(null)
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)

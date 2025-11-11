@@ -2,6 +2,7 @@ import { getCurrentUser } from '@/actions/auth'
 import { redirect } from 'next/navigation'
 import { getUserChannels } from '@/actions/messages'
 import { ChannelSidebar } from '@/components/messages/channel-sidebar'
+import { Channel } from '@/lib/utils/message-converter'
 
 export default async function MessagesLayout({
   children,
@@ -17,7 +18,7 @@ export default async function MessagesLayout({
   const rawChannels = channelsResult.success ? channelsResult.data || [] : []
   
   // 型変換してChannelSidebarが期待する形式にする
-  const channels = rawChannels.map(channel => ({
+  const channels = rawChannels.map((channel: Channel) => ({
     ...channel,
     type: channel.type as 'PROJECT' | 'GROUP' | 'DIRECT',
     lastMessage: channel.lastMessage ? {

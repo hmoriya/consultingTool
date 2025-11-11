@@ -94,10 +94,11 @@ export function ProjectExperienceSearch({ allSkills }: ProjectExperienceSearchPr
 
   // カテゴリごとにスキルをグループ化
   const skillsByCategory = allSkills.reduce((acc: Record<string, Skill[]>, skill) => {
-    if (!acc[skill.category.name]) {
-      acc[skill.category.name] = []
+    const categoryName = skill.category?.name || 'その他'
+    if (!acc[categoryName]) {
+      acc[categoryName] = []
     }
-    acc[skill.category.name].push(skill)
+    acc[categoryName].push(skill)
     return acc
   }, {})
 

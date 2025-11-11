@@ -44,8 +44,8 @@ export function UtilizationChart({ data, type }: UtilizationChartProps) {
           if (!acc[member.role]) {
             acc[member.role] = { total: 0, count: 0 }
           }
-          acc[member.role].total += member.currentAllocation
-          acc[member.role].count++
+          acc[member.role]!.total += member.currentAllocation
+          acc[member.role]!.count++
           return acc
         }, {} as Record<string, { total: number; count: number }>)
 

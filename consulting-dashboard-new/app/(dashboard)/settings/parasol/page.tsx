@@ -7,7 +7,7 @@ export default async function ParasolDomainLanguagePage() {
 
   // デバッグログ
   console.log('ParasolDomainLanguagePage: services loaded');
-  services.forEach(service => {
+  services?.forEach(service => {
     if (service.name === 'knowledge-service' || service.name === 'finance-service' || service.name === 'notification-service') {
       console.log(`Service: ${service.name}`);
       console.log(`  Capabilities: ${service.capabilities?.length || 0}`);

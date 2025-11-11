@@ -20,6 +20,7 @@ import { ja } from 'date-fns/locale'
 import { sendMessage, addReaction, pinMessage, markChannelAsRead, toggleMessageFlag } from '@/actions/messages'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { Message, convertMessagesToThreadMessages } from '@/lib/utils/message-converter'
 import { MessageItem } from '@/components/messages/message-item'
 import { ChannelHeader } from '@/components/messages/channel-header'
 import { ThreadView } from '@/components/messages/thread-view'
@@ -27,88 +28,7 @@ import { EditMessageDialog } from '@/components/messages/edit-message-dialog'
 import { DeleteMessageDialog } from '@/components/messages/delete-message-dialog'
 import { sendThreadMessage, getThreadMessages } from '@/actions/messages'
 
-interface ThreadMessage {
-  id: string
-  messageId: string
-  senderId: string
-  content: string
-  createdAt: string
-  sender?: {
-    id: string
-    name: string
-    email: string
-  }
-}
 
-interface Message {
-  id: string
-  channelId: string
-  senderId: string
-  content: string
-  type: string
-  metadata?: string
-  editedAt?: string
-  deletedAt?: string
-  createdAt: string
-  reactions: Array<{
-    id: string
-    userId: string
-    emoji: string
-  }>
-  mentions: Array<{
-    id: string
-    userId: string
-    type: string
-  }>
-  readReceipts: Array<{
-    id: string
-    userId: string
-    readAt: string
-  }>
-  flags?: Array<{
-    id: string
-    userId: string
-  }>
-  _count?: {
-    threadMessages: number
-  }
-  sender?: {
-    id: string
-    name: string
-    email: string
-  }
-}
-
-// APIから返される部分的なMessageデータの型
-interface MessageApiResponse {
-  id: string
-  channelId: string
-  senderId: string
-  content: string
-  type: string
-  metadata?: string | null
-  editedAt?: Date | null
-  deletedAt?: Date | null
-  createdAt: Date
-  reactions?: Array<{
-    id: string
-    userId: string
-    emoji: string
-  }>
-  mentions?: Array<{
-    id: string
-    userId: string
-    type: string
-  }>
-  readReceipts?: Array<{
-    id: string
-    userId: string
-    readAt: string
-  }>
-  _count?: {
-    threadMessages: number
-  }
-}
 
 interface Channel {
   id: string
@@ -341,17 +261,8 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
       setUploadProgress(100)
 
       if (result.success && result.data) {
-        const apiResponse = result.data as MessageApiResponse
         const tempMsg: Message = {
-          ...apiResponse,
-          createdAt: apiResponse.createdAt.toISOString(),
-          metadata: apiResponse.metadata || '',
-          editedAt: apiResponse.editedAt ? apiResponse.editedAt.toISOString() : '',
-          deletedAt: apiResponse.deletedAt ? apiResponse.deletedAt.toISOString() : '',
-          reactions: apiResponse.reactions || [],
-          mentions: apiResponse.mentions || [],
-          readReceipts: apiResponse.readReceipts || [],
-          _count: apiResponse._count || { threadMessages: 0 },
+          ...result.data,
           sender: currentUser || {
             id: currentUserId,
             name: 'You',
@@ -397,17 +308,8 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
 
       if (result.success && result.data) {
         // 送信したメッセージを一時的に追加（sender情報を含む）
-        const apiResponse = result.data as MessageApiResponse
         const tempMsg: Message = {
-          ...apiResponse,
-          createdAt: apiResponse.createdAt.toISOString(),
-          metadata: apiResponse.metadata || '',
-          editedAt: apiResponse.editedAt ? apiResponse.editedAt.toISOString() : '',
-          deletedAt: apiResponse.deletedAt ? apiResponse.deletedAt.toISOString() : '',
-          reactions: apiResponse.reactions || [],
-          mentions: apiResponse.mentions || [],
-          readReceipts: apiResponse.readReceipts || [],
-          _count: apiResponse._count || { threadMessages: 0 },
+          ...result.data,
           sender: currentUser || {
             id: currentUserId,
             name: 'You',
@@ -455,20 +357,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
     // スレッドメッセージを取得
     const result = await getThreadMessages(message.id)
     if (result.success && result.data) {
-      // APIレスポンスをThreadMessage型に変換
-      const convertedMessages: ThreadMessage[] = result.data.map((threadMsg: MessageApiResponse) => ({
-        id: threadMsg.id,
-        messageId: message.id, // 親メッセージのIDを設定
-        senderId: threadMsg.senderId,
-        content: threadMsg.content,
-        createdAt: threadMsg.createdAt.toISOString(),
-        sender: {
-          id: threadMsg.senderId,
-          name: 'User', // 実際の実装では適切なユーザー情報を取得
-          email: ''
-        }
-      }))
-      setThreadMessages(convertedMessages)
+      setThreadMessages(result.data)
     }
   }
 
@@ -482,21 +371,15 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
     })
 
     if (result.success && result.data) {
-      // APIレスポンスをThreadMessage型に変換
-      const apiResponse = result.data as MessageApiResponse
-      const newThreadMessage: ThreadMessage = {
-        id: apiResponse.id,
-        messageId: selectedThread.id, // 親メッセージのIDを設定
-        senderId: apiResponse.senderId,
-        content: apiResponse.content,
-        createdAt: apiResponse.createdAt.toISOString(),
+      const newMessage: Message = {
+        ...result.data,
         sender: currentUser || {
           id: currentUserId,
           name: 'You',
           email: ''
         }
       }
-      setThreadMessages(prev => [...prev, newThreadMessage])
+      setThreadMessages(prev => [...prev, newMessage])
       // メインメッセージのスレッドカウントを更新
       setMessages(prev => prev.map(msg =>
         msg.id === selectedThread.id
@@ -829,7 +712,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
           isOpen={!!selectedThread}
           onClose={() => setSelectedThread(null)}
           onSendReply={handleSendThreadReply}
-          threadMessages={threadMessages}
+          threadMessages={convertMessagesToThreadMessages(threadMessages, selectedThread.id)}
           currentUserId={currentUserId}
         />
       )}

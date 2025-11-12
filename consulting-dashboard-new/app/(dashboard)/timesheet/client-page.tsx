@@ -302,7 +302,21 @@ export function TimesheetClientPage({
                     }
                   })}
                   onEdit={(entry) => {
-                    setEditingEntry(entry)
+                    // TimesheetTimeEntry を TimeEntry に変換
+                    const fullEntry: TimeEntry = {
+                      ...entry,
+                      project: entry.project ? {
+                        id: '', // IDは不明なので空文字列
+                        name: entry.project.name,
+                        client: entry.project.client,
+                        color: undefined
+                      } : undefined,
+                      task: entry.task ? {
+                        id: '', // IDは不明なので空文字列
+                        name: entry.task.name
+                      } : undefined
+                    }
+                    setEditingEntry(fullEntry)
                     setActiveTab('entry')
                   }}
                   onDelete={() => {

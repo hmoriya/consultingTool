@@ -87,8 +87,11 @@ export function UtilizationChart({ data, type }: UtilizationChartProps) {
             if (!weeklyData[week.weekStart]) {
               weeklyData[week.weekStart] = { total: 0, count: 0 }
             }
-            weeklyData[week.weekStart].total += week.utilization
-            weeklyData[week.weekStart].count++
+            const weekData = weeklyData[week.weekStart]
+            if (weekData) {
+              weekData.total += week.utilization
+              weekData.count++
+            }
           })
         })
 

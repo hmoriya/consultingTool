@@ -11,7 +11,7 @@ import { MyTimesheets } from '@/components/timesheet/my-timesheets'
 import { QuickEntry } from '@/components/timesheet/quick-entry'
 import { Clock, Calendar, TrendingUp } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import type { TimeEntry, Project } from '@/types/timesheet'
+import type { TimeEntry } from '@/types/timesheet'
 
 interface ProjectWithTasks {
   id: string
@@ -21,6 +21,7 @@ interface ProjectWithTasks {
     id: string
     name: string
   }
+  color?: string
   tasks?: Array<{
     id: string
     title: string

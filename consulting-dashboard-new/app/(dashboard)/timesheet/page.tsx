@@ -14,6 +14,7 @@ export default async function TimesheetPage() {
 
   // プロジェクト一覧を取得
   // エグゼクティブの場合は全プロジェクト、それ以外はアサインされているプロジェクトのみ
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const projects = await (projectDb as any).project.findMany({
     where: user.role?.name === 'Executive'
       ? {

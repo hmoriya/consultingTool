@@ -78,9 +78,9 @@ export async function login(data: z.infer<typeof LoginSchema>) {
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
-      // Handle different ZodError structures
-      if (error.errors && Array.isArray(error.errors) && error.errors.length > 0) {
-        return { success: false, error: error.errors[0].message }
+      // Handle ZodError using the correct 'issues' property
+      if (error.issues && Array.isArray(error.issues) && error.issues.length > 0) {
+        return { success: false, error: error.issues[0].message }
       } else if (error.message) {
         // Extract the first error message from the stringified error
         const match = error.message.match(/message": "([^"]+)"/);

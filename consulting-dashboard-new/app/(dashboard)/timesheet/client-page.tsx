@@ -308,8 +308,8 @@ export function TimesheetClientPage({
                       project: entry.project ? {
                         id: '', // IDは不明なので空文字列
                         name: entry.project.name,
-                        client: entry.project.client,
-                        color: undefined
+                        client: entry.project.client
+                        // colorプロパティは含めない（undefinedを明示的に設定しない）
                       } : undefined,
                       task: entry.task ? {
                         id: '', // IDは不明なので空文字列

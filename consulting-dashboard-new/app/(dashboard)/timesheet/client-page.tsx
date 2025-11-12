@@ -219,12 +219,17 @@ export function TimesheetClientPage({
             </CardHeader>
             <CardContent>
               <SimpleWeeklyCalendar 
-                projects={projects.map(p => ({ 
-                  id: p.id, 
-                  name: p.name, 
-                  client: { name: p.client.name },
-                  color: p.color 
-                }))}
+                projects={projects.map(p => {
+                  const projectData: any = {
+                    id: p.id, 
+                    name: p.name, 
+                    client: { name: p.client.name }
+                  }
+                  if (p.color !== undefined) {
+                    projectData.color = p.color
+                  }
+                  return projectData
+                })}
                 initialEntries={weeklyData?.entries.map(e => {
                   const project = projects.find(proj => proj.id === e.projectId)
                   return {
@@ -281,12 +286,17 @@ export function TimesheetClientPage({
                     const task = project?.tasks.find(t => t.id === e.taskId)
                     return {
                       ...e,
-                      project: project ? { 
-                        id: project.id,
-                        name: project.name, 
-                        client: { name: project.client.name },
-                        color: project.color
-                      } : undefined,
+                      project: project ? (() => {
+                        const projectData: any = { 
+                          id: project.id,
+                          name: project.name, 
+                          client: { name: project.client.name }
+                        }
+                        if (project.color !== undefined) {
+                          projectData.color = project.color
+                        }
+                        return projectData
+                      })() : undefined,
                       task: task ? { id: task.id, name: task.title } : undefined
                     }
                   })}

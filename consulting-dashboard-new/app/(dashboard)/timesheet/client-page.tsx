@@ -302,7 +302,7 @@ export function TimesheetClientPage({
                         client: { name: project.client.name }
                       } : undefined,
                       task: task ? { name: task.title } : undefined
-                    }
+                    } as TimeEntry
                   })}
                   onEdit={(entry) => {
                     // TimesheetTimeEntry を TimeEntry に変換

@@ -147,7 +147,7 @@ export function UtilizationChart({ data, type }: UtilizationChartProps) {
           <Tooltip />
           <Bar dataKey="count" name="人数">
             {chartData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.fill} />
+              <Cell key={`cell-${index}`} fill={'fill' in entry ? entry.fill : '#8884d8'} />
             ))}
           </Bar>
         </BarChart>

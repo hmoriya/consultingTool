@@ -48,10 +48,10 @@ interface TimesheetTimeEntry {
   project?: {
     name: string
     client: { name: string }
-  }
+  } | undefined
   task?: {
     name: string
-  }
+  } | undefined
 }
 
 interface TimesheetListProps {

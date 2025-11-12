@@ -75,7 +75,8 @@ export default async function TimesheetPage() {
 
   // マイタイムシート一覧を取得
   const timesheetsResult = await getMyTimesheetStatuses()
-  const timesheets = timesheetsResult.success ? timesheetsResult.data : []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const timesheets = timesheetsResult.success ? timesheetsResult.data : [] as any
 
   return (
     <TimesheetClientPage

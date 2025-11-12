@@ -237,15 +237,20 @@ export function TimesheetClientPage({
                 })}
                 initialEntries={weeklyData?.entries.map(e => {
                   const project = projects.find(proj => proj.id === e.projectId)
-                  return {
+                  const task = project?.tasks?.find(t => t.id === e.taskId)
+                  
+                  const timeEntry: TimeEntry = {
                     ...e,
-                    project: project ? { 
-                      id: project.id, 
+                    project: project ? {
+                      id: project.id,
                       name: project.name, 
                       client: { name: project.client.name },
-                      color: project.color 
-                    } : undefined
+                      ...(project.color !== undefined && { color: project.color })
+                    } : undefined,
+                    task: task ? { id: task.id, name: task.title } : undefined
                   }
+                  
+                  return timeEntry
                 }) || []}
                 onRefresh={handleEntriesUpdate}
               />

@@ -35,7 +35,7 @@ import { deleteTimeEntry } from '@/actions/timesheet-new'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 
-interface TimeEntry {
+interface TimesheetTimeEntry {
   id: string
   date: Date
   hours: number
@@ -55,8 +55,8 @@ interface TimeEntry {
 }
 
 interface TimesheetListProps {
-  entries: TimeEntry[]
-  onEdit?: (entry: TimeEntry) => void
+  entries: TimesheetTimeEntry[]
+  onEdit?: (entry: TimesheetTimeEntry) => void
   onDelete?: (id: string) => void
   editable?: boolean
 }
@@ -137,7 +137,7 @@ export function TimesheetList({
     }
     acc[dateKey].push(entry)
     return acc
-  }, {} as Record<string, TimeEntry[]>)
+  }, {} as Record<string, TimesheetTimeEntry[]>)
 
   const sortedDates = Object.keys(groupedEntries).sort((a, b) => b.localeCompare(a))
 

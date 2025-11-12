@@ -291,26 +291,14 @@ export function TimesheetClientPage({
                 <TimesheetList 
                   entries={weeklyData.entries.map(e => {
                     const project = projects.find(p => p.id === e.projectId)
-                    const task = project?.tasks.find(t => t.id === e.taskId)
+                    const task = project?.tasks?.find(t => t.id === e.taskId)
                     return {
                       ...e,
-                      project: project ? (() => {
-                        const projectData: {
-                          id: string
-                          name: string
-                          client: { name: string }
-                          color?: string
-                        } = { 
-                          id: project.id,
-                          name: project.name, 
-                          client: { name: project.client.name }
-                        }
-                        if (project.color !== undefined) {
-                          projectData.color = project.color
-                        }
-                        return projectData
-                      })() : undefined,
-                      task: task ? { id: task.id, name: task.title } : undefined
+                      project: project ? {
+                        name: project.name, 
+                        client: { name: project.client.name }
+                      } : undefined,
+                      task: task ? { name: task.title } : undefined
                     }
                   })}
                   onEdit={(entry) => {

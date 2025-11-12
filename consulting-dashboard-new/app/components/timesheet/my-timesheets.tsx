@@ -25,8 +25,8 @@ interface TimesheetData {
   billableHours: number
   nonBillableHours: number
   status: string
-  submittedAt?: Date
-  approvedAt?: Date
+  submittedAt?: Date | null
+  approvedAt?: Date | null
   entries: { id: string }[]
   approvalHistory: unknown[]
 }

@@ -105,7 +105,7 @@ export function UtilizationChart({ data, type }: UtilizationChartProps) {
 
       case 'monthly': {
         // メンバー数別の月次稼働率
-        if (data.length === 0) return []
+        if (data.length === 0 || !data[0]) return []
         
         const months = data[0].monthlyUtilization.map(m => m.month)
         return months.map(month => {

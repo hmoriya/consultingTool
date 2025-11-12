@@ -270,13 +270,15 @@ export function TimesheetClientPage({
             <CardContent>
               {weeklyData?.entries && weeklyData.entries.length > 0 ? (
                 <TimesheetList 
-                  entries={weeklyData.entries.map(e => ({
-                    ...e,
-                    project: projects.find(p => p.id === e.projectId),
-                    task: projects
-                      .find(p => p.id === e.projectId)
-                      ?.tasks.find(t => t.id === e.taskId)
-                  }))}
+                  entries={weeklyData.entries.map(e => {
+                    const project = projects.find(p => p.id === e.projectId)
+                    const task = project?.tasks.find(t => t.id === e.taskId)
+                    return {
+                      ...e,
+                      project: project ? { name: project.name, client: { name: project.client.name } } : undefined,
+                      task: task ? { name: task.title } : undefined
+                    }
+                  })}
                   onEdit={(entry) => {
                     setEditingEntry(entry)
                     setActiveTab('entry')

@@ -80,7 +80,8 @@ export async function login(data: z.infer<typeof LoginSchema>) {
     if (error instanceof z.ZodError) {
       // Handle ZodError using the correct 'issues' property
       if (error.issues && Array.isArray(error.issues) && error.issues.length > 0) {
-        return { success: false, error: error.issues[0].message }
+        const firstIssue = error.issues[0];
+        return { success: false, error: firstIssue?.message || 'バリデーションエラー' }
       } else if (error.message) {
         // Extract the first error message from the stringified error
         const match = error.message.match(/message": "([^"]+)"/);

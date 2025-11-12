@@ -47,14 +47,14 @@ export default async function TimesheetPage() {
   })
 
   // クライアント情報を取得
-  const clientIds = [...new Set(projects.map(p => p.clientId))]
+  const clientIds = [...new Set(projects.map((p: any) => p.clientId))]
   const clients = await db.organization.findMany({
     where: { id: { in: clientIds } }
   })
-  const clientMap = new Map(clients.map(c => [c.id, c]))
+  const clientMap = new Map(clients.map((c: any) => [c.id, c]))
 
   // プロジェクトにクライアント情報を追加
-  const projectsWithClients = projects.map(p => ({
+  const projectsWithClients = projects.map((p: any) => ({
     ...p,
     client: clientMap.get(p.clientId) || { name: 'クライアント未設定' }
   }))

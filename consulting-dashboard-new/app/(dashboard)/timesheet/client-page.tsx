@@ -53,9 +53,12 @@ interface TimesheetClientPageProps {
     weekEndDate: Date
     totalHours: number
     billableHours: number
+    nonBillableHours: number
     status: string
     submittedAt?: Date | null
     approvedAt?: Date | null
+    entries: { id: string }[]
+    approvalHistory: unknown[]
   }>
 }
 

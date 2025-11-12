@@ -22,6 +22,13 @@ interface TimeEntry {
   status: string
   projectId: string
   taskId?: string
+  project?: {
+    name: string
+    client: { name: string }
+  }
+  task?: {
+    name: string
+  }
 }
 
 interface Project {

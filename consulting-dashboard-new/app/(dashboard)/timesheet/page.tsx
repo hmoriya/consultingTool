@@ -1,8 +1,7 @@
 import { TimesheetClientPage } from './client-page'
 import { getWeeklyTimesheet, getMonthlyTimeSummary } from '@/actions/timesheet-new'
 import { getMyTimesheetStatuses } from '@/actions/timesheet-approval'
-import { db } from '@/lib/db'
-import { projectDb } from '@/lib/db/project-db'
+import { projectDb } from '@/lib/prisma-vercel'
 import { getCurrentUser } from '@/actions/auth'
 import { redirect } from 'next/navigation'
 // import { startOfWeek, endOfWeek } from 'date-fns'
@@ -15,7 +14,7 @@ export default async function TimesheetPage() {
 
   // プロジェクト一覧を取得
   // エグゼクティブの場合は全プロジェクト、それ以外はアサインされているプロジェクトのみ
-  const projects = await projectDb.project.findMany({
+  const projects = await (projectDb as any).project.findMany({
     where: user.role?.name === 'Executive'
       ? {
           status: {

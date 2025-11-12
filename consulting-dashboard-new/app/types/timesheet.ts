@@ -28,9 +28,9 @@ export interface TimeEntry {
     name: string
     client: { name: string }
     color?: string
-  }
+  } | undefined
   task?: {
     id: string
     name: string
-  }
+  } | undefined
 }

@@ -16,7 +16,8 @@ export async function login(data: z.infer<typeof LoginSchema>) {
     console.log('Login attempt for:', validated.email)
     
     // ユーザー検索
-    const user = await authDb.user.findUnique({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const user = await (authDb as any).user.findUnique({
       where: { email: validated.email },
       include: { role: true, organization: true }
     })
@@ -43,14 +44,16 @@ export async function login(data: z.infer<typeof LoginSchema>) {
     await createSession(user.id)
     
     // 最終ログイン更新
-    await authDb.user.update({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (authDb as any).user.update({
       where: { id: user.id },
       data: { lastLogin: new Date() }
     })
     
     // 監査ログ
     try {
-      await authDb.auditLog.create({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (authDb as any).auditLog.create({
         data: {
           userId: user.id,
           action: 'LOGIN',
@@ -97,7 +100,8 @@ export async function logout() {
   if (session) {
     try {
       // 監査ログ
-      await authDb.auditLog.create({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (authDb as any).auditLog.create({
         data: {
           userId: session.userId,
           action: 'LOGOUT',

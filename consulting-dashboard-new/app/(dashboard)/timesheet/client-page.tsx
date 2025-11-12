@@ -239,7 +239,7 @@ export function TimesheetClientPage({
                   const project = projects.find(proj => proj.id === e.projectId)
                   const task = project?.tasks?.find(t => t.id === e.taskId)
                   
-                  const timeEntry: TimeEntry = {
+                  return {
                     ...e,
                     project: project ? {
                       id: project.id,
@@ -248,9 +248,7 @@ export function TimesheetClientPage({
                       ...(project.color !== undefined && { color: project.color })
                     } : undefined,
                     task: task ? { id: task.id, name: task.title } : undefined
-                  }
-                  
-                  return timeEntry
+                  } as TimeEntry
                 }) || []}
                 onRefresh={handleEntriesUpdate}
               />

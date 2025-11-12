@@ -11,27 +11,9 @@ import { MyTimesheets } from '@/components/timesheet/my-timesheets'
 import { QuickEntry } from '@/components/timesheet/quick-entry'
 import { Clock, Calendar, TrendingUp } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import type { TimeEntry, Project } from '@/types/timesheet'
 
-interface TimeEntry {
-  id: string
-  date: Date
-  hours: number
-  description: string
-  billable: boolean
-  activityType: string
-  status: string
-  projectId: string
-  taskId?: string
-  project?: {
-    name: string
-    client: { name: string }
-  }
-  task?: {
-    name: string
-  }
-}
-
-interface Project {
+interface ProjectWithTasks {
   id: string
   name: string
   code: string
@@ -58,7 +40,7 @@ interface WeeklyData {
 }
 
 interface TimesheetClientPageProps {
-  projects: Project[]
+  projects: ProjectWithTasks[]
   initialWeeklyData: WeeklyData | null
   monthlySummary: {
     totalHours: number
@@ -236,8 +218,24 @@ export function TimesheetClientPage({
             </CardHeader>
             <CardContent>
               <SimpleWeeklyCalendar 
-                projects={projects}
-                initialEntries={weeklyData?.entries || []}
+                projects={projects.map(p => ({ 
+                  id: p.id, 
+                  name: p.name, 
+                  client: { name: p.client.name },
+                  color: p.color 
+                }))}
+                initialEntries={weeklyData?.entries.map(e => {
+                  const project = projects.find(proj => proj.id === e.projectId)
+                  return {
+                    ...e,
+                    project: project ? { 
+                      id: project.id, 
+                      name: project.name, 
+                      client: { name: project.client.name },
+                      color: project.color 
+                    } : undefined
+                  }
+                }) || []}
                 onRefresh={handleEntriesUpdate}
               />
             </CardContent>
@@ -282,8 +280,13 @@ export function TimesheetClientPage({
                     const task = project?.tasks.find(t => t.id === e.taskId)
                     return {
                       ...e,
-                      project: project ? { name: project.name, client: { name: project.client.name } } : undefined,
-                      task: task ? { name: task.title } : undefined
+                      project: project ? { 
+                        id: project.id,
+                        name: project.name, 
+                        client: { name: project.client.name },
+                        color: project.color
+                      } : undefined,
+                      task: task ? { id: task.id, name: task.title } : undefined
                     }
                   })}
                   onEdit={(entry) => {

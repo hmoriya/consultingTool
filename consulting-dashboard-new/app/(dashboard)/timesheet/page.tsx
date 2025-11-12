@@ -47,13 +47,16 @@ export default async function TimesheetPage() {
   })
 
   // クライアント情報を取得
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const clientIds = [...new Set(projects.map((p: any) => p.clientId))]
   const clients = await db.organization.findMany({
     where: { id: { in: clientIds } }
   })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const clientMap = new Map(clients.map((c: any) => [c.id, c]))
 
   // プロジェクトにクライアント情報を追加
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const projectsWithClients = projects.map((p: any) => ({
     ...p,
     client: clientMap.get(p.clientId) || { name: 'クライアント未設定' }

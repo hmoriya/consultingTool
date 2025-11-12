@@ -1,7 +1,7 @@
 import { TimesheetClientPage } from './client-page'
 import { getWeeklyTimesheet, getMonthlyTimeSummary } from '@/actions/timesheet-new'
 import { getMyTimesheetStatuses } from '@/actions/timesheet-approval'
-import { projectDb } from '@/lib/prisma-vercel'
+import { projectDb, authDb } from '@/lib/prisma-vercel'
 import { getCurrentUser } from '@/actions/auth'
 import { redirect } from 'next/navigation'
 // import { startOfWeek, endOfWeek } from 'date-fns'
@@ -49,7 +49,8 @@ export default async function TimesheetPage() {
   // クライアント情報を取得
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const clientIds = [...new Set(projects.map((p: any) => p.clientId))]
-  const clients = await db.organization.findMany({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const clients = await (authDb as any).organization.findMany({
     where: { id: { in: clientIds } }
   })
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

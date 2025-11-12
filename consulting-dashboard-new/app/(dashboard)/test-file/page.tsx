@@ -35,7 +35,8 @@ export default function FileTestPage() {
     const input = document.createElement('input')
     input.type = 'file'
     input.onchange = (e: Event) => {
-      const file = e.target.files?.[0]
+      const target = e.target as HTMLInputElement
+      const file = target.files?.[0]
       if (file) {
         setSelectedFile(file)
         setLastEvent(`File selected via direct: ${file.name}`)

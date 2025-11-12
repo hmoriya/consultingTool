@@ -220,7 +220,12 @@ export function TimesheetClientPage({
             <CardContent>
               <SimpleWeeklyCalendar 
                 projects={projects.map(p => {
-                  const projectData: any = {
+                  const projectData: {
+                    id: string
+                    name: string
+                    client: { name: string }
+                    color?: string
+                  } = {
                     id: p.id, 
                     name: p.name, 
                     client: { name: p.client.name }
@@ -287,7 +292,12 @@ export function TimesheetClientPage({
                     return {
                       ...e,
                       project: project ? (() => {
-                        const projectData: any = { 
+                        const projectData: {
+                          id: string
+                          name: string
+                          client: { name: string }
+                          color?: string
+                        } = { 
                           id: project.id,
                           name: project.name, 
                           client: { name: project.client.name }

@@ -20,25 +20,7 @@ import {
 import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 import { createTimeEntry, updateTimeEntry, deleteTimeEntry } from '@/actions/timesheet-new'
-
-interface Project {
-  id: string
-  name: string
-  client: { name: string }
-  color?: string
-}
-
-interface TimeEntry {
-  id: string
-  date: Date
-  hours: number
-  projectId: string
-  project?: Project
-  description: string
-  activityType: string
-  billable: boolean
-  status: string
-}
+import type { Project, TimeEntry } from '@/types/timesheet'
 
 interface WeeklyCalendarProps {
   projects: Project[]

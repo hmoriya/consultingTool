@@ -80,7 +80,8 @@ export async function getProjects() {
 
   // プロジェクトの進捗を計算（タスクベース）
   const projectsWithProgress = await Promise.all(
-    filteredProjects.map(async (project) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    filteredProjects.map(async (project: any) => {
       let progressRate = 0
       
       if (project.tasks && project.tasks.length > 0) {

@@ -70,7 +70,8 @@ export async function getTeamMembers() {
 
   // 各メンバーのプロジェクト情報を取得
   const membersWithProjects = await Promise.all(
-    members.map(async (member) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    members.map(async (member: any) => {
       const projectMembers = await projectDb.projectMember.findMany({
         where: {
           userId: member.id,
@@ -155,7 +156,8 @@ export async function searchTeamMembers(query: string) {
 
   // 各メンバーのプロジェクト数を取得
   const membersWithProjectCount = await Promise.all(
-    members.map(async (member) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    members.map(async (member: any) => {
       const projectCount = await projectDb.projectMember.count({
         where: {
           userId: member.id
@@ -379,7 +381,8 @@ export async function getMemberUtilization(memberId?: string) {
 
   // 各メンバーのプロジェクト情報を取得
   const membersWithProjects = await Promise.all(
-    members.map(async (member) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    members.map(async (member: any) => {
       const projectMembers = await projectDb.projectMember.findMany({
         where: {
           userId: member.id,

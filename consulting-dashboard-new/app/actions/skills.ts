@@ -358,7 +358,8 @@ export async function searchMembersBySkill(skillIds: string[], minLevel?: number
 
   // 各ユーザーのスキルを取得
   const membersWithSkills = await Promise.all(
-    members.map(async (member) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    members.map(async (member: any) => {
       const userSkills = await resourceDb.userSkill.findMany({
         where: {
           userId: member.id,

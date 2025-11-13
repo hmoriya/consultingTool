@@ -158,7 +158,8 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
       (await projectDb.project.findMany({
         where: { status: 'active' },
         select: { id: true, name: true },
-      })).map(async (project) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      })).map(async (project: any) => {
         const projectRevenue = await financeDb.revenue.aggregate({
           where: {
             projectId: project.id,
@@ -205,7 +206,8 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
 
     // ロール別KPI
     const roleKPIs = await Promise.all(
-      ['executive', 'pm', 'consultant', 'analyst'].map(async (roleName) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ['executive', 'pm', 'consultant', 'analyst'].map(async (roleName: any) => {
         // まずロールに属するユーザーを取得
         const roleUsers = await authDb.user.findMany({
           where: {

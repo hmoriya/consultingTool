@@ -230,7 +230,8 @@ export async function getUserChannels() {
 
     // 未読メッセージ数を計算し、ユーザー情報を追加
     const channelsWithUnread = await Promise.all(
-      channels.map(async (channel) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      channels.map(async (channel: any) => {
         const member = channel.members.find(m => m.userId === user.id)
         if (!member) return { ...channel, unreadCount: 0, memberUsers: [] }
 

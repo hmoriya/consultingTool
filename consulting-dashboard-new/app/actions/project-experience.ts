@@ -37,14 +37,16 @@ export async function getUserProjectExperience(userId?: string) {
   
   // Fetch client information separately
   const projectsWithClients = await Promise.all(
-    projectExperiences.map(async (exp) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    projectExperiences.map(async (exp: any) => {
       const client = await db.organization.findUnique({
         where: { id: exp.project.clientId }
       })
       
       // Fetch skill details from resource service
       const skillsWithDetails = await Promise.all(
-        exp.skills.map(async (ps) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        exp.skills.map(async (ps: any) => {
           const skill = await resourceDb.skill.findUnique({
             where: { id: ps.skillId },
             include: { category: true }
@@ -307,7 +309,8 @@ export async function searchProjectExperiences(filters: {
 
   // Fetch additional data from other services
   const experiencesWithDetails = await Promise.all(
-    experiences.map(async (exp) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    experiences.map(async (exp: any) => {
       // Fetch client information
       const client = await db.organization.findUnique({
         where: { id: exp.project.clientId }
@@ -315,7 +318,8 @@ export async function searchProjectExperiences(filters: {
       
       // Fetch skill details
       const skillsWithDetails = await Promise.all(
-        exp.skills.map(async (ps) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        exp.skills.map(async (ps: any) => {
           const skill = await resourceDb.skill.findUnique({
             where: { id: ps.skillId },
             include: { category: true }

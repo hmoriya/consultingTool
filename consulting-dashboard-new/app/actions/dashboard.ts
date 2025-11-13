@@ -64,7 +64,8 @@ export async function getDashboardData() {
 
   // プロジェクトごとの最新メトリクスを計算
   const projectsWithMetrics = await Promise.all(
-    projects.map(async (project) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    projects.map(async (project: any) => {
       // 今月の収益
       const revenue = await financeDb.revenue.aggregate({
         where: {
@@ -386,7 +387,8 @@ export async function getResourceData() {
   const roles = await authDb.role.findMany()
 
   const roleData = await Promise.all(
-    roles.map(async (role) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    roles.map(async (role: any) => {
       // ロールのユーザーを取得
       const roleUsers = await authDb.user.findMany({
         where: {

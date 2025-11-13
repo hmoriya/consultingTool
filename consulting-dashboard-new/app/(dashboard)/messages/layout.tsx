@@ -18,22 +18,50 @@ export default async function MessagesLayout({
   const rawChannels = channelsResult.success ? channelsResult.data || [] : []
   
   // 型変換してChannelSidebarが期待する形式にする
-  const channels = rawChannels.map((channel: Channel) => ({
-    id: channel.id,
-    name: channel.name,
-    type: channel.type as 'PROJECT' | 'GROUP' | 'DIRECT',
-    description: channel.description,
-    isPrivate: channel.isPrivate,
-    lastMessage: channel.lastMessage ? {
-      content: channel.lastMessage.content,
-      createdAt: channel.lastMessage.createdAt instanceof Date 
-        ? channel.lastMessage.createdAt.toISOString() 
-        : channel.lastMessage.createdAt
-    } : null,
-    unreadCount: channel.unreadCount || 0,
-    members: channel.members,
-    memberUsers: channel.memberUsers
-  }))
+  const channels = rawChannels.map((channel: Channel) => {
+    const transformedChannel: {
+      id: string
+      name: string | null
+      type: 'PROJECT' | 'GROUP' | 'DIRECT'
+      description: string | null
+      isPrivate: boolean
+      lastMessage: {
+        content: string
+        createdAt: string
+      } | null
+      unreadCount: number
+      members: Array<{
+        userId: string
+        user?: {
+          name: string
+        }
+      }>
+      memberUsers: Array<{
+        userId: string
+        user?: {
+          id: string
+          name: string
+          email: string
+        }
+      }>
+    } = {
+      id: channel.id,
+      name: channel.name ?? null,
+      type: channel.type as 'PROJECT' | 'GROUP' | 'DIRECT',
+      description: channel.description ?? null,
+      isPrivate: channel.isPrivate,
+      lastMessage: channel.lastMessage ? {
+        content: channel.lastMessage.content,
+        createdAt: channel.lastMessage.createdAt instanceof Date 
+          ? channel.lastMessage.createdAt.toISOString() 
+          : channel.lastMessage.createdAt
+      } : null,
+      unreadCount: channel.unreadCount || 0,
+      members: channel.members || [],
+      memberUsers: channel.memberUsers || []
+    }
+    return transformedChannel
+  })
 
   return (
     <div className="flex h-[calc(100vh-4rem)]">

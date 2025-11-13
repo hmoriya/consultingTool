@@ -200,7 +200,7 @@ export async function getPendingApprovals() {
 
     // // ユーザー情報を取得して付加
     // const timesheetsWithUser = await Promise.all(
-    //   timesheets.map(async (timesheet: any) => {
+    //   timesheets.map(async (timesheet) => {
     //     const user = await userDb.user.findUnique({
     //       where: { id: timesheet.consultantId },
     //       select: { name: true, email: true }

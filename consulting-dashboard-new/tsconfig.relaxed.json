@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // より現実的な設定（必要に応じて切り替え可能）
+    "strict": true,                           // 基本strictは維持
+    "exactOptionalPropertyTypes": false,     // これを緩和すると楽になる
+    "noUncheckedIndexedAccess": false,      // 配列アクセスも緩和
+    
+    // anyの使用を一部許可
+    "@typescript-eslint/no-explicit-any": "warn", // errorからwarnに
+    
+    // 実用的な妥協
+    "skipLibCheck": true                     // ライブラリの型チェックをスキップ
+  }
+}

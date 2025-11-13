@@ -41,7 +41,6 @@ export async function createDeliverable(data: z.infer<typeof deliverableSchema>)
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const deliverable = await (projectDb as any).Deliverable.create({
       data: validated,
       include: {

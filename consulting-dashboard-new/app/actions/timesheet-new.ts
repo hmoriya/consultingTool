@@ -169,8 +169,7 @@ export async function deleteTimeEntry(id: string) {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (timesheetDb as any).TimeEntry.delete({ where: { id } })
+    await (timesheetDb as any).TimeEntry.delete({ where: { id } })
 
     if (existing.timesheetId) {
       await updateTimesheetTotals(existing.timesheetId)
@@ -336,6 +335,7 @@ export async function getMonthlyTimeSummary(year: number, month: number) {
   const startDate = new Date(year, month - 1, 1)
   const endDate = new Date(year, month, 0)
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const entries = await (timesheetDb as any).TimeEntry.findMany({
     where: {
       consultantId: user.id,
@@ -392,6 +392,7 @@ function getWeekDates(date: Date) {
 }
 
 async function updateTimesheetTotals(timesheetId: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const entries = await (timesheetDb as any).TimeEntry.findMany({
     where: { timesheetId }
   })

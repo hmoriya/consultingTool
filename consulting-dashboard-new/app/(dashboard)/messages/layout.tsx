@@ -18,36 +18,22 @@ export default async function MessagesLayout({
   const rawChannels = channelsResult.success ? channelsResult.data || [] : []
   
   // 型変換してChannelSidebarが期待する形式にする
-  const channels = rawChannels.map((channel: Channel) => {
-    const baseChannel = {
-      ...channel,
-      type: channel.type as 'PROJECT' | 'GROUP' | 'DIRECT',
-      lastMessage: channel.lastMessage ? {
-        content: channel.lastMessage.content,
-        createdAt: channel.lastMessage.createdAt instanceof Date 
-          ? channel.lastMessage.createdAt.toISOString() 
-          : channel.lastMessage.createdAt
-      } : null
-    }
-
-    // exactOptionalPropertyTypes対応: undefinedのプロパティを除外
-    if (channel.name === null || channel.name === undefined) {
-      const { name, ...rest } = baseChannel
-      return rest
-    }
-
-    if (channel.description === null || channel.description === undefined) {
-      const { description, ...rest } = baseChannel
-      return rest
-    }
-
-    if (channel.projectId === null || channel.projectId === undefined) {
-      const { projectId, ...rest } = baseChannel
-      return rest
-    }
-
-    return baseChannel
-  })
+  const channels = rawChannels.map((channel: Channel) => ({
+    id: channel.id,
+    name: channel.name,
+    type: channel.type as 'PROJECT' | 'GROUP' | 'DIRECT',
+    description: channel.description,
+    isPrivate: channel.isPrivate,
+    lastMessage: channel.lastMessage ? {
+      content: channel.lastMessage.content,
+      createdAt: channel.lastMessage.createdAt instanceof Date 
+        ? channel.lastMessage.createdAt.toISOString() 
+        : channel.lastMessage.createdAt
+    } : null,
+    unreadCount: channel.unreadCount || 0,
+    members: channel.members,
+    memberUsers: channel.memberUsers
+  }))
 
   return (
     <div className="flex h-[calc(100vh-4rem)]">

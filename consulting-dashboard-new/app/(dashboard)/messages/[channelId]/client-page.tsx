@@ -380,7 +380,9 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
         }
       }
       const threadMessage = convertMessagesToThreadMessages([newMessage], selectedThread.id)[0]
-      setThreadMessages(prev => [...prev, threadMessage])
+      if (threadMessage) {
+        setThreadMessages(prev => [...prev, threadMessage])
+      }
       // メインメッセージのスレッドカウントを更新
       setMessages(prev => prev.map(msg =>
         msg.id === selectedThread.id

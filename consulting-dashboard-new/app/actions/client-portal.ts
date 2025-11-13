@@ -51,12 +51,15 @@ export async function getClientPortalData() {
     }
   })
   
-  console.log('Found projects:', projects.length, projects.map(p => ({ id: p.id, name: p.name, clientId: p.clientId })))
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  console.log('Found projects:', projects.length, projects.map((p: any) => ({ id: p.id, name: p.name, clientId: p.clientId })))
 
   // 各プロジェクトのマイルストーンと進捗を取得
   const projectsWithDetails = await Promise.all(
-    projects.map(async (project) => {
-      const milestones = await projectDb.milestone.findMany({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    projects.map(async (project: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const milestones = await (projectDb as any).milestone.findMany({
         where: {
           projectId: project.id
         },
@@ -65,17 +68,20 @@ export async function getClientPortalData() {
         }
       })
 
-      const tasks = await projectDb.task.findMany({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const tasks = await (projectDb as any).task.findMany({
         where: {
           projectId: project.id
         }
       })
 
-      const completedTasks = tasks.filter(t => t.status === 'completed').length
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const completedTasks = tasks.filter((t: any) => t.status === 'completed').length
       const progress = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0
 
       // プロジェクトマネージャーを特定
-      const pm = project.projectMembers.find(member => member.role === 'pm')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pm = project.projectMembers.find((member: any) => member.role === 'pm')
 
       return {
         ...project,

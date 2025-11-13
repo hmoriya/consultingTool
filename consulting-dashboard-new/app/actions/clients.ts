@@ -51,7 +51,8 @@ export async function getClients() {
   // コンサルタントも含めてクライアント一覧を表示可能
   // (作成・編集・削除は別途制限)
 
-  const clients = await authDb.organization.findMany({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const clients = await (authDb as any).organization.findMany({
     where: {
       type: 'client'
     },
@@ -76,7 +77,8 @@ export async function getClients() {
     clients.map(async (client) => {
       let projects = []
       try {
-        projects = await projectDb.project.findMany({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        projects = await (projectDb as any).project.findMany({
           where: {
             clientId: client.id
           },
@@ -85,7 +87,7 @@ export async function getClients() {
             status: true
           }
         })
-      } catch (_error) {
+      } catch (error) {
         console.error('Error fetching projects for client:', client.id, error)
         // If project DB is not working, continue without project data
       }
@@ -131,7 +133,8 @@ export async function createClient(data: {
   }
 
   // 同名のクライアント組織が既に存在しないかチェック
-  const existingClient = await authDb.organization.findFirst({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const existingClient = await (authDb as any).organization.findFirst({
     where: {
       name: data.name,
       type: 'client'
@@ -142,7 +145,8 @@ export async function createClient(data: {
     throw new Error('同名のクライアントが既に存在します')
   }
 
-  const client = await authDb.organization.create({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const client = await (authDb as any).organization.create({
     data: {
       name: data.name,
       type: 'client',
@@ -158,7 +162,8 @@ export async function createClient(data: {
   })
 
   // 監査ログ
-  await authDb.auditLog.create({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (authDb as any).auditLog.create({
     data: {
       userId: user.id,
       action: 'CREATE',
@@ -187,7 +192,8 @@ export async function updateClient(clientId: string, data: {
     throw new Error('権限がありません')
   }
 
-  const client = await authDb.organization.findFirst({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const client = await (authDb as any).organization.findFirst({
     where: {
       id: clientId,
       type: 'client'
@@ -199,7 +205,8 @@ export async function updateClient(clientId: string, data: {
   }
 
   // 同名のクライアント組織が既に存在しないかチェック（自分自身を除く）
-  const existingClient = await authDb.organization.findFirst({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const existingClient = await (authDb as any).organization.findFirst({
     where: {
       name: data.name,
       type: 'client',
@@ -211,7 +218,8 @@ export async function updateClient(clientId: string, data: {
     throw new Error('同名のクライアントが既に存在します')
   }
 
-  const updatedClient = await authDb.organization.update({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const updatedClient = await (authDb as any).organization.update({
     where: { id: clientId },
     data: {
       name: data.name,
@@ -227,7 +235,8 @@ export async function updateClient(clientId: string, data: {
   })
 
   // 監査ログ
-  await authDb.auditLog.create({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (authDb as any).auditLog.create({
     data: {
       userId: user.id,
       action: 'UPDATE',
@@ -246,7 +255,8 @@ export async function deleteClient(clientId: string) {
     throw new Error('権限がありません（エグゼクティブのみ削除可能）')
   }
 
-  const client = await authDb.organization.findFirst({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const client = await (authDb as any).organization.findFirst({
     where: {
       id: clientId,
       type: 'client'
@@ -268,12 +278,14 @@ export async function deleteClient(clientId: string) {
     throw new Error(`このクライアントには${projectCount}件のプロジェクトが存在します。削除できません。`)
   }
 
-  await authDb.organization.delete({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (authDb as any).organization.delete({
     where: { id: clientId }
   })
 
   // 監査ログ
-  await authDb.auditLog.create({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (authDb as any).auditLog.create({
     data: {
       userId: user.id,
       action: 'DELETE',
@@ -295,7 +307,8 @@ export async function searchClients(query: string) {
   // コンサルタントも含めてクライアント検索可能
   // (作成・編集・削除は別途制限)
 
-  const clients = await authDb.organization.findMany({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const clients = await (authDb as any).organization.findMany({
     where: {
       type: 'client',
       name: {

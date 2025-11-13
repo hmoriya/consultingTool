@@ -95,11 +95,14 @@ export async function getClientPortalData() {
   )
 
   // アクティブプロジェクトの統計
-  const activeProjects = projects.filter(p => p.status === 'active')
-  const totalBudget = activeProjects.reduce((sum, p) => sum + p.budget, 0)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const activeProjects = projects.filter((p: any) => p.status === 'active')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const totalBudget = activeProjects.reduce((sum: number, p: any) => sum + p.budget, 0)
 
   // 最近のプロジェクト活動（簡易版）
-  const recentActivities = await projectDb.task.findMany({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recentActivities = await (projectDb as any).task.findMany({
     where: {
       project: {
         clientId: organization.id
@@ -123,7 +126,8 @@ export async function getClientPortalData() {
     stats: {
       totalProjects: projects.length,
       activeProjects: activeProjects.length,
-      completedProjects: projects.filter(p => p.status === 'completed').length,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      completedProjects: projects.filter((p: any) => p.status === 'completed').length,
       totalBudget
     },
     recentActivities

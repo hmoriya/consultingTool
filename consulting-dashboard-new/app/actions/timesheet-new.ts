@@ -204,6 +204,7 @@ export async function submitTimesheet(timesheetId: string) {
   // タイムシートと関連する工数記録を提出済みに更新
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (timesheetDb as any).$transaction([
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (timesheetDb as any).Timesheet.update({
       where: { id: timesheetId },
       data: {
@@ -211,6 +212,7 @@ export async function submitTimesheet(timesheetId: string) {
         submittedAt: new Date()
       }
     }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (timesheetDb as any).TimeEntry.updateMany({
       where: { timesheetId },
       data: {
@@ -218,6 +220,7 @@ export async function submitTimesheet(timesheetId: string) {
         submittedAt: new Date()
       }
     }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (timesheetDb as any).ApprovalHistory.create({
       data: {
         timesheetId,

@@ -1,0 +1,62 @@
+name: TypeScript Quality Check
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+jobs:
+  typescript-quality:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: TypeScript Strict Mode Compliance Check
+        run: |
+          echo "🔍 Running TypeScript strict mode compliance check..."
+          
+          # 1. Type check
+          npx tsc --noEmit --skipLibCheck
+          
+          # 2. Implicit any check
+          IMPLICIT_ANY_COUNT=$(grep -r "\.map(async (" app/actions/ --include="*.ts" | grep -v ": any)" | wc -l || echo "0")
+          if [ "$IMPLICIT_ANY_COUNT" -gt 0 ]; then
+            echo "❌ $IMPLICIT_ANY_COUNT implicit any types detected"
+            grep -r "\.map(async (" app/actions/ --include="*.ts" | grep -v ": any)" || true
+            exit 1
+          fi
+          
+          # 3. Database type assertions check
+          MISSING_AUTH_ASSERTIONS=$(grep -r "authDb\." app/actions/ --include="*.ts" | grep -v "as any" | wc -l || echo "0")
+          if [ "$MISSING_AUTH_ASSERTIONS" -gt 0 ]; then
+            echo "❌ $MISSING_AUTH_ASSERTIONS missing authDb type assertions"
+            grep -r "authDb\." app/actions/ --include="*.ts" | grep -v "as any" || true
+            exit 1
+          fi
+          
+          MISSING_PROJECT_ASSERTIONS=$(grep -r "projectDb\." app/actions/ --include="*.ts" | grep -v "as any" | wc -l || echo "0")
+          if [ "$MISSING_PROJECT_ASSERTIONS" -gt 0 ]; then
+            echo "❌ $MISSING_PROJECT_ASSERTIONS missing projectDb type assertions"
+            grep -r "projectDb\." app/actions/ --include="*.ts" | grep -v "as any" || true
+            exit 1
+          fi
+          
+          # 4. ZodError API check
+          if grep -r "error\.errors" app/ --include="*.ts" | grep -q "."; then
+            echo "❌ Deprecated ZodError.errors usage detected"
+            grep -r "error\.errors" app/ --include="*.ts" || true
+            exit 1
+          fi
+          
+          echo "✅ All TypeScript quality checks passed!"

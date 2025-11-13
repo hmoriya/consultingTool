@@ -1,1 +1,37 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# 既存のチェック
 npm run type-check && npm run lint
+
+# TypeScript strict mode コンプライアンスチェック
+echo "🔍 TypeScript strict mode compliance check..."
+
+# 1. implicit anyタイプエラーチェック
+echo "Checking for implicit any types in map functions..."
+IMPLICIT_ANY_COUNT=$(grep -r "\.map(async (" app/actions/ --include="*.ts" | grep -v ": any)" | grep -v "//" | wc -l)
+if [ $IMPLICIT_ANY_COUNT -gt 0 ]; then
+    echo "❌ Implicit any types detected: $IMPLICIT_ANY_COUNT locations"
+    echo "Please add explicit type annotations like: .map(async (item: any) =>"
+    grep -r "\.map(async (" app/actions/ --include="*.ts" | grep -v ": any)" | grep -v "//"
+    exit 1
+fi
+
+# 2. authDb型アサーション抜けチェック  
+echo "Checking for missing database type assertions..."
+MISSING_AUTH_ASSERTIONS=$(grep -r "authDb\." app/actions/ --include="*.ts" | grep -v "as any" | wc -l)
+
+if [ $MISSING_AUTH_ASSERTIONS -gt 0 ]; then
+    echo "❌ Missing authDb type assertions: $MISSING_AUTH_ASSERTIONS locations"
+    echo "Please add '(authDb as any)' for database access"
+    exit 1
+fi
+
+# 3. ZodError.errorsの使用チェック（廃止されたAPI）
+echo "Checking for deprecated ZodError.errors usage..."
+if grep -r "error\.errors" app/ --include="*.ts" | grep -q "."; then
+    echo "❌ Deprecated ZodError.errors usage detected. Use .issues instead."
+    exit 1
+fi
+
+echo "✅ TypeScript strict mode compliance check passed!"

@@ -141,7 +141,8 @@ export async function getProjectDocuments(projectId: string) {
   }
 
   // プロジェクトへのアクセス権を確認
-  const project = await projectDb.project.findFirst({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const project = await (projectDb as any).project.findFirst({
     where: {
       id: projectId,
       clientId: user.organizationId

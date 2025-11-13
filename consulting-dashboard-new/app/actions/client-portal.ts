@@ -32,7 +32,8 @@ export async function getClientPortalData() {
   // 組織に関連するプロジェクトを取得
   console.log('Looking for projects with clientId:', organization.id)
   console.log('Organization:', organization)
-  const projects = await projectDb.project.findMany({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const projects = await (projectDb as any).project.findMany({
     where: {
       clientId: organization.id
     },

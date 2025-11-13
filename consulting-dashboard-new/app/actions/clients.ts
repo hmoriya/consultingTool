@@ -270,7 +270,8 @@ export async function deleteClient(clientId: string) {
   }
 
   // プロジェクトが存在するかチェック
-  const projectCount = await projectDb.project.count({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const projectCount = await (projectDb as any).project.count({
     where: {
       clientId: clientId
     }

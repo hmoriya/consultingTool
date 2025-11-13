@@ -74,7 +74,8 @@ export async function getClients() {
 
   // 各クライアントのプロジェクト数を取得
   const clientsWithProjectCount = await Promise.all(
-    clients.map(async (client) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    clients.map(async (client: any) => {
       let projects = []
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

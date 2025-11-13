@@ -42,7 +42,8 @@ export async function createTimeEntry(data: z.infer<typeof timeEntrySchema>) {
 
     // タイムシートを取得または作成
     const { weekStartDate, weekEndDate } = getWeekDates(date)
-    let timesheet = await timesheetDb.Timesheet.findUnique({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let timesheet = await (timesheetDb as any).Timesheet.findUnique({
       where: {
         consultantId_weekStartDate: {
           consultantId: user.id,
@@ -52,7 +53,8 @@ export async function createTimeEntry(data: z.infer<typeof timeEntrySchema>) {
     })
 
     if (!timesheet) {
-      timesheet = await timesheetDb.Timesheet.create({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      timesheet = await (timesheetDb as any).Timesheet.create({
         data: {
           consultantId: user.id,
           weekStartDate,
@@ -73,7 +75,8 @@ export async function createTimeEntry(data: z.infer<typeof timeEntrySchema>) {
     
     let timeEntry
     try {
-      timeEntry = await timesheetDb.TimeEntry.create({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      timeEntry = await (timesheetDb as any).TimeEntry.create({
         data: {
           ...validated,
           consultantId: user.id,
@@ -97,7 +100,7 @@ export async function createTimeEntry(data: z.infer<typeof timeEntrySchema>) {
     console.error('createTimeEntry error:', error)
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace')
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message }
+      return { success: false, error: error.issues[0].message }
     }
     return { success: false, error: error instanceof Error ? error.message : '工数記録の作成に失敗しました' }
   }
@@ -112,7 +115,8 @@ export async function updateTimeEntry(id: string, data: Partial<z.infer<typeof t
     }
 
     // 所有権の確認
-    const existing = await timesheetDb.TimeEntry.findFirst({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const existing = await (timesheetDb as any).TimeEntry.findFirst({
       where: { id, consultantId: user.id }
     })
 
@@ -123,7 +127,8 @@ export async function updateTimeEntry(id: string, data: Partial<z.infer<typeof t
       return { success: false, error: '承認済みの工数は編集できません' }
     }
 
-    const updated = await timesheetDb.TimeEntry.update({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updated = await (timesheetDb as any).TimeEntry.update({
       where: { id },
       data
     })
@@ -151,7 +156,8 @@ export async function deleteTimeEntry(id: string) {
       return { success: false, error: '認証が必要です' }
     }
 
-    const existing = await timesheetDb.TimeEntry.findFirst({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const existing = await (timesheetDb as any).TimeEntry.findFirst({
       where: { id, consultantId: user.id }
     })
 
@@ -162,7 +168,9 @@ export async function deleteTimeEntry(id: string) {
       return { success: false, error: '承認済みの工数は削除できません' }
     }
 
-    await timesheetDb.TimeEntry.delete({ where: { id } })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (timesheetDb as any).TimeEntry.delete({ where: { id } })
 
     if (existing.timesheetId) {
       await updateTimesheetTotals(existing.timesheetId)
@@ -184,7 +192,8 @@ export async function submitTimesheet(timesheetId: string) {
   const user = await getCurrentUser()
   if (!user) throw new Error('認証が必要です')
 
-  const timesheet = await timesheetDb.Timesheet.findFirst({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const timesheet = await (timesheetDb as any).Timesheet.findFirst({
     where: { id: timesheetId, consultantId: user.id },
     include: { entries: true }
   })
@@ -194,22 +203,23 @@ export async function submitTimesheet(timesheetId: string) {
   if (timesheet.entries.length === 0) throw new Error('工数記録がありません')
 
   // タイムシートと関連する工数記録を提出済みに更新
-  await timesheetDb.$transaction([
-    timesheetDb.Timesheet.update({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (timesheetDb as any).$transaction([
+    (timesheetDb as any).Timesheet.update({
       where: { id: timesheetId },
       data: {
         status: 'SUBMITTED',
         submittedAt: new Date()
       }
     }),
-    timesheetDb.TimeEntry.updateMany({
+    (timesheetDb as any).TimeEntry.updateMany({
       where: { timesheetId },
       data: {
         status: 'SUBMITTED',
         submittedAt: new Date()
       }
     }),
-    timesheetDb.ApprovalHistory.create({
+    (timesheetDb as any).ApprovalHistory.create({
       data: {
         timesheetId,
         action: 'SUBMIT',
@@ -233,7 +243,8 @@ export async function getWeeklyTimesheet(date: Date) {
   console.log('getWeeklyTimesheet - weekStartDate:', weekStartDate)
   console.log('getWeeklyTimesheet - weekEndDate:', weekEndDate)
 
-  const timesheet = await timesheetDb.Timesheet.findUnique({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const timesheet = await (timesheetDb as any).Timesheet.findUnique({
     where: {
       consultantId_weekStartDate: {
         consultantId: user.id,
@@ -253,7 +264,8 @@ export async function getWeeklyTimesheet(date: Date) {
   // タイムシートがない場合でも、週内のエントリを取得
   if (!timesheet) {
     // 週内のエントリを直接取得
-    const entries = await timesheetDb.TimeEntry.findMany({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const entries = await (timesheetDb as any).TimeEntry.findMany({
       where: {
         consultantId: user.id,
         date: {
@@ -286,7 +298,8 @@ export async function getWeeklyTimesheet(date: Date) {
   console.log('getWeeklyTimesheet - found timesheet with entries:', timesheet.entries.length)
 
   // タイムシートのエントリだけでなく、週内の全エントリを取得
-  const allEntries = await timesheetDb.TimeEntry.findMany({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const allEntries = await (timesheetDb as any).TimeEntry.findMany({
     where: {
       consultantId: user.id,
       date: {
@@ -323,7 +336,7 @@ export async function getMonthlyTimeSummary(year: number, month: number) {
   const startDate = new Date(year, month - 1, 1)
   const endDate = new Date(year, month, 0)
 
-  const entries = await timesheetDb.TimeEntry.findMany({
+  const entries = await (timesheetDb as any).TimeEntry.findMany({
     where: {
       consultantId: user.id,
       date: {
@@ -379,7 +392,7 @@ function getWeekDates(date: Date) {
 }
 
 async function updateTimesheetTotals(timesheetId: string) {
-  const entries = await timesheetDb.TimeEntry.findMany({
+  const entries = await (timesheetDb as any).TimeEntry.findMany({
     where: { timesheetId }
   })
 
@@ -387,7 +400,8 @@ async function updateTimesheetTotals(timesheetId: string) {
   const billableHours = entries.filter(e => e.billable).reduce((sum, e) => sum + e.hours, 0)
   const nonBillableHours = totalHours - billableHours
 
-  await timesheetDb.Timesheet.update({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (timesheetDb as any).Timesheet.update({
     where: { id: timesheetId },
     data: {
       totalHours,

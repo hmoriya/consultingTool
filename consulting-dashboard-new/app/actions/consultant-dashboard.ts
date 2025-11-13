@@ -106,7 +106,8 @@ export async function getConsultantDashboardData() {
   })
 
   // スキルの統計
-  const userSkills = await resourceDb.userSkill.findMany({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const userSkills = await (resourceDb as any).userSkill.findMany({
     where: {
       userId: user.id
     },

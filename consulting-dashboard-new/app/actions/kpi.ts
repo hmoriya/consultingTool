@@ -81,7 +81,8 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
 
     // ユーザー情報を取得
     const userIds = [...new Set(timeEntries.map(te => te.userId))]
-    const users = await authDb.user.findMany({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const users = await (authDb as any).user.findMany({
       where: {
         id: {
           in: userIds,
@@ -209,7 +210,8 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ['executive', 'pm', 'consultant', 'analyst'].map(async (roleName: any) => {
         // まずロールに属するユーザーを取得
-        const roleUsers = await authDb.user.findMany({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const roleUsers = await (authDb as any).user.findMany({
           where: {
             role: {
               name: roleName,

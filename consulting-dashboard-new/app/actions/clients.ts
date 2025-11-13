@@ -108,7 +108,8 @@ export async function getClients() {
         createdAt: client.createdAt,
         updatedAt: client.updatedAt,
         projectCount: projects.length,
-        activeProjectCount: projects.filter(p => p.status === 'active').length,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        activeProjectCount: projects.filter((p: any) => p.status === 'active').length,
         contacts: client.contacts
       }
     })

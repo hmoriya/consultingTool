@@ -196,7 +196,8 @@ export async function getDashboardData() {
 
     // ユーザー情報を取得
     const userIds = [...new Set(monthTimeEntries.map(te => te.userId))]
-    const users = await authDb.user.findMany({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const users = await (authDb as any).user.findMany({
       where: {
         id: {
           in: userIds,
@@ -319,7 +320,8 @@ export async function getResourceData() {
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
 
   // 全メンバーの情報を取得
-  const members = await authDb.user.findMany({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const members = await (authDb as any).user.findMany({
     select: {
       id: true,
       name: true,
@@ -384,13 +386,15 @@ export async function getResourceData() {
   }).filter(member => member.projects > 0) // アクティブなメンバーのみ
 
   // ロール別の集計
-  const roles = await authDb.role.findMany()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const roles = await (authDb as any).role.findMany()
 
   const roleData = await Promise.all(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     roles.map(async (role: any) => {
       // ロールのユーザーを取得
-      const roleUsers = await authDb.user.findMany({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const roleUsers = await (authDb as any).user.findMany({
         where: {
           role: {
             name: role.name,

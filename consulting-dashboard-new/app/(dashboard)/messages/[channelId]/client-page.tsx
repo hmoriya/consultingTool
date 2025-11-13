@@ -20,7 +20,7 @@ import { ja } from 'date-fns/locale'
 import { sendMessage, addReaction, pinMessage, markChannelAsRead, toggleMessageFlag } from '@/actions/messages'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { Message, convertMessagesToThreadMessages } from '@/lib/utils/message-converter'
+import { Message, ThreadMessage, convertMessagesToThreadMessages } from '@/lib/utils/message-converter'
 import { MessageItem } from '@/components/messages/message-item'
 import { ChannelHeader } from '@/components/messages/channel-header'
 import { ThreadView } from '@/components/messages/thread-view'
@@ -69,7 +69,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
   const [mentionSearch, setMentionSearch] = useState('')
   const [mentionIndex, setMentionIndex] = useState(0)
   const [selectedThread, setSelectedThread] = useState<Message | null>(null)
-  const [threadMessages, setThreadMessages] = useState<Message[]>([])
+  const [threadMessages, setThreadMessages] = useState<ThreadMessage[]>([])
   const [editingMessage, setEditingMessage] = useState<{ id: string; content: string } | null>(null)
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -357,7 +357,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
     // スレッドメッセージを取得
     const result = await getThreadMessages(message.id)
     if (result.success && result.data) {
-      setThreadMessages(result.data)
+      setThreadMessages(convertMessagesToThreadMessages(result.data, message.id))
     }
   }
 
@@ -379,7 +379,8 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
           email: ''
         }
       }
-      setThreadMessages(prev => [...prev, newMessage])
+      const threadMessage = convertMessagesToThreadMessages([newMessage], selectedThread.id)[0]
+      setThreadMessages(prev => [...prev, threadMessage])
       // メインメッセージのスレッドカウントを更新
       setMessages(prev => prev.map(msg =>
         msg.id === selectedThread.id

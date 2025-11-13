@@ -117,24 +117,31 @@ export async function getConsultantDashboardData() {
   })
 
   return {
-    tasks: myTasks.map(task => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tasks: myTasks.map((task: any) => ({
       ...task,
       status: task.status as 'todo' | 'in_progress' | 'in_review' | 'completed',
       priority: (task.priority as string | null) === null ? null : task.priority as 'low' | 'medium' | 'high' | 'critical',
-      tags: task.tags ? task.tags.split(',').map(tag => tag.trim()) : undefined
+      tags: task.tags ? task.tags.split(',').map((tag: string) => tag.trim()) : undefined
     })),
-    weeklyTasks: weeklyTasks.map(task => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    weeklyTasks: weeklyTasks.map((task: any) => ({
       ...task,
       status: task.status as 'todo' | 'in_progress' | 'in_review' | 'completed',
       priority: (task.priority as string | null) === null ? null : task.priority as 'low' | 'medium' | 'high' | 'critical',
-      tags: task.tags ? task.tags.split(',').map(tag => tag.trim()) : undefined
+      tags: task.tags ? task.tags.split(',').map((tag: string) => tag.trim()) : undefined
     })),
     taskStats: {
-      total: taskStats.reduce((sum, stat) => sum + stat._count, 0),
-      todo: taskStats.find(s => s.status === 'todo')?._count || 0,
-      in_progress: taskStats.find(s => s.status === 'in_progress')?._count || 0,
-      in_review: taskStats.find(s => s.status === 'in_review')?._count || 0,
-      completed: taskStats.find(s => s.status === 'completed')?._count || 0
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      total: taskStats.reduce((sum: number, stat: any) => sum + stat._count, 0),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      todo: taskStats.find((s: any) => s.status === 'todo')?._count || 0,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      in_progress: taskStats.find((s: any) => s.status === 'in_progress')?._count || 0,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      in_review: taskStats.find((s: any) => s.status === 'in_review')?._count || 0,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      completed: taskStats.find((s: any) => s.status === 'completed')?._count || 0
     },
     projects: myProjects,
     completedTasksThisMonth,

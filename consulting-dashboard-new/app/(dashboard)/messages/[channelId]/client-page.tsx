@@ -715,7 +715,7 @@ export default function ChatClient({ channel, initialMessages, currentUserId, cu
           isOpen={!!selectedThread}
           onClose={() => setSelectedThread(null)}
           onSendReply={handleSendThreadReply}
-          threadMessages={convertMessagesToThreadMessages(threadMessages, selectedThread.id)}
+          threadMessages={threadMessages}
           currentUserId={currentUserId}
         />
       )}

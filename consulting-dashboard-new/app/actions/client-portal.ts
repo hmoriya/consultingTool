@@ -18,7 +18,8 @@ export async function getClientPortalData() {
   }
 
   // ユーザーが所属する組織を取得
-  const organization = await authDb.organization.findUnique({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const organization = await (authDb as any).organization.findUnique({
     where: { id: user.organizationId }
   })
 

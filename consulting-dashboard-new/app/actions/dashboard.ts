@@ -123,7 +123,8 @@ export async function getDashboardData() {
         : 0
 
       // 進捗率（完了タスク / 全タスク）
-      const completedTasks = project.tasks.filter(t => t.status === 'completed').length
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const completedTasks = project.tasks.filter((t: any) => t.status === 'completed').length
       const progressRate = project._count.tasks > 0
         ? (completedTasks / project._count.tasks) * 100
         : 0
@@ -274,9 +275,12 @@ export async function getDashboardData() {
     projects: projectsWithMetrics,
     stats: {
       total: projects.length,
-      active: projects.filter(p => p.status === 'active').length,
-      completed: projects.filter(p => p.status === 'completed').length,
-      onhold: projects.filter(p => p.status === 'onhold').length,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      active: projects.filter((p: any) => p.status === 'active').length,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      completed: projects.filter((p: any) => p.status === 'completed').length,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      onhold: projects.filter((p: any) => p.status === 'onhold').length,
     },
     financials: {
       revenue: monthlyKPI?.totalRevenue || 0,
@@ -397,7 +401,8 @@ export async function getResourceData() {
       utilization,
       projects,
     }
-  }).filter(member => member.projects > 0) // アクティブなメンバーのみ
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }).filter((member: any) => member.projects > 0) // アクティブなメンバーのみ
 
   // ロール別の集計
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -460,6 +465,7 @@ export async function getResourceData() {
 
   return {
     members: memberData,
-    roleDistribution: roleData.filter(r => r.count > 0),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    roleDistribution: roleData.filter((r: any) => r.count > 0),
   }
 }

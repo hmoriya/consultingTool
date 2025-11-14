@@ -19,6 +19,7 @@ export async function getSchemaContent(service: string) {
     }
   } catch (error) {
     // ファイルが存在しない場合
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if ((error as any).code === 'ENOENT') {
       return {
         success: true,
@@ -69,6 +70,7 @@ export async function getApiContent(service: string) {
     }
   } catch (error) {
     // ファイルが存在しない場合
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if ((error as any).code === 'ENOENT') {
       return {
         success: true,
@@ -119,6 +121,7 @@ export async function getDomainContent(domain: string) {
     }
   } catch (error) {
     // ファイルが存在しない場合
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if ((error as any).code === 'ENOENT') {
       return {
         success: true,

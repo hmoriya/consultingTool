@@ -27,7 +27,8 @@ export async function getDashboardData() {
   }
 
   // プロジェクトサマリー
-  const projects = await projectDb.project.findMany({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const projects = await (projectDb as any).project.findMany({
     select: {
       id: true,
       name: true,
@@ -67,7 +68,8 @@ export async function getDashboardData() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     projects.map(async (project: any) => {
       // 今月の収益
-      const revenue = await financeDb.revenue.aggregate({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const revenue = await (financeDb as any).revenue.aggregate({
         where: {
           projectId: project.id,
           date: {
@@ -80,7 +82,8 @@ export async function getDashboardData() {
       })
 
       // 今月のコスト
-      const cost = await financeDb.cost.aggregate({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cost = await (financeDb as any).cost.aggregate({
         where: {
           projectId: project.id,
           date: {
@@ -93,7 +96,8 @@ export async function getDashboardData() {
       })
 
       // 今月の工数
-      await financeDb.timeEntry.aggregate({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (financeDb as any).timeEntry.aggregate({
         where: {
           projectId: project.id,
           date: {
@@ -107,7 +111,8 @@ export async function getDashboardData() {
       })
 
       // プロジェクトメンバーの稼働率
-      const members = await projectDb.projectMember.findMany({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const members = await (projectDb as any).projectMember.findMany({
         where: { projectId: project.id },
         select: { allocation: true },
       })
@@ -160,7 +165,8 @@ export async function getDashboardData() {
     const mEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59, 999)
     
     // 収益集計
-    const monthRevenue = await financeDb.revenue.aggregate({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const monthRevenue = await (financeDb as any).revenue.aggregate({
       where: {
         date: {
           gte: mStart,
@@ -172,7 +178,8 @@ export async function getDashboardData() {
     })
     
     // コスト集計
-    const monthCost = await financeDb.cost.aggregate({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const monthCost = await (financeDb as any).cost.aggregate({
       where: {
         date: {
           gte: mStart,
@@ -184,7 +191,8 @@ export async function getDashboardData() {
     })
 
     // 工数ベースの人件費を追加
-    const monthTimeEntries = await financeDb.timeEntry.findMany({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const monthTimeEntries = await (financeDb as any).timeEntry.findMany({
       where: {
         date: {
           gte: mStart,
@@ -242,7 +250,8 @@ export async function getDashboardData() {
   const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
   const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999)
   
-  const prevMonthRevenue = await financeDb.revenue.aggregate({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const prevMonthRevenue = await (financeDb as any).revenue.aggregate({
     where: {
       date: {
         gte: prevMonthStart,
@@ -289,7 +298,8 @@ export async function getProjectDetails(projectId: string) {
     return null // TypeScriptのためのreturn
   }
 
-  const project = await projectDb.project.findUnique({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const project = await (projectDb as any).project.findUnique({
     where: { id: projectId },
     include: {
       projectMembers: true,
@@ -335,7 +345,8 @@ export async function getResourceData() {
   })
 
   // メンバーごとの今月の工数データを取得
-  const timeEntriesByUser = await financeDb.timeEntry.groupBy({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const timeEntriesByUser = await (financeDb as any).timeEntry.groupBy({
     by: ['userId'],
     where: {
       date: {
@@ -355,7 +366,8 @@ export async function getResourceData() {
   )
 
   // アクティブなプロジェクト数を取得
-  const projectCounts = await projectDb.projectMember.groupBy({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const projectCounts = await (projectDb as any).projectMember.groupBy({
     by: ['userId'],
     where: {
       project: {
@@ -408,7 +420,8 @@ export async function getResourceData() {
       const userIds = roleUsers.map(u => u.id)
       
       // ロールのユーザーの工数データを取得
-      const roleTimeEntries = await financeDb.timeEntry.groupBy({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const roleTimeEntries = await (financeDb as any).timeEntry.groupBy({
         by: ['userId'],
         where: {
           userId: {

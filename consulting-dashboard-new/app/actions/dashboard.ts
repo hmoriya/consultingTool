@@ -205,7 +205,8 @@ export async function getDashboardData() {
     })
 
     // ユーザー情報を取得
-    const userIds = [...new Set(monthTimeEntries.map(te => te.userId))]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const userIds = [...new Set(monthTimeEntries.map((te: any) => te.userId))]
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const users = await (authDb as any).user.findMany({
       where: {
@@ -219,7 +220,8 @@ export async function getDashboardData() {
     })
 
     // ユーザーIDとロールのマップを作成
-    const userRoleMap = new Map(users.map(u => [u.id, u.role.name]))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const userRoleMap = new Map(users.map((u: any) => [u.id, u.role.name]))
 
     const hourlyRates: Record<string, number> = {
       executive: 20000,
@@ -367,8 +369,9 @@ export async function getResourceData() {
   })
 
   // 工数データをマップに変換
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const hoursMap = new Map(
-    timeEntriesByUser.map(entry => [entry.userId, entry._sum.hours || 0])
+    timeEntriesByUser.map((entry: any) => [entry.userId, entry._sum.hours || 0])
   )
 
   // アクティブなプロジェクト数を取得
@@ -383,12 +386,14 @@ export async function getResourceData() {
     _count: true,
   })
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const projectCountMap = new Map(
-    projectCounts.map(entry => [entry.userId, entry._count])
+    projectCounts.map((entry: any) => [entry.userId, entry._count])
   )
 
   // メンバーごとの稼働率を計算
-  const memberData = members.map(member => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const memberData = members.map((member: any) => {
     const actualHours = hoursMap.get(member.id) || 0
     const utilization = calculateUtilization(actualHours, monthStart, monthEnd)
     const projects = projectCountMap.get(member.id) || 0
@@ -424,7 +429,8 @@ export async function getResourceData() {
         },
       })
 
-      const userIds = roleUsers.map(u => u.id)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const userIds = roleUsers.map((u: any) => u.id)
       
       // ロールのユーザーの工数データを取得
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -446,7 +452,8 @@ export async function getResourceData() {
       })
 
       // 稼働率を計算
-      const utilizations = roleTimeEntries.map(entry => 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const utilizations = roleTimeEntries.map((entry: any) => 
         calculateUtilization(entry._sum.hours || 0, monthStart, monthEnd)
       )
       

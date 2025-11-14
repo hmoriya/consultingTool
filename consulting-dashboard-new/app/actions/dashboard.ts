@@ -118,7 +118,8 @@ export async function getDashboardData() {
       })
       
       const avgUtilization = members.length > 0
-        ? members.reduce((sum, m) => sum + m.allocation, 0) / members.length
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ? members.reduce((sum: number, m: any) => sum + m.allocation, 0) / members.length
         : 0
 
       // 進捗率（完了タスク / 全タスク）
@@ -227,7 +228,8 @@ export async function getDashboardData() {
       admin: 6000,
     }
 
-    const laborCost = monthTimeEntries.reduce((sum, entry) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const laborCost = monthTimeEntries.reduce((sum: number, entry: any) => {
       const roleName = userRoleMap.get(entry.userId) || 'consultant'
       const rate = hourlyRates[roleName] || 8000
       return sum + (entry.hours * rate)
@@ -445,7 +447,7 @@ export async function getResourceData() {
       
       const count = utilizations.length
       const avgUtilization = count > 0 
-        ? utilizations.reduce((sum, util) => sum + util, 0) / count 
+        ? utilizations.reduce((sum: number, util: number) => sum + util, 0) / count 
         : 0
       
       return {

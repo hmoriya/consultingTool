@@ -17,9 +17,9 @@ export async function getSchemaContent(service: string) {
       success: true,
       data: content
     }
-  } catch (_error) {
+  } catch (error) {
     // ファイルが存在しない場合
-    if ((error as unknown).code === 'ENOENT') {
+    if ((error as any).code === 'ENOENT') {
       return {
         success: true,
         data: null
@@ -49,7 +49,7 @@ export async function saveSchemaContent(service: string, content: string) {
       success: true,
       message: 'ファイルを保存しました'
     }
-  } catch (_error) {
+  } catch (error) {
     console.error('Error saving schema file:', error)
     return {
       success: false,
@@ -67,9 +67,9 @@ export async function getApiContent(service: string) {
       success: true,
       data: content
     }
-  } catch (_error) {
+  } catch (error) {
     // ファイルが存在しない場合
-    if ((error as unknown).code === 'ENOENT') {
+    if ((error as any).code === 'ENOENT') {
       return {
         success: true,
         data: null
@@ -99,7 +99,7 @@ export async function saveApiContent(service: string, content: string) {
       success: true,
       message: 'ファイルを保存しました'
     }
-  } catch (_error) {
+  } catch (error) {
     console.error('Error saving API file:', error)
     return {
       success: false,
@@ -117,9 +117,9 @@ export async function getDomainContent(domain: string) {
       success: true,
       data: content
     }
-  } catch (_error) {
+  } catch (error) {
     // ファイルが存在しない場合
-    if ((error as unknown).code === 'ENOENT') {
+    if ((error as any).code === 'ENOENT') {
       return {
         success: true,
         data: null
@@ -149,7 +149,7 @@ export async function saveDomainContent(domain: string, content: string) {
       success: true,
       message: 'ファイルを保存しました'
     }
-  } catch (_error) {
+  } catch (error) {
     console.error('Error saving domain file:', error)
     return {
       success: false,
@@ -174,7 +174,7 @@ export async function getServicesList() {
       success: true,
       data: services
     }
-  } catch (_error) {
+  } catch (error) {
     console.error('Error getting services list:', error)
     return {
       success: false,

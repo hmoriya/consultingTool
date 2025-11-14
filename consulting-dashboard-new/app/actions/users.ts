@@ -37,7 +37,7 @@ export async function getAllUsers() {
     })
 
     return { success: true, data: users }
-  } catch (_error) {
+  } catch (error) {
     console.error('getAllUsers error:', error)
     return { success: false, error: 'ユーザー一覧の取得に失敗しました' }
   }

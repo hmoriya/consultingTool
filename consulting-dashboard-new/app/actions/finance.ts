@@ -73,7 +73,7 @@ export async function createRevenue(data: RevenueData) {
       success: true,
       data: revenue,
     }
-  } catch (_error) {
+  } catch (error) {
     console.error('Revenue creation error:', error)
     return {
       success: false,
@@ -126,7 +126,7 @@ export async function createCost(data: CostData) {
       success: true,
       data: cost,
     }
-  } catch (_error) {
+  } catch (error) {
     console.error('Cost creation error:', error)
     return {
       success: false,
@@ -274,7 +274,7 @@ export async function getProjectFinancials(projectId: string, month: Date) {
         revenueChange,
       },
     }
-  } catch (_error) {
+  } catch (error) {
     console.error('Project financials error:', error)
     return {
       success: false,
@@ -450,7 +450,7 @@ export async function getCompanyFinancialSummary(month: Date) {
       },
       projectRevenues: projectData.sort((a, b) => b.revenue - a.revenue),
     }
-  } catch (_error) {
+  } catch (error) {
     console.error('Company financial summary error:', error)
     return {
       success: false,

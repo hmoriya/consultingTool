@@ -113,7 +113,7 @@ export async function createService(data: CreateServiceData): Promise<ActionResp
         businessOperations: []
       }
     };
-  } catch (_error) {
+  } catch (error) {
     console.error('Failed to create service:', error);
     return { success: false, error: 'サービスの作成に失敗しました' };
   }
@@ -232,7 +232,7 @@ export async function getServices(): Promise<ActionResponse<ServiceWithMappedRel
     }));
     
     return { success: true, data: mappedServices };
-  } catch (_error) {
+  } catch (error) {
     console.error('Failed to fetch services:', error);
     if (error instanceof Error) {
       console.error('Error details:', error.message);
@@ -269,7 +269,7 @@ export async function getService(id: string): Promise<ServiceResponse | null> {
         robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
       }))
     };
-  } catch (_error) {
+  } catch (error) {
     console.error('Failed to fetch service:', error);
     return null;
   }
@@ -312,7 +312,7 @@ export async function updateService(id: string, data: UpdateServiceData): Promis
         }))
       }
     };
-  } catch (_error) {
+  } catch (error) {
     console.error('Failed to update service:', error);
     return { success: false, error: 'サービスの更新に失敗しました' };
   }
@@ -326,7 +326,7 @@ export async function deleteService(id: string): Promise<ActionResponse<void>> {
     
     revalidatePath('/settings/parasol');
     return { success: true };
-  } catch (_error) {
+  } catch (error) {
     console.error('Failed to delete service:', error);
     return { success: false, error: 'サービスの削除に失敗しました' };
   }
@@ -364,7 +364,7 @@ export async function createBusinessOperation(data: CreateBusinessOperationData)
         robustnessModel: operation.robustnessModel ? JSON.parse(operation.robustnessModel) : null,
       }
     };
-  } catch (_error) {
+  } catch (error) {
     console.error('Failed to create business operation:', error);
     return { success: false, error: 'ビジネスオペレーションの作成に失敗しました' };
   }
@@ -389,7 +389,7 @@ export async function getBusinessOperations(serviceId: string): Promise<MappedBu
       testCases: JSON.parse(op.testCases),
       robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
     }));
-  } catch (_error) {
+  } catch (error) {
     console.error('Failed to fetch business operations:', error);
     return [];
   }
@@ -427,7 +427,7 @@ export async function updateBusinessOperation(id: string, data: UpdateBusinessOp
         robustnessModel: operation.robustnessModel ? JSON.parse(operation.robustnessModel) : null,
       }
     };
-  } catch (_error) {
+  } catch (error) {
     console.error('Failed to update business operation:', error);
     return { success: false, error: 'ビジネスオペレーションの更新に失敗しました' };
   }
@@ -441,7 +441,7 @@ export async function deleteBusinessOperation(id: string): Promise<ActionRespons
     
     revalidatePath('/settings/parasol');
     return { success: true };
-  } catch (_error) {
+  } catch (error) {
     console.error('Failed to delete business operation:', error);
     return { success: false, error: 'ビジネスオペレーションの削除に失敗しました' };
   }
@@ -492,7 +492,7 @@ export async function saveServiceData(serviceId: string, data: SaveServiceData):
         dbSchema: JSON.parse(service.dbSchema),
       }
     };
-  } catch (_error) {
+  } catch (error) {
     console.error('Failed to save service data:', error);
     return { success: false, error: 'データの保存に失敗しました' };
   }
@@ -527,7 +527,7 @@ export async function createBusinessCapability(data: CreateBusinessCapabilityDat
         }))
       }
     };
-  } catch (_error) {
+  } catch (error) {
     console.error('Failed to create business capability:', error);
     return { success: false, error: 'ビジネスケーパビリティの作成に失敗しました' };
   }
@@ -558,7 +558,7 @@ export async function getBusinessCapabilities(serviceId: string): Promise<Mapped
         robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
       }))
     }));
-  } catch (_error) {
+  } catch (error) {
     console.error('Failed to fetch business capabilities:', error);
     return [];
   }
@@ -591,7 +591,7 @@ export async function updateBusinessCapability(id: string, data: UpdateBusinessC
         }))
       }
     };
-  } catch (_error) {
+  } catch (error) {
     console.error('Failed to update business capability:', error);
     return { success: false, error: 'ビジネスケーパビリティの更新に失敗しました' };
   }
@@ -605,7 +605,7 @@ export async function deleteBusinessCapability(id: string): Promise<ActionRespon
 
     revalidatePath('/settings/parasol');
     return { success: true };
-  } catch (_error) {
+  } catch (error) {
     console.error('Failed to delete business capability:', error);
     return { success: false, error: 'ビジネスケーパビリティの削除に失敗しました' };
   }
@@ -648,7 +648,7 @@ export async function createUseCase(data: CreateUseCaseData): Promise<ActionResp
         exceptionFlow: useCase.exceptionFlow ? JSON.parse(useCase.exceptionFlow) : null,
       }
     };
-  } catch (_error) {
+  } catch (error) {
     console.error('Failed to create useCase:', error);
     return { success: false, error: 'ユースケースの作成に失敗しました' };
   }
@@ -692,7 +692,7 @@ export async function updateUseCase(id: string, data: UpdateUseCaseData): Promis
         exceptionFlow: useCase.exceptionFlow ? JSON.parse(useCase.exceptionFlow) : null,
       }
     };
-  } catch (_error) {
+  } catch (error) {
     console.error('Failed to update useCase:', error);
     return { success: false, error: 'ユースケースの更新に失敗しました' };
   }
@@ -706,7 +706,7 @@ export async function deleteUseCase(id: string): Promise<ActionResponse<void>> {
 
     revalidatePath('/settings/parasol');
     return { success: true };
-  } catch (_error) {
+  } catch (error) {
     console.error('Failed to delete useCase:', error);
     return { success: false, error: 'ユースケースの削除に失敗しました' };
   }
@@ -741,7 +741,7 @@ export async function createRobustnessDiagram(data: CreateRobustnessDiagramData)
         interactions: robustnessDiagram.interactions ? JSON.parse(robustnessDiagram.interactions) : null,
       }
     };
-  } catch (_error) {
+  } catch (error) {
     console.error('Failed to create robustness diagram:', error);
     return { success: false, error: 'ロバストネス図の作成に失敗しました' };
   }
@@ -774,7 +774,7 @@ export async function updateRobustnessDiagram(id: string, data: UpdateRobustness
         interactions: robustnessDiagram.interactions ? JSON.parse(robustnessDiagram.interactions) : null,
       }
     };
-  } catch (_error) {
+  } catch (error) {
     console.error('Failed to update robustness diagram:', error);
     return { success: false, error: 'ロバストネス図の更新に失敗しました' };
   }
@@ -788,7 +788,7 @@ export async function deleteRobustnessDiagram(id: string): Promise<ActionRespons
 
     revalidatePath('/settings/parasol');
     return { success: true };
-  } catch (_error) {
+  } catch (error) {
     console.error('Failed to delete robustness diagram:', error);
     return { success: false, error: 'ロバストネス図の削除に失敗しました' };
   }
@@ -822,7 +822,7 @@ export async function getUseCasesForOperation(operationId: string): Promise<Acti
     });
 
     return { success: true, data: useCases };
-  } catch (_error) {
+  } catch (error) {
     console.error('Failed to get usecases for operation:', error);
     return { success: false, error: 'ユースケースの取得に失敗しました' };
   }

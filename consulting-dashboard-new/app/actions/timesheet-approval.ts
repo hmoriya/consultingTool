@@ -65,7 +65,7 @@ export async function submitTimesheetForApproval(_timesheetId: string) {
 
     // revalidatePath('/timesheet')
     // return { success: true, data: updated }
-  } catch (_error) {
+  } catch (error) {
     console.error('Submit timesheet for approval error:', error)
     return {
       success: false,
@@ -154,7 +154,7 @@ export async function approveOrRejectTimesheet(
     // revalidatePath('/timesheet')
     // revalidatePath('/timesheet/approval')
     // return { success: true, data: updated }
-  } catch (_error) {
+  } catch (error) {
     console.error('Approve/reject timesheet error:', error)
     return {
       success: false,
@@ -213,7 +213,7 @@ export async function getPendingApprovals() {
     // )
 
     // return { success: true, data: timesheetsWithUser }
-  } catch (_error) {
+  } catch (error) {
     console.error('Get pending approvals error:', error)
     return { 
       success: false, 
@@ -255,7 +255,7 @@ export async function getApprovalHistory(_timesheetId: string) {
     // })
 
     // return { success: true, data: history }
-  } catch (_error) {
+  } catch (error) {
     console.error('Get approval history error:', error)
     return {
       success: false,
@@ -299,7 +299,7 @@ export async function getMyTimesheetStatuses() {
     // })
 
     // return { success: true, data: timesheets }
-  } catch (_error) {
+  } catch (error) {
     console.error('Get my timesheet statuses error:', error)
     return {
       success: false,

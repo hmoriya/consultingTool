@@ -78,7 +78,7 @@ export async function createTimeEntry(data: TimeEntryData) {
       success: true,
       data: timeEntry,
     }
-  } catch (_error) {
+  } catch (error) {
     console.error('Time entry creation error:', error)
     return {
       success: false,
@@ -134,7 +134,7 @@ export async function updateTimeEntry(
       success: true,
       data: updated,
     }
-  } catch (_error) {
+  } catch (error) {
     console.error('Time entry update error:', error)
     return {
       success: false,
@@ -183,7 +183,7 @@ export async function deleteTimeEntry(id: string) {
     return {
       success: true,
     }
-  } catch (_error) {
+  } catch (error) {
     console.error('Time entry deletion error:', error)
     return {
       success: false,
@@ -385,7 +385,7 @@ export async function approveTimeEntries(ids: string[]) {
     return {
       success: true,
     }
-  } catch (_error) {
+  } catch (error) {
     console.error('Time entries approval error:', error)
     return {
       success: false,

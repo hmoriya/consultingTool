@@ -280,7 +280,7 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
       success: true,
       data: kpiHistory,
     }
-  } catch (_error) {
+  } catch (error) {
     console.error('KPI calculation error:', error)
     return {
       success: false,
@@ -312,7 +312,7 @@ export async function getLatestKPIs(type: 'daily' | 'weekly' | 'monthly') {
       projectKPIs,
       roleKPIs,
     }
-  } catch (_error) {
+  } catch (error) {
     console.error('Get latest KPIs error:', error)
     return null
   }
@@ -332,7 +332,7 @@ export async function getKPIHistory(type: 'daily' | 'weekly' | 'monthly', count:
       projectKPIs: kpi.projectKPIs ? JSON.parse(kpi.projectKPIs as string) : [],
       roleKPIs: kpi.roleKPIs ? JSON.parse(kpi.roleKPIs as string) : [],
     }))
-  } catch (_error) {
+  } catch (error) {
     console.error('Get KPI history error:', error)
     return []
   }

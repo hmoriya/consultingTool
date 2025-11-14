@@ -59,7 +59,7 @@ export async function createDeliverable(data: z.infer<typeof deliverableSchema>)
   } catch (error) {
     console.error('createDeliverable error:', error)
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.issues[0].message }
+      return { success: false, error: error.issues[0]?.message ?? 'バリデーションエラーが発生しました' }
     }
     return { success: false, error: '成果物の作成に失敗しました' }
   }

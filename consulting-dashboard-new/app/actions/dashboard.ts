@@ -234,7 +234,7 @@ export async function getDashboardData() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const laborCost = monthTimeEntries.reduce((sum: number, entry: any) => {
       const roleName = userRoleMap.get(entry.userId) || 'consultant'
-      const rate = hourlyRates[roleName] || 8000
+      const rate = hourlyRates[roleName as keyof typeof hourlyRates] || 8000
       return sum + (entry.hours * rate)
     }, 0)
     
@@ -369,7 +369,6 @@ export async function getResourceData() {
   })
 
   // 工数データをマップに変換
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const hoursMap = new Map(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     timeEntriesByUser.map((entry: any) => [entry.userId, entry._sum.hours || 0])
@@ -387,7 +386,6 @@ export async function getResourceData() {
     _count: true,
   })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const projectCountMap = new Map(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     projectCounts.map((entry: any) => [entry.userId, entry._count])

@@ -394,9 +394,9 @@ export async function getResourceData() {
   // メンバーごとの稼働率を計算
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const memberData = members.map((member: any) => {
-    const actualHours = hoursMap.get(member.id) || 0
+    const actualHours: number = hoursMap.get(member.id) || 0
     const utilization = calculateUtilization(actualHours, monthStart, monthEnd)
-    const projects = projectCountMap.get(member.id) || 0
+    const projects: number = projectCountMap.get(member.id) || 0
     
     return {
       id: member.id,

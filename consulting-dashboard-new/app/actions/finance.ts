@@ -120,6 +120,7 @@ export async function createCost(data: CostData) {
       }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cost = await (financeDb as any).Cost.create({
       data: {
         ...data,
@@ -152,6 +153,7 @@ export async function getProjectFinancials(projectId: string, month: Date) {
 
   try {
     // 収益データを取得
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const revenues = await (financeDb as any).Revenue.findMany({
       where: {
         projectId,
@@ -166,6 +168,7 @@ export async function getProjectFinancials(projectId: string, month: Date) {
     })
 
     // コストデータを取得
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const costs = await (financeDb as any).Cost.findMany({
       where: {
         projectId,
@@ -246,6 +249,7 @@ export async function getProjectFinancials(projectId: string, month: Date) {
     const prevMonthStart = startOfMonth(subMonths(month, 1))
     const prevMonthEnd = endOfMonth(subMonths(month, 1))
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const prevRevenues = await (financeDb as any).Revenue.aggregate({
       where: {
         projectId,
@@ -307,6 +311,7 @@ export async function getCompanyFinancialSummary(month: Date) {
 
   try {
     // 全プロジェクトの収益
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const totalRevenue = await (financeDb as any).Revenue.aggregate({
       where: {
         date: {
@@ -321,6 +326,7 @@ export async function getCompanyFinancialSummary(month: Date) {
     })
 
     // 全プロジェクトのコスト
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const totalCost = await (financeDb as any).Cost.aggregate({
       where: {
         date: {
@@ -385,6 +391,7 @@ export async function getCompanyFinancialSummary(month: Date) {
     const prevMonthStart = startOfMonth(subMonths(month, 1))
     const prevMonthEnd = endOfMonth(subMonths(month, 1))
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const prevRevenue = await (financeDb as any).Revenue.aggregate({
       where: {
         date: {
@@ -404,6 +411,7 @@ export async function getCompanyFinancialSummary(month: Date) {
       : 0
 
     // プロジェクト別の収益
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const projectRevenues = await (financeDb as any).Revenue.groupBy({
       by: ['projectId'],
       where: {

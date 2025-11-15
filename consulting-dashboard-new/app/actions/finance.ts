@@ -1,8 +1,9 @@
 'use server'
 
-import { prisma } from '@/lib/db'
 import { projectDb } from '@/lib/db/project-db'
 import { financeDb } from '@/lib/db/finance-db'
+import { timesheetDb } from '@/lib/db/timesheet-db'
+import { authDb } from '@/lib/db/auth-db'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
 import { startOfMonth, endOfMonth, subMonths } from 'date-fns'
@@ -191,7 +192,8 @@ export async function getProjectFinancials(projectId: string, month: Date) {
     })
 
     // 人件費の計算（工数記録から）
-    const timeEntries = await prisma.timeEntry.findMany({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const timeEntries = await (timesheetDb as any).timeEntry.findMany({
       where: {
         projectId,
         date: {
@@ -341,7 +343,8 @@ export async function getCompanyFinancialSummary(month: Date) {
     })
 
     // 承認済み工数から人件費を計算
-    const approvedHours = await prisma.timeEntry.groupBy({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const approvedHours = await (timesheetDb as any).timeEntry.groupBy({
       by: ['userId'],
       where: {
         date: {
@@ -357,7 +360,8 @@ export async function getCompanyFinancialSummary(month: Date) {
 
     // ユーザー情報を取得して人件費を計算
     const userIds = approvedHours.map(h => h.userId)
-    const users = await prisma.user.findMany({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const users = await (authDb as any).user.findMany({
       where: {
         id: {
           in: userIds,
@@ -425,7 +429,8 @@ export async function getCompanyFinancialSummary(month: Date) {
       },
     })
 
-    const projects = await prisma.project.findMany({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const projects = await (projectDb as any).project.findMany({
       where: {
         id: {
           in: projectRevenues.map(p => p.projectId),

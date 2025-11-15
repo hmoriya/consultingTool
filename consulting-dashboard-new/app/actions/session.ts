@@ -47,7 +47,7 @@ export async function extendSession() {
     
     return { success: true }
   } catch (error) {
-    console.error('Failed to extend session:', _error)
+    console.error('Failed to extend session:', error)
     return { success: false, error: 'Failed to extend session' }
   }
 }

@@ -179,7 +179,7 @@ export async function getDeliverables(projectId?: string) {
       select: { projectId: true }
     })
 
-    const projectIds = accessibleProjects.map(pm => pm.projectId)
+    const projectIds = accessibleProjects.map((pm: any) => pm.projectId)
 
     const whereClause: unknown = {
       projectId: { in: projectIds }

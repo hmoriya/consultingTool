@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/db'
 import { projectDb } from '@/lib/db/project-db'
+import { financeDb } from '@/lib/db/finance-db'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
 import { startOfMonth, endOfMonth, subMonths } from 'date-fns'
@@ -64,7 +65,8 @@ export async function createRevenue(data: RevenueData) {
       }
     }
 
-    const revenue = await prisma.revenue.create({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const revenue = await (financeDb as any).Revenue.create({
       data: {
         ...data,
         date: new Date(data.date),
@@ -118,7 +120,7 @@ export async function createCost(data: CostData) {
       }
     }
 
-    const cost = await prisma.cost.create({
+    const cost = await (financeDb as any).Cost.create({
       data: {
         ...data,
         date: new Date(data.date),
@@ -150,7 +152,7 @@ export async function getProjectFinancials(projectId: string, month: Date) {
 
   try {
     // 収益データを取得
-    const revenues = await prisma.revenue.findMany({
+    const revenues = await (financeDb as any).Revenue.findMany({
       where: {
         projectId,
         date: {
@@ -164,7 +166,7 @@ export async function getProjectFinancials(projectId: string, month: Date) {
     })
 
     // コストデータを取得
-    const costs = await prisma.cost.findMany({
+    const costs = await (financeDb as any).Cost.findMany({
       where: {
         projectId,
         date: {
@@ -244,7 +246,7 @@ export async function getProjectFinancials(projectId: string, month: Date) {
     const prevMonthStart = startOfMonth(subMonths(month, 1))
     const prevMonthEnd = endOfMonth(subMonths(month, 1))
 
-    const prevRevenues = await prisma.revenue.aggregate({
+    const prevRevenues = await (financeDb as any).Revenue.aggregate({
       where: {
         projectId,
         date: {
@@ -305,7 +307,7 @@ export async function getCompanyFinancialSummary(month: Date) {
 
   try {
     // 全プロジェクトの収益
-    const totalRevenue = await prisma.revenue.aggregate({
+    const totalRevenue = await (financeDb as any).Revenue.aggregate({
       where: {
         date: {
           gte: monthStart,
@@ -319,7 +321,7 @@ export async function getCompanyFinancialSummary(month: Date) {
     })
 
     // 全プロジェクトのコスト
-    const totalCost = await prisma.cost.aggregate({
+    const totalCost = await (financeDb as any).Cost.aggregate({
       where: {
         date: {
           gte: monthStart,
@@ -383,7 +385,7 @@ export async function getCompanyFinancialSummary(month: Date) {
     const prevMonthStart = startOfMonth(subMonths(month, 1))
     const prevMonthEnd = endOfMonth(subMonths(month, 1))
 
-    const prevRevenue = await prisma.revenue.aggregate({
+    const prevRevenue = await (financeDb as any).Revenue.aggregate({
       where: {
         date: {
           gte: prevMonthStart,
@@ -402,7 +404,7 @@ export async function getCompanyFinancialSummary(month: Date) {
       : 0
 
     // プロジェクト別の収益
-    const projectRevenues = await prisma.revenue.groupBy({
+    const projectRevenues = await (financeDb as any).Revenue.groupBy({
       by: ['projectId'],
       where: {
         date: {

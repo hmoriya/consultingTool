@@ -1,6 +1,7 @@
 'use server'
 
 import { prisma } from '@/lib/db'
+import { projectDb } from '@/lib/db/project-db'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
 import { startOfMonth, endOfMonth, subMonths } from 'date-fns'
@@ -46,7 +47,8 @@ export async function createRevenue(data: RevenueData) {
   try {
     // PMの場合は自分のプロジェクトのみ
     if (user.role.name === 'pm') {
-      const isMember = await prisma.projectMember.findFirst({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const isMember = await (projectDb as any).ProjectMember.findFirst({
         where: {
           projectId: data.projectId,
           userId: user.id,
@@ -99,7 +101,8 @@ export async function createCost(data: CostData) {
   try {
     // PMの場合は自分のプロジェクトのみ
     if (user.role.name === 'pm') {
-      const isMember = await prisma.projectMember.findFirst({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const isMember = await (projectDb as any).ProjectMember.findFirst({
         where: {
           projectId: data.projectId,
           userId: user.id,

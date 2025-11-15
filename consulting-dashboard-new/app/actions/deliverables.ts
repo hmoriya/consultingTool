@@ -182,7 +182,8 @@ export async function getDeliverables(projectId?: string) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const projectIds = accessibleProjects.map((pm: any) => pm.projectId)
 
-    const whereClause: unknown = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const whereClause: any = {
       projectId: { in: projectIds }
     }
 

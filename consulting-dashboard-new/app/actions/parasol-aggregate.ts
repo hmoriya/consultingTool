@@ -95,10 +95,10 @@ function extractEntitiesFromDomainLanguage(markdown: string): EntityDefinition[]
     if (inAttributeTable && line.startsWith('|')) {
       const cells = line.split('|').map(c => c.trim()).filter(c => c)
       if (cells.length >= 4) {
-        const japaneseName = cells[0]
-        const englishName = cells[1]
-        const systemName = cells[2]
-        const type = cells[3]
+        const japaneseName = cells[0] ?? ''
+        const englishName = cells[1] ?? ''
+        const systemName = cells[2] ?? ''
+        const type = cells[3] ?? ''
         const required = cells[4] === '○'
         
         if (englishName && !['日本語名', '英語名'].includes(englishName)) {

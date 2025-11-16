@@ -91,7 +91,8 @@ export async function createChannel(data: z.infer<typeof createChannelSchema>) {
         members: {
           create: [
             { userId: user.id, role: 'admin' },
-            ...(validated.memberIds?.map(id => ({ userId: id, role: 'member' })) || [])
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ...(validated.memberIds?.map((id: any) => ({ userId: id, role: 'member' })) || [])
           ]
         }
       },
@@ -164,7 +165,8 @@ export async function sendMessage(data: z.infer<typeof sendMessageSchema>) {
     if (mentions.length > 0) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (notificationDb as any).messageMention.createMany({
-        data: mentions.map(userId => ({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        data: mentions.map((userId: any) => ({
           messageId: message.id,
           userId,
           type: 'user'
@@ -230,12 +232,14 @@ export async function getUserChannels() {
     })
 
     // ユーザー情報を取得
-    const userIds = [...new Set(channels.flatMap(c => c.members.map(m => m.userId)))]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const userIds = [...new Set(channels.flatMap((c: any) => c.members.map((m: any) => m.userId)))]
     const users = await db.user.findMany({
       where: { id: { in: userIds } },
       select: { id: true, name: true, email: true }
     })
-    const userMap = new Map(users.map(u => [u.id, u]))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const userMap = new Map(users.map((u: any) => [u.id, u]))
 
     // 未読メッセージ数を計算し、ユーザー情報を追加
     const channelsWithUnread = await Promise.all(
@@ -997,7 +1001,8 @@ export async function getFlaggedMessages() {
       select: { id: true, name: true, email: true }
     })
 
-    const userMap = new Map(users.map(u => [u.id, u]))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const userMap = new Map(users.map((u: any) => [u.id, u]))
 
     const messagesWithSender = flags.map(flag => ({
       ...flag.message,

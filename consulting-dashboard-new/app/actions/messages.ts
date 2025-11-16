@@ -18,7 +18,9 @@ function extractMentions(content: string): string[] {
     const mentionText = match[1] || match[2]
     // ここでは仮のユーザーID変換を行う
     // 実際の実装では、ユーザー名からIDを検索する必要がある
-    mentions.push(mentionText)
+    if (mentionText) {
+      mentions.push(mentionText)
+    }
   }
 
   return mentions

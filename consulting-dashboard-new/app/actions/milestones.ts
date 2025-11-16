@@ -2,7 +2,6 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { db } from '@/lib/db'
 import { projectDb } from '@/lib/db/project-db'
 import { authDb } from '@/lib/db/auth-db'
 import { getCurrentUser } from './auth'
@@ -168,7 +167,7 @@ export async function updateMilestone(milestoneId: string, data: {
     throw new Error('マイルストーンが見つからないか、権限がありません')
   }
 
-  const updateData: unknown = {}
+  const updateData: any = {}
   if (data.name !== undefined) updateData.name = data.name
   if (data.description !== undefined) updateData.description = data.description || null
   if (data.dueDate !== undefined) {

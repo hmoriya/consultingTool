@@ -63,7 +63,7 @@ function extractEntitiesFromDomainLanguage(markdown: string): EntityDefinition[]
       }
       
       const nameMatch = line.match(/^###\s+(.+?)\s*\[(.+?)\]\s*\[(.+?)\]$/)
-      if (nameMatch) {
+      if (nameMatch && nameMatch[1] && nameMatch[2] && nameMatch[3]) {
         currentEntity = {
           name: nameMatch[2].trim(),
           displayName: nameMatch[1].trim(),

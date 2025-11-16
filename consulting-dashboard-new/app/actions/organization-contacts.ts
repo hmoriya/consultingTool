@@ -33,7 +33,7 @@ export async function getOrganizationContacts(organizationId: string) {
     throw new Error('権限がありません')
   }
 
-  const contacts = await db.organizationContact.findMany({
+  const contacts = await (db as any).organizationContact.findMany({
     where: {
       organizationId: organizationId,
       isActive: true
@@ -64,7 +64,7 @@ export async function createOrganizationContact(data: {
   }
 
   // 組織が存在するかチェック
-  const organization = await db.organization.findFirst({
+  const organization = await (db as any).organization.findFirst({
     where: { id: data.organizationId }
   })
 
@@ -74,7 +74,7 @@ export async function createOrganizationContact(data: {
 
   // 主担当者を設定する場合、既存の主担当者を更新
   if (data.isPrimary) {
-    await db.organizationContact.updateMany({
+    await (db as any).organizationContact.updateMany({
       where: {
         organizationId: data.organizationId,
         isPrimary: true
@@ -85,7 +85,7 @@ export async function createOrganizationContact(data: {
     })
   }
 
-  const contact = await db.organizationContact.create({
+  const contact = await (db as any).organizationContact.create({
     data: {
       organizationId: data.organizationId,
       name: data.name,
@@ -100,7 +100,7 @@ export async function createOrganizationContact(data: {
   })
 
   // 監査ログ
-  await db.auditLog.create({
+  await (db as any).auditLog.create({
     data: {
       userId: user.id,
       action: 'CREATE',
@@ -128,7 +128,7 @@ export async function updateOrganizationContact(contactId: string, data: {
     throw new Error('権限がありません')
   }
 
-  const contact = await db.organizationContact.findFirst({
+  const contact = await (db as any).organizationContact.findFirst({
     where: {
       id: contactId,
       isActive: true
@@ -144,7 +144,7 @@ export async function updateOrganizationContact(contactId: string, data: {
 
   // 主担当者を設定する場合、既存の主担当者を更新
   if (data.isPrimary && !contact.isPrimary) {
-    await db.organizationContact.updateMany({
+    await (db as any).organizationContact.updateMany({
       where: {
         organizationId: contact.organizationId,
         isPrimary: true,
@@ -156,7 +156,7 @@ export async function updateOrganizationContact(contactId: string, data: {
     })
   }
 
-  const updatedContact = await db.organizationContact.update({
+  const updatedContact = await (db as any).organizationContact.update({
     where: { id: contactId },
     data: {
       name: data.name,
@@ -171,7 +171,7 @@ export async function updateOrganizationContact(contactId: string, data: {
   })
 
   // 監査ログ
-  await db.auditLog.create({
+  await (db as any).auditLog.create({
     data: {
       userId: user.id,
       action: 'UPDATE',
@@ -190,7 +190,7 @@ export async function deleteOrganizationContact(contactId: string) {
     throw new Error('権限がありません')
   }
 
-  const contact = await db.organizationContact.findFirst({
+  const contact = await (db as any).organizationContact.findFirst({
     where: {
       id: contactId,
       isActive: true
@@ -205,7 +205,7 @@ export async function deleteOrganizationContact(contactId: string) {
   }
 
   // 論理削除
-  await db.organizationContact.update({
+  await (db as any).organizationContact.update({
     where: { id: contactId },
     data: {
       isActive: false
@@ -213,7 +213,7 @@ export async function deleteOrganizationContact(contactId: string) {
   })
 
   // 監査ログ
-  await db.auditLog.create({
+  await (db as any).auditLog.create({
     data: {
       userId: user.id,
       action: 'DELETE',
@@ -232,7 +232,7 @@ export async function setPrimaryContact(contactId: string) {
     throw new Error('権限がありません')
   }
 
-  const contact = await db.organizationContact.findFirst({
+  const contact = await (db as any).organizationContact.findFirst({
     where: {
       id: contactId,
       isActive: true
@@ -244,7 +244,7 @@ export async function setPrimaryContact(contactId: string) {
   }
 
   // 既存の主担当者を更新
-  await db.organizationContact.updateMany({
+  await (db as any).organizationContact.updateMany({
     where: {
       organizationId: contact.organizationId,
       isPrimary: true
@@ -255,7 +255,7 @@ export async function setPrimaryContact(contactId: string) {
   })
 
   // 新しい主担当者を設定
-  const updatedContact = await db.organizationContact.update({
+  const updatedContact = await (db as any).organizationContact.update({
     where: { id: contactId },
     data: {
       isPrimary: true
@@ -263,7 +263,7 @@ export async function setPrimaryContact(contactId: string) {
   })
 
   // 監査ログ
-  await db.auditLog.create({
+  await (db as any).auditLog.create({
     data: {
       userId: user.id,
       action: 'UPDATE',

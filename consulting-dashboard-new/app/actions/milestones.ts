@@ -61,9 +61,9 @@ export async function getProjectMilestones(projectId: string) {
     ]
   })
 
-  return milestones.map(milestone => {
+  return milestones.map((milestone: any) => {
     const taskCount = milestone.tasks.length
-    const completedTaskCount = milestone.tasks.filter(task => task.status === 'completed').length
+    const completedTaskCount = milestone.tasks.filter((task: any) => task.status === 'completed').length
     const progressRate = taskCount > 0 ? Math.round((completedTaskCount / taskCount) * 100) : 0
 
     return {
@@ -294,18 +294,18 @@ export async function getMilestoneStats(projectId: string) {
   })
 
   const totalMilestones = milestones.length
-  const completedMilestones = milestones.filter(m => m.status === 'completed').length
-  const delayedMilestones = milestones.filter(m => m.status === 'delayed').length
-  const pendingMilestones = milestones.filter(m => m.status === 'pending').length
+  const completedMilestones = milestones.filter((m: any) => m.status === 'completed').length
+  const delayedMilestones = milestones.filter((m: any) => m.status === 'delayed').length
+  const pendingMilestones = milestones.filter((m: any) => m.status === 'pending').length
 
   // 期日を過ぎた未完了マイルストーン
-  const overdueMilestones = milestones.filter(m => 
+  const overdueMilestones = milestones.filter((m: any) => 
     m.status !== 'completed' && m.dueDate < new Date()
   ).length
 
   // 全タスクの進捗率
-  const allTasks = milestones.flatMap(m => m.tasks)
-  const completedTasks = allTasks.filter(t => t.status === 'completed').length
+  const allTasks = milestones.flatMap((m: any) => m.tasks)
+  const completedTasks = allTasks.filter((t: any) => t.status === 'completed').length
   const overallProgress = allTasks.length > 0 
     ? Math.round((completedTasks / allTasks.length) * 100) 
     : 0
@@ -361,7 +361,7 @@ export async function getMilestoneTasks(milestoneId: string) {
   })
 
   // ユーザー情報を取得
-  const assigneeIds = [...new Set(tasks.map(t => t.assigneeId).filter(Boolean))] as string[]
+  const assigneeIds = [...new Set(tasks.map((t: any) => t.assigneeId).filter(Boolean))] as string[]
   const assignees = assigneeIds.length > 0 ? await db.user.findMany({
     where: { id: { in: assigneeIds } },
     select: {
@@ -371,9 +371,9 @@ export async function getMilestoneTasks(milestoneId: string) {
     }
   }) : []
   
-  const assigneeMap = new Map(assignees.map(a => [a.id, a]))
+  const assigneeMap = new Map(assignees.map((a: any) => [a.id, a]))
 
-  return tasks.map(task => ({
+  return tasks.map((task: any) => ({
     ...task,
     assignee: task.assigneeId ? assigneeMap.get(task.assigneeId) || null : null
   }))

@@ -476,7 +476,8 @@ export async function getCompanyFinancialSummary(month: Date) {
         marginRate,
         revenueChange,
       },
-      projectRevenues: projectData.sort((a, b) => b.revenue - a.revenue),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      projectRevenues: projectData.sort((a: any, b: any) => b.revenue - a.revenue),
     }
   } catch (error) {
     console.error('Company financial summary error:', error)

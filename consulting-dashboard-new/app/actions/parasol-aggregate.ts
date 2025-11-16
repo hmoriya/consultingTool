@@ -35,7 +35,7 @@ function extractEntitiesFromDomainLanguage(markdown: string): EntityDefinition[]
   let inBusinessRules = false
   
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim()
+    const line = lines[i]?.trim() || ''
     
     // エンティティセクション開始
     if (line === '## エンティティ（Entities）' || line === '## エンティティ') {

@@ -29,7 +29,8 @@ export async function getProjectMilestones(projectId: string) {
   }
 
   // プロジェクトアクセス権限チェック
-  const project = await projectDb.project.findFirst({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const project = await (projectDb as any).project.findFirst({
     where: {
       id: projectId,
       OR: [
@@ -43,7 +44,7 @@ export async function getProjectMilestones(projectId: string) {
     throw new Error('プロジェクトが見つからないか、権限がありません')
   }
 
-  const milestones = await projectDb.milestone.findMany({
+  const milestones = await (projectDb as any).milestone.findMany({
     where: { projectId },
     include: {
       tasks: {
@@ -86,7 +87,7 @@ export async function createMilestone(data: {
   }
 
   // プロジェクトアクセス権限チェック
-  const project = await projectDb.project.findFirst({
+  const project = await (projectDb as any).project.findFirst({
     where: {
       id: data.projectId,
       OR: [
@@ -106,7 +107,7 @@ export async function createMilestone(data: {
     throw new Error('マイルストーンの期日がプロジェクトの終了日を超えています')
   }
 
-  const milestone = await projectDb.milestone.create({
+  const milestone = await (projectDb as any).milestone.create({
     data: {
       projectId: data.projectId,
       name: data.name,
@@ -142,7 +143,7 @@ export async function updateMilestone(milestoneId: string, data: {
   }
 
   // マイルストーンのアクセス権限チェック
-  const milestone = await projectDb.milestone.findFirst({
+  const milestone = await (projectDb as any).milestone.findFirst({
     where: {
       id: milestoneId,
       ...(user.role.name !== 'executive' ? {
@@ -178,7 +179,7 @@ export async function updateMilestone(milestoneId: string, data: {
   }
   if (data.status !== undefined) updateData.status = data.status
 
-  const updatedMilestone = await projectDb.milestone.update({
+  const updatedMilestone = await (projectDb as any).milestone.update({
     where: { id: milestoneId },
     data: updateData
   })
@@ -204,7 +205,7 @@ export async function deleteMilestone(milestoneId: string) {
   }
 
   // マイルストーンのアクセス権限チェック
-  const milestone = await projectDb.milestone.findFirst({
+  const milestone = await (projectDb as any).milestone.findFirst({
     where: {
       id: milestoneId,
       ...(user.role.name !== 'executive' ? {
@@ -232,7 +233,7 @@ export async function deleteMilestone(milestoneId: string) {
     throw new Error(`このマイルストーンには${milestone.tasks.length}件のタスクが紐づいています。先にタスクを移動してください。`)
   }
 
-  await projectDb.milestone.delete({
+  await (projectDb as any).milestone.delete({
     where: { id: milestoneId }
   })
 
@@ -266,7 +267,7 @@ export async function getMilestoneStats(projectId: string) {
   }
 
   // プロジェクトアクセス権限チェック
-  const project = await projectDb.project.findFirst({
+  const project = await (projectDb as any).project.findFirst({
     where: {
       id: projectId,
       OR: [
@@ -280,7 +281,7 @@ export async function getMilestoneStats(projectId: string) {
     throw new Error('プロジェクトが見つからないか、権限がありません')
   }
 
-  const milestones = await projectDb.milestone.findMany({
+  const milestones = await (projectDb as any).milestone.findMany({
     where: { projectId },
     include: {
       tasks: {
@@ -330,7 +331,7 @@ export async function getMilestoneTasks(milestoneId: string) {
   }
 
   // マイルストーンのアクセス権限チェック
-  const milestone = await projectDb.milestone.findFirst({
+  const milestone = await (projectDb as any).milestone.findFirst({
     where: {
       id: milestoneId,
       ...(user.role.name !== 'executive' ? {
@@ -349,7 +350,7 @@ export async function getMilestoneTasks(milestoneId: string) {
     throw new Error('マイルストーンが見つからないか、権限がありません')
   }
 
-  const tasks = await projectDb.task.findMany({
+  const tasks = await (projectDb as any).task.findMany({
     where: { milestoneId },
     orderBy: [
       { priority: 'desc' },

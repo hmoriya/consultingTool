@@ -1,5 +1,7 @@
 'use server'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { db } from '@/lib/db'
 import { projectDb } from '@/lib/db/project-db'
 import { getCurrentUser } from './auth'
@@ -29,7 +31,6 @@ export async function getProjectMilestones(projectId: string) {
   }
 
   // プロジェクトアクセス権限チェック
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const project = await (projectDb as any).project.findFirst({
     where: {
       id: projectId,

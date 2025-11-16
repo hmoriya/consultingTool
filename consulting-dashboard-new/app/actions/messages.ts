@@ -479,7 +479,8 @@ export async function getChannelDetails(channelId: string) {
     }
 
     // メンバーか確認
-    const isMember = channel.members.some(m => m.userId === user.id)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const isMember = channel.members.some((m: any) => m.userId === user.id)
     if (!isMember) {
       return { success: false, error: 'このチャンネルにアクセスできません' }
     }

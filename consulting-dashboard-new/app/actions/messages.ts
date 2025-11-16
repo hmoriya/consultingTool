@@ -105,7 +105,7 @@ export async function createChannel(data: z.infer<typeof createChannelSchema>) {
   } catch (error) {
     console.error('createChannel error:', error)
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.issues[0].message }
+      return { success: false, error: error.issues[0]?.message || 'バリデーションエラーが発生しました' }
     }
     return { success: false, error: 'チャンネルの作成に失敗しました' }
   }
@@ -178,7 +178,7 @@ export async function sendMessage(data: z.infer<typeof sendMessageSchema>) {
   } catch (error) {
     console.error('sendMessage error:', error)
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.issues[0].message }
+      return { success: false, error: error.issues[0]?.message || 'バリデーションエラーが発生しました' }
     }
     return { success: false, error: 'メッセージの送信に失敗しました' }
   }

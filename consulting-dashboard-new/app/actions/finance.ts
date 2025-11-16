@@ -227,7 +227,8 @@ export async function getProjectFinancials(projectId: string, month: Date) {
       analyst: 6000,
     }
 
-    const laborCosts = timeEntries.map(entry => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const laborCosts = timeEntries.map((entry: any) => {
       const role = entry.user.projectMembers[0]?.role || 'consultant'
       const rate = hourlyRates[role as keyof typeof hourlyRates]
       return {
@@ -240,9 +241,12 @@ export async function getProjectFinancials(projectId: string, month: Date) {
       }
     })
 
-    const totalRevenue = revenues.reduce((sum, r) => sum + r.amount, 0)
-    const totalCost = costs.reduce((sum, c) => sum + c.amount, 0)
-    const totalLaborCost = laborCosts.reduce((sum, l) => sum + l.amount, 0)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const totalRevenue = revenues.reduce((sum: number, r: any) => sum + r.amount, 0)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const totalCost = costs.reduce((sum: number, c: any) => sum + c.amount, 0)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const totalLaborCost = laborCosts.reduce((sum: number, l: any) => sum + l.amount, 0)
     const totalAllCosts = totalCost + totalLaborCost
     const margin = totalRevenue - totalAllCosts
     const marginRate = totalRevenue > 0 ? (margin / totalRevenue) * 100 : 0
@@ -359,7 +363,8 @@ export async function getCompanyFinancialSummary(month: Date) {
     })
 
     // ユーザー情報を取得して人件費を計算
-    const userIds = approvedHours.map(h => h.userId)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const userIds = approvedHours.map((h: any) => h.userId)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const users = await (authDb as any).user.findMany({
       where: {
@@ -380,8 +385,10 @@ export async function getCompanyFinancialSummary(month: Date) {
       admin: 6000,
     }
 
-    const totalLaborCost = approvedHours.reduce((sum, hour) => {
-      const user = users.find(u => u.id === hour.userId)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const totalLaborCost = approvedHours.reduce((sum: number, hour: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const user = users.find((u: any) => u.id === hour.userId)
       const rate = roleRates[user?.role.name as keyof typeof roleRates] || 8000
       return sum + (hour._sum.hours || 0) * rate
     }, 0)
@@ -433,7 +440,8 @@ export async function getCompanyFinancialSummary(month: Date) {
     const projects = await (projectDb as any).project.findMany({
       where: {
         id: {
-          in: projectRevenues.map(p => p.projectId),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          in: projectRevenues.map((p: any) => p.projectId),
         },
       },
       select: {
@@ -447,8 +455,10 @@ export async function getCompanyFinancialSummary(month: Date) {
       },
     })
 
-    const projectData = projectRevenues.map(pr => {
-      const project = projects.find(p => p.id === pr.projectId)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const projectData = projectRevenues.map((pr: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const project = projects.find((p: any) => p.id === pr.projectId)
       return {
         projectId: pr.projectId,
         projectName: project?.name || '',

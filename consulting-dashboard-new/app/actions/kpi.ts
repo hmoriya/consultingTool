@@ -113,7 +113,8 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
       admin: 6000,
     }
 
-    const laborCost = timeEntries.reduce((sum, entry) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const laborCost = timeEntries.reduce((sum: number, entry: any) => {
       const roleName = userRoleMap.get(entry.userId) || 'consultant'
       const rate = hourlyRates[roleName as keyof typeof hourlyRates] || 8000
       return sum + (entry.hours * rate)

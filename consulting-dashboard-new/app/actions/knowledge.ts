@@ -231,9 +231,15 @@ export async function updateArticle(
       }
     }
 
-    const updateData: unknown = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateData: any = {
       ...data,
       updatedAt: new Date()
+    }
+
+    // undefinedをnullに変換（exactOptionalPropertyTypes対応）
+    if (updateData.summary === undefined) {
+      updateData.summary = null
     }
 
     if (data.tags) {

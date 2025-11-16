@@ -183,7 +183,7 @@ export async function createArticle(data: {
       data: {
         title: data.title,
         content: data.content,
-        summary: data.summary,
+        summary: data.summary ?? null,
         categoryId: data.categoryId,
         authorId: user.id,
         tags: data.tags ? JSON.stringify(data.tags) : null,

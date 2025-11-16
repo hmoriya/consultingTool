@@ -1,6 +1,7 @@
 'use server'
 
 import { authDb, projectDb, financeDb } from '@/lib/db'
+import { timesheetDb } from '@/lib/db/timesheet-db'
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'
 import { calculateAverageUtilization } from '@/lib/utils/utilization'
 
@@ -26,7 +27,8 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
 
   try {
     // 既存のKPI記録をチェック
-    const existing = await financeDb.kPIHistory.findFirst({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const existing = await (financeDb as any).KPIHistory.findFirst({
       where: {
         date: startDate,
         type,
@@ -35,13 +37,15 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
 
     if (existing) {
       // 既存の記録を削除（再計算のため）
-      await financeDb.kPIHistory.delete({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (financeDb as any).KPIHistory.delete({
         where: { id: existing.id },
       })
     }
 
     // 収益の計算
-    const revenues = await financeDb.revenue.aggregate({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const revenues = await (financeDb as any).revenue.aggregate({
       where: {
         date: {
           gte: startDate,
@@ -55,7 +59,8 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
     })
 
     // コストの計算
-    const costs = await financeDb.cost.aggregate({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const costs = await (financeDb as any).cost.aggregate({
       where: {
         date: {
           gte: startDate,
@@ -69,7 +74,8 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
     })
 
     // 工数ベースの人件費計算
-    const timeEntries = await financeDb.timeEntry.findMany({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const timeEntries = await (timesheetDb as any).timeEntry.findMany({
       where: {
         date: {
           gte: startDate,
@@ -131,7 +137,8 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
     })
 
     // 稼働メンバーの工数データから稼働率を計算
-    const timeEntriesByUser = await financeDb.timeEntry.groupBy({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const timeEntriesByUser = await (timesheetDb as any).timeEntry.groupBy({
       by: ['userId'],
       where: {
         date: {
@@ -161,7 +168,8 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
         select: { id: true, name: true },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       })).map(async (project: any) => {
-        const projectRevenue = await financeDb.revenue.aggregate({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const projectRevenue = await (financeDb as any).revenue.aggregate({
           where: {
             projectId: project.id,
             date: {
@@ -172,7 +180,8 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
           _sum: { amount: true },
         })
 
-        const projectCost = await financeDb.cost.aggregate({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const projectCost = await (financeDb as any).cost.aggregate({
           where: {
             projectId: project.id,
             date: {
@@ -183,7 +192,8 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
           _sum: { amount: true },
         })
 
-        const projectTimeEntries = await financeDb.timeEntry.aggregate({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const projectTimeEntries = await (timesheetDb as any).timeEntry.aggregate({
           where: {
             projectId: project.id,
             date: {
@@ -225,7 +235,8 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
         const userIds = roleUsers.map(u => u.id)
         
         // ロールのユーザーの工数データを取得
-        const roleTimeEntries = await financeDb.timeEntry.groupBy({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const roleTimeEntries = await (timesheetDb as any).timeEntry.groupBy({
           by: ['userId'],
           where: {
             userId: {
@@ -260,7 +271,8 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
     )
 
     // KPI履歴を保存
-    const kpiHistory = await financeDb.kPIHistory.create({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const kpiHistory = await (financeDb as any).KPIHistory.create({
       data: {
         date: startDate,
         type,
@@ -292,7 +304,8 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
 // 最新のKPIを取得
 export async function getLatestKPIs(type: 'daily' | 'weekly' | 'monthly') {
   try {
-    const latest = await financeDb.kPIHistory.findFirst({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const latest = await (financeDb as any).KPIHistory.findFirst({
       where: { type },
       orderBy: { date: 'desc' },
     })
@@ -321,7 +334,8 @@ export async function getLatestKPIs(type: 'daily' | 'weekly' | 'monthly') {
 // KPI履歴を取得（チャート用）
 export async function getKPIHistory(type: 'daily' | 'weekly' | 'monthly', count: number = 30) {
   try {
-    const history = await financeDb.kPIHistory.findMany({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const history = await (financeDb as any).KPIHistory.findMany({
       where: { type },
       orderBy: { date: 'desc' },
       take: count,

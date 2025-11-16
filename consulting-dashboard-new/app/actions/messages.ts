@@ -686,6 +686,7 @@ export async function getThreadMessages(messageId: string) {
     const senderMap = new Map(senders.map((s: any) => [s.id, s]))
 
     // メッセージにユーザー情報を追加してから型変換
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const messagesWithSender = threadMessages.map((msg: any) => ({
       ...msg,
       sender: senderMap.get(msg.senderId) || { id: msg.senderId, name: 'Unknown', email: '' }

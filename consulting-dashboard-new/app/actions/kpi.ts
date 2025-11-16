@@ -86,7 +86,8 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
     })
 
     // ユーザー情報を取得
-    const userIds = [...new Set(timeEntries.map(te => te.userId))]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const userIds = [...new Set(timeEntries.map((te: any) => te.userId))]
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const users = await (authDb as any).user.findMany({
       where: {
@@ -100,7 +101,8 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
     })
 
     // ユーザーIDとロールのマップを作成
-    const userRoleMap = new Map(users.map(u => [u.id, u.role.name]))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const userRoleMap = new Map(users.map((u: any) => [u.id, u.role.name]))
 
     // ロール別の標準レート
     const hourlyRates = {
@@ -153,7 +155,8 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
     })
 
     // ユーザーごとの実働時間
-    const memberUtilizations = timeEntriesByUser.map(entry => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const memberUtilizations = timeEntriesByUser.map((entry: any) => ({
       userId: entry.userId,
       actualHours: entry._sum.hours || 0,
     }))
@@ -232,7 +235,8 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
           },
         })
 
-        const userIds = roleUsers.map(u => u.id)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const userIds = roleUsers.map((u: any) => u.id)
         
         // ロールのユーザーの工数データを取得
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -254,7 +258,8 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
         })
 
         // ロールのメンバーの実働時間
-        const roleMemberUtilizations = roleTimeEntries.map(entry => ({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const roleMemberUtilizations = roleTimeEntries.map((entry: any) => ({
           userId: entry.userId,
           actualHours: entry._sum.hours || 0,
         }))
@@ -341,7 +346,8 @@ export async function getKPIHistory(type: 'daily' | 'weekly' | 'monthly', count:
       take: count,
     })
 
-    return history.reverse().map(kpi => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return history.reverse().map((kpi: any) => ({
       ...kpi,
       projectKPIs: kpi.projectKPIs ? JSON.parse(kpi.projectKPIs as string) : [],
       roleKPIs: kpi.roleKPIs ? JSON.parse(kpi.roleKPIs as string) : [],

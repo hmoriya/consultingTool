@@ -126,7 +126,8 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
     const marginRate = totalRevenue > 0 ? (totalMargin / totalRevenue) * 100 : 0
 
     // アクティブプロジェクト数
-    const activeProjects = await projectDb.project.count({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const activeProjects = await (projectDb as any).project.count({
       where: {
         status: 'active',
         startDate: {
@@ -167,7 +168,8 @@ export async function calculateAndSaveKPIs(date: Date, type: 'daily' | 'weekly' 
 
     // プロジェクト別KPI
     const projectKPIs = await Promise.all(
-      (await projectDb.project.findMany({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (await (projectDb as any).project.findMany({
         where: { status: 'active' },
         select: { id: true, name: true },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

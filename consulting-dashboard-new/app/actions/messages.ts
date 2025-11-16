@@ -1,7 +1,7 @@
 'use server'
 
 import { notificationDb } from '@/lib/db/notification-db'
-import { db } from '@/lib/db'
+import { authDb } from '@/lib/db/auth-db'
 import { getCurrentUser } from './auth'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
@@ -234,7 +234,8 @@ export async function getUserChannels() {
     // ユーザー情報を取得
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const userIds = [...new Set(channels.flatMap((c: any) => c.members.map((m: any) => m.userId)))]
-    const users = await db.user.findMany({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const users = await (authDb as any).user.findMany({
       where: { id: { in: userIds } },
       select: { id: true, name: true, email: true }
     })
@@ -353,7 +354,8 @@ export async function getChannelMessages(channelId: string, limit = 50, cursor?:
 
     // ユーザー情報を取得
     const senderIds = [...new Set(messages.map(m => m.senderId))]
-    const senders = await db.user.findMany({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const senders = await (authDb as any).user.findMany({
       where: { id: { in: senderIds } },
       select: { id: true, name: true, email: true }
     })
@@ -669,7 +671,8 @@ export async function getThreadMessages(messageId: string) {
 
     // ユーザー情報を取得
     const senderIds = [...new Set(threadMessages.map(m => m.senderId))]
-    const senders = await db.user.findMany({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const senders = await (authDb as any).user.findMany({
       where: { id: { in: senderIds } },
       select: { id: true, name: true, email: true }
     })
@@ -996,7 +999,8 @@ export async function getFlaggedMessages() {
 
     // ユーザー情報を取得
     const senderIds = [...new Set(flags.map(f => f.message.senderId))]
-    const users = await db.user.findMany({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const users = await (authDb as any).user.findMany({
       where: { id: { in: senderIds } },
       select: { id: true, name: true, email: true }
     })

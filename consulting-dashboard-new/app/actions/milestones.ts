@@ -4,6 +4,7 @@
 
 import { db } from '@/lib/db'
 import { projectDb } from '@/lib/db/project-db'
+import { authDb } from '@/lib/db/auth-db'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
 
@@ -119,7 +120,7 @@ export async function createMilestone(data: {
   })
 
   // 監査ログ
-  await db.auditLog.create({
+  await (authDb as any).auditLog.create({
     data: {
       userId: user.id,
       action: 'CREATE',
@@ -186,7 +187,7 @@ export async function updateMilestone(milestoneId: string, data: {
   })
 
   // 監査ログ
-  await db.auditLog.create({
+  await (authDb as any).auditLog.create({
     data: {
       userId: user.id,
       action: 'UPDATE',
@@ -239,7 +240,7 @@ export async function deleteMilestone(milestoneId: string) {
   })
 
   // 監査ログ
-  await db.auditLog.create({
+  await (authDb as any).auditLog.create({
     data: {
       userId: user.id,
       action: 'DELETE',
@@ -362,7 +363,7 @@ export async function getMilestoneTasks(milestoneId: string) {
 
   // ユーザー情報を取得
   const assigneeIds = [...new Set(tasks.map((t: any) => t.assigneeId).filter(Boolean))] as string[]
-  const assignees = assigneeIds.length > 0 ? await db.user.findMany({
+  const assignees = assigneeIds.length > 0 ? await (authDb as any).user.findMany({
     where: { id: { in: assigneeIds } },
     select: {
       id: true,

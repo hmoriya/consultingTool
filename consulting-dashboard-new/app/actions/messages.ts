@@ -246,7 +246,7 @@ export async function getUserChannels() {
     const channelsWithUnread = await Promise.all(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       channels.map(async (channel: any) => {
-        const member = channel.members.find(m => m.userId === user.id)
+        const member = channel.members.find((m: any) => m.userId === user.id)
         if (!member) return { ...channel, unreadCount: 0, memberUsers: [] }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -263,7 +263,7 @@ export async function getUserChannels() {
         })
 
         // メンバー情報にユーザー詳細を追加
-        const memberUsers = channel.members.map(m => ({
+        const memberUsers = channel.members.map((m: any) => ({
           ...m,
           user: userMap.get(m.userId) || { id: m.userId, name: 'Unknown', email: '' }
         }))
@@ -353,16 +353,16 @@ export async function getChannelMessages(channelId: string, limit = 50, cursor?:
     })
 
     // ユーザー情報を取得
-    const senderIds = [...new Set(messages.map(m => m.senderId))]
+    const senderIds = [...new Set(messages.map((m: any) => m.senderId))]
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const senders = await (authDb as any).user.findMany({
       where: { id: { in: senderIds } },
       select: { id: true, name: true, email: true }
     })
-    const senderMap = new Map(senders.map(s => [s.id, s]))
+    const senderMap = new Map(senders.map((s: any) => [s.id, s]))
     
     // メッセージにユーザー情報を追加してから型変換
-    const messagesWithSender = messages.map(msg => ({
+    const messagesWithSender = messages.map((msg: any) => ({
       ...msg,
       sender: senderMap.get(msg.senderId) || { id: msg.senderId, name: 'Unknown', email: '' }
     }))
@@ -670,16 +670,16 @@ export async function getThreadMessages(messageId: string) {
     })
 
     // ユーザー情報を取得
-    const senderIds = [...new Set(threadMessages.map(m => m.senderId))]
+    const senderIds = [...new Set(threadMessages.map((m: any) => m.senderId))]
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const senders = await (authDb as any).user.findMany({
       where: { id: { in: senderIds } },
       select: { id: true, name: true, email: true }
     })
-    const senderMap = new Map(senders.map(s => [s.id, s]))
+    const senderMap = new Map(senders.map((s: any) => [s.id, s]))
 
     // メッセージにユーザー情報を追加してから型変換
-    const messagesWithSender = threadMessages.map(msg => ({
+    const messagesWithSender = threadMessages.map((msg: any) => ({
       ...msg,
       sender: senderMap.get(msg.senderId) || { id: msg.senderId, name: 'Unknown', email: '' }
     }))
@@ -998,7 +998,7 @@ export async function getFlaggedMessages() {
     })
 
     // ユーザー情報を取得
-    const senderIds = [...new Set(flags.map(f => f.message.senderId))]
+    const senderIds = [...new Set(flags.map((f: any) => f.message.senderId))]
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const users = await (authDb as any).user.findMany({
       where: { id: { in: senderIds } },
@@ -1008,7 +1008,7 @@ export async function getFlaggedMessages() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const userMap = new Map(users.map((u: any) => [u.id, u]))
 
-    const messagesWithSender = flags.map(flag => ({
+    const messagesWithSender = flags.map((flag: any) => ({
       ...flag.message,
       sender: userMap.get(flag.message.senderId) || {
         id: flag.message.senderId,

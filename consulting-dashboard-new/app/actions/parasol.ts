@@ -557,9 +557,33 @@ export async function updateBusinessOperation(id: string, data: UpdateBusinessOp
       robustnessModel: data.robustnessModel ? JSON.stringify(data.robustnessModel) : undefined,
     });
 
+    // Prepare data for Prisma update - only include defined properties
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateData: any = {
+      serviceId: result.serviceId,
+      name: result.name,
+      displayName: result.displayName,
+      pattern: result.pattern,
+      goal: result.goal,
+      roles: result.roles,
+      operations: result.operations,
+      businessStates: result.businessStates,
+      useCases: result.useCases,
+      uiDefinitions: result.uiDefinitions,
+      testCases: result.testCases,
+    };
+
+    // Only include optional properties if they're defined
+    if (result.capabilityId !== undefined) {
+      updateData.capabilityId = result.capabilityId;
+    }
+    if (result.robustnessModel !== undefined) {
+      updateData.robustnessModel = result.robustnessModel;
+    }
+
     const operation = await parasolDb.businessOperation.update({
       where: { id },
-      data: result,
+      data: updateData,
     });
     
     revalidatePath('/settings/parasol');

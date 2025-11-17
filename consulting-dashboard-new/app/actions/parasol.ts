@@ -95,8 +95,22 @@ export async function createService(data: CreateServiceData): Promise<ActionResp
       dbSchema: JSON.stringify(data.dbSchema),
     });
 
+    // Prepare data for Prisma - only include defined properties
+    const serviceData: any = {
+      name: result.name,
+      displayName: result.displayName,
+      domainLanguage: result.domainLanguage,
+      apiSpecification: result.apiSpecification,
+      dbSchema: result.dbSchema,
+    };
+
+    // Only include description if it's defined
+    if (result.description !== undefined) {
+      serviceData.description = result.description;
+    }
+
     const service = await parasolDb.service.create({
-      data: result,
+      data: serviceData,
       include: {
         businessOperations: true
       }
@@ -346,8 +360,31 @@ export async function createBusinessOperation(data: CreateBusinessOperationData)
       robustnessModel: data.robustnessModel ? JSON.stringify(data.robustnessModel) : undefined,
     });
 
+    // Prepare data for Prisma - only include defined properties
+    const operationData: any = {
+      serviceId: result.serviceId,
+      name: result.name,
+      displayName: result.displayName,
+      pattern: result.pattern,
+      goal: result.goal,
+      roles: result.roles,
+      operations: result.operations,
+      businessStates: result.businessStates,
+      useCases: result.useCases,
+      uiDefinitions: result.uiDefinitions,
+      testCases: result.testCases,
+    };
+
+    // Only include optional properties if they're defined
+    if (result.capabilityId !== undefined) {
+      operationData.capabilityId = result.capabilityId;
+    }
+    if (result.robustnessModel !== undefined) {
+      operationData.robustnessModel = result.robustnessModel;
+    }
+
     const operation = await parasolDb.businessOperation.create({
-      data: result,
+      data: operationData,
     });
     
     revalidatePath('/settings/parasol');
@@ -503,8 +540,21 @@ export async function createBusinessCapability(data: CreateBusinessCapabilityDat
   try {
     const result = BusinessCapabilitySchema.parse(data);
 
+    // Prepare data for Prisma - only include defined properties
+    const capabilityData: any = {
+      serviceId: result.serviceId,
+      name: result.name,
+      displayName: result.displayName,
+      category: result.category,
+    };
+
+    // Only include description if it's defined
+    if (result.description !== undefined) {
+      capabilityData.description = result.description;
+    }
+
     const capability = await parasolDb.businessCapability.create({
-      data: result,
+      data: capabilityData,
       include: {
         businessOperations: true
       }
@@ -627,8 +677,42 @@ export async function createUseCase(data: CreateUseCaseData): Promise<ActionResp
       exceptionFlow: data.exceptionFlow ? JSON.stringify(data.exceptionFlow) : undefined,
     });
 
+    // Prepare data for Prisma - only include defined properties
+    const useCaseData: any = {
+      operationId: result.operationId,
+      name: result.name,
+      displayName: result.displayName,
+      order: result.order,
+    };
+
+    // Only include optional properties if they're defined
+    if (result.description !== undefined) {
+      useCaseData.description = result.description;
+    }
+    if (result.definition !== undefined) {
+      useCaseData.definition = result.definition;
+    }
+    if (result.actors !== undefined) {
+      useCaseData.actors = result.actors;
+    }
+    if (result.preconditions !== undefined) {
+      useCaseData.preconditions = result.preconditions;
+    }
+    if (result.postconditions !== undefined) {
+      useCaseData.postconditions = result.postconditions;
+    }
+    if (result.basicFlow !== undefined) {
+      useCaseData.basicFlow = result.basicFlow;
+    }
+    if (result.alternativeFlow !== undefined) {
+      useCaseData.alternativeFlow = result.alternativeFlow;
+    }
+    if (result.exceptionFlow !== undefined) {
+      useCaseData.exceptionFlow = result.exceptionFlow;
+    }
+
     const useCase = await parasolDb.useCase.create({
-      data: result,
+      data: useCaseData,
       include: {
         robustnessDiagram: true,
         pageDefinitions: true,
@@ -726,8 +810,31 @@ export async function createRobustnessDiagram(data: CreateRobustnessDiagramData)
       interactions: data.interactions ? JSON.stringify(data.interactions) : undefined,
     });
 
+    // Prepare data for Prisma - only include defined properties
+    const diagramData: any = {
+      useCaseId: result.useCaseId,
+      content: result.content,
+    };
+
+    // Only include optional properties if they're defined
+    if (result.boundaryObjects !== undefined) {
+      diagramData.boundaryObjects = result.boundaryObjects;
+    }
+    if (result.controlObjects !== undefined) {
+      diagramData.controlObjects = result.controlObjects;
+    }
+    if (result.entityObjects !== undefined) {
+      diagramData.entityObjects = result.entityObjects;
+    }
+    if (result.diagram !== undefined) {
+      diagramData.diagram = result.diagram;
+    }
+    if (result.interactions !== undefined) {
+      diagramData.interactions = result.interactions;
+    }
+
     const robustnessDiagram = await parasolDb.robustnessDiagram.create({
-      data: result,
+      data: diagramData,
     });
 
     revalidatePath('/settings/parasol');

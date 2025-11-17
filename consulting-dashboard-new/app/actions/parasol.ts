@@ -314,6 +314,26 @@ export async function getService(id: string): Promise<ServiceResponse | null> {
         uiDefinitions: JSON.parse(op.uiDefinitions),
         testCases: JSON.parse(op.testCases),
         robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
+        useCaseModels: op.useCaseModels.map(uc => ({
+          ...uc,
+          actors: uc.actors ? JSON.parse(uc.actors) : null,
+          preconditions: uc.preconditions ? JSON.parse(uc.preconditions) : null,
+          postconditions: uc.postconditions ? JSON.parse(uc.postconditions) : null,
+          basicFlow: uc.basicFlow ? JSON.parse(uc.basicFlow) : null,
+          alternativeFlow: uc.alternativeFlow ? JSON.parse(uc.alternativeFlow) : null,
+          exceptionFlow: uc.exceptionFlow ? JSON.parse(uc.exceptionFlow) : null,
+          pageDefinitions: uc.pageDefinitions || [],
+          apiUsageDefinition: uc.apiUsageDefinition || '',
+          robustnessDiagram: uc.robustnessDiagram ? {
+            id: uc.robustnessDiagram.id,
+            content: uc.robustnessDiagram.content,
+            boundaryObjects: uc.robustnessDiagram.boundaryObjects ? JSON.parse(uc.robustnessDiagram.boundaryObjects) : null,
+            controlObjects: uc.robustnessDiagram.controlObjects ? JSON.parse(uc.robustnessDiagram.controlObjects) : null,
+            entityObjects: uc.robustnessDiagram.entityObjects ? JSON.parse(uc.robustnessDiagram.entityObjects) : null,
+            interactions: uc.robustnessDiagram.interactions ? JSON.parse(uc.robustnessDiagram.interactions) : null,
+            diagram: uc.robustnessDiagram.diagram || undefined,
+          } : undefined,
+        }))
       })),
       createdAt: service.createdAt,
       updatedAt: service.updatedAt
@@ -378,6 +398,26 @@ export async function updateService(id: string, data: UpdateServiceData): Promis
         uiDefinitions: JSON.parse(op.uiDefinitions),
         testCases: JSON.parse(op.testCases),
         robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
+        useCaseModels: op.useCaseModels.map(uc => ({
+          ...uc,
+          actors: uc.actors ? JSON.parse(uc.actors) : null,
+          preconditions: uc.preconditions ? JSON.parse(uc.preconditions) : null,
+          postconditions: uc.postconditions ? JSON.parse(uc.postconditions) : null,
+          basicFlow: uc.basicFlow ? JSON.parse(uc.basicFlow) : null,
+          alternativeFlow: uc.alternativeFlow ? JSON.parse(uc.alternativeFlow) : null,
+          exceptionFlow: uc.exceptionFlow ? JSON.parse(uc.exceptionFlow) : null,
+          pageDefinitions: uc.pageDefinitions || [],
+          apiUsageDefinition: uc.apiUsageDefinition || '',
+          robustnessDiagram: uc.robustnessDiagram ? {
+            id: uc.robustnessDiagram.id,
+            content: uc.robustnessDiagram.content,
+            boundaryObjects: uc.robustnessDiagram.boundaryObjects ? JSON.parse(uc.robustnessDiagram.boundaryObjects) : null,
+            controlObjects: uc.robustnessDiagram.controlObjects ? JSON.parse(uc.robustnessDiagram.controlObjects) : null,
+            entityObjects: uc.robustnessDiagram.entityObjects ? JSON.parse(uc.robustnessDiagram.entityObjects) : null,
+            interactions: uc.robustnessDiagram.interactions ? JSON.parse(uc.robustnessDiagram.interactions) : null,
+            diagram: uc.robustnessDiagram.diagram || undefined,
+          } : undefined,
+        }))
       })),
       createdAt: service.createdAt,
       updatedAt: service.updatedAt

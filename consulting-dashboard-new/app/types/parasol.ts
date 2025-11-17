@@ -258,7 +258,7 @@ export interface BusinessCapability {
 export interface BusinessOperation {
   id: string;
   serviceId: string;
-  capabilityId: string;
+  capabilityId: string | null;
   name: string;
   displayName: string;
   pattern: string;

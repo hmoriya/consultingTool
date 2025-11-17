@@ -228,6 +228,15 @@ export async function getServices(): Promise<ActionResponse<ServiceWithMappedRel
             pageDefinitions: uc.pageDefinitions || [],
             // API利用仕様データを追加
             apiUsageDefinition: uc.apiUsageDefinition || '',
+            robustnessDiagram: uc.robustnessDiagram ? {
+              id: uc.robustnessDiagram.id,
+              content: uc.robustnessDiagram.content,
+              boundaryObjects: uc.robustnessDiagram.boundaryObjects ? JSON.parse(uc.robustnessDiagram.boundaryObjects) : null,
+              controlObjects: uc.robustnessDiagram.controlObjects ? JSON.parse(uc.robustnessDiagram.controlObjects) : null,
+              entityObjects: uc.robustnessDiagram.entityObjects ? JSON.parse(uc.robustnessDiagram.entityObjects) : null,
+              interactions: uc.robustnessDiagram.interactions ? JSON.parse(uc.robustnessDiagram.interactions) : null,
+              diagram: uc.robustnessDiagram.diagram || undefined,
+            } : undefined,
           }))
         }))
       })),
@@ -251,11 +260,21 @@ export async function getServices(): Promise<ActionResponse<ServiceWithMappedRel
           pageDefinitions: uc.pageDefinitions || [],
           // API利用仕様データを追加
           apiUsageDefinition: uc.apiUsageDefinition || '',
+          robustnessDiagram: uc.robustnessDiagram ? {
+            id: uc.robustnessDiagram.id,
+            content: uc.robustnessDiagram.content,
+            boundaryObjects: uc.robustnessDiagram.boundaryObjects ? JSON.parse(uc.robustnessDiagram.boundaryObjects) : null,
+            controlObjects: uc.robustnessDiagram.controlObjects ? JSON.parse(uc.robustnessDiagram.controlObjects) : null,
+            entityObjects: uc.robustnessDiagram.entityObjects ? JSON.parse(uc.robustnessDiagram.entityObjects) : null,
+            interactions: uc.robustnessDiagram.interactions ? JSON.parse(uc.robustnessDiagram.interactions) : null,
+            diagram: uc.robustnessDiagram.diagram || undefined,
+          } : undefined,
         }))
       }))
     }));
     
-    return { success: true, data: mappedServices };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return { success: true, data: mappedServices as any };
   } catch (error) {
     console.error('Failed to fetch services:', error);
     if (error instanceof Error) {

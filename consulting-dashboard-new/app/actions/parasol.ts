@@ -218,7 +218,8 @@ export async function getServices(): Promise<ActionResponse<ServiceWithMappedRel
           uiDefinitions: JSON.parse(op.uiDefinitions),
           testCases: JSON.parse(op.testCases),
           robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
-          useCaseModels: op.useCaseModels.map(uc => ({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          useCaseModels: op.useCaseModels.map((uc: any) => ({
             ...uc,
             actors: uc.actors ? JSON.parse(uc.actors) : null,
             preconditions: uc.preconditions ? JSON.parse(uc.preconditions) : null,
@@ -251,7 +252,8 @@ export async function getServices(): Promise<ActionResponse<ServiceWithMappedRel
         uiDefinitions: JSON.parse(op.uiDefinitions),
         testCases: JSON.parse(op.testCases),
         robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
-        useCaseModels: op.useCaseModels.map(uc => ({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        useCaseModels: op.useCaseModels.map((uc: any) => ({
           ...uc,
           actors: uc.actors ? JSON.parse(uc.actors) : null,
           preconditions: uc.preconditions ? JSON.parse(uc.preconditions) : null,
@@ -317,7 +319,8 @@ export async function getService(id: string): Promise<ServiceResponse | null> {
         uiDefinitions: JSON.parse(op.uiDefinitions),
         testCases: JSON.parse(op.testCases),
         robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
-        useCaseModels: op.useCaseModels.map(uc => ({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        useCaseModels: op.useCaseModels.map((uc: any) => ({
           ...uc,
           actors: uc.actors ? JSON.parse(uc.actors) : null,
           preconditions: uc.preconditions ? JSON.parse(uc.preconditions) : null,
@@ -402,7 +405,8 @@ export async function updateService(id: string, data: UpdateServiceData): Promis
         uiDefinitions: JSON.parse(op.uiDefinitions),
         testCases: JSON.parse(op.testCases),
         robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
-        useCaseModels: op.useCaseModels.map(uc => ({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        useCaseModels: op.useCaseModels.map((uc: any) => ({
           ...uc,
           actors: uc.actors ? JSON.parse(uc.actors) : null,
           preconditions: uc.preconditions ? JSON.parse(uc.preconditions) : null,

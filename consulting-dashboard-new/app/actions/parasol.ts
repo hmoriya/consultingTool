@@ -122,6 +122,7 @@ export async function createService(data: CreateServiceData): Promise<ActionResp
       success: true, 
       data: {
         ...service,
+        description: service.description ?? undefined,
         domainLanguage: JSON.parse(service.domainLanguage),
         apiSpecification: JSON.parse(service.apiSpecification),
         dbSchema: JSON.parse(service.dbSchema),
@@ -270,6 +271,7 @@ export async function getService(id: string): Promise<ServiceResponse | null> {
 
     return {
       ...service,
+      description: service.description ?? undefined,
       domainLanguage: JSON.parse(service.domainLanguage),
       apiSpecification: JSON.parse(service.apiSpecification),
       dbSchema: JSON.parse(service.dbSchema),
@@ -299,9 +301,24 @@ export async function updateService(id: string, data: UpdateServiceData): Promis
       dbSchema: JSON.stringify(data.dbSchema),
     });
 
+    // Prepare data for Prisma - only include defined properties
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateData: any = {
+      name: result.name,
+      displayName: result.displayName,
+      domainLanguage: result.domainLanguage,
+      apiSpecification: result.apiSpecification,
+      dbSchema: result.dbSchema,
+    };
+
+    // Only include description if it's defined
+    if (result.description !== undefined) {
+      updateData.description = result.description;
+    }
+
     const service = await parasolDb.service.update({
       where: { id },
-      data: result,
+      data: updateData,
       include: {
         businessOperations: true
       }
@@ -312,6 +329,7 @@ export async function updateService(id: string, data: UpdateServiceData): Promis
       success: true, 
       data: {
         ...service,
+        description: service.description ?? undefined,
         domainLanguage: JSON.parse(service.domainLanguage),
         apiSpecification: JSON.parse(service.apiSpecification),
         dbSchema: JSON.parse(service.dbSchema),
@@ -526,9 +544,11 @@ export async function saveServiceData(serviceId: string, data: SaveServiceData):
       success: true, 
       data: {
         ...service,
+        description: service.description ?? undefined,
         domainLanguage: JSON.parse(service.domainLanguage),
         apiSpecification: JSON.parse(service.apiSpecification),
         dbSchema: JSON.parse(service.dbSchema),
+        businessOperations: []
       }
     };
   } catch (error) {

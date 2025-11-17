@@ -96,6 +96,7 @@ export async function createService(data: CreateServiceData): Promise<ActionResp
     });
 
     // Prepare data for Prisma - only include defined properties
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const serviceData: any = {
       name: result.name,
       displayName: result.displayName,
@@ -361,6 +362,7 @@ export async function createBusinessOperation(data: CreateBusinessOperationData)
     });
 
     // Prepare data for Prisma - only include defined properties
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const operationData: any = {
       serviceId: result.serviceId,
       name: result.name,
@@ -541,6 +543,7 @@ export async function createBusinessCapability(data: CreateBusinessCapabilityDat
     const result = BusinessCapabilitySchema.parse(data);
 
     // Prepare data for Prisma - only include defined properties
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const capabilityData: any = {
       serviceId: result.serviceId,
       name: result.name,
@@ -678,6 +681,7 @@ export async function createUseCase(data: CreateUseCaseData): Promise<ActionResp
     });
 
     // Prepare data for Prisma - only include defined properties
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const useCaseData: any = {
       operationId: result.operationId,
       name: result.name,
@@ -811,6 +815,7 @@ export async function createRobustnessDiagram(data: CreateRobustnessDiagramData)
     });
 
     // Prepare data for Prisma - only include defined properties
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const diagramData: any = {
       useCaseId: result.useCaseId,
       content: result.content,

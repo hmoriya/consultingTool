@@ -208,7 +208,7 @@ export async function getServices(): Promise<ActionResponse<ServiceWithMappedRel
       integrationSpecificationDefinition: service.integrationSpecificationDefinition || '',
       capabilities: service.capabilities.map(cap => ({
         ...cap,
-        businessOperations: cap.businessOperations.map(op => ({
+        businessOperations: cap.businessOperations.filter(op => op.capabilityId !== null).map(op => ({
           ...op,
           roles: JSON.parse(op.roles),
           operations: JSON.parse(op.operations),
@@ -240,7 +240,7 @@ export async function getServices(): Promise<ActionResponse<ServiceWithMappedRel
           }))
         }))
       })),
-      businessOperations: service.businessOperations.map(op => ({
+      businessOperations: service.businessOperations.filter(op => op.capabilityId !== null).map(op => ({
         ...op,
         roles: JSON.parse(op.roles),
         operations: JSON.parse(op.operations),
@@ -305,7 +305,7 @@ export async function getService(id: string): Promise<ServiceResponse | null> {
       domainLanguage: JSON.parse(service.domainLanguage),
       apiSpecification: JSON.parse(service.apiSpecification),
       dbSchema: JSON.parse(service.dbSchema),
-      businessOperations: service.businessOperations.map(op => ({
+      businessOperations: service.businessOperations.filter(op => op.capabilityId !== null).map(op => ({
         ...op,
         roles: JSON.parse(op.roles),
         operations: JSON.parse(op.operations),
@@ -389,7 +389,7 @@ export async function updateService(id: string, data: UpdateServiceData): Promis
       domainLanguage: JSON.parse(service.domainLanguage),
       apiSpecification: JSON.parse(service.apiSpecification),
       dbSchema: JSON.parse(service.dbSchema),
-      businessOperations: service.businessOperations.map(op => ({
+      businessOperations: service.businessOperations.filter(op => op.capabilityId !== null).map(op => ({
         ...op,
         roles: JSON.parse(op.roles),
         operations: JSON.parse(op.operations),

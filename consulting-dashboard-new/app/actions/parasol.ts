@@ -118,16 +118,24 @@ export async function createService(data: CreateServiceData): Promise<ActionResp
     });
     
     revalidatePath('/settings/parasol');
+    
+    // Construct ServiceResponse explicitly to avoid type conflicts
+    const responseData: ServiceResponse = {
+      id: service.id,
+      name: service.name,
+      displayName: service.displayName,
+      ...(service.description && { description: service.description }),
+      domainLanguage: JSON.parse(service.domainLanguage),
+      apiSpecification: JSON.parse(service.apiSpecification),
+      dbSchema: JSON.parse(service.dbSchema),
+      businessOperations: [],
+      createdAt: service.createdAt,
+      updatedAt: service.updatedAt
+    };
+    
     return { 
       success: true, 
-      data: {
-        ...service,
-        description: service.description ?? undefined,
-        domainLanguage: JSON.parse(service.domainLanguage),
-        apiSpecification: JSON.parse(service.apiSpecification),
-        dbSchema: JSON.parse(service.dbSchema),
-        businessOperations: []
-      }
+      data: responseData
     };
   } catch (error) {
     console.error('Failed to create service:', error);
@@ -269,9 +277,12 @@ export async function getService(id: string): Promise<ServiceResponse | null> {
     
     if (!service) return null;
 
-    return {
-      ...service,
-      description: service.description ?? undefined,
+    // Construct ServiceResponse explicitly
+    const responseData: ServiceResponse = {
+      id: service.id,
+      name: service.name,
+      displayName: service.displayName,
+      ...(service.description && { description: service.description }),
       domainLanguage: JSON.parse(service.domainLanguage),
       apiSpecification: JSON.parse(service.apiSpecification),
       dbSchema: JSON.parse(service.dbSchema),
@@ -284,8 +295,12 @@ export async function getService(id: string): Promise<ServiceResponse | null> {
         uiDefinitions: JSON.parse(op.uiDefinitions),
         testCases: JSON.parse(op.testCases),
         robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
-      }))
+      })),
+      createdAt: service.createdAt,
+      updatedAt: service.updatedAt
     };
+
+    return responseData;
   } catch (error) {
     console.error('Failed to fetch service:', error);
     return null;
@@ -325,25 +340,33 @@ export async function updateService(id: string, data: UpdateServiceData): Promis
     });
     
     revalidatePath('/settings/parasol');
+    
+    // Construct ServiceResponse explicitly
+    const responseData: ServiceResponse = {
+      id: service.id,
+      name: service.name,
+      displayName: service.displayName,
+      ...(service.description && { description: service.description }),
+      domainLanguage: JSON.parse(service.domainLanguage),
+      apiSpecification: JSON.parse(service.apiSpecification),
+      dbSchema: JSON.parse(service.dbSchema),
+      businessOperations: service.businessOperations.map(op => ({
+        ...op,
+        roles: JSON.parse(op.roles),
+        operations: JSON.parse(op.operations),
+        businessStates: JSON.parse(op.businessStates),
+        useCases: JSON.parse(op.useCases),
+        uiDefinitions: JSON.parse(op.uiDefinitions),
+        testCases: JSON.parse(op.testCases),
+        robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
+      })),
+      createdAt: service.createdAt,
+      updatedAt: service.updatedAt
+    };
+    
     return { 
       success: true, 
-      data: {
-        ...service,
-        description: service.description ?? undefined,
-        domainLanguage: JSON.parse(service.domainLanguage),
-        apiSpecification: JSON.parse(service.apiSpecification),
-        dbSchema: JSON.parse(service.dbSchema),
-        businessOperations: service.businessOperations.map(op => ({
-          ...op,
-          roles: JSON.parse(op.roles),
-          operations: JSON.parse(op.operations),
-          businessStates: JSON.parse(op.businessStates),
-          useCases: JSON.parse(op.useCases),
-          uiDefinitions: JSON.parse(op.uiDefinitions),
-          testCases: JSON.parse(op.testCases),
-          robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
-        }))
-      }
+      data: responseData
     };
   } catch (error) {
     console.error('Failed to update service:', error);

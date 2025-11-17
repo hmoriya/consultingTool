@@ -536,6 +536,7 @@ export async function getBusinessOperations(serviceId: string): Promise<MappedBu
       uiDefinitions: JSON.parse(op.uiDefinitions),
       testCases: JSON.parse(op.testCases),
       robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
+      useCaseModels: [], // Empty array - use cases not included in this query
     }));
   } catch (error) {
     console.error('Failed to fetch business operations:', error);

@@ -509,6 +509,7 @@ export async function createBusinessOperation(data: CreateBusinessOperationData)
         uiDefinitions: JSON.parse(operation.uiDefinitions),
         testCases: JSON.parse(operation.testCases),
         robustnessModel: operation.robustnessModel ? JSON.parse(operation.robustnessModel) : null,
+        useCaseModels: [], // Empty array for newly created operation
       }
     };
   } catch (error) {
@@ -572,6 +573,7 @@ export async function updateBusinessOperation(id: string, data: UpdateBusinessOp
         uiDefinitions: JSON.parse(operation.uiDefinitions),
         testCases: JSON.parse(operation.testCases),
         robustnessModel: operation.robustnessModel ? JSON.parse(operation.robustnessModel) : null,
+        useCaseModels: [], // Empty array for updated operation - use cases fetched separately
       }
     };
   } catch (error) {

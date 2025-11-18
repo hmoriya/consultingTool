@@ -184,11 +184,12 @@ export type ActionResponse<T> =
       error: string;
     };
 
-export interface ServiceResponse extends ParasolService {
+export interface ServiceResponse extends Omit<ParasolService, 'description'> {
   domainLanguage: DomainLanguageDefinition;
   apiSpecification: ApiSpecification;
   dbSchema: DbDesign;
   businessOperations: MappedBusinessOperation[];
+  description: string; // exactOptionalPropertyTypes対応: 必須フィールドとして定義
 }
 
 export interface MappedBusinessOperation extends Omit<BusinessOperation, 'roles' | 'operations' | 'businessStates' | 'useCases' | 'uiDefinitions' | 'testCases'> {

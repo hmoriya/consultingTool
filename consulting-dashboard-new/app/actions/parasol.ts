@@ -275,6 +275,7 @@ export async function getServices(): Promise<ActionResponse<ServiceWithMappedRel
     
     const mappedServices = services.map(service => ({
       ...service,
+      description: service.description || '', // exactOptionalPropertyTypes対応
       domainLanguage: JSON.parse(service.domainLanguage),
       apiSpecification: JSON.parse(service.apiSpecification),
       dbSchema: JSON.parse(service.dbSchema),

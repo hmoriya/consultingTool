@@ -284,7 +284,7 @@ export async function getServices(): Promise<ActionResponse<ServiceWithMappedRel
       integrationSpecificationDefinition: service.integrationSpecificationDefinition || '',
       capabilities: service.capabilities.map(cap => ({
         ...cap,
-        description: cap.description || undefined,
+        description: cap.description || '',
         category: cap.category as 'Core' | 'Supporting' | 'Generic',
         businessOperations: cap.businessOperations.filter(op => op.capabilityId !== null).map((op: PrismaBusinessOperation) => ({
           ...op,

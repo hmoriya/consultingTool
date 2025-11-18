@@ -224,8 +224,9 @@ export interface MappedRobustnessDiagram {
   diagram?: string;
 }
 
-export interface MappedBusinessCapability extends BusinessCapability {
+export interface MappedBusinessCapability extends Omit<BusinessCapability, 'description'> {
   businessOperations: MappedBusinessOperation[];
+  description: string; // exactOptionalPropertyTypes対応: 必須フィールドとして定義
 }
 
 export interface ServiceWithMappedRelations extends ServiceResponse {

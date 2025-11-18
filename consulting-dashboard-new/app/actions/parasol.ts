@@ -284,6 +284,7 @@ export async function getServices(): Promise<ActionResponse<ServiceWithMappedRel
       integrationSpecificationDefinition: service.integrationSpecificationDefinition || '',
       capabilities: service.capabilities.map(cap => ({
         ...cap,
+        description: cap.description || undefined,
         category: cap.category as 'Core' | 'Supporting' | 'Generic',
         businessOperations: cap.businessOperations.filter(op => op.capabilityId !== null).map((op: PrismaBusinessOperation) => ({
           ...op,
@@ -839,6 +840,7 @@ export async function getBusinessCapabilities(serviceId: string): Promise<Mapped
     
     return capabilities.map(cap => ({
       ...cap,
+      description: cap.description || undefined,
       businessOperations: cap.businessOperations.map(op => ({
         ...op,
         roles: JSON.parse(op.roles),

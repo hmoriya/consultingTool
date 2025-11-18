@@ -200,7 +200,7 @@ export async function createService(data: CreateServiceData): Promise<ActionResp
       id: service.id,
       name: service.name,
       displayName: service.displayName,
-      ...(service.description && { description: service.description }),
+      description: service.description || '', // exactOptionalPropertyTypes対応: 必須フィールド
       domainLanguage: JSON.parse(service.domainLanguage),
       apiSpecification: JSON.parse(service.apiSpecification),
       dbSchema: JSON.parse(service.dbSchema),
@@ -395,7 +395,7 @@ export async function getService(id: string): Promise<ServiceResponse | null> {
       id: service.id,
       name: service.name,
       displayName: service.displayName,
-      ...(service.description && { description: service.description }),
+      description: service.description || '', // exactOptionalPropertyTypes対応: 必須フィールド
       domainLanguage: JSON.parse(service.domainLanguage),
       apiSpecification: JSON.parse(service.apiSpecification),
       dbSchema: JSON.parse(service.dbSchema),
@@ -484,7 +484,7 @@ export async function updateService(id: string, data: UpdateServiceData): Promis
       id: service.id,
       name: service.name,
       displayName: service.displayName,
-      ...(service.description && { description: service.description }),
+      description: service.description || '', // exactOptionalPropertyTypes対応: 必須フィールド
       domainLanguage: JSON.parse(service.domainLanguage),
       apiSpecification: JSON.parse(service.apiSpecification),
       dbSchema: JSON.parse(service.dbSchema),

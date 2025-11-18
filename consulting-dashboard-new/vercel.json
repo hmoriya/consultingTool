@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "npx prisma generate && npm run db:generate && npm run build",
   "outputDirectory": ".next",
   "installCommand": "npm install",
   "devCommand": "npm run dev",
@@ -7,11 +7,15 @@
   "regions": ["iad1"],
   "env": {
     "NODE_ENV": "production",
-    "PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING": "1"
+    "PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING": "1",
+    "PRISMA_CLI_QUERY_ENGINE_TYPE": "binary",
+    "PRISMA_SKIP_POSTINSTALL_GENERATE": "true"
   },
   "build": {
     "env": {
-      "PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING": "1"
+      "PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING": "1",
+      "PRISMA_CLI_QUERY_ENGINE_TYPE": "binary",
+      "PRISMA_SKIP_POSTINSTALL_GENERATE": "true"
     }
   },
   "headers": [

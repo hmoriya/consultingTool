@@ -16,9 +16,16 @@ export interface CreateServiceData {
   name: string;
   displayName: string;
   description?: string;
-  domainLanguage: DomainLanguageDefinition;
-  apiSpecification: ApiSpecification;
-  dbSchema: DbDesign;
+  // MD形式の定義（新方式）
+  serviceDescription?: string;
+  domainLanguageDefinition?: string;
+  apiSpecificationDefinition?: string;
+  databaseDesignDefinition?: string;
+  integrationSpecificationDefinition?: string;
+  // JSON形式の定義（旧方式、互換性のため保持）
+  domainLanguage?: DomainLanguageDefinition;
+  apiSpecification?: ApiSpecification;
+  dbSchema?: DbDesign;
 }
 
 export type UpdateServiceData = CreateServiceData

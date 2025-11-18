@@ -169,30 +169,21 @@ export async function createService(data: CreateServiceData): Promise<ActionResp
   try {
     const result = ServiceSchema.parse(data);
 
-    // Prepare data for Prisma - only include defined properties
-    const serviceData: Record<string, unknown> = {
+    // Prepare data for Prisma with required and optional fields
+    const serviceData = {
       name: result.name,
       displayName: result.displayName,
-      domainLanguage: result.domainLanguage,
-      apiSpecification: result.apiSpecification,
-      dbSchema: result.dbSchema,
-    };
-
-    // Only add optional fields if they are defined
-    if (result.description !== undefined) {
-      serviceData.description = result.description;
-    }
-    if (result.domainLanguageDefinition !== undefined) {
-      serviceData.domainLanguageDefinition = result.domainLanguageDefinition;
-    }
-    if (result.apiSpecificationDefinition !== undefined) {
-      serviceData.apiSpecificationDefinition = result.apiSpecificationDefinition;
-    }
-    if (result.databaseDesignDefinition !== undefined) {
-      serviceData.databaseDesignDefinition = result.databaseDesignDefinition;
-    }
-    if (result.integrationSpecificationDefinition !== undefined) {
-      serviceData.integrationSpecificationDefinition = result.integrationSpecificationDefinition;
+      // Required JSON fields with defaults
+      domainLanguage: result.domainLanguage || '{}',
+      apiSpecification: result.apiSpecification || '{}',
+      dbSchema: result.dbSchema || '{}',
+      // Optional fields
+      ...(result.description !== undefined && { description: result.description }),
+      ...(result.serviceDescription !== undefined && { serviceDescription: result.serviceDescription }),
+      ...(result.domainLanguageDefinition !== undefined && { domainLanguageDefinition: result.domainLanguageDefinition }),
+      ...(result.apiSpecificationDefinition !== undefined && { apiSpecificationDefinition: result.apiSpecificationDefinition }),
+      ...(result.databaseDesignDefinition !== undefined && { databaseDesignDefinition: result.databaseDesignDefinition }),
+      ...(result.integrationSpecificationDefinition !== undefined && { integrationSpecificationDefinition: result.integrationSpecificationDefinition }),
     }
 
     const service = await parasolDb.service.create({
@@ -435,18 +426,21 @@ export async function updateService(id: string, data: UpdateServiceData): Promis
   try {
     const result = ServiceSchema.parse(data);
 
-    // Prepare data for Prisma - only include defined properties
-    const updateData: Record<string, unknown> = {
+    // Prepare data for Prisma with required and optional fields
+    const updateData = {
       name: result.name,
       displayName: result.displayName,
-      domainLanguage: result.domainLanguage,
-      apiSpecification: result.apiSpecification,
-      dbSchema: result.dbSchema,
-    };
-
-    // Only include description if it's defined
-    if (result.description !== undefined) {
-      updateData.description = result.description;
+      // Required JSON fields with defaults
+      domainLanguage: result.domainLanguage || '{}',
+      apiSpecification: result.apiSpecification || '{}',
+      dbSchema: result.dbSchema || '{}',
+      // Optional fields
+      ...(result.description !== undefined && { description: result.description }),
+      ...(result.serviceDescription !== undefined && { serviceDescription: result.serviceDescription }),
+      ...(result.domainLanguageDefinition !== undefined && { domainLanguageDefinition: result.domainLanguageDefinition }),
+      ...(result.apiSpecificationDefinition !== undefined && { apiSpecificationDefinition: result.apiSpecificationDefinition }),
+      ...(result.databaseDesignDefinition !== undefined && { databaseDesignDefinition: result.databaseDesignDefinition }),
+      ...(result.integrationSpecificationDefinition !== undefined && { integrationSpecificationDefinition: result.integrationSpecificationDefinition }),
     }
 
     const service = await parasolDb.service.update({

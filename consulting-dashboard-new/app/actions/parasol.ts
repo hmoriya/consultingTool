@@ -312,8 +312,16 @@ export async function getServices(): Promise<ActionResponse<ServiceWithMappedRel
               controlObjects: uc.robustnessDiagram.controlObjects ? JSON.parse(uc.robustnessDiagram.controlObjects) : null,
               entityObjects: uc.robustnessDiagram.entityObjects ? JSON.parse(uc.robustnessDiagram.entityObjects) : null,
               interactions: uc.robustnessDiagram.interactions ? JSON.parse(uc.robustnessDiagram.interactions) : null,
-              diagram: uc.robustnessDiagram.diagram || undefined,
-            } : undefined,
+              diagram: uc.robustnessDiagram.diagram || '',
+            } : {
+              id: '',
+              content: '',
+              boundaryObjects: null,
+              controlObjects: null,
+              entityObjects: null,
+              interactions: null,
+              diagram: '',
+            },
           }))
         }))
       })),
@@ -344,8 +352,16 @@ export async function getServices(): Promise<ActionResponse<ServiceWithMappedRel
             controlObjects: uc.robustnessDiagram.controlObjects ? JSON.parse(uc.robustnessDiagram.controlObjects) : null,
             entityObjects: uc.robustnessDiagram.entityObjects ? JSON.parse(uc.robustnessDiagram.entityObjects) : null,
             interactions: uc.robustnessDiagram.interactions ? JSON.parse(uc.robustnessDiagram.interactions) : null,
-            diagram: uc.robustnessDiagram.diagram || undefined,
-          } : undefined,
+            diagram: uc.robustnessDiagram.diagram || '',
+          } : {
+            id: '',
+            content: '',
+            boundaryObjects: null,
+            controlObjects: null,
+            entityObjects: null,
+            interactions: null,
+            diagram: '',
+          },
         }))
       }))
     }));
@@ -407,8 +423,16 @@ export async function getService(id: string): Promise<ServiceResponse | null> {
             controlObjects: uc.robustnessDiagram.controlObjects ? JSON.parse(uc.robustnessDiagram.controlObjects) : null,
             entityObjects: uc.robustnessDiagram.entityObjects ? JSON.parse(uc.robustnessDiagram.entityObjects) : null,
             interactions: uc.robustnessDiagram.interactions ? JSON.parse(uc.robustnessDiagram.interactions) : null,
-            diagram: uc.robustnessDiagram.diagram || undefined,
-          } : undefined,
+            diagram: uc.robustnessDiagram.diagram || '',
+          } : {
+            id: '',
+            content: '',
+            boundaryObjects: null,
+            controlObjects: null,
+            entityObjects: null,
+            interactions: null,
+            diagram: '',
+          },
         }))
       })),
       createdAt: service.createdAt,
@@ -488,8 +512,16 @@ export async function updateService(id: string, data: UpdateServiceData): Promis
             controlObjects: uc.robustnessDiagram.controlObjects ? JSON.parse(uc.robustnessDiagram.controlObjects) : null,
             entityObjects: uc.robustnessDiagram.entityObjects ? JSON.parse(uc.robustnessDiagram.entityObjects) : null,
             interactions: uc.robustnessDiagram.interactions ? JSON.parse(uc.robustnessDiagram.interactions) : null,
-            diagram: uc.robustnessDiagram.diagram || undefined,
-          } : undefined,
+            diagram: uc.robustnessDiagram.diagram || '',
+          } : {
+            id: '',
+            content: '',
+            boundaryObjects: null,
+            controlObjects: null,
+            entityObjects: null,
+            interactions: null,
+            diagram: '',
+          },
         }))
       })),
       createdAt: service.createdAt,

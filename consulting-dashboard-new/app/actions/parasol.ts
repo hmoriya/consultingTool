@@ -103,9 +103,16 @@ const ServiceSchema = z.object({
   name: z.string().min(1, '名前は必須です'),
   displayName: z.string().min(1, '表示名は必須です'),
   description: z.string().optional(),
-  domainLanguage: z.string(), // JSON文字列として保存
-  apiSpecification: z.string(),
-  dbSchema: z.string(),
+  // MD形式の定義（新方式）
+  serviceDescription: z.string().optional(),
+  domainLanguageDefinition: z.string().optional(),
+  apiSpecificationDefinition: z.string().optional(),
+  databaseDesignDefinition: z.string().optional(),
+  integrationSpecificationDefinition: z.string().optional(),
+  // JSON形式の定義（旧方式、互換性のため保持）
+  domainLanguage: z.string().optional(),
+  apiSpecification: z.string().optional(),
+  dbSchema: z.string().optional(),
 });
 
 const BusinessCapabilitySchema = z.object({
@@ -160,12 +167,7 @@ const RobustnessDiagramSchema = z.object({
 // サービス関連のアクション
 export async function createService(data: CreateServiceData): Promise<ActionResponse<ServiceResponse>> {
   try {
-    const result = ServiceSchema.parse({
-      ...data,
-      domainLanguage: JSON.stringify(data.domainLanguage),
-      apiSpecification: JSON.stringify(data.apiSpecification),
-      dbSchema: JSON.stringify(data.dbSchema),
-    });
+    const result = ServiceSchema.parse(data);
 
     // Prepare data for Prisma - only include defined properties
     const serviceData: Record<string, unknown> = {
@@ -431,12 +433,7 @@ export async function getService(id: string): Promise<ServiceResponse | null> {
 
 export async function updateService(id: string, data: UpdateServiceData): Promise<ActionResponse<ServiceResponse>> {
   try {
-    const result = ServiceSchema.parse({
-      ...data,
-      domainLanguage: JSON.stringify(data.domainLanguage),
-      apiSpecification: JSON.stringify(data.apiSpecification),
-      dbSchema: JSON.stringify(data.dbSchema),
-    });
+    const result = ServiceSchema.parse(data);
 
     // Prepare data for Prisma - only include defined properties
     const updateData: Record<string, unknown> = {

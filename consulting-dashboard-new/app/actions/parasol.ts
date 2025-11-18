@@ -167,19 +167,8 @@ export async function createService(data: CreateServiceData): Promise<ActionResp
       dbSchema: JSON.stringify(data.dbSchema),
     });
 
-    // Prepare data for Prisma - only include defined properties  
-    const serviceData: {
-      name: string;
-      displayName: string;
-      description?: string;
-      domainLanguage?: string;
-      apiSpecification?: string;
-      dbSchema?: string;
-      domainLanguageDefinition?: string;
-      apiSpecificationDefinition?: string;
-      databaseDesignDefinition?: string;
-      integrationSpecificationDefinition?: string;
-    } = {
+    // Prepare data for Prisma - only include defined properties
+    const serviceData: Record<string, unknown> = {
       name: result.name,
       displayName: result.displayName,
       domainLanguage: result.domainLanguage,
@@ -187,9 +176,21 @@ export async function createService(data: CreateServiceData): Promise<ActionResp
       dbSchema: result.dbSchema,
     };
 
-    // Only include description if it's defined
+    // Only add optional fields if they are defined
     if (result.description !== undefined) {
       serviceData.description = result.description;
+    }
+    if (result.domainLanguageDefinition !== undefined) {
+      serviceData.domainLanguageDefinition = result.domainLanguageDefinition;
+    }
+    if (result.apiSpecificationDefinition !== undefined) {
+      serviceData.apiSpecificationDefinition = result.apiSpecificationDefinition;
+    }
+    if (result.databaseDesignDefinition !== undefined) {
+      serviceData.databaseDesignDefinition = result.databaseDesignDefinition;
+    }
+    if (result.integrationSpecificationDefinition !== undefined) {
+      serviceData.integrationSpecificationDefinition = result.integrationSpecificationDefinition;
     }
 
     const service = await parasolDb.service.create({
@@ -438,18 +439,7 @@ export async function updateService(id: string, data: UpdateServiceData): Promis
     });
 
     // Prepare data for Prisma - only include defined properties
-    const updateData: Partial<{
-      name: string;
-      displayName: string;
-      description: string;
-      domainLanguage: string;
-      apiSpecification: string;
-      dbSchema: string;
-      domainLanguageDefinition: string;
-      apiSpecificationDefinition: string;
-      databaseDesignDefinition: string;
-      integrationSpecificationDefinition: string;
-    }> = {
+    const updateData: Record<string, unknown> = {
       name: result.name,
       displayName: result.displayName,
       domainLanguage: result.domainLanguage,
@@ -554,21 +544,7 @@ export async function createBusinessOperation(data: CreateBusinessOperationData)
     });
 
     // Prepare data for Prisma - only include defined properties
-    const operationData: {
-      serviceId: string;
-      capabilityId?: string;
-      name: string;
-      displayName: string;
-      pattern: string;
-      goal?: string;
-      roles: string;
-      operations: string;
-      businessStates: string;
-      useCases: string;
-      uiDefinitions: string;
-      testCases: string;
-      robustnessModel?: string;
-    } = {
+    const operationData: Record<string, unknown> = {
       serviceId: result.serviceId,
       name: result.name,
       displayName: result.displayName,
@@ -783,13 +759,7 @@ export async function createBusinessCapability(data: CreateBusinessCapabilityDat
     const result = BusinessCapabilitySchema.parse(data);
 
     // Prepare data for Prisma - only include defined properties
-    const capabilityData: {
-      serviceId: string;
-      name: string;
-      displayName: string;
-      description?: string;
-      category: string;
-    } = {
+    const capabilityData: Record<string, unknown> = {
       serviceId: result.serviceId,
       name: result.name,
       displayName: result.displayName,
@@ -928,21 +898,7 @@ export async function createUseCase(data: CreateUseCaseData): Promise<ActionResp
     });
 
     // Prepare data for Prisma - only include defined properties
-    const useCaseData: {
-      operationId: string;
-      name: string;
-      displayName: string;
-      description?: string;
-      definition?: string;
-      order?: number;
-      actors?: string;
-      preconditions?: string;
-      postconditions?: string;
-      basicFlow?: string;
-      alternativeFlow?: string;
-      exceptionFlow?: string;
-      apiUsageDefinition?: string;
-    } = {
+    const useCaseData: Record<string, unknown> = {
       operationId: result.operationId,
       name: result.name,
       displayName: result.displayName,
@@ -1075,15 +1031,7 @@ export async function createRobustnessDiagram(data: CreateRobustnessDiagramData)
     });
 
     // Prepare data for Prisma - only include defined properties
-    const diagramData: {
-      useCaseId: string;
-      content: string;
-      boundaryObjects?: string;
-      controlObjects?: string;
-      entityObjects?: string;
-      diagram?: string;
-      interactions?: string;
-    } = {
+    const diagramData: Record<string, unknown> = {
       useCaseId: result.useCaseId,
       content: result.content,
     };

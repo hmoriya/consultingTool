@@ -177,13 +177,13 @@ export async function createService(data: CreateServiceData): Promise<ActionResp
       domainLanguage: result.domainLanguage || '{}',
       apiSpecification: result.apiSpecification || '{}',
       dbSchema: result.dbSchema || '{}',
-      // Optional fields
+      // Optional fields - safely access with optional chaining
       ...(result.description !== undefined && { description: result.description }),
       ...(result.serviceDescription !== undefined && { serviceDescription: result.serviceDescription }),
-      ...(result.domainLanguageDefinition !== undefined && { domainLanguageDefinition: result.domainLanguageDefinition }),
-      ...(result.apiSpecificationDefinition !== undefined && { apiSpecificationDefinition: result.apiSpecificationDefinition }),
-      ...(result.databaseDesignDefinition !== undefined && { databaseDesignDefinition: result.databaseDesignDefinition }),
-      ...(result.integrationSpecificationDefinition !== undefined && { integrationSpecificationDefinition: result.integrationSpecificationDefinition }),
+      ...('domainLanguageDefinition' in result && result.domainLanguageDefinition !== undefined && { domainLanguageDefinition: result.domainLanguageDefinition }),
+      ...('apiSpecificationDefinition' in result && result.apiSpecificationDefinition !== undefined && { apiSpecificationDefinition: result.apiSpecificationDefinition }),
+      ...('databaseDesignDefinition' in result && result.databaseDesignDefinition !== undefined && { databaseDesignDefinition: result.databaseDesignDefinition }),
+      ...('integrationSpecificationDefinition' in result && result.integrationSpecificationDefinition !== undefined && { integrationSpecificationDefinition: result.integrationSpecificationDefinition }),
     }
 
     const service = await parasolDb.service.create({

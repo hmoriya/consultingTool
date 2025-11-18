@@ -218,6 +218,7 @@ export async function getServices(): Promise<ActionResponse<ServiceWithMappedRel
           uiDefinitions: JSON.parse(op.uiDefinitions),
           testCases: JSON.parse(op.testCases),
           robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
+          useCaseModels: [], // TODO: Implement UseCase models mapping
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           useCaseModels: op.useCaseModels.map((uc: any) => ({
             ...uc,
@@ -720,6 +721,7 @@ export async function createBusinessCapability(data: CreateBusinessCapabilityDat
           uiDefinitions: JSON.parse(op.uiDefinitions),
           testCases: JSON.parse(op.testCases),
           robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
+          useCaseModels: [], // TODO: Implement UseCase models mapping
         }))
       }
     };
@@ -784,6 +786,7 @@ export async function updateBusinessCapability(id: string, data: UpdateBusinessC
           uiDefinitions: JSON.parse(op.uiDefinitions),
           testCases: JSON.parse(op.testCases),
           robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
+          useCaseModels: [], // TODO: Implement UseCase models mapping
         }))
       }
     };

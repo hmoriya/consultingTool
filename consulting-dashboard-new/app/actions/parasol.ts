@@ -661,7 +661,7 @@ export async function saveServiceData(serviceId: string, data: SaveServiceData):
       success: true, 
       data: {
         ...service,
-        description: service.description ?? undefined,
+        ...(service.description ? { description: service.description } : {}),
         domainLanguage: JSON.parse(service.domainLanguage),
         apiSpecification: JSON.parse(service.apiSpecification),
         dbSchema: JSON.parse(service.dbSchema),

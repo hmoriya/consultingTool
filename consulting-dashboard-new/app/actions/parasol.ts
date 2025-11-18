@@ -384,7 +384,16 @@ export async function getService(id: string): Promise<ServiceResponse | null> {
     const service = await parasolDb.service.findUnique({
       where: { id },
       include: {
-        businessOperations: true,
+        businessOperations: {
+          include: {
+            useCaseModels: {
+              include: {
+                pageDefinitions: true,
+                robustnessDiagram: true,
+              },
+            },
+          },
+        },
       },
     });
     

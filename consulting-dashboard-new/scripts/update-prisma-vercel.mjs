@@ -25,7 +25,7 @@ const services = [
 const vercelGeneratorConfig = `generator client {
   provider = "prisma-client-js"
   // Vercel最適化設定
-  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
   previewFeatures = ["strictUndefinedChecks"]
 }`;
 

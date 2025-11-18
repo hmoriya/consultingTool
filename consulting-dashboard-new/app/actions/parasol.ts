@@ -3,6 +3,78 @@
 import { parasolDb } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+
+// Prismaから取得される生データの型定義
+interface PrismaBusinessOperation {
+  id: string;
+  serviceId: string;
+  capabilityId: string | null;
+  name: string;
+  displayName: string;
+  design: string | null;
+  pattern: string;
+  goal: string;
+  roles: string;
+  operations: string;
+  businessStates: string;
+  useCases: string;
+  uiDefinitions: string;
+  testCases: string;
+  robustnessModel: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  useCaseModels: PrismaUseCase[];
+}
+
+interface PrismaUseCase {
+  id: string;
+  name: string;
+  displayName: string;
+  description: string | null;
+  definition: string | null;
+  operationId: string;
+  order: number;
+  apiUsageDefinition: string | null;
+  actors: string | null;
+  preconditions: string | null;
+  postconditions: string | null;
+  basicFlow: string | null;
+  alternativeFlow: string | null;
+  exceptionFlow: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  pageDefinitions: PrismaPageDefinition[];
+  robustnessDiagram?: PrismaRobustnessDiagram | null;
+}
+
+interface PrismaPageDefinition {
+  id: string;
+  name: string;
+  displayName: string;
+  description: string | null;
+  useCaseId: string;
+  content: string | null;
+  url: string;
+  layout: string | null;
+  components: string | null;
+  stateManagement: string | null;
+  validations: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface PrismaRobustnessDiagram {
+  id: string;
+  useCaseId: string;
+  content: string;
+  boundaryObjects: string | null;
+  controlObjects: string | null;
+  entityObjects: string | null;
+  diagram: string | null;
+  interactions: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
 import type {
   CreateServiceData,
   UpdateServiceData,
@@ -95,9 +167,19 @@ export async function createService(data: CreateServiceData): Promise<ActionResp
       dbSchema: JSON.stringify(data.dbSchema),
     });
 
-    // Prepare data for Prisma - only include defined properties
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const serviceData: any = {
+    // Prepare data for Prisma - only include defined properties  
+    const serviceData: {
+      name: string;
+      displayName: string;
+      description?: string;
+      domainLanguage?: string;
+      apiSpecification?: string;
+      dbSchema?: string;
+      domainLanguageDefinition?: string;
+      apiSpecificationDefinition?: string;
+      databaseDesignDefinition?: string;
+      integrationSpecificationDefinition?: string;
+    } = {
       name: result.name,
       displayName: result.displayName,
       domainLanguage: result.domainLanguage,
@@ -209,8 +291,7 @@ export async function getServices(): Promise<ActionResponse<ServiceWithMappedRel
       capabilities: service.capabilities.map(cap => ({
         ...cap,
         category: cap.category as 'Core' | 'Supporting' | 'Generic',
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        businessOperations: cap.businessOperations.filter(op => op.capabilityId !== null).map((op: any) => ({
+        businessOperations: cap.businessOperations.filter(op => op.capabilityId !== null).map((op: PrismaBusinessOperation) => ({
           ...op,
           roles: JSON.parse(op.roles),
           operations: JSON.parse(op.operations),
@@ -219,8 +300,7 @@ export async function getServices(): Promise<ActionResponse<ServiceWithMappedRel
           uiDefinitions: JSON.parse(op.uiDefinitions),
           testCases: JSON.parse(op.testCases),
           robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          useCaseModels: op.useCaseModels?.map((uc: any) => ({
+          useCaseModels: op.useCaseModels?.map((uc: PrismaUseCase) => ({
             ...uc,
             actors: uc.actors ? JSON.parse(uc.actors) : null,
             preconditions: uc.preconditions ? JSON.parse(uc.preconditions) : null,
@@ -243,8 +323,7 @@ export async function getServices(): Promise<ActionResponse<ServiceWithMappedRel
           }))
         }))
       })),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      businessOperations: service.businessOperations.filter(op => op.capabilityId !== null).map((op: any) => ({
+      businessOperations: service.businessOperations.filter(op => op.capabilityId !== null).map((op: PrismaBusinessOperation) => ({
         ...op,
         roles: JSON.parse(op.roles),
         operations: JSON.parse(op.operations),
@@ -253,8 +332,7 @@ export async function getServices(): Promise<ActionResponse<ServiceWithMappedRel
         uiDefinitions: JSON.parse(op.uiDefinitions),
         testCases: JSON.parse(op.testCases),
         robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        useCaseModels: op.useCaseModels.map((uc: any) => ({
+        useCaseModels: op.useCaseModels.map((uc: PrismaUseCase) => ({
           ...uc,
           actors: uc.actors ? JSON.parse(uc.actors) : null,
           preconditions: uc.preconditions ? JSON.parse(uc.preconditions) : null,
@@ -309,8 +387,7 @@ export async function getService(id: string): Promise<ServiceResponse | null> {
       domainLanguage: JSON.parse(service.domainLanguage),
       apiSpecification: JSON.parse(service.apiSpecification),
       dbSchema: JSON.parse(service.dbSchema),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      businessOperations: service.businessOperations.filter(op => op.capabilityId !== null).map((op: any) => ({
+      businessOperations: service.businessOperations.filter(op => op.capabilityId !== null).map((op: PrismaBusinessOperation) => ({
         ...op,
         roles: JSON.parse(op.roles),
         operations: JSON.parse(op.operations),
@@ -319,8 +396,7 @@ export async function getService(id: string): Promise<ServiceResponse | null> {
         uiDefinitions: JSON.parse(op.uiDefinitions),
         testCases: JSON.parse(op.testCases),
         robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        useCaseModels: op.useCaseModels.map((uc: any) => ({
+        useCaseModels: op.useCaseModels.map((uc: PrismaUseCase) => ({
           ...uc,
           actors: uc.actors ? JSON.parse(uc.actors) : null,
           preconditions: uc.preconditions ? JSON.parse(uc.preconditions) : null,
@@ -362,8 +438,18 @@ export async function updateService(id: string, data: UpdateServiceData): Promis
     });
 
     // Prepare data for Prisma - only include defined properties
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const updateData: any = {
+    const updateData: Partial<{
+      name: string;
+      displayName: string;
+      description: string;
+      domainLanguage: string;
+      apiSpecification: string;
+      dbSchema: string;
+      domainLanguageDefinition: string;
+      apiSpecificationDefinition: string;
+      databaseDesignDefinition: string;
+      integrationSpecificationDefinition: string;
+    }> = {
       name: result.name,
       displayName: result.displayName,
       domainLanguage: result.domainLanguage,
@@ -395,8 +481,7 @@ export async function updateService(id: string, data: UpdateServiceData): Promis
       domainLanguage: JSON.parse(service.domainLanguage),
       apiSpecification: JSON.parse(service.apiSpecification),
       dbSchema: JSON.parse(service.dbSchema),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      businessOperations: service.businessOperations.filter(op => op.capabilityId !== null).map((op: any) => ({
+      businessOperations: service.businessOperations.filter(op => op.capabilityId !== null).map((op: PrismaBusinessOperation) => ({
         ...op,
         roles: JSON.parse(op.roles),
         operations: JSON.parse(op.operations),
@@ -405,8 +490,7 @@ export async function updateService(id: string, data: UpdateServiceData): Promis
         uiDefinitions: JSON.parse(op.uiDefinitions),
         testCases: JSON.parse(op.testCases),
         robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        useCaseModels: op.useCaseModels.map((uc: any) => ({
+        useCaseModels: op.useCaseModels.map((uc: PrismaUseCase) => ({
           ...uc,
           actors: uc.actors ? JSON.parse(uc.actors) : null,
           preconditions: uc.preconditions ? JSON.parse(uc.preconditions) : null,
@@ -470,8 +554,21 @@ export async function createBusinessOperation(data: CreateBusinessOperationData)
     });
 
     // Prepare data for Prisma - only include defined properties
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const operationData: any = {
+    const operationData: {
+      serviceId: string;
+      capabilityId?: string;
+      name: string;
+      displayName: string;
+      pattern: string;
+      goal?: string;
+      roles: string;
+      operations: string;
+      businessStates: string;
+      useCases: string;
+      uiDefinitions: string;
+      testCases: string;
+      robustnessModel?: string;
+    } = {
       serviceId: result.serviceId,
       name: result.name,
       displayName: result.displayName,
@@ -686,8 +783,13 @@ export async function createBusinessCapability(data: CreateBusinessCapabilityDat
     const result = BusinessCapabilitySchema.parse(data);
 
     // Prepare data for Prisma - only include defined properties
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const capabilityData: any = {
+    const capabilityData: {
+      serviceId: string;
+      name: string;
+      displayName: string;
+      description?: string;
+      category: string;
+    } = {
       serviceId: result.serviceId,
       name: result.name,
       displayName: result.displayName,
@@ -826,8 +928,21 @@ export async function createUseCase(data: CreateUseCaseData): Promise<ActionResp
     });
 
     // Prepare data for Prisma - only include defined properties
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const useCaseData: any = {
+    const useCaseData: {
+      operationId: string;
+      name: string;
+      displayName: string;
+      description?: string;
+      definition?: string;
+      order?: number;
+      actors?: string;
+      preconditions?: string;
+      postconditions?: string;
+      basicFlow?: string;
+      alternativeFlow?: string;
+      exceptionFlow?: string;
+      apiUsageDefinition?: string;
+    } = {
       operationId: result.operationId,
       name: result.name,
       displayName: result.displayName,
@@ -960,8 +1075,15 @@ export async function createRobustnessDiagram(data: CreateRobustnessDiagramData)
     });
 
     // Prepare data for Prisma - only include defined properties
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const diagramData: any = {
+    const diagramData: {
+      useCaseId: string;
+      content: string;
+      boundaryObjects?: string;
+      controlObjects?: string;
+      entityObjects?: string;
+      diagram?: string;
+      interactions?: string;
+    } = {
       useCaseId: result.useCaseId,
       content: result.content,
     };

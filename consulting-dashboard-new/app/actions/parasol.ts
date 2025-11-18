@@ -208,6 +208,7 @@ export async function getServices(): Promise<ActionResponse<ServiceWithMappedRel
       integrationSpecificationDefinition: service.integrationSpecificationDefinition || '',
       capabilities: service.capabilities.map(cap => ({
         ...cap,
+        category: cap.category as 'Core' | 'Supporting' | 'Generic',
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         businessOperations: cap.businessOperations.filter(op => op.capabilityId !== null).map((op: any) => ({
           ...op,

@@ -166,12 +166,16 @@ export interface UpdateRobustnessDiagramData {
   interactions?: RobustnessInteraction[];
 }
 
-// Common response types
-export interface ActionResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
+// Common response types - Union型で成功/失敗を明確に分離
+export type ActionResponse<T> = 
+  | {
+      success: true;
+      data: T;
+    }
+  | {
+      success: false;
+      error: string;
+    };
 
 export interface ServiceResponse extends ParasolService {
   domainLanguage: DomainLanguageDefinition;

@@ -278,15 +278,14 @@ export async function getServices(): Promise<ActionResponse<ServiceWithMappedRel
       }))
     }));
     
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return { success: true, data: mappedServices as any };
+    return { success: true, data: mappedServices };
   } catch (error) {
     console.error('Failed to fetch services:', error);
     if (error instanceof Error) {
       console.error('Error details:', error.message);
       console.error('Stack:', error.stack);
     }
-    return { success: false, data: [], error: error instanceof Error ? error.message : 'Unknown error' };
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 

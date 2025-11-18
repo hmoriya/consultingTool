@@ -657,16 +657,22 @@ export async function saveServiceData(serviceId: string, data: SaveServiceData):
     });
     
     revalidatePath('/settings/parasol');
+    const responseData = {
+      id: service.id,
+      name: service.name,
+      displayName: service.displayName,
+      ...(service.description ? { description: service.description } : {}),
+      domainLanguage: JSON.parse(service.domainLanguage),
+      apiSpecification: JSON.parse(service.apiSpecification),
+      dbSchema: JSON.parse(service.dbSchema),
+      businessOperations: [],
+      createdAt: service.createdAt,
+      updatedAt: service.updatedAt
+    };
+    
     return { 
       success: true, 
-      data: {
-        ...service,
-        ...(service.description ? { description: service.description } : {}),
-        domainLanguage: JSON.parse(service.domainLanguage),
-        apiSpecification: JSON.parse(service.apiSpecification),
-        dbSchema: JSON.parse(service.dbSchema),
-        businessOperations: []
-      }
+      data: responseData
     };
   } catch (error) {
     console.error('Failed to save service data:', error);

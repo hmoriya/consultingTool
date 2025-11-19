@@ -287,7 +287,7 @@ export async function getServices(): Promise<ActionResponse<ServiceWithMappedRel
         ...cap,
         description: cap.description || '',
         category: cap.category as 'Core' | 'Supporting' | 'Generic',
-        businessOperations: cap.businessOperations.filter(op => op.capabilityId !== null).map((op: PrismaBusinessOperation) => ({
+        businessOperations: cap.businessOperations.filter(op => op.capabilityId !== null).map((op) => ({
           ...op,
           roles: JSON.parse(op.roles),
           operations: JSON.parse(op.operations),
@@ -296,7 +296,7 @@ export async function getServices(): Promise<ActionResponse<ServiceWithMappedRel
           uiDefinitions: JSON.parse(op.uiDefinitions),
           testCases: JSON.parse(op.testCases),
           robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
-          useCaseModels: op.useCaseModels?.map((uc: PrismaUseCase) => ({
+          useCaseModels: op.useCaseModels?.map((uc) => ({
             ...uc,
             actors: uc.actors ? JSON.parse(uc.actors) : null,
             preconditions: uc.preconditions ? JSON.parse(uc.preconditions) : null,
@@ -327,7 +327,7 @@ export async function getServices(): Promise<ActionResponse<ServiceWithMappedRel
           }))
         }))
       })),
-      businessOperations: service.businessOperations.filter(op => op.capabilityId !== null).map((op: PrismaBusinessOperation) => ({
+      businessOperations: service.businessOperations.filter(op => op.capabilityId !== null).map((op) => ({
         ...op,
         roles: JSON.parse(op.roles),
         operations: JSON.parse(op.operations),
@@ -336,7 +336,7 @@ export async function getServices(): Promise<ActionResponse<ServiceWithMappedRel
         uiDefinitions: JSON.parse(op.uiDefinitions),
         testCases: JSON.parse(op.testCases),
         robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
-        useCaseModels: op.useCaseModels.map((uc: PrismaUseCase) => ({
+        useCaseModels: op.useCaseModels.map((uc) => ({
           ...uc,
           actors: uc.actors ? JSON.parse(uc.actors) : null,
           preconditions: uc.preconditions ? JSON.parse(uc.preconditions) : null,
@@ -408,7 +408,7 @@ export async function getService(id: string): Promise<ServiceResponse | null> {
       domainLanguage: JSON.parse(service.domainLanguage),
       apiSpecification: JSON.parse(service.apiSpecification),
       dbSchema: JSON.parse(service.dbSchema),
-      businessOperations: service.businessOperations.filter(op => op.capabilityId !== null).map((op: PrismaBusinessOperation) => ({
+      businessOperations: service.businessOperations.filter(op => op.capabilityId !== null).map((op) => ({
         ...op,
         roles: JSON.parse(op.roles),
         operations: JSON.parse(op.operations),
@@ -417,7 +417,7 @@ export async function getService(id: string): Promise<ServiceResponse | null> {
         uiDefinitions: JSON.parse(op.uiDefinitions),
         testCases: JSON.parse(op.testCases),
         robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
-        useCaseModels: op.useCaseModels.map((uc: PrismaUseCase) => ({
+        useCaseModels: op.useCaseModels.map((uc) => ({
           ...uc,
           actors: uc.actors ? JSON.parse(uc.actors) : null,
           preconditions: uc.preconditions ? JSON.parse(uc.preconditions) : null,
@@ -482,8 +482,17 @@ export async function updateService(id: string, data: UpdateServiceData): Promis
       where: { id },
       data: updateData,
       include: {
-        businessOperations: true
-      }
+        businessOperations: {
+          include: {
+            useCaseModels: {
+              include: {
+                pageDefinitions: true,
+                robustnessDiagram: true,
+              },
+            },
+          },
+        },
+      },
     });
     
     revalidatePath('/settings/parasol');
@@ -497,7 +506,7 @@ export async function updateService(id: string, data: UpdateServiceData): Promis
       domainLanguage: JSON.parse(service.domainLanguage),
       apiSpecification: JSON.parse(service.apiSpecification),
       dbSchema: JSON.parse(service.dbSchema),
-      businessOperations: service.businessOperations.filter(op => op.capabilityId !== null).map((op: PrismaBusinessOperation) => ({
+      businessOperations: service.businessOperations.filter(op => op.capabilityId !== null).map((op) => ({
         ...op,
         roles: JSON.parse(op.roles),
         operations: JSON.parse(op.operations),
@@ -506,7 +515,7 @@ export async function updateService(id: string, data: UpdateServiceData): Promis
         uiDefinitions: JSON.parse(op.uiDefinitions),
         testCases: JSON.parse(op.testCases),
         robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
-        useCaseModels: op.useCaseModels.map((uc: PrismaUseCase) => ({
+        useCaseModels: op.useCaseModels.map((uc) => ({
           ...uc,
           actors: uc.actors ? JSON.parse(uc.actors) : null,
           preconditions: uc.preconditions ? JSON.parse(uc.preconditions) : null,

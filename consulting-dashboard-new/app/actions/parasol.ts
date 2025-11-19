@@ -4,77 +4,7 @@ import { parasolDb } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 
-// Prismaから取得される生データの型定義
-interface PrismaBusinessOperation {
-  id: string;
-  serviceId: string;
-  capabilityId: string | null;
-  name: string;
-  displayName: string;
-  design: string | null;
-  pattern: string;
-  goal: string;
-  roles: string;
-  operations: string;
-  businessStates: string;
-  useCases: string;
-  uiDefinitions: string;
-  testCases: string;
-  robustnessModel: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  useCaseModels: PrismaUseCase[];
-}
-
-interface PrismaUseCase {
-  id: string;
-  name: string;
-  displayName: string;
-  description: string | null;
-  definition: string | null;
-  operationId: string;
-  order: number;
-  apiUsageDefinition: string | null;
-  actors: string | null;
-  preconditions: string | null;
-  postconditions: string | null;
-  basicFlow: string | null;
-  alternativeFlow: string | null;
-  exceptionFlow: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  pageDefinitions: PrismaPageDefinition[];
-  robustnessDiagram?: PrismaRobustnessDiagram | null;
-}
-
-interface PrismaPageDefinition {
-  id: string;
-  name: string;
-  displayName: string;
-  description: string | null;
-  useCaseId: string;
-  content: string | null;
-  url: string;
-  layout: string | null;
-  components: string | null;
-  stateManagement: string | null;
-  validations: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface PrismaRobustnessDiagram {
-  id: string;
-  useCaseId: string;
-  content: string;
-  boundaryObjects: string | null;
-  controlObjects: string | null;
-  entityObjects: string | null;
-  diagram: string | null;
-  interactions: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// 未使用のPrisma型定義を削除 - TypeScript自動推論を使用
 import type {
   CreateServiceData,
   UpdateServiceData,
@@ -565,7 +495,7 @@ export async function deleteService(id: string): Promise<ActionResponse<void>> {
     });
     
     revalidatePath('/settings/parasol');
-    return { success: true };
+    return { success: true, data: undefined };
   } catch (error) {
     console.error('Failed to delete service:', error);
     return { success: false, error: 'サービスの削除に失敗しました' };
@@ -730,7 +660,7 @@ export async function deleteBusinessOperation(id: string): Promise<ActionRespons
     });
     
     revalidatePath('/settings/parasol');
-    return { success: true };
+    return { success: true, data: undefined };
   } catch (error) {
     console.error('Failed to delete business operation:', error);
     return { success: false, error: 'ビジネスオペレーションの削除に失敗しました' };
@@ -918,7 +848,7 @@ export async function deleteBusinessCapability(id: string): Promise<ActionRespon
     });
 
     revalidatePath('/settings/parasol');
-    return { success: true };
+    return { success: true, data: undefined };
   } catch (error) {
     console.error('Failed to delete business capability:', error);
     return { success: false, error: 'ビジネスケーパビリティの削除に失敗しました' };
@@ -1053,7 +983,7 @@ export async function deleteUseCase(id: string): Promise<ActionResponse<void>> {
     });
 
     revalidatePath('/settings/parasol');
-    return { success: true };
+    return { success: true, data: undefined };
   } catch (error) {
     console.error('Failed to delete useCase:', error);
     return { success: false, error: 'ユースケースの削除に失敗しました' };
@@ -1158,7 +1088,7 @@ export async function deleteRobustnessDiagram(id: string): Promise<ActionRespons
     });
 
     revalidatePath('/settings/parasol');
-    return { success: true };
+    return { success: true, data: undefined };
   } catch (error) {
     console.error('Failed to delete robustness diagram:', error);
     return { success: false, error: 'ロバストネス図の削除に失敗しました' };

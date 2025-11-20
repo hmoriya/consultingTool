@@ -726,18 +726,15 @@ export async function createBusinessCapability(data: CreateBusinessCapabilityDat
   try {
     const result = BusinessCapabilitySchema.parse(data);
 
-    // Prepare data for Prisma - only include defined properties
-    const capabilityData: Record<string, unknown> = {
+    // Prepare data for Prisma with proper type safety
+    const capabilityData = {
       serviceId: result.serviceId,
       name: result.name,
       displayName: result.displayName,
       category: result.category,
+      // Optional description with proper handling
+      ...(result.description !== undefined && { description: result.description }),
     };
-
-    // Only include description if it's defined
-    if (result.description !== undefined) {
-      capabilityData.description = result.description;
-    }
 
     const capability = await parasolDb.businessCapability.create({
       data: capabilityData,
@@ -866,39 +863,22 @@ export async function createUseCase(data: CreateUseCaseData): Promise<ActionResp
       exceptionFlow: data.exceptionFlow ? JSON.stringify(data.exceptionFlow) : undefined,
     });
 
-    // Prepare data for Prisma - only include defined properties
-    const useCaseData: Record<string, unknown> = {
+    // Prepare data for Prisma with proper type safety
+    const useCaseData = {
       operationId: result.operationId,
       name: result.name,
       displayName: result.displayName,
-      order: result.order,
+      order: result.order || 1,
+      // Optional properties with proper handling
+      ...(result.description !== undefined && { description: result.description }),
+      ...(result.definition !== undefined && { definition: result.definition }),
+      ...(result.actors !== undefined && { actors: result.actors }),
+      ...(result.preconditions !== undefined && { preconditions: result.preconditions }),
+      ...(result.postconditions !== undefined && { postconditions: result.postconditions }),
+      ...(result.basicFlow !== undefined && { basicFlow: result.basicFlow }),
+      ...(result.alternativeFlow !== undefined && { alternativeFlow: result.alternativeFlow }),
+      ...(result.exceptionFlow !== undefined && { exceptionFlow: result.exceptionFlow }),
     };
-
-    // Only include optional properties if they're defined
-    if (result.description !== undefined) {
-      useCaseData.description = result.description;
-    }
-    if (result.definition !== undefined) {
-      useCaseData.definition = result.definition;
-    }
-    if (result.actors !== undefined) {
-      useCaseData.actors = result.actors;
-    }
-    if (result.preconditions !== undefined) {
-      useCaseData.preconditions = result.preconditions;
-    }
-    if (result.postconditions !== undefined) {
-      useCaseData.postconditions = result.postconditions;
-    }
-    if (result.basicFlow !== undefined) {
-      useCaseData.basicFlow = result.basicFlow;
-    }
-    if (result.alternativeFlow !== undefined) {
-      useCaseData.alternativeFlow = result.alternativeFlow;
-    }
-    if (result.exceptionFlow !== undefined) {
-      useCaseData.exceptionFlow = result.exceptionFlow;
-    }
 
     const useCase = await parasolDb.useCase.create({
       data: useCaseData,
@@ -999,28 +979,17 @@ export async function createRobustnessDiagram(data: CreateRobustnessDiagramData)
       interactions: data.interactions ? JSON.stringify(data.interactions) : undefined,
     });
 
-    // Prepare data for Prisma - only include defined properties
-    const diagramData: Record<string, unknown> = {
+    // Prepare data for Prisma with proper type safety
+    const diagramData = {
       useCaseId: result.useCaseId,
       content: result.content,
+      // Optional properties with proper handling
+      ...(result.boundaryObjects !== undefined && { boundaryObjects: result.boundaryObjects }),
+      ...(result.controlObjects !== undefined && { controlObjects: result.controlObjects }),
+      ...(result.entityObjects !== undefined && { entityObjects: result.entityObjects }),
+      ...(result.diagram !== undefined && { diagram: result.diagram }),
+      ...(result.interactions !== undefined && { interactions: result.interactions }),
     };
-
-    // Only include optional properties if they're defined
-    if (result.boundaryObjects !== undefined) {
-      diagramData.boundaryObjects = result.boundaryObjects;
-    }
-    if (result.controlObjects !== undefined) {
-      diagramData.controlObjects = result.controlObjects;
-    }
-    if (result.entityObjects !== undefined) {
-      diagramData.entityObjects = result.entityObjects;
-    }
-    if (result.diagram !== undefined) {
-      diagramData.diagram = result.diagram;
-    }
-    if (result.interactions !== undefined) {
-      diagramData.interactions = result.interactions;
-    }
 
     const robustnessDiagram = await parasolDb.robustnessDiagram.create({
       data: diagramData,

@@ -702,7 +702,7 @@ export async function saveServiceData(serviceId: string, data: SaveServiceData):
       id: service.id,
       name: service.name,
       displayName: service.displayName,
-      ...(service.description ? { description: service.description } : {}),
+      description: service.description || "",
       domainLanguage: JSON.parse(service.domainLanguage),
       apiSpecification: JSON.parse(service.apiSpecification),
       dbSchema: JSON.parse(service.dbSchema),

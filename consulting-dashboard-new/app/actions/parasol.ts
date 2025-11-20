@@ -516,28 +516,23 @@ export async function createBusinessOperation(data: CreateBusinessOperationData)
       robustnessModel: data.robustnessModel ? JSON.stringify(data.robustnessModel) : undefined,
     });
 
-    // Prepare data for Prisma - only include defined properties
-    const operationData: Record<string, unknown> = {
+    // Prepare data for Prisma with proper type safety
+    const operationData = {
       serviceId: result.serviceId,
       name: result.name,
       displayName: result.displayName,
       pattern: result.pattern,
-      goal: result.goal,
+      goal: result.goal || "",
       roles: result.roles,
       operations: result.operations,
       businessStates: result.businessStates,
       useCases: result.useCases,
       uiDefinitions: result.uiDefinitions,
       testCases: result.testCases,
+      // Optional properties with proper handling
+      ...(result.capabilityId !== undefined && { capabilityId: result.capabilityId }),
+      ...(result.robustnessModel !== undefined && { robustnessModel: result.robustnessModel }),
     };
-
-    // Only include optional properties if they're defined
-    if (result.capabilityId !== undefined) {
-      operationData.capabilityId = result.capabilityId;
-    }
-    if (result.robustnessModel !== undefined) {
-      operationData.robustnessModel = result.robustnessModel;
-    }
 
     const operation = await parasolDb.businessOperation.create({
       data: operationData,

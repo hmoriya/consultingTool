@@ -211,7 +211,7 @@ export interface MappedUseCase extends Omit<UseCase, 'actors' | 'preconditions' 
   alternativeFlow: UseCaseFlow[] | null;
   exceptionFlow: UseCaseFlow[] | null;
   pageDefinitions: PageDefinition[];
-  apiUsageDefinition: string;
+  apiUsageDefinition: string | null;
   robustnessDiagram?: MappedRobustnessDiagram;
 }
 

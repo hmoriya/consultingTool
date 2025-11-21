@@ -3,9 +3,10 @@
 
 generator client {
   provider = "prisma-client-js"
-  // Vercel最適化設定
+  // Vercel最適化設定 + GitHub Issue #27087対応
   binaryTargets = ["native", "rhel-openssl-1.0.x"]
   previewFeatures = ["strictUndefinedChecks"]
+  engineType = "library"
 }
 
 datasource db {

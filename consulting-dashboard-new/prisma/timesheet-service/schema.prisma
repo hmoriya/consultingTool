@@ -1,8 +1,9 @@
 generator client {
   provider = "prisma-client-js"
-  // Vercel最適化設定 - nativeのみ使用
+  // Vercel最適化設定 - nativeのみ使用 + GitHub Issue #27087対応
   binaryTargets = ["native"]
   previewFeatures = ["strictUndefinedChecks"]
+  engineType = "library"
 }
 
 datasource db {

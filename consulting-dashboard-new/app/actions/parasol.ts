@@ -749,6 +749,7 @@ export async function createBusinessCapability(data: CreateBusinessCapabilityDat
       data: {
         ...capability,
         description: capability.description || "",
+        category: capability.category as "Core" | "Supporting" | "Generic",
         businessOperations: capability.businessOperations.map(op => ({
           ...op,
           roles: JSON.parse(op.roles),

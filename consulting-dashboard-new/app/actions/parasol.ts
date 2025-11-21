@@ -818,6 +818,8 @@ export async function updateBusinessCapability(id: string, data: UpdateBusinessC
       success: true, 
       data: {
         ...capability,
+        description: capability.description || "",
+        category: capability.category as "Core" | "Supporting" | "Generic",
         businessOperations: capability.businessOperations.map(op => ({
           ...op,
           roles: JSON.parse(op.roles),
@@ -827,7 +829,7 @@ export async function updateBusinessCapability(id: string, data: UpdateBusinessC
           uiDefinitions: JSON.parse(op.uiDefinitions),
           testCases: JSON.parse(op.testCases),
           robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
-          useCaseModels: [] // TODO: Implement UseCase models mapping
+          useCaseModels: [], // Empty array - use cases not included in this query
         }))
       }
     };

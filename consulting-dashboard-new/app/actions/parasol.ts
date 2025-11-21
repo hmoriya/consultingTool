@@ -1089,10 +1089,24 @@ export async function getUseCasesForOperation(operationId: string): Promise<Acti
             updatedAt: true,
           },
         },
+        robustnessDiagram: true,
       },
     });
 
-    return { success: true, data: useCases };
+    // Map the raw data to MappedUseCase format
+    const mappedUseCases: MappedUseCase[] = useCases.map(useCase => ({
+      ...useCase,
+      actors: useCase.actors ? JSON.parse(useCase.actors) : null,
+      preconditions: useCase.preconditions ? JSON.parse(useCase.preconditions) : null,
+      postconditions: useCase.postconditions ? JSON.parse(useCase.postconditions) : null,
+      basicFlow: useCase.basicFlow ? JSON.parse(useCase.basicFlow) : null,
+      alternativeFlow: useCase.alternativeFlow ? JSON.parse(useCase.alternativeFlow) : null,
+      exceptionFlow: useCase.exceptionFlow ? JSON.parse(useCase.exceptionFlow) : null,
+      apiUsageDefinition: useCase.apiUsageDefinition || '',
+      robustnessDiagram: useCase.robustnessDiagram,
+    }));
+
+    return { success: true, data: mappedUseCases };
   } catch (error) {
     console.error('Failed to get usecases for operation:', error);
     return { success: false, error: 'ユースケースの取得に失敗しました' };

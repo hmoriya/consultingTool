@@ -212,7 +212,7 @@ export interface MappedUseCase extends Omit<UseCase, 'actors' | 'preconditions' 
   exceptionFlow: UseCaseFlow[] | null;
   pageDefinitions: PageDefinition[];
   apiUsageDefinition: string | null;
-  robustnessDiagram?: MappedRobustnessDiagram;
+  robustnessDiagram?: MappedRobustnessDiagram | null;
 }
 
 export interface MappedRobustnessDiagram {

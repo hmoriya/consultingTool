@@ -783,7 +783,8 @@ export async function getBusinessCapabilities(serviceId: string): Promise<Mapped
     
     return capabilities.map(cap => ({
       ...cap,
-      description: cap.description || undefined,
+      description: cap.description || "",
+      category: cap.category as "Core" | "Supporting" | "Generic",
       businessOperations: cap.businessOperations.map(op => ({
         ...op,
         roles: JSON.parse(op.roles),
@@ -793,6 +794,7 @@ export async function getBusinessCapabilities(serviceId: string): Promise<Mapped
         uiDefinitions: JSON.parse(op.uiDefinitions),
         testCases: JSON.parse(op.testCases),
         robustnessModel: op.robustnessModel ? JSON.parse(op.robustnessModel) : null,
+        useCaseModels: [], // Empty array - use cases not included in this query
       }))
     }));
   } catch (error) {

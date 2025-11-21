@@ -218,11 +218,11 @@ export interface MappedUseCase extends Omit<UseCase, 'actors' | 'preconditions' 
 export interface MappedRobustnessDiagram {
   id: string;
   content: string;
-  boundaryObjects: RobustnessObject[] | null;
-  controlObjects: RobustnessObject[] | null;
-  entityObjects: RobustnessObject[] | null;
-  interactions: RobustnessInteraction[] | null;
-  diagram?: string;
+  boundaryObjects: string | null;
+  controlObjects: string | null;
+  entityObjects: string | null;
+  interactions: string | null;
+  diagram?: string | null;
 }
 
 export interface MappedBusinessCapability extends Omit<BusinessCapability, 'description'> {

@@ -1,12 +1,21 @@
 'use server'
 
 import { db } from '@/lib/db'
-import { projectDb } from '@/lib/db/project-db'
+import { PrismaClient as ProjectPrismaClient } from '@prisma/project-client'
 import { projectService } from '@/lib/services/project-service'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
 import { startOfWeek, endOfWeek } from 'date-fns'
 import { PROJECT_MEMBER_ROLES, USER_ROLES } from '@/constants/roles'
+
+// プロジェクトサービス専用クライアント
+const projectDb = new ProjectPrismaClient({
+  datasources: {
+    db: {
+      url: process.env.PROJECT_DATABASE_URL || 'file:./prisma/project-service/data/project.db'
+    }
+  }
+})
 
 export async function getPMDashboardData() {
   const user = await getCurrentUser()

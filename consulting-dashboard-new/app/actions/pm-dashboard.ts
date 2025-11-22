@@ -46,9 +46,41 @@ export async function getPMDashboardData() {
 
   // タスクの統計
   let taskStats: { status: string; _count: number }[] = []
-  let upcomingMilestones: any[] = []
-  let riskyTasks: any[] = []
-  let teamMembers: any[] = []
+  let upcomingMilestones: Array<{
+    id: string
+    title: string
+    dueDate: Date
+    status: string
+    projectId: string
+    project: {
+      id: string
+      name: string
+      client?: { id: string; name: string } | null
+    }
+  }> = []
+  let riskyTasks: Array<{
+    id: string
+    title: string
+    dueDate: Date | null
+    status: string
+    assigneeId: string | null
+    projectId: string
+    project: {
+      id: string
+      name: string
+      client?: { id: string; name: string } | null
+    }
+  }> = []
+  let teamMembers: Array<{
+    id: string
+    userId: string
+    role: string
+    allocation: number
+    project: {
+      id: string
+      name: string
+    }
+  }> = []
 
   if (projectIds.length > 0) {
     // タスクの統計をプロジェクトデータから計算

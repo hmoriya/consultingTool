@@ -1,21 +1,12 @@
 'use server'
 
 import { db } from '@/lib/db'
-import { PrismaClient as ProjectPrismaClient } from '@prisma/project-client'
+import { projectDb } from '@/lib/db/project-db'
 import { projectService } from '@/lib/services/project-service'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
 import { startOfWeek, endOfWeek } from 'date-fns'
 import { PROJECT_MEMBER_ROLES, USER_ROLES } from '@/constants/roles'
-
-// プロジェクトサービス専用クライアント
-const projectDb = new ProjectPrismaClient({
-  datasources: {
-    db: {
-      url: process.env.PROJECT_DATABASE_URL || 'file:./prisma/project-service/data/project.db'
-    }
-  }
-})
 
 export async function getPMDashboardData() {
   const user = await getCurrentUser()
@@ -61,79 +52,66 @@ export async function getPMDashboardData() {
   let teamMembers = []
 
   if (projectIds.length > 0) {
-    // タスクの統計（プロジェクトサービスから）
-    taskStats = await projectDb.task.groupBy({
-      by: ['status'],
-      where: {
-        projectId: {
-          in: projectIds
-        }
-      },
-      _count: true
-    })
+    // タスクの統計をプロジェクトデータから計算
+    const allTasks = myProjects.flatMap(project => project.tasks || [])
+    const taskStatsByStatus = allTasks.reduce((acc, task) => {
+      acc[task.status] = (acc[task.status] || 0) + 1
+      return acc
+    }, {} as Record<string, number>)
+    
+    taskStats = Object.entries(taskStatsByStatus).map(([status, count]) => ({
+      status,
+      _count: count
+    }))
 
-    // 今週のマイルストーン
+    // 今週のマイルストーンをプロジェクトデータから抽出
     const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
     const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 })
 
-    upcomingMilestones = await projectDb.milestone.findMany({
-      where: {
-        projectId: {
-          in: projectIds
-        },
-        dueDate: {
-          gte: weekStart,
-          lte: weekEnd
-        },
-        status: {
-          not: 'completed'
-        }
-      },
-      include: {
-        project: true
-      },
-      orderBy: {
-        dueDate: 'asc'
-      }
-    })
+    const allMilestones = myProjects.flatMap(project => 
+      (project.milestones || []).map(milestone => ({
+        ...milestone,
+        project
+      }))
+    )
+    
+    upcomingMilestones = allMilestones
+      .filter(milestone => {
+        const dueDate = new Date(milestone.dueDate)
+        return dueDate >= weekStart && 
+               dueDate <= weekEnd && 
+               milestone.status !== 'completed'
+      })
+      .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
 
-    // リスクの高いタスク（期限切れまたは期限間近）
+    // リスクの高いタスクをプロジェクトデータから抽出（期限切れまたは期限間近）
     const today = new Date()
     const threeDaysLater = new Date()
     threeDaysLater.setDate(today.getDate() + 3)
 
-    riskyTasks = await projectDb.task.findMany({
-      where: {
-        projectId: {
-          in: projectIds
-        },
-        status: {
-          not: 'completed'
-        },
-        dueDate: {
-          lte: threeDaysLater
-        }
-      },
-      include: {
-        project: true
-      },
-      orderBy: {
-        dueDate: 'asc'
-      },
-      take: 10
-    })
+    const allTasksWithProject = myProjects.flatMap(project => 
+      (project.tasks || []).map(task => ({
+        ...task,
+        project
+      }))
+    )
+    
+    riskyTasks = allTasksWithProject
+      .filter(task => {
+        if (task.status === 'completed' || !task.dueDate) return false
+        const dueDate = new Date(task.dueDate)
+        return dueDate <= threeDaysLater
+      })
+      .sort((a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime())
+      .slice(0, 10)
 
-    // チームメンバーの稼働率
-    teamMembers = await projectDb.projectMember.findMany({
-      where: {
-        projectId: {
-          in: projectIds
-        }
-      },
-      include: {
-        project: true
-      }
-    })
+    // チームメンバーの稼働率をプロジェクトデータから抽出
+    teamMembers = myProjects.flatMap(project => 
+      (project.projectMembers || []).map(member => ({
+        ...member,
+        project
+      }))
+    )
   }
 
   // プロジェクトにクライアント情報を追加
@@ -218,22 +196,26 @@ export async function getProjectProgress(projectId: string) {
     redirect('/login')
   }
 
-  const project = await projectDb.project.findUnique({
-    where: { id: projectId },
-    include: {
-      tasks: true,
-      milestones: true,
-      projectMembers: {
-        where: {
-          userId: user.id,
-          role: PROJECT_MEMBER_ROLES.PM
-        }
-      }
-    }
+  // プロジェクトサービスから詳細データを取得
+  const projects = await projectService.getProjectsWithDetails({
+    includeMembers: true,
+    includeTasks: true,
+    includeMilestones: true,
   })
+  
+  const project = projects.find(p => p.id === projectId)
 
-  if (!project || (project.projectMembers.length === 0 && user.role.name !== USER_ROLES.EXECUTIVE)) {
+  if (!project) {
     throw new Error('プロジェクトが見つかりません')
+  }
+
+  // PMロールのチェック
+  const isProjectMember = project.projectMembers.some(member => 
+    member.userId === user.id && member.role === PROJECT_MEMBER_ROLES.PM
+  )
+  
+  if (!isProjectMember && user.role.name !== USER_ROLES.EXECUTIVE) {
+    throw new Error('プロジェクトにアクセスする権限がありません')
   }
 
   const completedTasks = project.tasks.filter(t => t.status === 'completed').length

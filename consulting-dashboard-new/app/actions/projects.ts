@@ -1,6 +1,6 @@
 'use server'
 
-import { db } from '@/lib/db'
+import { authDb } from '@/lib/db'
 import { projectService } from '@/lib/services/project-service'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
@@ -156,7 +156,7 @@ export async function createProject(data: {
     })
 
     // 監査ログ
-    await db.auditLog.create({
+    await authDb.auditLog.create({
       data: {
         userId: user.id,
         action: 'CREATE',
@@ -205,7 +205,7 @@ export async function updateProjectStatus(projectId: string, status: ProjectStat
   await projectService.updateProject(projectId, { status })
 
   // 監査ログ
-  await db.auditLog.create({
+  await authDb.auditLog.create({
     data: {
       userId: user.id,
       action: 'UPDATE',
@@ -249,7 +249,7 @@ export async function getProjectDetails(projectId: string) {
 
   // メンバーのロール情報を追加
   const memberUserIds = project.projectMembers.map(m => m.userId)
-  const memberUsers = await db.user.findMany({
+  const memberUsers = await authDb.user.findMany({
     where: { id: { in: memberUserIds } },
     select: {
       id: true,

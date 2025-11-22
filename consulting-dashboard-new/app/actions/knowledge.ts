@@ -1,16 +1,8 @@
 'use server'
 
-import { PrismaClient as KnowledgePrismaClient } from '@/prisma/knowledge-service/generated/client'
+import { knowledgeDb } from '@/lib/db'
 import { getCurrentUser } from './auth'
 import { revalidatePath } from 'next/cache'
-
-const knowledgeDb = new KnowledgePrismaClient({
-  datasources: {
-    db: {
-      url: process.env.KNOWLEDGE_DATABASE_URL || 'file:./prisma/knowledge-service/data/knowledge.db'
-    }
-  }
-})
 
 // 記事一覧を取得
 export async function getArticles() {

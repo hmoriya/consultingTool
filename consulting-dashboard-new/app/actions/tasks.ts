@@ -1,6 +1,6 @@
 'use server'
 
-import { db } from '@/lib/db'
+import { authDb } from '@/lib/db'
 import { projectDb } from '@/lib/db/project-db'
 import { timesheetDb } from '@/lib/prisma-vercel'
 import { getCurrentUser } from './auth'
@@ -75,7 +75,7 @@ export async function getProjectTasks(projectId: string) {
 
   // ユーザー情報を取得
   const assigneeIds = [...new Set(tasks.map(t => t.assigneeId).filter(Boolean))] as string[]
-  const assignees = assigneeIds.length > 0 ? await db.user.findMany({
+  const assignees = assigneeIds.length > 0 ? await authDb.user.findMany({
     where: { id: { in: assigneeIds } },
     select: {
       id: true,
@@ -116,7 +116,7 @@ export async function getUserTasks() {
 
   // クライアント情報を取得
   const clientIds = [...new Set(tasks.map(t => t.project.clientId))]
-  const clients = await db.organization.findMany({
+  const clients = await authDb.organization.findMany({
     where: {
       id: { in: clientIds }
     }
@@ -152,7 +152,7 @@ export async function getTaskById(taskId: string) {
   }
 
   // クライアント情報を取得（auth serviceから）
-  const client = await db.organization.findUnique({
+  const client = await authDb.organization.findUnique({
     where: { id: task.project.clientId }
   })
 
@@ -232,7 +232,7 @@ export async function createTask(data: {
   // ユーザー情報を取得
   let assignee = null
   if (task.assigneeId) {
-    assignee = await db.user.findUnique({
+    assignee = await authDb.user.findUnique({
       where: { id: task.assigneeId },
       select: {
         id: true,
@@ -243,7 +243,7 @@ export async function createTask(data: {
   }
 
   // 監査ログ
-  await db.auditLog.create({
+  await authDb.auditLog.create({
     data: {
       userId: user.id,
       action: 'CREATE',
@@ -313,7 +313,7 @@ export async function updateTaskStatus(taskId: string, status: TaskStatus, comme
   // ユーザー情報を取得
   let assignee = null
   if (updatedTask.assigneeId) {
-    assignee = await db.user.findUnique({
+    assignee = await authDb.user.findUnique({
       where: { id: updatedTask.assigneeId },
       select: {
         id: true,
@@ -328,7 +328,7 @@ export async function updateTaskStatus(taskId: string, status: TaskStatus, comme
     ? `タスク「${task.title}」のステータスを「${status}」に変更しました - コメント: ${comment}`
     : `タスク「${task.title}」のステータスを「${status}」に変更しました`
     
-  await db.auditLog.create({
+  await authDb.auditLog.create({
     data: {
       userId: user.id,
       action: 'UPDATE',
@@ -406,7 +406,7 @@ export async function updateTask(taskId: string, data: {
   // ユーザー情報を取得
   let assignee = null
   if (updatedTask.assigneeId) {
-    assignee = await db.user.findUnique({
+    assignee = await authDb.user.findUnique({
       where: { id: updatedTask.assigneeId },
       select: {
         id: true,
@@ -417,7 +417,7 @@ export async function updateTask(taskId: string, data: {
   }
 
   // 監査ログ
-  await db.auditLog.create({
+  await authDb.auditLog.create({
     data: {
       userId: user.id,
       action: 'UPDATE',
@@ -461,7 +461,7 @@ export async function deleteTask(taskId: string) {
   })
 
   // 監査ログ
-  await db.auditLog.create({
+  await authDb.auditLog.create({
     data: {
       userId: user.id,
       action: 'DELETE',

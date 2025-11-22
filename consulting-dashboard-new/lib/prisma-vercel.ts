@@ -5,7 +5,7 @@
 // Vercel環境対応統合Prismaクライアント
 // 注意: 各サービスは環境変数で異なるデータベースを参照
 import { PrismaClient } from '@prisma/client'
-import { PrismaClient as AuthPrismaClient } from '../../node_modules/@prisma/auth-client'
+import { PrismaClient as AuthPrismaClient } from '@prisma/auth-client'
 
 // Vercel環境検出
 const isVercel = !!process.env.VERCEL

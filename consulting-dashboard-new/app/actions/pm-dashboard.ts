@@ -1,6 +1,6 @@
 'use server'
 
-import { db } from '@/lib/db'
+import { authDb } from '@/lib/db'
 import { projectService } from '@/lib/services/project-service'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
@@ -182,7 +182,7 @@ export async function getPMDashboardData() {
 
   // タスクにクライアント情報とアサイン情報を追加
   const assigneeIds = [...new Set(riskyTasks.map(t => t.assigneeId).filter(id => id))]
-  const assignees = assigneeIds.length > 0 ? await db.user.findMany({
+  const assignees = assigneeIds.length > 0 ? await authDb.user.findMany({
     where: { id: { in: assigneeIds as string[] } }
   }) : []
   const assigneeMap = new Map(assignees.map(u => [u.id, u]))
@@ -201,7 +201,7 @@ export async function getPMDashboardData() {
 
   // メンバーのユーザー情報を取得
   const memberUserIds = [...new Set(teamMembers.map(m => m.userId))]
-  const memberUsers = memberUserIds.length > 0 ? await db.user.findMany({
+  const memberUsers = memberUserIds.length > 0 ? await authDb.user.findMany({
     where: { id: { in: memberUserIds } }
   }) : []
   const userMap = new Map(memberUsers.map(u => [u.id, u]))

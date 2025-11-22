@@ -1,6 +1,6 @@
 'use server'
 
-import { prisma } from '@/lib/db'
+import { timesheetDb } from '@/lib/db'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'
@@ -27,7 +27,7 @@ export async function createTimeEntry(data: TimeEntryData) {
 
   try {
     // 同じ日に同じプロジェクト/タスクに重複する記録がないかチェック
-    const existing = await prisma.timeEntry.findFirst({
+    const existing = await timesheetDb.timeEntry.findFirst({
       where: {
         userId: user.id,
         projectId: data.projectId,
@@ -44,7 +44,7 @@ export async function createTimeEntry(data: TimeEntryData) {
     }
 
     // 1日の合計が24時間を超えないかチェック
-    const dailyTotal = await prisma.timeEntry.aggregate({
+    const dailyTotal = await timesheetDb.timeEntry.aggregate({
       where: {
         userId: user.id,
         date: data.date,
@@ -62,7 +62,7 @@ export async function createTimeEntry(data: TimeEntryData) {
       }
     }
 
-    const timeEntry = await prisma.timeEntry.create({
+    const timeEntry = await timesheetDb.timeEntry.create({
       data: {
         userId: user.id,
         projectId: data.projectId,
@@ -99,7 +99,7 @@ export async function updateTimeEntry(
 
   try {
     // 所有者チェック
-    const timeEntry = await prisma.timeEntry.findUnique({
+    const timeEntry = await timesheetDb.timeEntry.findUnique({
       where: { id },
     })
 
@@ -125,7 +125,7 @@ export async function updateTimeEntry(
       }
     }
 
-    const updated = await prisma.timeEntry.update({
+    const updated = await timesheetDb.timeEntry.update({
       where: { id },
       data,
     })
@@ -151,7 +151,7 @@ export async function deleteTimeEntry(id: string) {
   }
 
   try {
-    const timeEntry = await prisma.timeEntry.findUnique({
+    const timeEntry = await timesheetDb.timeEntry.findUnique({
       where: { id },
     })
 
@@ -176,7 +176,7 @@ export async function deleteTimeEntry(id: string) {
       }
     }
 
-    await prisma.timeEntry.delete({
+    await timesheetDb.timeEntry.delete({
       where: { id },
     })
 
@@ -202,7 +202,7 @@ export async function getWeeklyTimesheet(date: Date) {
   const weekStart = startOfWeek(date, { weekStartsOn: 1 })
   const weekEnd = endOfWeek(date, { weekStartsOn: 1 })
 
-  const timeEntries = await prisma.timeEntry.findMany({
+  const timeEntries = await timesheetDb.timeEntry.findMany({
     where: {
       userId: user.id,
       date: {
@@ -262,7 +262,7 @@ export async function getMonthlyTimesheet(date: Date) {
   const monthStart = startOfMonth(date)
   const monthEnd = endOfMonth(date)
 
-  const timeEntries = await prisma.timeEntry.findMany({
+  const timeEntries = await timesheetDb.timeEntry.findMany({
     where: {
       userId: user.id,
       date: {
@@ -346,7 +346,7 @@ export async function approveTimeEntries(ids: string[]) {
       const allowedProjectIds = projectIds.map(p => p.projectId)
 
       // 対象の工数記録がすべて自分のプロジェクトのものかチェック
-      const timeEntries = await prisma.timeEntry.findMany({
+      const timeEntries = await timesheetDb.timeEntry.findMany({
         where: {
           id: {
             in: ids,
@@ -369,7 +369,7 @@ export async function approveTimeEntries(ids: string[]) {
       }
     }
 
-    await prisma.timeEntry.updateMany({
+    await timesheetDb.timeEntry.updateMany({
       where: {
         id: {
           in: ids,

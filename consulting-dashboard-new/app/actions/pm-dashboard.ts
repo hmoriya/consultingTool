@@ -212,6 +212,16 @@ export async function getPMDashboardData() {
   }))
 
   // 稼働率の計算
+  type MemberUtilization = {
+    user: any
+    allocation: number
+    projects: Array<{
+      id: string
+      name: string
+      allocation: number
+    }>
+  }
+
   const memberUtilization = teamMembersWithUser.reduce((acc, member) => {
     if (!acc[member.userId]) {
       acc[member.userId] = {
@@ -220,14 +230,15 @@ export async function getPMDashboardData() {
         projects: []
       }
     }
-    acc[member.userId].allocation += member.allocation
-    acc[member.userId].projects.push({
+    const memberData = acc[member.userId] as MemberUtilization
+    memberData.allocation += member.allocation
+    memberData.projects.push({
       id: member.project.id,
       name: member.project.name,
       allocation: member.allocation
     })
     return acc
-  }, {} as Record<string, unknown>)
+  }, {} as Record<string, MemberUtilization>)
 
   return {
     projects: projectsWithCount,

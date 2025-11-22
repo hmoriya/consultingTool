@@ -1,7 +1,6 @@
 'use server'
 
 import { db } from '@/lib/db'
-import { projectDb } from '@/lib/db/project-db'
 import { projectService } from '@/lib/services/project-service'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
@@ -46,10 +45,10 @@ export async function getPMDashboardData() {
   const projectIds = myProjects.map(p => p.id)
 
   // タスクの統計
-  let taskStats = []
-  let upcomingMilestones = []
-  let riskyTasks = []
-  let teamMembers = []
+  let taskStats: { status: string; _count: number }[] = []
+  let upcomingMilestones: any[] = []
+  let riskyTasks: any[] = []
+  let teamMembers: any[] = []
 
   if (projectIds.length > 0) {
     // タスクの統計をプロジェクトデータから計算

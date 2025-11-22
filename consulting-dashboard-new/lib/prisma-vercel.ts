@@ -4,7 +4,6 @@
 
 // Vercel環境対応統合Prismaクライアント
 // 注意: 各サービスは独立したPrismaクライアントを使用
-import { PrismaClient } from '@prisma/client' // メインスキーマ用
 import { PrismaClient as AuthPrismaClient } from '@prisma/auth-client'
 import { PrismaClient as ProjectPrismaClient } from '@prisma/project-client'
 import { PrismaClient as ResourcePrismaClient } from '@prisma/resource-client'

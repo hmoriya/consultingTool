@@ -213,7 +213,11 @@ export async function getPMDashboardData() {
 
   // 稼働率の計算
   type MemberUtilization = {
-    user: any
+    user: {
+      id: string
+      name: string
+      email: string
+    } | null
     allocation: number
     projects: Array<{
       id: string

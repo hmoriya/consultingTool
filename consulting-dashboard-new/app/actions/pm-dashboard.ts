@@ -48,10 +48,15 @@ export async function getPMDashboardData() {
   let taskStats: { status: string; _count: number }[] = []
   let upcomingMilestones: Array<{
     id: string
-    title: string
+    name: string
+    description: string | null
     dueDate: Date
     status: string
     projectId: string
+    completionRate: number
+    actualCompletedDate: Date | null
+    createdAt: Date
+    updatedAt: Date
     project: {
       id: string
       name: string
@@ -61,10 +66,17 @@ export async function getPMDashboardData() {
   let riskyTasks: Array<{
     id: string
     title: string
+    description: string | null
     dueDate: Date | null
     status: string
+    priority: string
+    estimatedHours: number | null
+    actualHours: number | null
     assigneeId: string | null
     projectId: string
+    milestoneId: string | null
+    createdAt: Date
+    updatedAt: Date
     project: {
       id: string
       name: string
@@ -74,8 +86,13 @@ export async function getPMDashboardData() {
   let teamMembers: Array<{
     id: string
     userId: string
+    projectId: string
     role: string
     allocation: number
+    startDate: Date
+    endDate: Date | null
+    createdAt: Date
+    updatedAt: Date
     project: {
       id: string
       name: string

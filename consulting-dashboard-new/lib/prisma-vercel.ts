@@ -3,9 +3,16 @@
  */
 
 // Vercel環境対応統合Prismaクライアント
-// 注意: 各サービスは環境変数で異なるデータベースを参照
-import { PrismaClient } from '@prisma/client'
+// 注意: 各サービスは独立したPrismaクライアントを使用
+import { PrismaClient } from '@prisma/client' // メインスキーマ用
 import { PrismaClient as AuthPrismaClient } from '@prisma/auth-client'
+import { PrismaClient as ProjectPrismaClient } from '@prisma/project-client'
+import { PrismaClient as ResourcePrismaClient } from '@prisma/resource-client'
+import { PrismaClient as TimesheetPrismaClient } from '@prisma/timesheet-client'
+import { PrismaClient as NotificationPrismaClient } from '@prisma/notification-client'
+import { PrismaClient as FinancePrismaClient } from '@prisma/finance-client'
+import { PrismaClient as KnowledgePrismaClient } from '@prisma/knowledge-client'
+import { PrismaClient as ParasolPrismaClient } from '@prisma/parasol-client'
 
 // Vercel環境検出
 const isVercel = !!process.env.VERCEL
@@ -20,13 +27,13 @@ const basePrismaConfig = {
 // グローバル接続管理（Vercel Hot Reload対応）
 const globalForPrisma = globalThis as unknown as {
   authDb: AuthPrismaClient | undefined
-  projectDb: PrismaClient | undefined
-  resourceDb: PrismaClient | undefined
-  timesheetDb: PrismaClient | undefined
-  notificationDb: PrismaClient | undefined
-  financeDb: PrismaClient | undefined
-  knowledgeDb: PrismaClient | undefined
-  parasolDb: PrismaClient | undefined
+  projectDb: ProjectPrismaClient | undefined
+  resourceDb: ResourcePrismaClient | undefined
+  timesheetDb: TimesheetPrismaClient | undefined
+  notificationDb: NotificationPrismaClient | undefined
+  financeDb: FinancePrismaClient | undefined
+  knowledgeDb: KnowledgePrismaClient | undefined
+  parasolDb: ParasolPrismaClient | undefined
 }
 
 // 認証サービス - 環境変数: AUTH_DATABASE_URL
@@ -40,7 +47,7 @@ export const authDb = globalForPrisma.authDb ?? new AuthPrismaClient({
 })
 
 // プロジェクトサービス - 環境変数: PROJECT_DATABASE_URL
-export const projectDb = globalForPrisma.projectDb ?? new PrismaClient({
+export const projectDb = globalForPrisma.projectDb ?? new ProjectPrismaClient({
   ...basePrismaConfig,
   datasources: {
     db: {
@@ -50,7 +57,7 @@ export const projectDb = globalForPrisma.projectDb ?? new PrismaClient({
 })
 
 // リソースサービス - 環境変数: RESOURCE_DATABASE_URL
-export const resourceDb = globalForPrisma.resourceDb ?? new PrismaClient({
+export const resourceDb = globalForPrisma.resourceDb ?? new ResourcePrismaClient({
   ...basePrismaConfig,
   datasources: {
     db: {
@@ -60,7 +67,7 @@ export const resourceDb = globalForPrisma.resourceDb ?? new PrismaClient({
 })
 
 // タイムシートサービス - 環境変数: TIMESHEET_DATABASE_URL
-export const timesheetDb = globalForPrisma.timesheetDb ?? new PrismaClient({
+export const timesheetDb = globalForPrisma.timesheetDb ?? new TimesheetPrismaClient({
   ...basePrismaConfig,
   datasources: {
     db: {
@@ -70,7 +77,7 @@ export const timesheetDb = globalForPrisma.timesheetDb ?? new PrismaClient({
 })
 
 // 通知サービス - 環境変数: NOTIFICATION_DATABASE_URL
-export const notificationDb = globalForPrisma.notificationDb ?? new PrismaClient({
+export const notificationDb = globalForPrisma.notificationDb ?? new NotificationPrismaClient({
   ...basePrismaConfig,
   datasources: {
     db: {
@@ -80,7 +87,7 @@ export const notificationDb = globalForPrisma.notificationDb ?? new PrismaClient
 })
 
 // 財務サービス - 環境変数: FINANCE_DATABASE_URL
-export const financeDb = globalForPrisma.financeDb ?? new PrismaClient({
+export const financeDb = globalForPrisma.financeDb ?? new FinancePrismaClient({
   ...basePrismaConfig,
   datasources: {
     db: {
@@ -90,7 +97,7 @@ export const financeDb = globalForPrisma.financeDb ?? new PrismaClient({
 })
 
 // ナレッジサービス - 環境変数: KNOWLEDGE_DATABASE_URL
-export const knowledgeDb = globalForPrisma.knowledgeDb ?? new PrismaClient({
+export const knowledgeDb = globalForPrisma.knowledgeDb ?? new KnowledgePrismaClient({
   ...basePrismaConfig,
   datasources: {
     db: {
@@ -100,7 +107,7 @@ export const knowledgeDb = globalForPrisma.knowledgeDb ?? new PrismaClient({
 })
 
 // パラソルサービス - 環境変数: PARASOL_DATABASE_URL
-export const parasolDb = globalForPrisma.parasolDb ?? new PrismaClient({
+export const parasolDb = globalForPrisma.parasolDb ?? new ParasolPrismaClient({
   ...basePrismaConfig,
   datasources: {
     db: {

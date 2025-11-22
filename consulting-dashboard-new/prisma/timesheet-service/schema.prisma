@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output = "../node_modules/@prisma/timesheet-client"
   // Vercel最適化設定 - nativeのみ使用 + GitHub Issue #27087対応
   binaryTargets = ["native"]
   previewFeatures = ["strictUndefinedChecks"]

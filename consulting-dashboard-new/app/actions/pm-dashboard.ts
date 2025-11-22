@@ -91,8 +91,14 @@ export async function getPMDashboardData() {
     allocation: number
     startDate: Date
     endDate: Date | null
+    achievements: string | null
+    responsibilities: string | null
     createdAt: Date
-    updatedAt: Date
+    user?: {
+      id: string
+      name: string
+      email: string
+    }
     project: {
       id: string
       name: string

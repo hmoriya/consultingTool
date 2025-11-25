@@ -234,8 +234,8 @@ export async function getPMDashboardData() {
         projects: []
       }
     }
-    acc[member.userId].allocation += member.allocation
-    acc[member.userId].projects.push({
+    acc[member.userId]!.allocation += member.allocation
+    acc[member.userId]!.projects.push({
       id: member.project.id,
       name: member.project.name,
       allocation: member.allocation

@@ -1,6 +1,6 @@
 'use server'
 
-import { authDb, projectDb, resourceDb } from '@/lib/prisma-vercel'
+import { authDb, projectDb } from '@/lib/prisma-vercel'
 import { getCurrentUser } from './auth'
 import { z } from 'zod'
 import { User } from '@prisma/client'

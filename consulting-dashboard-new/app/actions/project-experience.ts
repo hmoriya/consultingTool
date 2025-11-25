@@ -37,7 +37,7 @@ export async function getUserProjectExperience(userId?: string) {
   const projectsWithClients = await Promise.all(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     projectExperiences.map(async (exp: any) => {
-      const client = await projectDb.organization.findUnique({
+      const client = await authDb.organization.findUnique({
         where: { id: exp.project.clientId }
       })
       
@@ -310,7 +310,7 @@ export async function searchProjectExperiences(filters: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     experiences.map(async (exp: any) => {
       // Fetch client information
-      const client = await projectDb.organization.findUnique({
+      const client = await authDb.organization.findUnique({
         where: { id: exp.project.clientId }
       })
       

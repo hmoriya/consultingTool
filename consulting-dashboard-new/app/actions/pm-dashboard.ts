@@ -286,12 +286,12 @@ export async function getProjectProgress(projectId: string) {
     throw new Error('プロジェクトにアクセスする権限がありません')
   }
 
-  const completedTasks = project.tasks.filter(t => t.status === 'completed').length
-  const totalTasks = project.tasks.length
+  const completedTasks = project.tasks?.filter(t => t.status === 'completed').length || 0
+  const totalTasks = project.tasks?.length || 0
   const taskProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
 
-  const completedMilestones = project.milestones.filter(m => m.status === 'completed').length
-  const totalMilestones = project.milestones.length
+  const completedMilestones = project.milestones?.filter(m => m.status === 'completed').length || 0
+  const totalMilestones = project.milestones?.length || 0
   const milestoneProgress = totalMilestones > 0 ? Math.round((completedMilestones / totalMilestones) * 100) : 0
 
   return {

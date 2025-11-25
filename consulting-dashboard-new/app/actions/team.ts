@@ -1,7 +1,6 @@
 'use server'
 
-import { db } from '@/lib/db'
-import { projectDb } from '@/lib/db/project-db'
+import { authDb, projectDb, resourceDb } from '@/lib/prisma-vercel'
 import { getCurrentUser } from './auth'
 import { z } from 'zod'
 import { User } from '@prisma/client'
@@ -35,7 +34,7 @@ export async function getTeamMembers() {
   }
 
   // ユーザーの組織IDを取得
-  const fullUser = await db.user.findUnique({
+  const fullUser = await authDb.user.findUnique({
     where: { id: user.id },
     select: { organizationId: true }
   })
@@ -44,7 +43,7 @@ export async function getTeamMembers() {
     throw new Error('ユーザー情報が見つかりません')
   }
 
-  const members = await db.user.findMany({
+  const members = await authDb.user.findMany({
     where: {
       organizationId: fullUser.organizationId,
       role: {
@@ -124,7 +123,7 @@ export async function searchTeamMembers(query: string) {
   }
 
   // ユーザーの組織IDを取得
-  const fullUser = await db.user.findUnique({
+  const fullUser = await authDb.user.findUnique({
     where: { id: user.id },
     select: { organizationId: true }
   })
@@ -133,7 +132,7 @@ export async function searchTeamMembers(query: string) {
     throw new Error('ユーザー情報が見つかりません')
   }
 
-  const members = await db.user.findMany({
+  const members = await authDb.user.findMany({
     where: {
       organizationId: fullUser.organizationId,
       role: {
@@ -193,7 +192,7 @@ export async function createTeamMember(data: z.infer<typeof createMemberSchema>)
   }
 
   // ユーザーの組織IDを取得
-  const fullUser = await db.user.findUnique({
+  const fullUser = await authDb.user.findUnique({
     where: { id: user.id },
     select: { organizationId: true }
   })
@@ -205,7 +204,7 @@ export async function createTeamMember(data: z.infer<typeof createMemberSchema>)
   const validatedData = createMemberSchema.parse(data)
 
   // メールアドレスの重複チェック
-  const existingUser = await db.user.findUnique({
+  const existingUser = await authDb.user.findUnique({
     where: { email: validatedData.email }
   })
 
@@ -217,7 +216,7 @@ export async function createTeamMember(data: z.infer<typeof createMemberSchema>)
   const bcrypt = await import('bcryptjs')
   const hashedPassword = await bcrypt.hash(validatedData.password, 10)
 
-  const member = await db.user.create({
+  const member = await authDb.user.create({
     data: {
       email: validatedData.email,
       name: validatedData.name,
@@ -252,7 +251,7 @@ export async function updateTeamMember(memberId: string, data: z.infer<typeof up
   const validatedData = updateMemberSchema.parse(data)
 
   // ユーザーの組織IDを取得
-  const fullUser = await db.user.findUnique({
+  const fullUser = await authDb.user.findUnique({
     where: { id: user.id },
     select: { organizationId: true }
   })
@@ -262,7 +261,7 @@ export async function updateTeamMember(memberId: string, data: z.infer<typeof up
   }
 
   // 同じ組織のメンバーか確認
-  const member = await db.user.findFirst({
+  const member = await authDb.user.findFirst({
     where: {
       id: memberId,
       organizationId: fullUser.organizationId
@@ -273,7 +272,7 @@ export async function updateTeamMember(memberId: string, data: z.infer<typeof up
     throw new Error('メンバーが見つかりません')
   }
 
-  const updatedMember = await db.user.update({
+  const updatedMember = await authDb.user.update({
     where: { id: memberId },
     data: {
       name: validatedData.name,
@@ -304,7 +303,7 @@ export async function deleteTeamMember(memberId: string) {
   }
 
   // ユーザーの組織IDを取得
-  const fullUser = await db.user.findUnique({
+  const fullUser = await authDb.user.findUnique({
     where: { id: user.id },
     select: { organizationId: true }
   })
@@ -314,7 +313,7 @@ export async function deleteTeamMember(memberId: string) {
   }
 
   // 同じ組織のメンバーか確認
-  const member = await db.user.findFirst({
+  const member = await authDb.user.findFirst({
     where: {
       id: memberId,
       organizationId: fullUser.organizationId
@@ -339,7 +338,7 @@ export async function deleteTeamMember(memberId: string) {
     throw new Error('アクティブなプロジェクトに参加しているメンバーは削除できません')
   }
 
-  await db.user.delete({
+  await authDb.user.delete({
     where: { id: memberId }
   })
 }
@@ -356,7 +355,7 @@ export async function getMemberUtilization(memberId?: string) {
   }
 
   // ユーザーの組織IDを取得
-  const fullUser = await db.user.findUnique({
+  const fullUser = await authDb.user.findUnique({
     where: { id: user.id },
     select: { organizationId: true }
   })
@@ -375,7 +374,7 @@ export async function getMemberUtilization(memberId?: string) {
     ...(memberId && { id: memberId })
   }
 
-  const members = await db.user.findMany({
+  const members = await authDb.user.findMany({
     where: whereClause
   })
 

@@ -1,6 +1,6 @@
 'use server'
 
-import { db } from '@/lib/db'
+import { authDb } from '@/lib/prisma-vercel'
 import { getCurrentUser } from './auth'
 
 export async function getAllUsers() {
@@ -10,7 +10,7 @@ export async function getAllUsers() {
       return { success: false, error: '認証が必要です' }
     }
 
-    const users = await db.user.findMany({
+    const users = await authDb.user.findMany({
       where: {
         id: {
           not: currentUser.id

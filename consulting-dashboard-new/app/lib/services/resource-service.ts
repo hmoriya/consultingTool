@@ -1,5 +1,4 @@
-import { resourceDb } from '@/lib/db/resource-db'
-import { db } from '@/lib/db'
+import { resourceDb, authDb } from '@/lib/prisma-vercel'
 import { ResourceAllocation, SkillWithLevel, TeamMemberWithUser } from '@/types/resource'
 
 export class ResourceService {
@@ -22,7 +21,7 @@ export class ResourceService {
     const memberUserIds = [...new Set(
       teams.flatMap(t => t.members.map(m => m.userId))
     )]
-    const users = await db.user.findMany({
+    const users = await authDb.user.findMany({
       where: {
         id: { in: memberUserIds },
       },
@@ -88,7 +87,7 @@ export class ResourceService {
 
     // ユーザー情報を取得
     const userIds = [...new Set(userSkills.map(us => us.userId))]
-    const users = await db.user.findMany({
+    const users = await authDb.user.findMany({
       where: {
         id: { in: userIds },
         isActive: true,

@@ -5,7 +5,7 @@ import { ContactList } from '@/components/clients/contact-list'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { db } from '@/lib/db'
+import { authDb } from '@/lib/prisma-vercel'
 import { getOrganizationContacts } from '@/actions/organization-contacts'
 import { 
   Building2, 
@@ -25,7 +25,7 @@ interface ClientDetailPageProps {
 
 export async function generateMetadata({ params }: ClientDetailPageProps): Promise<Metadata> {
   const { id } = await params
-  const client = await db.organization.findFirst({
+  const client = await authDb.organization.findFirst({
     where: {
       id: id,
       type: 'client'
@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: ClientDetailPageProps): Promi
 
 export default async function ClientDetailPage({ params }: ClientDetailPageProps) {
   const { id } = await params
-  const client = await db.organization.findFirst({
+  const client = await authDb.organization.findFirst({
     where: {
       id: id,
       type: 'client'

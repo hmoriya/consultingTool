@@ -1,5 +1,4 @@
-import { projectDb } from '@/lib/db/project-db'
-import { db } from '@/lib/db'
+import { projectDb, authDb } from '@/lib/prisma-vercel'
 import { ProjectWithDetails, CreateProjectInput, UpdateProjectInput, ProjectMemberWithUser } from '@/types/project'
 
 export class ProjectService {
@@ -43,7 +42,7 @@ export class ProjectService {
 
     // クライアント情報を取得
     const clientIds = [...new Set(projects.map(p => p.clientId))]
-    const clients = await db.organization.findMany({
+    const clients = await authDb.organization.findMany({
       where: {
         id: { in: clientIds },
       },
@@ -63,7 +62,7 @@ export class ProjectService {
         console.warn('Warning: No member IDs found despite includeMembers=true')
       }
       
-      const users = await db.user.findMany({
+      const users = await authDb.user.findMany({
         where: {
           id: { in: memberUserIds },
         },
@@ -107,7 +106,7 @@ export class ProjectService {
    */
   async createProject(input: CreateProjectInput) {
     // クライアントが存在するか確認
-    const client = await db.organization.findUnique({
+    const client = await authDb.organization.findUnique({
       where: { id: input.clientId },
     })
     if (!client) {
@@ -174,7 +173,7 @@ export class ProjectService {
     startDate: Date
   ) {
     // ユーザーが存在するか確認
-    const user = await db.user.findUnique({
+    const user = await authDb.user.findUnique({
       where: { id: userId },
     })
     if (!user) {
@@ -206,7 +205,7 @@ export class ProjectService {
   }) {
     // アサイン先ユーザーが存在するか確認（指定された場合）
     if (input.assigneeId) {
-      const user = await db.user.findUnique({
+      const user = await authDb.user.findUnique({
         where: { id: input.assigneeId },
       })
       if (!user) {

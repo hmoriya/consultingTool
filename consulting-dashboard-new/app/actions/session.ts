@@ -1,7 +1,7 @@
 'use server'
 
 import { cookies } from 'next/headers'
-import { db } from '@/lib/db'
+import { authDb } from '@/lib/prisma-vercel'
 
 /**
  * セッションを延長するServer Action
@@ -16,7 +16,7 @@ export async function extendSession() {
   }
   
   try {
-    const session = await db.session.findUnique({
+    const session = await authDb.session.findUnique({
       where: { id: sessionId }
     })
     
@@ -31,7 +31,7 @@ export async function extendSession() {
     
     const newExpiresAt = new Date(Date.now() + sessionDuration)
     
-    await db.session.update({
+    await authDb.session.update({
       where: { id: sessionId },
       data: { expiresAt: newExpiresAt }
     })

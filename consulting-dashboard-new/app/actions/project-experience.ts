@@ -1,8 +1,7 @@
 'use server'
 
-import { db } from '@/lib/db'
-import { projectDb } from '@/lib/db/project-db'
-import { resourceDb } from '@/lib/db/resource-db'
+import { projectDb } from '@/lib/prisma-vercel'
+import { resourceDb } from '@/lib/prisma-vercel'
 import { getCurrentUser } from './auth'
 import { revalidatePath } from 'next/cache'
 

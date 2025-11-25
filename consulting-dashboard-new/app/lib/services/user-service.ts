@@ -1,6 +1,4 @@
-import { db } from '@/lib/db'
-import { resourceDb } from '@/lib/db/resource-db'
-import { projectDb } from '@/lib/db/project-db'
+import { authDb, resourceDb, projectDb } from '@/lib/prisma-vercel'
 import { UserProfile, UserWithRole } from '@/types/user'
 
 export class UserService {
@@ -9,7 +7,7 @@ export class UserService {
    */
   async getUserProfile(userId: string): Promise<UserProfile> {
     // コアサービスからユーザー基本情報を取得
-    const user = await db.user.findUnique({
+    const user = await authDb.user.findUnique({
       where: { id: userId },
       include: {
         role: {
@@ -84,7 +82,7 @@ export class UserService {
    * 組織内のユーザー一覧を取得
    */
   async getOrganizationUsers(organizationId: string): Promise<UserWithRole[]> {
-    const users = await db.user.findMany({
+    const users = await authDb.user.findMany({
       where: {
         organizationId,
         isActive: true,
@@ -108,7 +106,7 @@ export class UserService {
     resource: string,
     action: string
   ): Promise<boolean> {
-    const user = await db.user.findUnique({
+    const user = await authDb.user.findUnique({
       where: { id: userId },
       include: {
         role: {
@@ -181,7 +179,7 @@ export class UserService {
     isActive?: boolean
   }) {
     // 基本的なユーザー検索
-    const users = await db.user.findMany({
+    const users = await authDb.user.findMany({
       where: {
         ...(query.keyword && {
           OR: [

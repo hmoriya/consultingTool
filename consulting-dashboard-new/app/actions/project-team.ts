@@ -1,7 +1,6 @@
 'use server'
 
-import { db } from '@/lib/db'
-import { projectDb } from '@/lib/db/project-db'
+import { authDb, projectDb } from '@/lib/prisma-vercel'
 import { getCurrentUser } from './auth'
 import { z } from 'zod'
 import { TeamMemberRole, teamMemberRoleUtils, teamMemberRoleSchema } from '@/types/team-member'
@@ -54,7 +53,7 @@ export async function getProjectTeamMembers(projectId: string) {
 
   // ユーザー情報を取得
   const userIds = [...new Set(members.map(m => m.userId))]
-  const users = userIds.length > 0 ? await db.user.findMany({
+  const users = userIds.length > 0 ? await authDb.user.findMany({
     where: { id: { in: userIds } },
     select: {
       id: true,
@@ -181,7 +180,7 @@ export async function addTeamMember(projectId: string, data: z.infer<typeof addM
   })
 
   // ユーザー情報を取得
-  const userData = await db.user.findUnique({
+  const userData = await authDb.user.findUnique({
     where: { id: member.userId },
     select: {
       id: true,
@@ -229,7 +228,7 @@ export async function updateTeamMember(memberId: string, data: z.infer<typeof up
   })
 
   // ユーザー情報を取得
-  const userData = await db.user.findUnique({
+  const userData = await authDb.user.findUnique({
     where: { id: member.userId },
     select: {
       id: true,
@@ -278,7 +277,7 @@ export async function getAvailableUsers(projectId: string) {
   const existingUserIds = existingMembers.map(m => m.userId)
 
   // コンサルティングファームのユーザーで、プロジェクトに未参加のユーザーを取得
-  const availableUsers = await db.user.findMany({
+  const availableUsers = await authDb.user.findMany({
     where: {
       organizationId: user.organizationId,
       id: {

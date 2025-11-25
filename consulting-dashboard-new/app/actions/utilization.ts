@@ -1,8 +1,6 @@
 'use server'
 
-import { db } from '@/lib/db'
-import { projectDb } from '@/lib/db/project-db'
-import { timesheetDb } from '@/lib/db/timesheet-db'
+import { authDb, projectDb, timesheetDb } from '@/lib/prisma-vercel'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
 import { startOfMonth, endOfMonth, eachDayOfInterval, format, startOfWeek, endOfWeek } from 'date-fns'
@@ -50,7 +48,7 @@ export async function getTeamUtilization(targetMonth?: string) {
   const monthEnd = endOfMonth(currentDate)
 
   // チームメンバーを取得
-  const members = await db.user.findMany({
+  const members = await authDb.user.findMany({
     where: {
       organizationId: user.organizationId,
       role: {
@@ -106,7 +104,7 @@ export async function getTeamUtilization(targetMonth?: string) {
 
     // クライアント情報を取得
     const clientIds = [...new Set(projectMembers.map(pm => pm.project.clientId))]
-    const clients = await db.organization.findMany({
+    const clients = await authDb.organization.findMany({
       where: { id: { in: clientIds } }
     })
     const clientMap = new Map(clients.map(c => [c.id, c]))
@@ -235,7 +233,7 @@ export async function getProjectResourceAllocation(projectId: string) {
   }
 
   // ユーザー情報を取得
-  const memberUsers = await db.user.findMany({
+  const memberUsers = await authDb.user.findMany({
     where: {
       id: { in: project.projectMembers.map(pm => pm.userId) }
     },
@@ -276,7 +274,7 @@ export async function getProjectResourceAllocation(projectId: string) {
   const totalAllocation = project.projectMembers.reduce((sum, pm) => sum + pm.allocation, 0)
 
   // クライアント情報を取得
-  const client = await db.organization.findUnique({
+  const client = await authDb.organization.findUnique({
     where: { id: project.clientId }
   })
 
@@ -316,7 +314,7 @@ export async function getUtilizationRecommendations() {
   }
 
   // 低稼働率メンバー（50%未満）
-  const lowUtilizationMembers = await db.user.findMany({
+  const lowUtilizationMembers = await authDb.user.findMany({
     where: {
       organizationId: user.organizationId,
       role: {

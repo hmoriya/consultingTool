@@ -110,13 +110,14 @@ export async function updateProjectExperience(
     throw new Error('プロジェクト経験が見つからないか、権限がありません')
   }
 
+  const updateData: any = {}
+  if (data.achievements !== undefined) updateData.achievements = data.achievements
+  if (data.responsibilities !== undefined) updateData.responsibilities = data.responsibilities
+  if (data.endDate !== undefined) updateData.endDate = data.endDate
+
   const updated = await projectDb.projectMember.update({
     where: { id: projectMemberId },
-    data: {
-      achievements: data.achievements,
-      responsibilities: data.responsibilities,
-      endDate: data.endDate
-    }
+    data: updateData
   })
 
   await authDb.auditLog.create({

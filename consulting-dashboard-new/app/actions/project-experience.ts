@@ -1,7 +1,6 @@
 'use server'
 
-import { projectDb } from '@/lib/prisma-vercel'
-import { resourceDb } from '@/lib/prisma-vercel'
+import { authDb, projectDb, resourceDb } from '@/lib/prisma-vercel'
 import { getCurrentUser } from './auth'
 import { revalidatePath } from 'next/cache'
 
@@ -38,7 +37,7 @@ export async function getUserProjectExperience(userId?: string) {
   const projectsWithClients = await Promise.all(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     projectExperiences.map(async (exp: any) => {
-      const client = await db.organization.findUnique({
+      const client = await projectDb.organization.findUnique({
         where: { id: exp.project.clientId }
       })
       
@@ -120,7 +119,7 @@ export async function updateProjectExperience(
     }
   })
 
-  await db.auditLog.create({
+  await authDb.auditLog.create({
     data: {
       userId: user.id,
       action: 'UPDATE',
@@ -197,7 +196,7 @@ export async function addProjectSkill(
     }
   })
 
-  await db.auditLog.create({
+  await authDb.auditLog.create({
     data: {
       userId: user.id,
       action: 'CREATE',
@@ -311,7 +310,7 @@ export async function searchProjectExperiences(filters: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     experiences.map(async (exp: any) => {
       // Fetch client information
-      const client = await db.organization.findUnique({
+      const client = await projectDb.organization.findUnique({
         where: { id: exp.project.clientId }
       })
       

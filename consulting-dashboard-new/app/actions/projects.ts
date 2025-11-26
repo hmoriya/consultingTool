@@ -43,7 +43,7 @@ export async function getProjects() {
   console.log('First project members:', projects[0]?.projectMembers)
   
   // デバッグ: プロジェクトメンバーの存在を詳細確認
-  if (projects.length > 0) {
+  if (projects.length > 0 && projects[0]) {
     console.log('Debug - First project details:', {
       id: projects[0].id,
       name: projects[0].name,

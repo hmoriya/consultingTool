@@ -318,14 +318,6 @@ export async function searchProjectExperiences(filters: {
   const experiences = await projectDb.projectMember.findMany({
     where,
     include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true
-        }
-      },
       project: true,
       skills: true
     },
@@ -335,10 +327,21 @@ export async function searchProjectExperiences(filters: {
     ]
   })
 
+  // Fetch user data separately
+  const userIds = [...new Set(experiences.map(exp => exp.userId))]
+  const users = userIds.length > 0 ? await authDb.user.findMany({
+    where: { id: { in: userIds } },
+    include: { role: true }
+  }) : []
+  const userMap = new Map(users.map(u => [u.id, u]))
+
   // Fetch additional data from other services
   const experiencesWithDetails = await Promise.all(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     experiences.map(async (exp: any) => {
+      // Fetch user information
+      const user = userMap.get(exp.userId) || null
+      
       // Fetch client information
       const client = await authDb.organization.findUnique({
         where: { id: exp.project.clientId }
@@ -361,6 +364,12 @@ export async function searchProjectExperiences(filters: {
       
       return {
         ...exp,
+        user: user ? {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        } : null,
         project: {
           ...exp.project,
           client

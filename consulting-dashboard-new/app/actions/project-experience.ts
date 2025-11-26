@@ -268,7 +268,31 @@ export async function searchProjectExperiences(filters: {
     throw new Error('PM以上の権限が必要です')
   }
 
-  const where: unknown = {
+  interface ProjectMemberWhere {
+    user?: {
+      organizationId: string
+    }
+    userId?: string
+    project?: {
+      clientId: string
+    }
+    role?: string
+    skills?: {
+      some: {
+        skillId: {
+          in: string[]
+        }
+      }
+    }
+    startDate?: {
+      gte?: Date
+    }
+    endDate?: {
+      lte?: Date
+    } | null
+  }
+
+  const where: ProjectMemberWhere = {
     user: {
       organizationId: user.organizationId
     }
@@ -284,10 +308,11 @@ export async function searchProjectExperiences(filters: {
       }
     }
   }
-  if (filters.startDate || filters.endDate) {
-    where.startDate = {}
-    if (filters.startDate) where.startDate.gte = filters.startDate
-    if (filters.endDate) where.startDate.lte = filters.endDate
+  if (filters.startDate) {
+    where.startDate = { gte: filters.startDate }
+  }
+  if (filters.endDate) {
+    where.endDate = { lte: filters.endDate }
   }
 
   const experiences = await projectDb.projectMember.findMany({

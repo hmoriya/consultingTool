@@ -48,7 +48,7 @@ export async function getProjects() {
       id: projects[0].id,
       name: projects[0].name,
       memberCount: projects[0].projectMembers?.length || 0,
-      members: projects[0].projectMembers?.map(m => ({
+      members: projects[0].projectMembers?.map((m: any) => ({
         userId: m.userId,
         role: m.role
       }))
@@ -58,7 +58,7 @@ export async function getProjects() {
   // ユーザーの権限に基づいてフィルタリング
   const filteredProjects = user.role.name === USER_ROLES.EXECUTIVE
     ? projects
-    : projects.filter(project => {
+    : projects.filter((project: any) => {
         // PMまたはメンバーとして参加しているプロジェクトを表示
         // 問題: project.projectMembers が空配列または未定義の可能性
         if (!project.projectMembers || project.projectMembers.length === 0) {
@@ -66,9 +66,9 @@ export async function getProjects() {
           return false
         }
         
-        const isMember = project.projectMembers.some(m => m.userId === user.id)
+        const isMember = project.projectMembers.some((m: any) => m.userId === user.id)
         if (isMember) {
-          const memberRole = project.projectMembers.find(m => m.userId === user.id)?.role
+          const memberRole = project.projectMembers.find((m: any) => m.userId === user.id)?.role
           console.log(`User ${user.id} is ${memberRole} for project: ${project.name}`)
         } else {
           console.log(`User ${user.id} is NOT member of project: ${project.name}`)
@@ -85,11 +85,11 @@ export async function getProjects() {
       let progressRate = 0
       
       if (project.tasks && project.tasks.length > 0) {
-        const completedTasks = project.tasks.filter(t => t.status === 'completed').length
+        const completedTasks = project.tasks.filter((t: any) => t.status === 'completed').length
         progressRate = Math.round((completedTasks / project.tasks.length) * 100)
       }
       
-      const pm = project.projectMembers.find(m => m.role === PROJECT_MEMBER_ROLES.PM)
+      const pm = project.projectMembers.find((m: any) => m.role === PROJECT_MEMBER_ROLES.PM)
       
       return {
         id: project.id,
@@ -248,7 +248,7 @@ export async function getProjectDetails(projectId: string) {
   const projectMetrics: unknown[] = []
 
   // メンバーのロール情報を追加
-  const memberUserIds = project.projectMembers.map(m => m.userId)
+  const memberUserIds = project.projectMembers.map((m: any) => m.userId)
   const memberUsers = await authDb.user.findMany({
     where: { id: { in: memberUserIds } },
     select: {
@@ -262,12 +262,12 @@ export async function getProjectDetails(projectId: string) {
       }
     }
   })
-  const userMap = new Map(memberUsers.map(u => [u.id, u]))
+  const userMap = new Map(memberUsers.map((u: any) => [u.id, u]))
 
   // レスポンスを整形
   return {
     ...project,
-    projectMembers: project.projectMembers.map(member => ({
+    projectMembers: project.projectMembers.map((member: any) => ({
       ...member,
       user: userMap.get(member.userId) || { id: member.userId, name: 'Unknown', email: '', role: { name: 'unknown' } }
     })),
@@ -288,7 +288,7 @@ export async function getActiveProjects() {
       includeMembers: false,
     })
 
-    const formattedProjects = projects.map(project => ({
+    const formattedProjects = projects.map((project: any) => ({
       id: project.id,
       name: project.name,
       code: project.code,

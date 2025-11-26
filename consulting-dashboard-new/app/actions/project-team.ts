@@ -215,16 +215,26 @@ export async function updateTeamMember(memberId: string, data: z.infer<typeof up
 
   const validatedData = updateMemberSchema.parse(data)
 
+  const updateData: {
+    role: typeof validatedData.role
+    allocation: number
+    startDate: Date
+    endDate?: Date | null
+  } = {
+    role: validatedData.role,
+    allocation: validatedData.allocation,
+    startDate: validatedData.startDate
+  }
+
+  if (validatedData.endDate !== undefined) {
+    updateData.endDate = validatedData.endDate
+  }
+
   const member = await projectDb.projectMember.update({
     where: {
       id: memberId
     },
-    data: {
-      role: validatedData.role,
-      allocation: validatedData.allocation,
-      startDate: validatedData.startDate,
-      endDate: validatedData.endDate
-    }
+    data: updateData
   })
 
   // ユーザー情報を取得

@@ -1,6 +1,6 @@
 'use server'
 
-import { resourceDb } from '@/lib/prisma-vercel'
+import { authDb, resourceDb } from '@/lib/prisma-vercel'
 import { getCurrentUser } from './auth'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
@@ -27,7 +27,7 @@ export async function getSkillCategories() {
   })
 
   // 組織内のユーザーIDリストを取得
-  const organizationUsers = await db.user.findMany({
+  const organizationUsers = await authDb.user.findMany({
     where: {
       organizationId: user.organizationId
     },
@@ -60,7 +60,7 @@ export async function getSkills(categoryId?: string) {
   }
 
   // 組織内のユーザーIDリストを取得
-  const organizationUsers = await db.user.findMany({
+  const organizationUsers = await authDb.user.findMany({
     where: {
       organizationId: user.organizationId
     },
@@ -156,7 +156,7 @@ export async function createSkillCategory(data: {
     }
   })
 
-  await db.auditLog.create({
+  await authDb.auditLog.create({
     data: {
       userId: user.id,
       action: 'CREATE',
@@ -189,7 +189,7 @@ export async function createSkill(data: {
     }
   })
 
-  await db.auditLog.create({
+  await authDb.auditLog.create({
     data: {
       userId: user.id,
       action: 'CREATE',
@@ -250,7 +250,7 @@ export async function upsertUserSkill(data: {
       }
     })
 
-    await db.auditLog.create({
+    await authDb.auditLog.create({
       data: {
         userId: user.id,
         action: 'UPDATE',
@@ -278,7 +278,7 @@ export async function upsertUserSkill(data: {
       }
     })
 
-    await db.auditLog.create({
+    await authDb.auditLog.create({
       data: {
         userId: user.id,
         action: 'CREATE',
@@ -324,7 +324,7 @@ export async function deleteUserSkill(userSkillId: string) {
     where: { id: userSkillId }
   })
 
-  await db.auditLog.create({
+  await authDb.auditLog.create({
     data: {
       userId: user.id,
       action: 'DELETE',
@@ -346,7 +346,7 @@ export async function searchMembersBySkill(skillIds: string[], minLevel?: number
   }
 
   // 組織内のユーザーを取得
-  const members = await db.user.findMany({
+  const members = await authDb.user.findMany({
     where: {
       organizationId: user.organizationId
     },
